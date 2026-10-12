@@ -17,4 +17,8 @@ public class Channel extends BaseEntity {
         this.name = name;
         return this;
     }
+
+    public String getName() {
+        return this.name;
+    }
 }
