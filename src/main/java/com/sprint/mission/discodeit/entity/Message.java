@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
-public class Message {
+public class Message extends BaseEntity {
 
     private String content;
 
@@ -11,5 +11,10 @@ public class Message {
 
     public String getContent() {
         return content;
+    }
+
+    public void updateContent(String content) {
+        this.update();
+        this.content = content;
     }
 }

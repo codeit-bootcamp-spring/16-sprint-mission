@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
-public class Channel {
+public class Channel extends BaseEntity {
 
     private String channelName;
 
@@ -11,5 +11,10 @@ public class Channel {
 
     public String getChannelName() {
         return channelName;
+    }
+
+    public void updateChannelName(String channelName) {
+        this.update();
+        this.channelName = channelName;
     }
 }

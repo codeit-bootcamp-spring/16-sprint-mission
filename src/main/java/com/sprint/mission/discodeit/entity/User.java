@@ -1,15 +1,20 @@
 package com.sprint.mission.discodeit.entity;
 
-public class User extends Message {
+public class User extends BaseEntity {
 
-    private String name;
+    private String userName;
 
-    public User(String name) {
+    public User(String userName) {
         super();
-        this.name = name;
+        this.userName = userName;
     }
 
     public String getName() {
-        return name;
+        return userName;
+    }
+
+    public void updateUserName(String userName) {
+        this.update();
+        this.userName = userName;
     }
 }

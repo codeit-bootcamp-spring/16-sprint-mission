@@ -6,7 +6,7 @@ public abstract class BaseEntity {
 
     private UUID id;
     private Long createAt;
-    private Long updateAt;
+    protected Long updateAt;
 
     public BaseEntity() {
         this.id = UUID.randomUUID();
