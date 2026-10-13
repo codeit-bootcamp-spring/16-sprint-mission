@@ -7,6 +7,14 @@ public class User extends BaseEntity {
 
     public User(String username, String password, String email) {
         super();
+
+        Validation.validateBlank(username, "username");
+        Validation.validateBlank(password, "password");
+        if (email != null) {
+            Validation.validateBlank(email, "email");
+            Validation.validateEmailRegex(email);
+        }
+
         this.username = username;
         this.password = password;
         this.email = email;
@@ -21,26 +29,29 @@ public class User extends BaseEntity {
     }
 
     public void changeUsername(String username) {
-        if (username == null || username.isBlank()) {
-            return;
-        }
+        Validation.validateBlank(username, "username");
+
         this.username = username;
         super.update();
     }
 
     public void changePassword(String password) {
-        if (password == null || password.isBlank()) {
-            return;
-        }
+        Validation.validateBlank(password, "password");
+
         this.password = password;
         super.update();
     }
 
     public void changeEmail(String email) {
-        if (email == null || email.isBlank()) {
-            return;
-        }
+        Validation.validateBlank(email, "email");
+        Validation.validateEmailRegex(email);
+
         this.email = email;
+        super.update();
+    }
+
+    public void deleteEmail() {
+        this.email = null;
         super.update();
     }
 

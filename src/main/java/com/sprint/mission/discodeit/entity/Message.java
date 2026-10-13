@@ -9,6 +9,14 @@ public class Message extends BaseEntity {
 
     public Message(String content, UUID senderId, UUID channelId) {
         super();
+
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("메시지를 작성해 주세요.");
+        }
+
+        Validation.validateBlank(senderId, "senderId");
+        Validation.validateBlank(channelId, "channelId");
+
         this.content = content;
         this.senderId = senderId;
         this.channelId = channelId;
@@ -28,8 +36,9 @@ public class Message extends BaseEntity {
 
     public void updateMessage(String content) {
         if (content == null || content.isBlank()) {
-            return;
+            throw new IllegalArgumentException("메시지를 작성해 주세요.");
         }
+
         this.content = content;
         super.update();
     }
