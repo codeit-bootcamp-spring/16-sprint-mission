@@ -12,6 +12,8 @@ public class User {
 
     public User(String name, String password) {
         this.id = UUID.randomUUID();
+        this.name = name;
+        this.password = password;
         this.createdAt = Instant.now().getEpochSecond();
         this.updatedAt = this.createdAt;
     }
