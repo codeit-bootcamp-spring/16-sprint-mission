@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service_impl;
 
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.null_entity.NullMessage;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import java.time.Instant;
@@ -27,7 +26,7 @@ public class JCFMessageService implements MessageService {
         Message message = data.get(id);
         if (message == null) {
             System.out.println("존재하지 않는 메시지입니다.");
-            return new NullMessage();
+            return null;
         }
         return message;
     }
@@ -41,7 +40,7 @@ public class JCFMessageService implements MessageService {
     @Override
     public void update(UUID id, String newMessage) {
         Message message = findById(id);
-        if (message instanceof NullMessage) {
+        if (message == null) {
             System.out.println("존재하지 않는 메시지의 내용을 수정할 수 없습니다.");
             return;
         }
@@ -54,7 +53,7 @@ public class JCFMessageService implements MessageService {
         Message message = data.get(id);
         if (message == null) {
             System.out.println("존재하지 않는 id입니다.");
-            return new NullMessage();
+            return null;
         }
         return message;
     }

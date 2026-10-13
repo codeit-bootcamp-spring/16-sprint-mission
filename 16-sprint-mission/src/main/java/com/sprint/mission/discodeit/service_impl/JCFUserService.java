@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service_impl;
 
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.null_entity.NullUser;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.time.Instant;
@@ -28,7 +27,6 @@ public class JCFUserService implements UserService {
         User user = data.get(id);
         if (user == null) {
             System.out.println("존재하지 않는 유저입니다");
-            return new NullUser();
         }
         return user;
     }
@@ -41,7 +39,7 @@ public class JCFUserService implements UserService {
                 return user;
             }
         }
-        return new NullUser();
+        return null;
     }
 
     public List<User> findAll() {
@@ -63,7 +61,7 @@ public class JCFUserService implements UserService {
             return user;
         } else {
             System.out.println("존재하지 않는 유저입니다.");
-            return new NullUser();
+            return null;
         }
     }
 
@@ -81,7 +79,7 @@ public class JCFUserService implements UserService {
             return user;
         } else {
             System.out.println("존재하지 않는 유저입니다.");
-            return new NullUser();
+            return null;
         }
     }
 
@@ -99,7 +97,7 @@ public class JCFUserService implements UserService {
             return user;
         } else {
             System.out.println("존재하지 않는 유저입니다.");
-            return new NullUser();
+            return null;
         }
     }
 
@@ -108,7 +106,7 @@ public class JCFUserService implements UserService {
         User removedUser = data.remove(id);
         if (removedUser == null) {
             System.out.println("존재하지 않는 유저입니다");
-            return new NullUser();
+            return null;
         }
         return removedUser;
     }

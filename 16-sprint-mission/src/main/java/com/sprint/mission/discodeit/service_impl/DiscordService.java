@@ -43,12 +43,20 @@ public class DiscordService {
         return userService.findAll();
     }
 
+    public User deleteUser(UUID userId) {
+        return userService.delete(userId);
+    }
+
     public Channel findChannelById(UUID channelId) {
         return channelService.findById(channelId);
     }
 
     public List<Channel> findAllChannels() {
         return channelService.findAll();
+    }
+
+    public Channel deleteChannel(UUID channelId) {
+        return channelService.delete(channelId);
     }
 
     public void createMessage(String msg, Channel channel, User author) {
@@ -73,5 +81,9 @@ public class DiscordService {
 
     public List<Message> findAllMessages() {
         return messageService.findAll();
+    }
+
+    public Message deleteMessage(UUID messageId) {
+        return messageService.delete(messageId);
     }
 }

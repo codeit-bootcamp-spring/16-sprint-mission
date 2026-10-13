@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.service_impl;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.entity.null_entity.NullChannel;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import java.util.*;
@@ -27,7 +26,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = data.get(id);
         if (channel == null) {
             System.out.println("해당 채널은 존재하지 않습니다.");
-            return new NullChannel();
+            return null;
         }
         return channel;
     }
@@ -40,7 +39,7 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void updateChannelType(UUID id, ChannelType newChannelType) {
         Channel channel = findById(id);
-        if (channel instanceof NullChannel) {
+        if (channel == null) {
             System.out.println("존재하지 않는 채널의 타입을 바꿀 수 없습니다.");
             return;
         }
@@ -50,7 +49,7 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void updateTitle(UUID id, String newTitle) {
         Channel channel = findById(id);
-        if (channel instanceof NullChannel) {
+        if (channel == null) {
             System.out.println("존재하지 않는 채널의 제목을 바꿀 수 없습니다.");
             return;
         }
@@ -60,7 +59,7 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void updateDescription(UUID id, String newDescription) {
         Channel channel = findById(id);
-        if (channel instanceof NullChannel) {
+        if (channel == null) {
             System.out.println("존재하지 않는 채널의 설명을 바꿀 수 없습니다.");
             return;
         }
@@ -72,7 +71,7 @@ public class JCFChannelService implements ChannelService {
         Channel removed = data.remove(id);
         if (removed == null) {
             System.out.println("해당 채널은 존재하지 않습니다.");
-            return new NullChannel();
+            return null;
         }
         return removed;
     }
