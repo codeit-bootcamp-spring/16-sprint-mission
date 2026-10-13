@@ -16,5 +16,4 @@ public interface UserService {
     boolean deleteUser(UUID id, String password);
 
     User getUserById(UUID id);
-
 }
