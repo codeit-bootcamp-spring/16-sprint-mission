@@ -12,5 +12,5 @@ public interface BaseEntityService<T extends BaseEntity> {
 
     Optional<List<T>> findAll();
 
-    void delete(UUID id);
+    T delete(UUID id);
 }

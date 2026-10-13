@@ -5,7 +5,6 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
-import javax.swing.text.html.Option;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
@@ -14,6 +13,7 @@ public class JavaApplication {
     public static void main(String[] args) {
         JCFUserService jcfUserService = new JCFUserService();
         JCFChannelService jcfChannelService = new JCFChannelService();
+        UserChannelManager userChannelManager = new UserChannelManager(jcfUserService, jcfChannelService);
 
         try {
             // 등록
@@ -27,9 +27,10 @@ public class JavaApplication {
             System.out.printf("채널 생성 완료 --> %s\n", channel1);
             System.out.printf("채널 생성 완료 --> %s\n\n", channel2);
 
-            jcfChannelService.addUser(channel1.getId(), user1);
-            jcfChannelService.addUser(channel1.getId(), user2);
-            jcfChannelService.addUser(channel2.getId(), user1);
+            userChannelManager.addUserToChannel(channel1.getId(), user1.getId());
+            userChannelManager.addUserToChannel(channel1.getId(), user2.getId());
+
+            userChannelManager.addChannelToUser(user1.getId(), channel2.getId());
 
 
             // 조회 (단일)
@@ -62,7 +63,7 @@ public class JavaApplication {
 
             // 삭제
             System.out.printf("삭제 시작 --> %s\n", user1);
-            jcfUserService.delete(user1.getId());
+            userChannelManager.deleteUser(user1.getId());
             userList = jcfUserService.findAll();
             userList.ifPresentOrElse(
                     list -> {

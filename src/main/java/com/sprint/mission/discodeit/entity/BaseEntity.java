@@ -25,7 +25,7 @@ public class BaseEntity {
         return updatedAt;
     }
 
-    public BaseEntity update() {
+    protected BaseEntity update() {
         this.updatedAt = Instant.now().toEpochMilli();
         return this;
     }
