@@ -6,14 +6,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface BaseEntityService {
-    //BaseEntity create();
+public interface BaseEntityService<T extends BaseEntity> {
+    T update(T entity);
 
-    //BaseEntity update(BaseEntity entity);
+    Optional<T> findById(UUID id);
 
-    //Optional<BaseEntity> findById(UUID id);
+    Optional<List<T>> findAll();
 
-    //Optional<List<BaseEntity>> findAll();
-
-    //void delete();
+    void delete(UUID id);
 }
