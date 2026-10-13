@@ -1,15 +1,18 @@
-package com.sprint.mission.discodeit.service_impl_v1;
+package com.sprint.mission.discodeit.service_impl;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.null_entity.NullUser;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
 
-public class JCFUserServiceV1 implements UserService {
-    private final Map<String, User> data;
+public class JCFUserService implements UserService {
+    private final Map<UUID, User> data;
 
-    public JCFUserServiceV1() {
+    public JCFUserService() {
         this.data = new HashMap<>();
     }
 
@@ -21,12 +24,24 @@ public class JCFUserServiceV1 implements UserService {
     }
 
     @Override
-    public User findById(String id) {
+    public User findById(UUID id) {
         User user = data.get(id);
         if (user == null) {
             System.out.println("존재하지 않는 유저입니다");
+            return new NullUser();
         }
         return user;
+    }
+
+    @Override
+    public User findByName(String userName) {
+        Collection<User> values = data.values();
+        for (User user : values) {
+            if (user.getUserName().equals(userName)) {
+                return user;
+            }
+        }
+        return new NullUser();
     }
 
     public List<User> findAll() {
@@ -35,7 +50,7 @@ public class JCFUserServiceV1 implements UserService {
     }
 
     @Override
-    public void updatePw(String id, String newPw) {
+    public User updatePw(UUID id, String newPw) {
         if (data.containsKey(id)) {
             User user = data.get(id);
 
@@ -45,13 +60,15 @@ public class JCFUserServiceV1 implements UserService {
                 user.setPassword(newPw);
                 user.setUpdatedAt(Instant.now().getEpochSecond());
             }
+            return user;
         } else {
             System.out.println("존재하지 않는 유저입니다.");
+            return new NullUser();
         }
     }
 
     @Override
-    public void updateUsername(String id, String newUsername) {
+    public User updateUsername(UUID id, String newUsername) {
         if (data.containsKey(id)) {
             User user = data.get(id);
 
@@ -61,13 +78,15 @@ public class JCFUserServiceV1 implements UserService {
                 user.setUserName(newUsername);
                 user.setUpdatedAt(Instant.now().getEpochSecond());
             }
+            return user;
         } else {
             System.out.println("존재하지 않는 유저입니다.");
+            return new NullUser();
         }
     }
 
     @Override
-    public void updateEmail(String id, String newEmail) {
+    public User updateEmail(UUID id, String newEmail) {
         if (data.containsKey(id)) {
             User user = data.get(id);
 
@@ -77,16 +96,19 @@ public class JCFUserServiceV1 implements UserService {
                 user.setEmail(newEmail);
                 user.setUpdatedAt(Instant.now().getEpochSecond());
             }
+            return user;
         } else {
             System.out.println("존재하지 않는 유저입니다.");
+            return new NullUser();
         }
     }
 
     @Override
-    public User delete(String id) {
+    public User delete(UUID id) {
         User removedUser = data.remove(id);
         if (removedUser == null) {
             System.out.println("존재하지 않는 유저입니다");
+            return new NullUser();
         }
         return removedUser;
     }

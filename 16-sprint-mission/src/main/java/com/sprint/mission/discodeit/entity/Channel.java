@@ -35,4 +35,16 @@ public class Channel extends Entity {
     public void setChannelType(ChannelType channelType) {
         this.channelType = channelType;
     }
+
+    @Override
+    public String toString() {
+        return "Channel{" +
+                "title='" + title + '\'' +
+                ", description='" + description + '\'' +
+                ", channelType=" + channelType +
+                ", id='" + id + '\'' +
+                ", createdAt=" + createdAt +
+                ", updatedAt=" + updatedAt +
+                '}';
+    }
 }

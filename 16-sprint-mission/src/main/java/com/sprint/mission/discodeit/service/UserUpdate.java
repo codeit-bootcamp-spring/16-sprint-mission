@@ -1,10 +1,14 @@
 package com.sprint.mission.discodeit.service;
 
+import com.sprint.mission.discodeit.entity.User;
+
+import java.util.UUID;
+
 public interface UserUpdate {
 
-    void updatePw(String id, String newPw);
+    User updatePw(UUID id, String newPw);
 
-    void updateUsername(String id, String newUsername);
+    User updateUsername(UUID id, String newUsername);
 
-    void updateEmail(String id, String newEmail);
+    User updateEmail(UUID id, String newEmail);
 }

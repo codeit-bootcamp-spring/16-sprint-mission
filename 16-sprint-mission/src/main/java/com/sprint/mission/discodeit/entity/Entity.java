@@ -5,22 +5,22 @@ import java.util.UUID;
 
 public abstract class Entity {
 
-    protected String id;
+    protected UUID id;
     protected long createdAt;
     protected long updatedAt;
 
     public Entity() {
         long epochSecond = Instant.now().getEpochSecond();
-        this.id = UUID.randomUUID().toString();
+        this.id = UUID.randomUUID();
         this.createdAt = epochSecond;
         this.updatedAt = epochSecond;
     }
 
-    public String getId() {
+    public UUID getId() {
         return id;
     }
 
-    public void setId(String id) {
+    public void setId(UUID id) {
         this.id = id;
     }
 
