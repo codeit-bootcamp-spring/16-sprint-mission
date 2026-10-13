@@ -17,4 +17,8 @@ public class Message extends BaseEntity {
         this.content = content;
         return this;
     }
+
+    public String getContent() {
+        return this.content;
+    }
 }
