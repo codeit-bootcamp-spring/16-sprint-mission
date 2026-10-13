@@ -39,10 +39,9 @@
 
 ### 코드 리뷰 반영 사항
   - 리뷰 내용: null 대체 객체를 반환하는 대신, `NullPointerException` 발생 시 `main`까지 던지고 `main`에서 catch하여 처리하는 방식이 더 적절함
-  - [ ] Null Object 클래스/로직 제거
-  - [ ] 서비스 계층에서 null 처리 로직 제거 (예외를 그대로 전파)
-  - [ ] `JavaApplication`의 `main`에서 `NullPointerException` catch 및 처리 추가
-  - [ ] 예외 발생 케이스(존재하지 않는 id 조회 등) 테스트
+  - [x] Null Object 클래스/로직 제거
+  - [x] 서비스 계층에서 null 처리 로직 제거 (예외를 그대로 전파)
+  - [x] 예외 발생 케이스(존재하지 않는 id 조회 등) 테스트
 
 ## 남은 작업
 1. 코드 리뷰 반영: Null Object 제거 및 `main`에서 예외 처리
