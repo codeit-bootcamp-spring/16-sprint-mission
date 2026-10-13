@@ -12,5 +12,7 @@ public interface MessageService {
 
     boolean deleteMessage(UUID messageId);
 
+    List<Message> getMessagesByUserId(UUID userId);
+
     List<Message> getMessagesByChannelId(UUID channelId);
 }

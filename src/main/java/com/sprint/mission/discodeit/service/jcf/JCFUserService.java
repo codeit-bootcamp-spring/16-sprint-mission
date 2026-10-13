@@ -1,17 +1,26 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.BaseEntity;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> userData = new HashMap<>();
 
-    private void validateUserId(UUID id) {
-        if (!userData.containsKey(id)) {
+    private ChannelService channelService;
+    private MessageService messageService;
+
+    private void validateUserId(UUID userId) {
+        if (!userData.containsKey(userId)) {
             throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
         }
     }
@@ -32,30 +41,30 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public boolean updateUsername(UUID id, String username) {
-        validateUserId(id);
+    public boolean updateUsername(UUID userId, String username) {
+        validateUserId(userId);
 
-        User user = userData.get(id);
+        User user = userData.get(userId);
         user.changeUsername(username);
 
         return true;
     }
 
     @Override
-    public boolean updateEmail(UUID id, String email) {
-        validateUserId(id);
+    public boolean updateEmail(UUID userId, String email) {
+        validateUserId(userId);
 
-        User user = userData.get(id);
+        User user = userData.get(userId);
         user.changeEmail(email);
 
         return true;
     }
 
     @Override
-    public boolean updatePassword(UUID id, String originPassword, String newPassword) {
-        validateUserId(id);
+    public boolean updatePassword(UUID userId, String originPassword, String newPassword) {
+        validateUserId(userId);
 
-        User user = userData.get(id);
+        User user = userData.get(userId);
         validatePassword(user.getPassword(), originPassword);
 
         user.changePassword(newPassword);
@@ -63,24 +72,34 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public boolean deleteUser(UUID id, String password) {
-        validateUserId(id);
+    public boolean deleteUser(UUID userId, String password) {
+        validateUserId(userId);
 
-        User user = userData.get(id);
+        User user = userData.get(userId);
         validatePassword(user.getPassword(), password);
 
-        // 해당 사용자의 메시지 확인 후 삭제
         // 해당 사용자가 만든 채널 확인
-        // 해당 채널의 메시지들 삭제
+        // 해당 채널의 메시지들 삭제 (deleteChannel() 안에 구현돼있음)
         // 해당 채널 삭제
-        userData.remove(id);
+        List<Channel> channelList = channelService.getChannelsByUserId(user.getId());
+        channelList.stream()
+                .map(BaseEntity::getId)
+                .forEach(channelId -> channelService.deleteChannel(channelId));
+
+        // 해당 사용자의 메시지 확인 후 삭제
+        List<Message> messageList = messageService.getMessagesByUserId(userId);
+        messageList.stream()
+                .map(BaseEntity::getId)
+                .forEach(messageId -> messageService.deleteMessage(messageId));
+
+        userData.remove(userId);
         return true;
     }
 
     @Override
-    public User getUserById(UUID id) {
-        validateUserId(id);
+    public void getUserById(UUID userId) {
+        validateUserId(userId);
 
-        return userData.get(id);
+        userData.get(userId);
     }
 }

@@ -1,8 +1,6 @@
 package com.sprint.mission.discodeit.service.jcf;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -20,15 +18,8 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public boolean sendMessage(Message message) {
-        User user = userService.getUserById(message.getSenderId());
-        Channel channel = channelService.getChannelById(message.getChannelId());
-
-        if (user == null) {
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
-        }
-        if (channel == null) {
-            throw new IllegalArgumentException("존재하지 않는 채널입니다.");
-        }
+        userService.getUserById(message.getSenderId());
+        channelService.getChannelById(message.getChannelId());
 
         messageData.put(message.getId(), message);
         return true;
@@ -45,6 +36,12 @@ public class JCFMessageService implements MessageService {
     public boolean deleteMessage(UUID messageId) {
         messageData.remove(messageId);
         return true;
+    }
+
+    public List<Message> getMessagesByUserId(UUID userId) {
+        return messageData.values().stream()
+                .filter(m -> m.getSenderId().equals(userId))
+                .toList();
     }
 
     @Override
