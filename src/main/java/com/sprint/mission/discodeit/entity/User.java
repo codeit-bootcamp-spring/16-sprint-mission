@@ -27,7 +27,7 @@ public class User extends Base{
 
     @Override
     public String toString() {
-        return "User{" +
+        return "User {" +
                 "name='" + name + '\'' +
                 ", age=" + age +
                 '}';

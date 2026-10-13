@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class Channel extends Base{
     private String name;
-//    private UUID userId;
+//    private List<>UUID> userId;
 
     public Channel(String name) {
         this.name = name;
