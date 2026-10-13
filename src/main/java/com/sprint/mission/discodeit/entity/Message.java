@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import java.util.UUID;
 
-public class Message {
+public class Message extends BaseEntity{
     private UUID senderId;
     private UUID receiverId;
     private UUID channelId;
