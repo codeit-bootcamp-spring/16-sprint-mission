@@ -1,12 +1,15 @@
-package com.sprint.mission.entity;
+package com.sprint.mission.discodeit.entity;
 
 public class Message extends Entity {
 
     private String message;
+    private final String channelId;
+    private final String userId;
 
-    public Message(String createdAt, String updatedAt, String message) {
-        super(createdAt, updatedAt);
+    public Message(String message, String channelId, String userId) {
         this.message = message;
+        this.channelId = channelId;
+        this.userId = userId;
     }
 
     public String getMessage() {

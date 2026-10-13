@@ -1,4 +1,4 @@
-package com.sprint.mission.entity;
+package com.sprint.mission.discodeit.entity;
 
 public class Channel extends Entity {
 
@@ -6,11 +6,10 @@ public class Channel extends Entity {
     private String description;
     private ChannelType channelType;
 
-    public Channel(String createdAt, String updatedAt, String title, String description, ChannelType channelType) {
-        super(createdAt, updatedAt);
+    public Channel(ChannelType channelType, String title, String description) {
+        this.channelType = channelType;
         this.title = title;
         this.description = description;
-        this.channelType = channelType;
     }
 
     public String getTitle() {

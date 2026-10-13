@@ -1,4 +1,6 @@
-package com.sprint.mission.entity;
+package com.sprint.mission.discodeit.entity;
+
+import java.time.Instant;
 
 public class User extends Entity {
 
@@ -6,8 +8,7 @@ public class User extends Entity {
     private String email;
     private String password;
 
-    public User(String createdAt, String updatedAt, String userName, String email, String password) {
-        super(createdAt, updatedAt);
+    public User(String userName, String email, String password) {
         this.userName = userName;
         this.email = email;
         this.password = password;
