@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.UUID;
+
 public class Channel extends BaseEntity {
     private String channelName;
     private String description;
@@ -14,7 +16,7 @@ public class Channel extends BaseEntity {
         return channelName;
     }
 
-    public void setChannelName(String channelName) {
+    private void setChannelName(String channelName) {
         this.channelName = channelName;
     }
 
@@ -22,7 +24,17 @@ public class Channel extends BaseEntity {
         return description;
     }
 
-    public void setDescription(String description) {
+    private void setDescription(String description) {
         this.description = description;
+    }
+
+    public void updateChannelName(String channelName) {
+        this.channelName = channelName;
+        super.update();
+    }
+
+    public void updateDescription(String description) {
+        this.description = description;
+        super.update();
     }
 }

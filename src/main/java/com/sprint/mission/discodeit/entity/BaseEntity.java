@@ -8,9 +8,9 @@ public abstract class BaseEntity {
     private Long updatedAt;
 
     protected BaseEntity() {
-        this.id = UUID.randomUUID();
-        this.createdAt = System.currentTimeMillis();
-        this.updatedAt = this.createdAt;
+        id = UUID.randomUUID();
+        createdAt = System.currentTimeMillis();
+        updatedAt = createdAt;
     }
 
     public UUID getId() {
@@ -24,4 +24,8 @@ public abstract class BaseEntity {
     public Long getUpdatedAt() {
         return updatedAt;
     }
+
+    public void update() {
+        updatedAt = System.currentTimeMillis();
+    };
 }

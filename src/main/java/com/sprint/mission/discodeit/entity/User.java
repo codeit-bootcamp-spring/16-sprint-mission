@@ -16,7 +16,7 @@ public class User extends BaseEntity {
         return username;
     }
 
-    public void setUsername(String username) {
+    private void setUsername(String username) {
         this.username = username;
     }
 
@@ -24,7 +24,7 @@ public class User extends BaseEntity {
         return email;
     }
 
-    public void setEmail(String email) {
+    private void setEmail(String email) {
         this.email = email;
     }
 
@@ -32,7 +32,22 @@ public class User extends BaseEntity {
         return password;
     }
 
-    public void setPassword(String password) {
+    private void setPassword(String password) {
         this.password = password;
+    }
+
+    public void updateUsername(String username) {
+        this.username = username;
+        super.update();
+    }
+
+    public void updateEmail(String email) {
+        this.email = email;
+        super.update();
+    }
+
+    public void updatePassword(String password) {
+        this.password = password;
+        super.update();
     }
 }
