@@ -24,4 +24,12 @@ public class User extends Base{
         this.age = age;
         updateUpdatedAt(System.currentTimeMillis());
     }
+
+    @Override
+    public String toString() {
+        return "User{" +
+                "name='" + name + '\'' +
+                ", age=" + age +
+                '}';
+    }
 }

@@ -10,52 +10,50 @@ import java.util.UUID;
 
 public class JCFUserService implements UserService {
 
-    private final List<User> data = new ArrayList<>();
+    private final List<User> users = new ArrayList<>();
 
     @Override
     public User createUser(String name, int age) {
         User user = new User(name, age);
-        data.add(user);
+        users.add(user);
         return user;
     }
 
     @Override
     public Optional<User> findById(UUID id) {
-        return data.stream()
+        return users.stream()
                 .filter(user -> user.getId().equals(id))
                 .findFirst();
     }
 
     @Override
     public List<User> findByName(String name) {
-        return data.stream()
+        return users.stream()
                 .filter(user -> user.getName().equals(name))
                 .toList();
     }
 
     @Override
     public List<User> findAll() {
-        return data.stream()
-                .toList();
+        return users;
     }
 
     @Override
     public User updateUser(UUID id, String name, int age) {
-        Optional<User> optionalUser = findById(id);
-        if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 ID 입니다.");
-        }
-        User user = optionalUser.get();
+        User user = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
+                );
         user.update(name, age);
         return user;
     }
 
     @Override
     public void deleteUser(UUID id) {
-        Optional<User> optionalUser = findById(id);
-        if (optionalUser.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 ID 입니다.");
-        }
-        optionalUser.ifPresent(data::remove);
+        User user = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
+                );
+        users.remove(user);
     }
 }
