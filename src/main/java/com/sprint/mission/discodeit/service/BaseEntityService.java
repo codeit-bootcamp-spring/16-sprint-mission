@@ -7,7 +7,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BaseEntityService<T extends BaseEntity> {
-    T update(T entity);
 
     Optional<T> findById(UUID id);
 
