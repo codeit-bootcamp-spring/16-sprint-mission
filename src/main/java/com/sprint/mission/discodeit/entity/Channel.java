@@ -15,22 +15,32 @@ public class Channel extends BaseEntity {
         this.messages = new ArrayList<>();
     }
 
-    public Channel update(String name) {
+    public Channel updateName(String name) {
         super.update();
         this.name = name;
         return this;
     }
 
-    public Channel update(Map<UUID, User> users) {
+    public Channel updateUsers(Map<UUID, User> users) {
         super.update();
         this.users = new HashMap<>(users);
         return this;
     }
 
-    public Channel update(List<Message> messages) {
+    public Channel updateMessages(List<Message> messages) {
         super.update();
         this.messages = new ArrayList<>(messages);
         return this;
+    }
+
+    public void addUser(User user) {
+        this.users.put(user.getId(), user);
+        this.updateUsers(this.users);
+    }
+
+    public void removeUser(UUID userId) {
+        this.users.remove(userId);
+        this.updateUsers(this.users);
     }
 
     public String getName() {
