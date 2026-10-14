@@ -49,14 +49,8 @@ public class JCFChannelService implements ChannelService {
         }
 
         channel.setName(name);
-        //channel.setDescription(description);
         return channel;
     }
-
-//    @Override
-//    public void deleteById(UUID id) {
-//        data.remove(id);
-//    }
 
     @Override
     public void deleteById(UUID id) {

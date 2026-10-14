@@ -16,22 +16,9 @@ import java.util.stream.Collectors;
 public class JavaApplication {
     public static void main(String[] args) {
 
-/*      UserService userRepository= new JCFUserService();
-        User user1 = new User("haha");
-        User user2 = new User("baba");
-
-        UUID hahaId = user1.getId();
-        UUID babaId = user2.getId();
-
-        userService.save(user1);
-        userService.save(user2);
-        System.out.println("테스트  ID: " + hahaId + ", baba ID: " + babaId);
-        System.out.println();*/
-
         MessageService messageService = new JCFMessageService();
 
         // UserService와 ChannelService 모두 삭제를 위해 messageService를 파라미터로 사용.
-
         UserService userService = new JCFUserService(messageService);
         ChannelService channelService = new JCFChannelService(messageService);
 
@@ -46,8 +33,6 @@ public class JavaApplication {
         channelService.save(firstChannel);
         channelService.save(secondChannel);
         System.out.println("채널 세팅 완료"+"\n");
-
-
         System.out.println(" 2.메시지 발송 ");
         // 1번채널 메시지
         messageService.save(new Message(haha.getId(), firstChannel.getId(), "안녕하세요."));
@@ -61,23 +46,19 @@ public class JavaApplication {
             System.out.println(msg.getContent());
         });
 
-
         System.out.println("채널안의 메시지 확인");
         List<Message> messageList = messageService.findChannelId(firstChannel.getId());
-        System.out.println("[" + firstChannel.getName() + "] 메시지 존재 여부: " + !messageList.isEmpty() + " 총 " + messageList.size() + "건)");
+        System.out.println("[" + firstChannel.getName() + "] 메시지 존재 여부: " + !messageList.isEmpty() + " (총 " + messageList.size() + "건)");
         messageList.forEach(msg -> {
             String sender = msg.getChannelId().equals(firstChannel.getId()) ? "haha" : "실패";
             System.out.println("   - [" + sender + "]: " + msg.getContent());
         });
         System.out.println();
 
-
-
         System.out.println(" 3.현재 등록된 전체 채널 목록 조회 ");
         List<Channel> allChannels = channelService.findAll();
         allChannels.forEach(ch -> System.out.println("채널명: " + ch.getName() + " (ID: " + ch.getId() + ")"));
         System.out.println();
-
 
         System.out.println("4.유저 탈퇴 시 메시지 삭제");
         System.out.println("유저 haha가 탈퇴합니다.");
@@ -104,14 +85,11 @@ public class JavaApplication {
         List<Message> channelMessageDelete = messageService.findChannelId(firstChannel.getId());
         System.out.println(channelMessageDelete);
 
-        //다시 모든 메시지 확인 2번채널 메시지까지 안보임
-
+        //다시 모든 메시지 확인
         List<Message> allMessage= messageService.findAll();
         allMessage.forEach(msg->{
             System.out.println(msg.getContent());
         });
-
-
 
         if (channelMessageDelete.isEmpty()) {
             System.out.println("채널 내부의 메시지가 삭제되었습니다.");
@@ -122,10 +100,8 @@ public class JavaApplication {
         System.out.println();
         System.out.println();
 
-
         System.out.println("남은 채널 목록");
         channelService.findAll().forEach(ch -> System.out.println("- " + ch.getName()));
-
         System.out.println("최종 점검");
         if (!hasMessage && channelMessageDelete.isEmpty() && channelService.findAll().size() == 1) {
             System.out.println("성공: 삭제 되었습니다");
