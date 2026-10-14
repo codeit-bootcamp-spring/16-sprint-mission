@@ -54,16 +54,17 @@ public class User extends BaseEntity {
     }
 
     private static void requiredValue(String username, String email, String password) {
-        if (username.isBlank() || username == null) {
+        if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("이름은 필수입니다.");
         }
 
-        if (email.isBlank() || email == null) {
+        if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("이메일은 필수입니다.");
         }
 
-        if (password.isBlank() || password == null) {
+        if (password == null || password.isBlank()) {
             throw new IllegalArgumentException("비밀번호는 필수입니다.");
         }
+
     }
 }

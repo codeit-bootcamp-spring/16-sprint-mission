@@ -20,6 +20,8 @@ public class Channel extends BaseEntity {
         this.description = description;
 
         members = new HashSet<>();
+        members.add(ownerId);
+
     }
 
     public UUID getOwnerId() {
@@ -69,7 +71,7 @@ public class Channel extends BaseEntity {
     }
 
     private static void requiredValue(String channelName) {
-        if (channelName.isBlank() || channelName == null) {
+        if (channelName == null || channelName.isBlank()) {
             throw new IllegalArgumentException("채널명은 필수입니다.");
         }
     }
