@@ -41,10 +41,6 @@ public class JCFChannelService implements ChannelService {
     public Channel update(UUID id, UUID requesterId) {
         Channel channel = findById(id);
 
-        if (!data.containsKey(id)) {
-            throw new IllegalArgumentException("채널이 존재하지 않습니다.");
-        }
-
         if (!channel.getOwnerId().equals(requesterId)) {
             throw new IllegalArgumentException("채널 수정 권한이 없습니다.");
         }

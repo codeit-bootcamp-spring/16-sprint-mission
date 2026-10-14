@@ -7,6 +7,8 @@ import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
+import java.util.UUID;
+
 public class Main {
     public static void main(String[] args) {
         JCFUserService userService = new JCFUserService();
@@ -55,7 +57,7 @@ public class Main {
 
         // 존재하지 않는 사용자 조회
         try {
-            userService.findById(java.util.UUID.randomUUID());
+            userService.findById(UUID.randomUUID());
             System.out.println("실패: 존재하지 않는 사용자가 조회됨");
         } catch (IllegalArgumentException e) {
             System.out.println("사용자 조회 예외 확인: " + e.getMessage());
@@ -86,9 +88,19 @@ public class Main {
         // 존재하지 않는 사용자의 채널 입장
         try {
             channelService.joinChannel(
-                    channel.getId(), java.util.UUID.randomUUID()
+                    channel.getId(), UUID.randomUUID()
             );
             System.out.println("실패: 존재하지 않는 사용자의 입장이 허용됨");
+        } catch (IllegalArgumentException e) {
+            System.out.println("채널 입장 예외 확인: " + e.getMessage());
+        }
+
+        // 이미 존재하는 사용자의 채널 입장
+        try {
+            channelService.joinChannel(
+                    channel.getId(), user2.getId()
+            );
+            System.out.println("실패: 이미 존재하는 사용자의 입장이 허용됨");
         } catch (IllegalArgumentException e) {
             System.out.println("채널 입장 예외 확인: " + e.getMessage());
         }
@@ -125,6 +137,13 @@ public class Main {
         System.out.println("기존 소유자 퇴장 후 멤버 수: "
                 + channelService.findMember(channel.getId()).size());
 
+        // 이미 퇴장한 사용자의 퇴장 시도
+        try {
+            channelService.leaveChannel(channel.getId(), user1.getId());
+            System.out.println("실패: 존재하지 않는 사용자의 퇴장이 허용됨");
+        } catch (IllegalArgumentException e) {
+            System.out.println("채널 퇴장 예외 확인: " + e.getMessage());
+        }
         // =========================
         // 3. Message 테스트
         // =========================

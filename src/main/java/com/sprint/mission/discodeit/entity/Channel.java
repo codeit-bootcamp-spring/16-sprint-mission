@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
@@ -28,27 +29,16 @@ public class Channel extends BaseEntity {
         return ownerId;
     }
 
-    private void setOwnerId(UUID ownerId) {
-        this.ownerId = ownerId;
-    }
-
     public String getChannelName() {
         return channelName;
-    }
-
-    private void setChannelName(String channelName) {
-        this.channelName = channelName;
     }
 
     public String getDescription() {
         return description;
     }
 
-    private void setDescription(String description) {
-        this.description = description;
-    }
-
     public void updateChannelName(String channelName) {
+        requiredValue(channelName);
         this.channelName = channelName;
         super.update();
     }
@@ -67,7 +57,7 @@ public class Channel extends BaseEntity {
     }
 
     public Set<UUID> getMembers() {
-        return members;
+        return Collections.unmodifiableSet(members);
     }
 
     private static void requiredValue(String channelName) {

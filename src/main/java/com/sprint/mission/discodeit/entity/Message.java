@@ -30,10 +30,6 @@ public class Message extends BaseEntity{
         return content;
     }
 
-    private void setContent(String content) {
-        this.content = content;
-    }
-
     public UUID getChannelId() {
         return channelId;
     }
