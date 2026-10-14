@@ -17,4 +17,5 @@ public interface ChannelService {
     //List<User> findMember(UUID id);
     void joinChannel(UUID id, UUID userId);
     void leaveChannel(UUID id, UUID userId);
+    void transformOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId);
 }

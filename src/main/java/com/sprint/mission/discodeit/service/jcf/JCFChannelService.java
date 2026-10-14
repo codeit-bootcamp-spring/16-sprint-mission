@@ -87,4 +87,18 @@ public class JCFChannelService implements ChannelService {
 
         channel.removeMember(userId);
     }
+
+    @Override
+    public void transformOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId) {
+        Channel channel = findById(id);
+
+        if (!channel.getOwnerId().equals(currentOwnerId)) {
+            throw new IllegalArgumentException("소유자만 소유권을 양도 가능합니다.");
+        }
+
+        if (!channel.getMembers().contains(newOwnerId)) {
+            throw new IllegalArgumentException("채널 멤버에게만 양도 가능합니다.");
+        }
+        channel.transferOwnership(newOwnerId);
+    }
 }

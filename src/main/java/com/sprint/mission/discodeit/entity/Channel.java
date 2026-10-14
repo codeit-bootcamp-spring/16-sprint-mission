@@ -64,9 +64,17 @@ public class Channel extends BaseEntity {
         return members.remove(userId);
     }
 
+    public Set<UUID> getMembers() {
+        return members;
+    }
+
     private static void requiredValue(String channelName) {
         if (channelName.isBlank() || channelName == null) {
             throw new IllegalArgumentException("채널명은 필수입니다.");
         }
+    }
+
+    public void transferOwnership(UUID newOwnerId) {
+        ownerId = newOwnerId;
     }
 }
