@@ -2,7 +2,9 @@ package com.sprint.mission.discodeit.service.service_impl;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
@@ -14,10 +16,33 @@ public class JCFChannelService implements ChannelService {
         this.data = new HashMap<>();
     }
 
+    // Channel에 참여중인 User들을 리스트로 반환
+    public List<User> getJoiningUsers(Channel channelUUID, UserService userService) {
+        Channel channel = data.get(channelUUID);
+        List<User> joiningChannels = userService.getChannelsFromUser(channel);
+        return joiningChannels;
+    }
+
+    // JCFUserService에서 사용
     @Override
-    public Channel create(ChannelType channelType, String title, String description) {
+    public List<Channel> getUserChannels(User user) {
+        List<UUID> channelUUIDs = user.getChannelUUIDs();
+        List<Channel> channels = new ArrayList<>();
+
+        for (UUID channelUUID : channelUUIDs) {
+            Channel channel = data.get(channelUUID);
+            if (channel != null) {
+                channels.add(channel);
+            }
+        }
+        return channels;
+    }
+
+    @Override
+    public Channel create(User user, ChannelType channelType, String title, String description) {
         Channel newChannel = new Channel(channelType, title, description);
         data.put(newChannel.getId(), newChannel);
+        user.addChannel(newChannel);
         return newChannel;
     }
 

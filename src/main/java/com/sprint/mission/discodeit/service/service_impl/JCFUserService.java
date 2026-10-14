@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.service_impl;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.time.Instant;
@@ -11,6 +13,27 @@ public class JCFUserService implements UserService {
 
     public JCFUserService() {
         this.data = new HashMap<>();
+    }
+
+    // user가 참여하고 있는 Channel들을 리스트로 반환
+    public List<Channel> getJoinedChannel(UUID userId, ChannelService channelService) {
+        User user = data.get(userId);
+        List<Channel> joinedChannels = channelService.getUserChannels(user);
+        return joinedChannels;
+    }
+
+    // JCFChannelService에서 사용되는 메서드
+    @Override
+    public List<User> getChannelsFromUser(Channel channel) {
+        List<UUID> userUUIDs = channel.getUserUUIDs();
+        List<User> users = new ArrayList<>();
+        for (UUID userUUID : userUUIDs) {
+            User user = data.get(userUUID);
+            if (user != null) {
+                users.add(user);
+            }
+        }
+        return users;
     }
 
     @Override

@@ -50,7 +50,8 @@ public class JavaApplication {
                 }
             }
             case 3 -> {
-                Channel channel = setUpChannel(channelService, scanner);
+                User user = new User(null, null, null);
+                Channel channel = setUpChannel(user, channelService, scanner);
                 System.out.println("channel 생성 완료: " + channel);
             }
             case 4 -> {
@@ -88,7 +89,7 @@ public class JavaApplication {
         return userService.create(userName, email, password);
     }
 
-    private static Channel setUpChannel(ChannelService channelService, Scanner scanner) {
+    private static Channel setUpChannel(User user, ChannelService channelService, Scanner scanner) {
         ChannelType channelType = null;
 
         while (true) {
@@ -109,6 +110,6 @@ public class JavaApplication {
         System.out.print("채널 설명을 입력해주세요:");
         String description = scanner.nextLine();
 
-        return channelService.create(channelType, title, description);
+        return channelService.create(user, channelType, title, description);
     }
 }
