@@ -33,7 +33,7 @@ public class JCFChannelService implements ChannelService {
         return channel.updateUsers(users);
     }
 
-    public Channel updateMessages(UUID id, List<Message> messages) {
+    public Channel updateMessages(UUID id, Map<UUID, Message> messages) {
         Channel channel = this.findById(id);
         if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
         return channel.updateMessages(messages);
@@ -85,7 +85,7 @@ public class JCFChannelService implements ChannelService {
         // 채널 삭제 시 유저에도 채널 삭제
         Map<UUID, User> users = channel.getUsers();
         users.values().forEach(user -> user.removeChannel(id));
-        
+
         this.data.remove(id);
     }
 }

@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -14,7 +15,7 @@ public class User extends BaseEntity {
         super();
         this.name = name;
         this.channels = new HashMap<>();
-        this.messages = new HashMap<>();
+        this.messages = new LinkedHashMap<>();
     }
 
     public User updateName(String name) {
@@ -43,6 +44,16 @@ public class User extends BaseEntity {
     public void removeChannel(UUID channelId) {
         this.channels.remove(channelId);
         this.updateChannels(this.channels);
+    }
+
+    public void addMessage(UUID channelId, Message message) {
+        this.messages.put(message.getId(), message);
+        this.updateMessages(this.messages);
+    }
+
+    public void removeMessage(UUID messageId) {
+        this.messages.remove(messageId);
+        this.updateMessages(this.messages);
     }
 
     public String getName() {

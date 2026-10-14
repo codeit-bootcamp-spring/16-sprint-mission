@@ -12,13 +12,38 @@ public class Message extends BaseEntity {
         this.channel = channel;
     }
 
-    public Message update(String content) {
+    public Message updateContent(String content) {
         super.update();
         this.content = content;
         return this;
     }
 
+    public Message updateSentFrom(User user) {
+        super.update();
+        this.sentFrom = user;
+        return this;
+    }
+
+    public Message updateChannel(Channel channel) {
+        super.update();
+        this.channel = channel;
+        return this;
+    }
+
+    public User getSentFrom() {
+        return this.sentFrom;
+    }
+
     public String getContent() {
         return this.content;
+    }
+
+    public Channel getChannel() {
+        return this.channel;
+    }
+
+    @Override
+    public String toString() {
+        return "보낸 사람: %s, 내용: %s, 채널: %s".formatted(this.sentFrom.getName(), this.content, this.channel.getName());
     }
 }
