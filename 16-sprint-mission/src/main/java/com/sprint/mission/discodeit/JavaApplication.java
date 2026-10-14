@@ -101,5 +101,17 @@ public class JavaApplication {
         System.out.println(channel2.getMessages().size());
         System.out.println(user2.getMessages().size());
 
+        //관계 삭제 테스트
+        System.out.println("==============================");
+        User userT = userService.create("테스트 삭제","1557");
+        Channel channelT = channelService.create("테스트 삭제");
+        channelService.join(channelT.getId(), userT.getId());
+        userService.delete(userT.getId());
+        System.out.println(userService.findById(userT.getId()));
+        System.out.println(channelT.getUsers().size());
+        System.out.println(userT.getChannels().size());
+
+
+
     }
 }
