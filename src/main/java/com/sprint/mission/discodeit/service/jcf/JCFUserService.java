@@ -15,6 +15,8 @@ public class JCFUserService implements UserService {
 
     @Override
     public User create(User user) {
+        isValid(user);
+
         data.put(user.getId(), user);
         return user;
     }
@@ -34,6 +36,8 @@ public class JCFUserService implements UserService {
         if (!data.containsKey(id)) {
             return null;
         }
+
+        isValid(user);
         data.put(id, user);
         return user;
     }
@@ -41,5 +45,13 @@ public class JCFUserService implements UserService {
     @Override
     public void delete(UUID id) {
         data.remove(id);
+    }
+
+    private void isValid(User user) {
+        for (User value : data.values()) {
+            if (value.getEmail().equals(user.getEmail())) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            }
+        }
     }
 }

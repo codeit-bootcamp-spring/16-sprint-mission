@@ -9,6 +9,6 @@ public interface ChannelService {
     Channel create(Channel channel);
     Channel findById(UUID id);
     List<Channel> findAll();
-    Channel update(UUID id, Channel channel);
-    void delete(UUID id);
+    Channel update(UUID id, UUID requesterId);
+    void delete(UUID id, UUID requesterId);
 }

@@ -10,6 +10,8 @@ public class User extends BaseEntity {
         this.username = username;
         this.email = email;
         this.password = password;
+
+        requiredValue(username, email, password);
     }
 
     public String getUsername() {
@@ -49,5 +51,19 @@ public class User extends BaseEntity {
     public void updatePassword(String password) {
         this.password = password;
         super.update();
+    }
+
+    private static void requiredValue(String username, String email, String password) {
+        if (username.isBlank() || username == null) {
+            throw new IllegalArgumentException("이름은 필수입니다.");
+        }
+
+        if (email.isBlank() || email == null) {
+            throw new IllegalArgumentException("이메일은 필수입니다.");
+        }
+
+        if (password.isBlank() || password == null) {
+            throw new IllegalArgumentException("비밀번호는 필수입니다.");
+        }
     }
 }

@@ -28,7 +28,13 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message findById(UUID id) {
-        return data.get(id);
+        Message message = data.get(id);
+
+        if (message == null) {
+            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        }
+
+        return message;
     }
 
     @Override
@@ -37,16 +43,28 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public Message update(UUID id, Message message) {
+    public Message update(UUID id, UUID requesterId) {
+        Message message = findById(id);
+
         if (!data.containsKey(id)) {
-            return null;
+            throw new IllegalArgumentException("메시지가 존재하지 않습니다.");
+        }
+
+        if(!message.getSenderId().equals(requesterId)) {
+            throw new IllegalArgumentException("메시지 수정 권한이 없습니다.");
         }
         data.put(id, message);
         return message;
     }
 
     @Override
-    public void delete(UUID id) {
+    public void delete(UUID id, UUID requesterId) {
+        Message message = findById(id);
+
+        if(!message.getSenderId().equals(requesterId)) {
+            throw new IllegalArgumentException("메시지 삭제 권한이 없습니다.");
+        }
+
         data.remove(id);
     }
 

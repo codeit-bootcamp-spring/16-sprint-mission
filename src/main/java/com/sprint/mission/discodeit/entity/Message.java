@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.Objects;
 import java.util.UUID;
 
 public class Message extends BaseEntity{
@@ -10,9 +11,10 @@ public class Message extends BaseEntity{
 
     public Message(UUID senderId, UUID receiverId, UUID channelId, String content) {
         super();
-        this.senderId = senderId;
-        this.receiverId = receiverId;
-        this.channelId = channelId;
+        this.senderId = Objects.requireNonNull(senderId, "발신자는 필수입니다.");
+        this.receiverId = Objects.requireNonNull(receiverId, "수신자는 필수입니다.");
+        this.channelId = Objects.requireNonNull(channelId, "채널ID는 필수입니다.");
+
         this.content = content;
     }
 
