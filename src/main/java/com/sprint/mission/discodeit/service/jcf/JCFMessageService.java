@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -14,26 +16,28 @@ public class JCFMessageService implements MessageService {
 
     private final List<Message> messages = new ArrayList<>();
 
-    private final UserService userservice;
+    private final UserService userService;
     private final ChannelService channelService;
 
-    public JCFMessageService(UserService userservice,
+    public JCFMessageService(UserService userService,
                              ChannelService channelService) {
-        this.userservice = userservice;
+        this.userService = userService;
         this.channelService = channelService;
     }
 
     @Override
     public Message createMessage (String content, UUID userId, UUID channelId) {
-        userservice.findById(userId)
+        User user = userService.findById(userId)
                 .orElseThrow(
                         () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
                 );
-        channelService.findById(channelId)
+        Channel channel = channelService.findById(channelId)
                 .orElseThrow(
                         () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
                 );
-        Message message = new Message(content,  userId, channelId);
+        Message message = new Message(content, user, channel);
+        user.addMessage(message);
+        channel.addMessage(message);
         messages.add(message);
         return message;
     }
@@ -64,6 +68,20 @@ public class JCFMessageService implements MessageService {
         Message message = findMessageById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
         );
+        message.getUser().removeMessage(message);
+        message.getChannel().removeMessage(message);
         messages.remove(message);
+    }
+
+    @Override
+    public void deleteByUserId (UUID userId) {
+        messages.removeIf(message ->
+                message.getUser().getId().equals(userId));
+    }
+
+    @Override
+    public void deleteByChannelId (UUID channelId) {
+        messages.removeIf(message ->
+                message.getChannel().getId().equals(channelId));
     }
 }

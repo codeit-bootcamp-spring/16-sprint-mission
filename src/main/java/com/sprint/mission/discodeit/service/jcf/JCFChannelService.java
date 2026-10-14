@@ -53,6 +53,17 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
+    public List<Channel> findAllByUserId(UUID userId) {
+        return channels.stream()
+                .filter(channel ->
+                        channel.getUsers().stream()
+                                .anyMatch(user ->
+                                        user.getId().equals(userId))
+                )
+                .toList();
+    }
+
+    @Override
     public Channel updateChannel(UUID id, String name) {
         Channel channel = findById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
@@ -100,10 +111,36 @@ public class JCFChannelService implements ChannelService {
                         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다.")))
                 .toList();
 
+        for (User user : users) {
+            if (!channel.getUsers().contains(user)) {
+                throw new IllegalArgumentException("채널에 존재하는 사용자만 제거 가능합니다.");
+            }
+        }
+
+        if (users.size() >= channel.getUsers().size()){
+            throw new IllegalArgumentException("채널에는 최소 1명이 있어야 합니다.");
+        }
+
         users.forEach(user -> {
             channel.removeUser(user);
             user.removeChannel(channel);
         });
     }
 
+//    @Override
+//    public void removeUserFromAllChannels(UUID userId) {
+//        List<Channel> userChannels = channels.stream()
+//                .filter(channel ->
+//                        channel.getUsers().stream()
+//                                .anyMatch(user -> user.getId().equals(userId)))
+//                .toList();
+//
+//        for (Channel channel : userChannels) {
+//            if (channel.getUsers().size() == 1 ) {
+//                deleteChannel(channel.getId());
+//            } else {
+//                removeUserFromChannel(channel.getId(), List.of(userId));
+//            }
+//        }
+//    }
 }

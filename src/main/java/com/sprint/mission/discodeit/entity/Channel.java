@@ -2,15 +2,15 @@ package com.sprint.mission.discodeit.entity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Channel extends Base{
     private String name;
     private final List<User> users;
+    private final List<Message> messages =  new ArrayList<>();
 
     public Channel(String name, List<User> users) {
         if (users == null || users.isEmpty()) {
-            throw new IllegalArgumentException("채널에는 최소한 한 명이 있어야 합니다.");
+            throw new IllegalArgumentException("채널에는 최소 1명이 있어야 합니다.");
         }
         this.name = name;
         this.users = new ArrayList<>(users);
@@ -22,6 +22,10 @@ public class Channel extends Base{
 
     public List<User> getUsers() {
         return users;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
     }
 
     public void addUser(User user) {
@@ -47,6 +51,16 @@ public class Channel extends Base{
             throw new IllegalStateException("채널에 최소 한명의 유저는 존재하여야합니다.");
         }
         this.users.remove(user);
+        updateUpdatedAt(System.currentTimeMillis());
+    }
+
+    public void addMessage(Message message) {
+        messages.add(message);
+        updateUpdatedAt(System.currentTimeMillis());
+    }
+
+    public void removeMessage(Message message) {
+        messages.remove(message);
         updateUpdatedAt(System.currentTimeMillis());
     }
 

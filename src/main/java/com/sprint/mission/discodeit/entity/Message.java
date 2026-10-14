@@ -4,25 +4,25 @@ import java.util.UUID;
 
 public class Message extends Base{
     String content;
-    private UUID userId;
-    private UUID channelId;
+    private final User user;
+    private final Channel channel;
 
-    public Message(String content, UUID userId, UUID channelId) {
+    public Message(String content, User user, Channel channel) {
         this.content = content;
-        this.userId = userId;
-        this.channelId = channelId;
+        this.user = user;
+        this.channel = channel;
     }
 
     public String getContent() {
         return content;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 
-    public UUID getChannelId() {
-        return channelId;
+    public Channel getChannel() {
+        return channel;
     }
 
     public void update(String content) {

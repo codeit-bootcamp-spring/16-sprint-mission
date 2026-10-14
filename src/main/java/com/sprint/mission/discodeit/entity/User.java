@@ -7,6 +7,7 @@ public class User extends Base{
     private String name;
     private int age;
     private final List<Channel> channels = new ArrayList<>();
+    private final List<Message> messages = new ArrayList<>();
 
     public User(String name, int age) {
         this.name = name;
@@ -23,6 +24,10 @@ public class User extends Base{
 
     public List<Channel> getChannels() {
         return channels;
+    }
+
+    public List<Message> getMessages() {
+        return messages;
     }
 
     public void addChannel(Channel channel) {
@@ -43,6 +48,16 @@ public class User extends Base{
             throw new IllegalArgumentException("참여하고 있지 않은 채널입니다.");
         }
         channels.remove(channel);
+        updateUpdatedAt(System.currentTimeMillis());
+    }
+
+    public void addMessage(Message message) {
+        messages.add(message);
+        updateUpdatedAt(System.currentTimeMillis());
+    }
+
+    public void removeMessage(Message message) {
+        messages.remove(message);
         updateUpdatedAt(System.currentTimeMillis());
     }
 

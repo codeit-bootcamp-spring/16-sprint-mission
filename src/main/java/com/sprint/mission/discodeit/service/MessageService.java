@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,4 +19,8 @@ public interface MessageService {
     Message updateMessage(UUID id, String content);
 
     void deleteMessage (UUID id);
+
+    void deleteByUserId(UUID userId);
+
+    void deleteByChannelId(UUID channelId);
 }
