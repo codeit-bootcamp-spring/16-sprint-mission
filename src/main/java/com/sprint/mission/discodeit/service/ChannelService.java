@@ -11,8 +11,6 @@ import java.util.UUID;
 public interface ChannelService {
     Channel create(User user, ChannelType channelType, String title, String description);
 
-    List<Channel> getUserChannels(User user);
-
     Optional<Channel> findById(UUID id);
 
     List<Channel> findAll();

@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.service.service_impl;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -12,38 +11,15 @@ import java.util.*;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> data;
-    private final ChannelService channelService;
     private MessageService messageService;
 
-    public JCFUserService(ChannelService channelService) {
+    public JCFUserService() {
         this.data = new HashMap<>();
-        this.channelService = channelService;
     }
 
     // JCFMessageService가 생성자로 UserService를 받으므로 순환 참조를 피하기 위해 setter로 주입
     public void setMessageService(MessageService messageService) {
         this.messageService = messageService;
-    }
-
-    // user가 참여하고 있는 Channel들을 리스트로 반환
-    public List<Channel> getJoinedChannel(UUID userId, ChannelService channelService) {
-        User user = data.get(userId);
-        List<Channel> joinedChannels = channelService.getUserChannels(user);
-        return joinedChannels;
-    }
-
-    // JCFChannelService에서 사용되는 메서드
-    @Override
-    public List<User> getUsersInChannel(Channel channel) {
-        List<UUID> userUUIDs = channel.getUserUUIDs();
-        List<User> users = new ArrayList<>();
-        for (UUID userUUID : userUUIDs) {
-            User user = data.get(userUUID);
-            if (user != null) {
-                users.add(user);
-            }
-        }
-        return users;
     }
 
     @Override
@@ -72,17 +48,6 @@ public class JCFUserService implements UserService {
     public List<User> findAll() {
         Collection<User> values = data.values();
         return new ArrayList<>(values);
-    }
-
-    // channel을 파라미터에 주입 시 해당 채널에 속한 유저들 목록을 리스트로 리턴
-    public List<Optional<User>> findAll(Channel channel) {
-        List<UUID> userUUIDs = channel.getUserUUIDs();
-        List<Optional<User>> users = new ArrayList<>();
-
-        for (UUID userId : userUUIDs) {
-            users.add(findById(userId));
-        }
-        return users;
     }
 
     @Override
@@ -156,7 +121,7 @@ public class JCFUserService implements UserService {
         }
 
         // 삭제된 User가 속해있던 Channel들에서도 User 정보 삭제
-        for (Channel channel : channelService.getUserChannels(removedUser)) {
+        for (Channel channel : removedUser.getChannels()) {
             channel.deleteUser(removedUser);
         }
 

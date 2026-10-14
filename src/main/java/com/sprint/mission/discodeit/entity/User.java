@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.entity;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class User extends Entity {
 
@@ -11,11 +10,11 @@ public class User extends Entity {
     private String email;
     private String password;
 
-    private final List<UUID> channelUUIDs;
+    private final List<Channel> channels;
     private final List<Message> myMessages;
 
     public User(String userName, String email, String password) {
-        this.channelUUIDs = new ArrayList<>();
+        this.channels = new ArrayList<>();
         this.myMessages = new ArrayList<>();
         this.userName = userName;
         this.email = email;
@@ -46,8 +45,8 @@ public class User extends Entity {
         this.password = password;
     }
 
-    public List<UUID> getChannelUUIDs() {
-        return channelUUIDs;
+    public List<Channel> getChannels() {
+        return channels;
     }
 
     public List<Message> getMyMessages() {
@@ -55,11 +54,11 @@ public class User extends Entity {
     }
 
     public void addChannel(Channel channel) {
-        channelUUIDs.add(channel.getId());
+        channels.add(channel);
     }
 
     public void deleteChannel(Channel channel) {
-        channelUUIDs.remove(channel.getId());
+        channels.remove(channel);
     }
 
     public void addMessage(Message message) {

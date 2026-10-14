@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.entity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Channel extends Entity {
 
@@ -10,11 +9,11 @@ public class Channel extends Entity {
     private String description;
     private ChannelType channelType;
 
-    private final List<UUID> userUUIDs;
+    private final List<User> users;
     private final List<Message> channelMessages;
 
     public Channel(ChannelType channelType, String title, String description) {
-        this.userUUIDs = new ArrayList<>();
+        this.users = new ArrayList<>();
         this.channelMessages = new ArrayList<>();
         this.channelType = channelType;
         this.title = title;
@@ -45,16 +44,16 @@ public class Channel extends Entity {
         this.channelType = channelType;
     }
 
-    public List<UUID> getUserUUIDs() {
-        return userUUIDs;
+    public List<User> getUsers() {
+        return users;
     }
 
     public void addUser(User user) {
-        userUUIDs.add(user.getId());
+        users.add(user);
     }
 
     public void deleteUser(User user) {
-        userUUIDs.remove(user.getId());
+        users.remove(user);
     }
 
     public List<Message> getChannelMessages() {

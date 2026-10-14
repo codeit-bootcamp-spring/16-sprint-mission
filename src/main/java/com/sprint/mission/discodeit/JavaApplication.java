@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -10,6 +11,7 @@ import com.sprint.mission.discodeit.service.service_impl.JCFChannelService;
 import com.sprint.mission.discodeit.service.service_impl.JCFMessageService;
 import com.sprint.mission.discodeit.service.service_impl.JCFUserService;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
@@ -17,12 +19,98 @@ public class JavaApplication {
 
     public static void main(String[] args) {
         JCFChannelService channelService = new JCFChannelService();
-        JCFUserService userService = new JCFUserService(channelService);
+        JCFUserService userService = new JCFUserService();
         MessageService messageService = new JCFMessageService(userService, channelService);
-        channelService.setUserService(userService);
         channelService.setMessageService(messageService);
         userService.setMessageService(messageService);
 
+        // 1. User 생성
+        System.out.println("===== 1. User 생성 =====");
+        User kim = userService.create("kim", "kim@test.com", "1234");
+        User lee = userService.create("lee", "lee@test.com", "1234");
+        User park = userService.create("park", "park@test.com", "1234");
+        printUsers(userService);
+
+        // 2. Channel 생성 및 참여 (kim이 두 채널 생성, lee와 park이 참여)
+        System.out.println("\n===== 2. Channel 생성 및 참여 =====");
+        Channel general = channelService.create(kim, ChannelType.PUBLIC, "general", "자유 채널");
+        Channel study = channelService.create(kim, ChannelType.PRIVATE, "study", "스터디 채널");
+        joinChannel(lee, general);
+        joinChannel(park, general);
+        joinChannel(lee, study);
+        printChannels(channelService);
+
+        // 3. Message 생성
+        System.out.println("\n===== 3. Message 생성 =====");
+        messageService.create("안녕하세요 kim입니다", general.getId(), kim.getId());
+        messageService.create("안녕하세요 lee입니다", general.getId(), lee.getId());
+        messageService.create("안녕하세요 park입니다", general.getId(), park.getId());
+        messageService.create("스터디 언제 하나요?", study.getId(), lee.getId());
+        Message kimStudyMessage = messageService.create("내일 해요", study.getId(), kim.getId());
+        printState(userService, channelService, messageService);
+
+        // 4. Message 단건 삭제 -> 작성자와 채널에서도 삭제되어야 함
+        System.out.println("\n===== 4. Message 삭제 (kim의 \"내일 해요\") =====");
+        messageService.delete(kimStudyMessage.getId());
+        printState(userService, channelService, messageService);
+
+        // 5. User 삭제 -> 소속 채널과 작성한 Message도 정리되어야 함
+        System.out.println("\n===== 5. User 삭제 (lee) =====");
+        userService.delete(lee.getId());
+        printState(userService, channelService, messageService);
+
+        // 6. Channel 삭제 -> 소속 User의 채널 정보와 채널 내 Message도 정리되어야 함
+        System.out.println("\n===== 6. Channel 삭제 (general) =====");
+        channelService.delete(general.getId());
+        printState(userService, channelService, messageService);
+    }
+
+    // User와 Channel 양쪽에 참여 정보를 기록
+    private static void joinChannel(User user, Channel channel) {
+        user.addChannel(channel);
+        channel.addUser(user);
+    }
+
+    private static void printState(UserService userService, ChannelService channelService,
+                                   MessageService messageService) {
+        printUsers(userService);
+        printChannels(channelService);
+        System.out.println("[전체 Message 수] " + messageService.findAll().size());
+    }
+
+    private static void printUsers(UserService userService) {
+        System.out.println("[User 목록]");
+        for (User user : userService.findAll()) {
+            List<String> messages = new ArrayList<>();
+            for (Message message : user.getMyMessages()) {
+                messages.add(message.getMessage());
+            }
+            System.out.println("  " + user.getUserName()
+                    + " | 참여 채널 수: " + user.getChannels().size()
+                    + " | 작성 Message: " + messages);
+        }
+    }
+
+    private static void printChannels(ChannelService channelService) {
+        System.out.println("[Channel 목록]");
+        for (Channel channel : channelService.findAll()) {
+            List<String> userNames = new ArrayList<>();
+            for (User user : channel.getUsers()) {
+                userNames.add(user.getUserName());
+            }
+            List<String> messages = new ArrayList<>();
+            for (Message message : channel.getChannelMessages()) {
+                messages.add(message.getMessage());
+            }
+            System.out.println("  " + channel.getTitle()
+                    + " | 참여 User: " + userNames
+                    + " | Message: " + messages);
+        }
+    }
+
+    // 기존 콘솔 메뉴 (main에서 직접 입력으로 테스트하고 싶을 때 호출)
+    private static void runMenu(UserService userService, MessageService messageService,
+                                ChannelService channelService) {
         Scanner scanner = new Scanner(System.in);
         while (true) {
             printMenu();
@@ -35,8 +123,6 @@ public class JavaApplication {
 
             mainLogic(menu, userService, messageService, channelService, scanner);
         }
-
-
     }
 
     private static void mainLogic(int menu, UserService userService, MessageService messageService,

@@ -6,50 +6,20 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFChannelService implements ChannelService {
 
     private final Map<UUID, Channel> data;
-    private UserService userService;
     private MessageService messageService;
 
     public JCFChannelService() {
         this.data = new HashMap<>();
     }
 
-    // JCFUserService가 생성자로 ChannelService를 받으므로 순환 참조를 피하기 위해 setter로 주입
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    // JCFMessageService가 생성자로 ChannelService를 받으므로 순환 참조를 피하기 위해 setter로 주입
     public void setMessageService(MessageService messageService) {
         this.messageService = messageService;
-    }
-
-    // Channel에 참여중인 User들을 리스트로 반환
-    public List<User> getJoiningUsers(Channel channelUUID, UserService userService) {
-        Channel channel = data.get(channelUUID);
-        List<User> joiningChannels = userService.getUsersInChannel(channel);
-        return joiningChannels;
-    }
-
-    // JCFUserService에서 사용
-    @Override
-    public List<Channel> getUserChannels(User user) {
-        List<UUID> channelUUIDs = user.getChannelUUIDs();
-        List<Channel> channels = new ArrayList<>();
-
-        for (UUID channelUUID : channelUUIDs) {
-            Channel channel = data.get(channelUUID);
-            if (channel != null) {
-                channels.add(channel);
-            }
-        }
-        return channels;
     }
 
     @Override
@@ -74,16 +44,6 @@ public class JCFChannelService implements ChannelService {
     @Override
     public List<Channel> findAll() {
         return new ArrayList<>(data.values());
-    }
-
-    public List<Optional<Channel>> findAll(User user) {
-        List<UUID> channelUUIDs = user.getChannelUUIDs();
-        List<Optional<Channel>> channels = new ArrayList<>();
-
-        for (UUID channelUUID : channelUUIDs) {
-            channels.add(findById(channelUUID));
-        }
-        return channels;
     }
 
     @Override
@@ -133,7 +93,7 @@ public class JCFChannelService implements ChannelService {
         }
 
         // 삭제된 Channel에 속해있던 User들에게서도 Channel 정보 삭제
-        for (User user : userService.getUsersInChannel(removed)) {
+        for (User user : removed.getUsers()) {
             user.deleteChannel(removed);
         }
 
