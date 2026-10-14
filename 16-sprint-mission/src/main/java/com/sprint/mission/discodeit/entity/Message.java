@@ -9,39 +9,42 @@ public class Message {
     private Long createdAt;
     private Long updatedAt;
     private String comment;
-    private UUID userId;
-    private UUID channelId;
+    private User user;
+    private Channel channel;
 
-    public UUID getId() {
-        return this.id;
+    public User getUser() {
+        return this.user;
     }
 
     public String getComment() {
+
         return this.comment;
     }
 
     public Long getCreatedAt() {
+
         return this.createdAt;
     }
 
     public Long getUpdatedAt() {
+
         return this.updatedAt;
     }
 
-    public UUID getUserId() {
-        return this.userId;
+    public UUID getId() {
+        return this.id;
     }
-    public UUID getChannelId() {
-        return this.channelId;
+    public Channel getChannel() {
+        return this.channel;
     }
 
-    public Message(String comment, UUID userId, UUID channelId) {
+    public Message(String comment, User user, Channel channel) {
         this.id = UUID.randomUUID();
         this.comment = comment;
         this.createdAt = Instant.now().getEpochSecond();
         this.updatedAt = this.createdAt;
-        this.userId = userId;
-        this.channelId = channelId;
+        this.user = user;
+        this.channel = channel;
     }
 
     public void update(String comment) {

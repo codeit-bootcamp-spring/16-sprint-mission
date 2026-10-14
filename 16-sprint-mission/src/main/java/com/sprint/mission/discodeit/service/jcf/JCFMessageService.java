@@ -1,7 +1,11 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,13 +16,29 @@ public class JCFMessageService implements MessageService {
 
     private final List<Message> data;
 
-    public JCFMessageService() {
+
+
+    private final UserService userService;
+
+    private final ChannelService channelService;
+
+    public JCFMessageService(UserService userService, ChannelService channelService){
+        this.userService = userService;
+        this.channelService = channelService;
         this.data = new ArrayList<>();
     }
     @Override
     public Message create(String comment, UUID userId, UUID channelId) {
-        Message message = new Message(comment, userId, channelId);
+        User user = userService.findById(userId);
+        Channel channel = channelService.findById(channelId);
+        if(user == null || channel == null){
+            System.out.println("유저또는 채널이 유효하지않습니다");
+            return null;
+        }
+        Message message = new Message(comment, user, channel);
         data.add(message);
+        user.getMessages().add(message);
+        channel.getMessages().add(message);
         return message;
     }
 
@@ -44,6 +64,12 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public void delete(UUID id) {
-        data.removeIf(message -> message.getId().equals(id));
+        Message message = findById(id);
+        if(message == null){
+            return;
+        }
+        data.remove(message);
+        message.getUser().getMessages().remove(message);
+        message.getChannel().getMessages().remove(message);
     }
 }

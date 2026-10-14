@@ -35,7 +35,7 @@ public class JavaApplication {
         System.out.println(userService.findAll().size());
 
         //Channel 테스트
-        ChannelService channelService = new JCFChannelService();
+        ChannelService channelService = new JCFChannelService(userService);
 
         Channel channel = channelService.create("대화채널");//C
         Channel channel2 = channelService.create("수다채널");
@@ -47,16 +47,36 @@ public class JavaApplication {
         channelService.update(channel.getId(),"잡담채널");//U
         Channel updateChannel = channelService.findById(channel.getId());
         System.out.println(updateChannel.getName());
+        for (Channel allChannel : channelService.findAll()) {
+            System.out.println(allChannel.getName());
+        }
 
         channelService.delete(channel.getId());//D
         System.out.println(channelService.findById(channel.getId()));
         System.out.println(channelService.findAll().size());
 
+
+
+        //질문이후 추가
+        channelService.join(channel2.getId(), user2.getId());
+
+        channelService.join(channel2.getId(), user2.getId());
+
+        System.out.println("----조인-------");
+        System.out.println(channel2.getUsers().size());
+        System.out.println(user2.getChannels().size());
+
+        System.out.println("==============");
+
+
         //Message 테스트
-        MessageService messageService = new JCFMessageService();
+        MessageService messageService = new JCFMessageService(userService, channelService);
 
         Message message = messageService.create("안녕하세요", user2.getId(), channel2.getId());//C
         Message message2 = messageService.create("반갑습니다", user2.getId(), channel2.getId());
+
+
+
 
         Message findMessage = messageService.findById(message.getId());//R
         System.out.println(findMessage.getComment());
@@ -72,6 +92,14 @@ public class JavaApplication {
         messageService.delete(message.getId());//D
         System.out.println(messageService.findById(message.getId()));
         System.out.println(messageService.findAll().size());
+
+
+        Message messageA = messageService.create("반갑습니다", user.getId(), channel.getId()); // 심화요구사항 테스트
+        Message messageB = messageService.create("안녕하세요", user.getId(), channel2.getId());
+        Message messageC = messageService.create("잘부탁드립니다", user2.getId(), channel.getId());
+
+        System.out.println(channel2.getMessages().size());
+        System.out.println(user2.getMessages().size());
 
     }
 }

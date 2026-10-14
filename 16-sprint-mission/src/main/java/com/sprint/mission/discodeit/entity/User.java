@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.entity;
 
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 public class User {
@@ -16,7 +18,13 @@ public class User {
         this.password = password;
         this.createdAt = Instant.now().getEpochSecond();
         this.updatedAt = this.createdAt;
+
+        this.channels = new ArrayList<>();
+        this.messages = new ArrayList<>();
     }
+
+    private List<Channel> channels;
+    private List<Message> messages;
 
     public UUID getId() {
         return this.id;
@@ -32,6 +40,12 @@ public class User {
     }
     public Long getUpdatedAt() {
         return this.updatedAt;
+    }
+    public List<Channel> getChannels() {
+        return this.channels;
+    }
+    public List<Message> getMessages() {
+        return this.messages;
     }
 
     public void update(String name, String password) {

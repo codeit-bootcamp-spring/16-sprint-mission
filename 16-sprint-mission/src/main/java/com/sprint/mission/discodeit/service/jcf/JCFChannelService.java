@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -12,7 +14,10 @@ public class JCFChannelService implements ChannelService {
 
     private final List<Channel> data;
 
-    public JCFChannelService() {
+    private final UserService userService;
+
+    public JCFChannelService(UserService userService) {
+        this.userService = userService;
         this.data = new ArrayList<>();
     }
 
@@ -49,6 +54,21 @@ public class JCFChannelService implements ChannelService {
 
         data.removeIf(channel -> channel.getId().equals(id));
 
+    }
+    @Override
+    public void join(UUID channelId, UUID userId) {
+        Channel channel = findById(channelId);
+        User user = userService.findById(userId);
+        if(user == null || channel == null){
+            System.out.println("유저또는 채널이 유효하지않습니다!!");
+            return;
+        }
+        if(channel.getUsers().contains(user)){
+            System.out.println("중복입니다.");
+            return;
+        }
+        channel.getUsers().add(user);
+        user.getChannels().add(channel);
     }
 
 }

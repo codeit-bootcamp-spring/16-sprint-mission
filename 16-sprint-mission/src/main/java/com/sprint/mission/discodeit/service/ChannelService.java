@@ -11,4 +11,6 @@ public interface ChannelService {
     List<Channel> findAll();
     Channel update(UUID id, String name);
     void delete(UUID id);
+
+    void join(UUID channelId, UUID userId);
 }
