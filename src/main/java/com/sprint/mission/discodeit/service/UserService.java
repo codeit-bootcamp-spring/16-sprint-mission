@@ -2,6 +2,15 @@ package com.sprint.mission.discodeit.service;
 
 import com.sprint.mission.discodeit.entity.User;
 
-public interface UserService extends BaseEntityService<User> {
+import java.util.List;
+import java.util.UUID;
+
+public interface UserService {
     User create(String name);
+
+    User findById(UUID id);
+    
+    List<User> findAll();
+
+    void delete(UUID id);
 }
