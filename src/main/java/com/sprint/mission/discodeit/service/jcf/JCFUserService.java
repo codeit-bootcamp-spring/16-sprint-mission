@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -15,7 +16,7 @@ public class JCFUserService implements UserService {
 
     @Override
     public User create(User user) {
-        isValid(user);
+        isValid(user, null);
 
         data.put(user.getId(), user);
         return user;
@@ -23,7 +24,13 @@ public class JCFUserService implements UserService {
 
     @Override
     public User findById(UUID id) {
-        return data.get(id);
+        User user = data.get(id);
+
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
+
+        return user;
     }
 
     @Override
@@ -37,7 +44,7 @@ public class JCFUserService implements UserService {
             return null;
         }
 
-        isValid(user);
+        isValid(user, id);
         data.put(id, user);
         return user;
     }
@@ -47,11 +54,20 @@ public class JCFUserService implements UserService {
         data.remove(id);
     }
 
-    private void isValid(User user) {
+    private void isValid(User user, UUID excludeUserId) {
         for (User value : data.values()) {
-            if (value.getEmail().equals(user.getEmail())) {
+            if (value.getEmail().equals(user.getEmail())
+                && !value.getId().equals(excludeUserId)) {
                 throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
             }
+        }
+
+        if (user.getPassword() == null || user.getPassword().isBlank()) {
+            throw new IllegalArgumentException("비밀번호를 입력해야 합니다.");
+        }
+
+        if (user.getPassword().length() < 8) {
+            throw new IllegalArgumentException("비밀번호는 8자 이상이어야 합니다.");
         }
     }
 }

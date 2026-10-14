@@ -45,7 +45,7 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public Message update(UUID id, UUID requesterId) {
+    public Message update(UUID id, UUID requesterId, String content) {
         Message message = findById(id);
 
         if (!data.containsKey(id)) {
@@ -55,7 +55,8 @@ public class JCFMessageService implements MessageService {
         if(!message.getSenderId().equals(requesterId)) {
             throw new IllegalArgumentException("메시지 수정 권한이 없습니다.");
         }
-        data.put(id, message);
+
+        message.updateContent(content);
         return message;
     }
 

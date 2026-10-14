@@ -85,7 +85,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = findById(id);
         User user = userService.findById(userId);
 
-        if (!channel.removeMember(userId)) {
+        if (!channel.getMembers().contains(userId)) {
             throw new IllegalArgumentException("채널 멤버가 아닙니다.");
         }
 
