@@ -64,6 +64,10 @@ public class User extends BaseEntity {
         return new HashMap<>(this.channels);
     }
 
+    public Map<UUID, Message> getMessages() {
+        return new LinkedHashMap<>(this.messages);
+    }
+
     @Override
     public String toString() {
         String str =
