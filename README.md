@@ -47,3 +47,136 @@
 1. 코드 리뷰 반영: Null Object 제거 및 `main`에서 예외 처리
 2. `JavaApplication`에 수정 → 수정 후 조회 → 삭제 → 삭제 확인 테스트 추가
 3. 심화: Message 생성 시 User, Channel 존재 여부 검증 및 테스트
+
+## 클래스 다이어그램
+
+### Entity
+
+```mermaid
+classDiagram
+    direction TB
+
+    class Entity {
+        <<abstract>>
+        #UUID id
+        #long createdAt
+        #long updatedAt
+    }
+
+    class User {
+        -String userName
+        -String email
+        -String password
+        -List~Channel~ channels
+        -List~Message~ myMessages
+        +addChannel(Channel)
+        +deleteChannel(Channel)
+        +addMessage(Message)
+        +deleteMessage(Message)
+    }
+
+    class Channel {
+        -String title
+        -String description
+        -ChannelType channelType
+        -List~User~ users
+        -List~Message~ channelMessages
+        +addUser(User)
+        +deleteUser(User)
+        +addMessage(Message)
+        +deleteMessage(Message)
+    }
+
+    class Message {
+        -String message
+        -Channel channel
+        -User user
+    }
+
+    class ChannelType {
+        <<enumeration>>
+        PUBLIC
+        PRIVATE
+    }
+
+    Entity <|-- User
+    Entity <|-- Channel
+    Entity <|-- Message
+
+    User "*" -- "*" Channel : channels / users
+    User "1" -- "*" Message : user / myMessages
+    Channel "1" -- "*" Message : channel / channelMessages
+    Channel --> ChannelType
+```
+
+### Service
+
+```mermaid
+classDiagram
+    direction TB
+
+    class UserService {
+        <<interface>>
+        +create(username, email, password) User
+        +findById(UUID) Optional~User~
+        +findAll() List~User~
+        +findByName(String) Optional~User~
+        +updatePw(UUID, String) Optional~User~
+        +updateUsername(UUID, String) Optional~User~
+        +updateEmail(UUID, String) Optional~User~
+        +delete(UUID)
+    }
+
+    class ChannelService {
+        <<interface>>
+        +create(User, ChannelType, title, description) Channel
+        +findById(UUID) Optional~Channel~
+        +findAll() List~Channel~
+        +updateChannelType(UUID, ChannelType) Optional~Channel~
+        +updateTitle(UUID, String) Optional~Channel~
+        +updateDescription(UUID, String) Optional~Channel~
+        +delete(UUID)
+    }
+
+    class MessageService {
+        <<interface>>
+        +create(message, Channel, User) Message
+        +findById(UUID) Optional~Message~
+        +findAll() List~Message~
+        +update(UUID, String) Optional~Message~
+        +delete(UUID)
+    }
+
+    class JCFUserService {
+        -Map~UUID, User~ data
+        -MessageService messageService
+    }
+
+    class JCFChannelService {
+        -Map~UUID, Channel~ data
+        -MessageService messageService
+    }
+
+    class JCFMessageService {
+        -Map~UUID, Message~ data
+    }
+
+    UserService <|.. JCFUserService
+    ChannelService <|.. JCFChannelService
+    MessageService <|.. JCFMessageService
+
+    JCFUserService --> MessageService : 삭제 시 Message 정리
+    JCFChannelService --> MessageService : 삭제 시 Message 정리
+```
+
+### 관계 요약
+
+| 관계 | 종류 | 근거 |
+|---|---|---|
+| `User`, `Channel`, `Message` → `Entity` | 상속 | `extends Entity` |
+| `Channel` → `ChannelType` | 단방향 연관 | `channelType` 필드 |
+| `User` ↔ `Channel` | 다대다 양방향 | `User.channels`, `Channel.users` |
+| `User` ↔ `Message` | 일대다 양방향 | `Message.user`(final), `User.myMessages` |
+| `Channel` ↔ `Message` | 일대다 양방향 | `Message.channel`(final), `Channel.channelMessages` |
+| `JCF*Service` → `*Service` | 구현 | `implements` |
+| `JCFUserService`, `JCFChannelService` → `MessageService` | 의존 (생성자 주입) | 삭제 시 연관 Message를 `messageService.delete()`로 정리 |
