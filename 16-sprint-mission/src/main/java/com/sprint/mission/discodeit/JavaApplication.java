@@ -3,10 +3,12 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service_impl.DiscordService;
-import com.sprint.mission.discodeit.service_impl.JCFChannelService;
-import com.sprint.mission.discodeit.service_impl.JCFMessageService;
-import com.sprint.mission.discodeit.service_impl.JCFUserService;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.service_impl.JCFChannelService;
+import com.sprint.mission.discodeit.service.service_impl.JCFMessageService;
+import com.sprint.mission.discodeit.service.service_impl.JCFUserService;
 
 import java.util.List;
 import java.util.Scanner;
@@ -14,7 +16,9 @@ import java.util.Scanner;
 public class JavaApplication {
 
     public static void main(String[] args) {
-        DiscordService discordService = new DiscordService(new JCFUserService(), new JCFChannelService(), new JCFMessageService());
+        UserService userService = new JCFUserService();
+        MessageService messageService = new JCFMessageService();
+        ChannelService channelService = new JCFChannelService();
 
         Scanner scanner = new Scanner(System.in);
         while (true) {
@@ -26,30 +30,31 @@ public class JavaApplication {
                 break;
             }
 
-            mainLogic(menu, discordService, scanner);
+            mainLogic(menu, userService, messageService, channelService, scanner);
         }
 
 
     }
 
-    private static void mainLogic(int menu, DiscordService discordService, Scanner scanner) {
+    private static void mainLogic(int menu, UserService userService, MessageService messageService,
+                                  ChannelService channelService, Scanner scanner) {
         switch (menu) {
             case 1 -> {
-                User user = setupUser(discordService, scanner);
+                User user = setupUser(userService, scanner);
                 System.out.println("user 생성 완료: " + user);
             }
             case 2 -> {
-                List<User> allUsers = discordService.findAllUsers();
+                List<User> allUsers = userService.findAll();
                 for (int i = 0; i < allUsers.size(); i++) {
                     System.out.println((i + 1) + ": " + allUsers.get(i));
                 }
             }
             case 3 -> {
-                Channel channel = setUpChannel(discordService, scanner);
+                Channel channel = setUpChannel(channelService, scanner);
                 System.out.println("channel 생성 완료: " + channel);
             }
             case 4 -> {
-                List<Channel> allChannels = discordService.findAllChannels();
+                List<Channel> allChannels = channelService.findAll();
                 for (int i = 0; i < allChannels.size(); i++) {
                     System.out.println((i + 1) + ": " + allChannels.get(i));
                 }
@@ -70,7 +75,7 @@ public class JavaApplication {
 
     }
 
-    private static User setupUser(DiscordService discordService, Scanner scanner) {
+    private static User setupUser(UserService userService, Scanner scanner) {
         System.out.print("유저명을 입력하세요: ");
         String userName = scanner.nextLine();
         System.out.print("이메일을 입력하세요: ");
@@ -80,10 +85,10 @@ public class JavaApplication {
 
         System.out.println("\n==================");
 
-        return discordService.createUser(userName, email, password);
+        return userService.create(userName, email, password);
     }
 
-    private static Channel setUpChannel(DiscordService discordService, Scanner scanner) {
+    private static Channel setUpChannel(ChannelService channelService, Scanner scanner) {
         ChannelType channelType = null;
 
         while (true) {
@@ -104,6 +109,6 @@ public class JavaApplication {
         System.out.print("채널 설명을 입력해주세요:");
         String description = scanner.nextLine();
 
-        return discordService.createChannel(channelType, title, description);
+        return channelService.create(channelType, title, description);
     }
 }

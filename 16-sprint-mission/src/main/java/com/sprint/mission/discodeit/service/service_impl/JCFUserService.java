@@ -1,12 +1,10 @@
-package com.sprint.mission.discodeit.service_impl;
+package com.sprint.mission.discodeit.service.service_impl;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.time.Instant;
 import java.util.*;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> data;
@@ -16,30 +14,26 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public User create(String userName, String email, String password) {
-        User newUser = new User(userName, email, password);
+    public User create(String username, String email, String password) {
+        User newUser = new User(username, email, password);
         data.put(newUser.getId(), newUser);
         return newUser;
     }
 
     @Override
-    public User findById(UUID id) {
-        User user = data.get(id);
-        if (user == null) {
-            System.out.println("존재하지 않는 유저입니다");
-        }
-        return user;
+    public Optional<User> findById(UUID id) {
+        return Optional.ofNullable(data.get(id));
     }
 
     @Override
-    public User findByName(String userName) {
+    public Optional<User> findByName(String username) {
         Collection<User> values = data.values();
         for (User user : values) {
-            if (user.getUserName().equals(userName)) {
-                return user;
+            if (user.getUserName().equals(username)) {
+                return Optional.of(user);
             }
         }
-        return null;
+        return Optional.empty();
     }
 
     public List<User> findAll() {
@@ -48,7 +42,7 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public User updatePw(UUID id, String newPw) {
+    public Optional<User> updatePw(UUID id, String newPw) {
         if (data.containsKey(id)) {
             User user = data.get(id);
 
@@ -58,15 +52,15 @@ public class JCFUserService implements UserService {
                 user.setPassword(newPw);
                 user.setUpdatedAt(Instant.now().getEpochSecond());
             }
-            return user;
+            return Optional.of(user);
         } else {
             System.out.println("존재하지 않는 유저입니다.");
-            return null;
+            return Optional.empty(); // 호출하는 쪽에서 NPE 발생 위험, 아직 사용되는 부분은 없음
         }
     }
 
     @Override
-    public User updateUsername(UUID id, String newUsername) {
+    public Optional<User> updateUsername(UUID id, String newUsername) {
         if (data.containsKey(id)) {
             User user = data.get(id);
 
@@ -76,15 +70,15 @@ public class JCFUserService implements UserService {
                 user.setUserName(newUsername);
                 user.setUpdatedAt(Instant.now().getEpochSecond());
             }
-            return user;
+            return Optional.of(user);
         } else {
             System.out.println("존재하지 않는 유저입니다.");
-            return null;
+            return Optional.empty();    // 호출하는 쪽에서 NPE 발생 위험
         }
     }
 
     @Override
-    public User updateEmail(UUID id, String newEmail) {
+    public Optional<User> updateEmail(UUID id, String newEmail) {
         if (data.containsKey(id)) {
             User user = data.get(id);
 
@@ -94,20 +88,18 @@ public class JCFUserService implements UserService {
                 user.setEmail(newEmail);
                 user.setUpdatedAt(Instant.now().getEpochSecond());
             }
-            return user;
+            return Optional.of(user);
         } else {
             System.out.println("존재하지 않는 유저입니다.");
-            return null;
+            return Optional.empty();// 호출하는 쪽에서 NPE 발생 위험
         }
     }
 
     @Override
-    public User delete(UUID id) {
+    public void delete(UUID id) {
         User removedUser = data.remove(id);
         if (removedUser == null) {
-            System.out.println("존재하지 않는 유저입니다");
-            return null;
+            throw new NoSuchElementException();
         }
-        return removedUser;
     }
 }

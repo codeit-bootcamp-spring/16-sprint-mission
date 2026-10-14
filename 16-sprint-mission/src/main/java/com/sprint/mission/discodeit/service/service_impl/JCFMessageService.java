@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service_impl;
+package com.sprint.mission.discodeit.service.service_impl;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -22,13 +22,13 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public Message findById(UUID id) {
+    public Optional<Message> findById(UUID id) {
         Message message = data.get(id);
         if (message == null) {
             System.out.println("존재하지 않는 메시지입니다.");
-            return null;
+            return Optional.empty();
         }
-        return message;
+        return Optional.of(message);
     }
 
     @Override
@@ -38,23 +38,22 @@ public class JCFMessageService implements MessageService {
 
 
     @Override
-    public void update(UUID id, String newMessage) {
-        Message message = findById(id);
-        if (message == null) {
+    public Optional<Message> update(UUID id, String newMessage) {
+        Optional<Message> message = findById(id);
+        if (message.isEmpty()) {
             System.out.println("존재하지 않는 메시지의 내용을 수정할 수 없습니다.");
-            return;
+            return message;
         }
-        message.setMessage(newMessage);
-        message.setUpdatedAt(Instant.now().getEpochSecond());
+        message.get().setMessage(newMessage);
+        message.get().setUpdatedAt(Instant.now().getEpochSecond());
+        return message;
     }
 
     @Override
-    public Message delete(UUID id) {
+    public void delete(UUID id) {
         Message message = data.get(id);
         if (message == null) {
-            System.out.println("존재하지 않는 id입니다.");
-            return null;
+            throw new NoSuchElementException();
         }
-        return message;
     }
 }

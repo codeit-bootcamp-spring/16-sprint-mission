@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service_impl;
+package com.sprint.mission.discodeit.service.service_impl;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
@@ -22,13 +22,13 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public Channel findById(UUID id) {
+    public Optional<Channel> findById(UUID id) {
         Channel channel = data.get(id);
         if (channel == null) {
             System.out.println("해당 채널은 존재하지 않습니다.");
-            return null;
+            return Optional.empty();
         }
-        return channel;
+        return Optional.of(channel);
     }
 
     @Override
@@ -37,42 +37,43 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public void updateChannelType(UUID id, ChannelType newChannelType) {
-        Channel channel = findById(id);
-        if (channel == null) {
+    public Optional<Channel> updateChannelType(UUID id, ChannelType newChannelType) {
+        Optional<Channel> channel = findById(id);
+        if (channel.isEmpty()) {
             System.out.println("존재하지 않는 채널의 타입을 바꿀 수 없습니다.");
-            return;
+            return channel;
         }
-        channel.setChannelType(newChannelType);
+        channel.get().setChannelType(newChannelType);
+        return channel;
     }
 
     @Override
-    public void updateTitle(UUID id, String newTitle) {
-        Channel channel = findById(id);
-        if (channel == null) {
+    public Optional<Channel> updateTitle(UUID id, String newTitle) {
+        Optional<Channel> channel = findById(id);
+        if (channel.isEmpty()) {
             System.out.println("존재하지 않는 채널의 제목을 바꿀 수 없습니다.");
-            return;
+            return channel;
         }
-        channel.setTitle(newTitle);
+        channel.get().setTitle(newTitle);
+        return channel;
     }
 
     @Override
-    public void updateDescription(UUID id, String newDescription) {
-        Channel channel = findById(id);
-        if (channel == null) {
+    public Optional<Channel> updateDescription(UUID id, String newDescription) {
+        Optional<Channel> channel = findById(id);
+        if (channel.isEmpty()) {
             System.out.println("존재하지 않는 채널의 설명을 바꿀 수 없습니다.");
-            return;
+            return channel;
         }
-        channel.setDescription(newDescription);
+        channel.get().setDescription(newDescription);
+        return channel;
     }
 
     @Override
-    public Channel delete(UUID id) {
+    public void delete(UUID id) {
         Channel removed = data.remove(id);
         if (removed == null) {
-            System.out.println("해당 채널은 존재하지 않습니다.");
-            return null;
+            throw new NoSuchElementException();
         }
-        return removed;
     }
 }
