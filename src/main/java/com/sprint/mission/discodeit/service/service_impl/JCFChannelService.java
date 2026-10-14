@@ -6,21 +6,29 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFChannelService implements ChannelService {
 
     private final Map<UUID, Channel> data;
+    private final UserService userService;
     private final MessageService messageService;
 
-    public JCFChannelService(MessageService messageService) {
+    public JCFChannelService(UserService userService, MessageService messageService) {
         this.data = new HashMap<>();
+        this.userService = userService;
         this.messageService = messageService;
     }
 
     @Override
     public Channel create(User user, ChannelType channelType, String title, String description) {
+        // userService에 등록된 User만 Channel을 생성할 수 있음
+        if (userService.findById(user.getId()).isEmpty()) {
+            throw new NoSuchElementException("등록되지 않은 User는 Channel을 생성할 수 없습니다.");
+        }
+
         Channel newChannel = new Channel(channelType, title, description);
         data.put(newChannel.getId(), newChannel);
         user.addChannel(newChannel);

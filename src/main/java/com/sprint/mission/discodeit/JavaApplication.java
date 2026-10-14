@@ -20,7 +20,7 @@ public class JavaApplication {
     public static void main(String[] args) {
         MessageService messageService = new JCFMessageService();
         UserService userService = new JCFUserService(messageService);
-        ChannelService channelService = new JCFChannelService(messageService);
+        ChannelService channelService = new JCFChannelService(userService, messageService);
 
         // 1. User 생성
         System.out.println("===== 1. User 생성 =====");
