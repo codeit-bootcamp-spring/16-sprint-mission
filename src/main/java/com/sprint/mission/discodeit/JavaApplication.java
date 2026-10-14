@@ -18,11 +18,9 @@ import java.util.Scanner;
 public class JavaApplication {
 
     public static void main(String[] args) {
-        JCFChannelService channelService = new JCFChannelService();
-        JCFUserService userService = new JCFUserService();
-        MessageService messageService = new JCFMessageService(userService, channelService);
-        channelService.setMessageService(messageService);
-        userService.setMessageService(messageService);
+        MessageService messageService = new JCFMessageService();
+        UserService userService = new JCFUserService(messageService);
+        ChannelService channelService = new JCFChannelService(messageService);
 
         // 1. User 생성
         System.out.println("===== 1. User 생성 =====");
@@ -42,11 +40,11 @@ public class JavaApplication {
 
         // 3. Message 생성
         System.out.println("\n===== 3. Message 생성 =====");
-        messageService.create("안녕하세요 kim입니다", general.getId(), kim.getId());
-        messageService.create("안녕하세요 lee입니다", general.getId(), lee.getId());
-        messageService.create("안녕하세요 park입니다", general.getId(), park.getId());
-        messageService.create("스터디 언제 하나요?", study.getId(), lee.getId());
-        Message kimStudyMessage = messageService.create("내일 해요", study.getId(), kim.getId());
+        messageService.create("안녕하세요 kim입니다", general, kim);
+        messageService.create("안녕하세요 lee입니다", general, lee);
+        messageService.create("안녕하세요 park입니다", general, park);
+        messageService.create("스터디 언제 하나요?", study, lee);
+        Message kimStudyMessage = messageService.create("내일 해요", study, kim);
         printState(userService, channelService, messageService);
 
         // 4. Message 단건 삭제 -> 작성자와 채널에서도 삭제되어야 함

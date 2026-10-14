@@ -1,17 +1,15 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.UUID;
-
 public class Message extends Entity {
 
     private String message;
-    private final UUID channelId;
-    private final UUID userId;
+    private final Channel channel;
+    private final User user;
 
-    public Message(String message, UUID channelId, UUID userId) {
+    public Message(String message, Channel channel, User user) {
         this.message = message;
-        this.channelId = channelId;
-        this.userId = userId;
+        this.channel = channel;
+        this.user = user;
     }
 
     public String getMessage() {
@@ -22,11 +20,11 @@ public class Message extends Entity {
         this.message = message;
     }
 
-    public UUID getChannelId() {
-        return channelId;
+    public Channel getChannel() {
+        return channel;
     }
 
-    public UUID getUserId() {
-        return userId;
+    public User getUser() {
+        return user;
     }
 }

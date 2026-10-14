@@ -12,6 +12,8 @@ public interface UserService{
 
     Optional<User> findById(UUID id);
 
+    List<User> findAll();
+
     Optional<User> findByName(String username);
 
     Optional<User> updatePw(UUID id, String newPw);
@@ -19,8 +21,6 @@ public interface UserService{
     Optional<User> updateUsername(UUID id, String newUsername);
 
     Optional<User> updateEmail(UUID id, String newEmail);
-
-    List<User> findAll();
 
     void delete(UUID id);
 

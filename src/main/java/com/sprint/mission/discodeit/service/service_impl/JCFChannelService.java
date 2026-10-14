@@ -12,13 +12,10 @@ import java.util.*;
 public class JCFChannelService implements ChannelService {
 
     private final Map<UUID, Channel> data;
-    private MessageService messageService;
+    private final MessageService messageService;
 
-    public JCFChannelService() {
+    public JCFChannelService(MessageService messageService) {
         this.data = new HashMap<>();
-    }
-
-    public void setMessageService(MessageService messageService) {
         this.messageService = messageService;
     }
 

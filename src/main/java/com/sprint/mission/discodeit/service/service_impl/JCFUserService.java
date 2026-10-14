@@ -11,14 +11,10 @@ import java.util.*;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> data;
-    private MessageService messageService;
+    private final MessageService messageService;
 
-    public JCFUserService() {
+    public JCFUserService(MessageService messageService) {
         this.data = new HashMap<>();
-    }
-
-    // JCFMessageService가 생성자로 UserService를 받으므로 순환 참조를 피하기 위해 setter로 주입
-    public void setMessageService(MessageService messageService) {
         this.messageService = messageService;
     }
 
