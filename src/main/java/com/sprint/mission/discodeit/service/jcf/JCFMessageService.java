@@ -39,7 +39,9 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public List<Message> findAll() {
-        return new ArrayList<>(data.values());
+        return data.values().stream()
+                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .toList();
     }
 
     @Override
