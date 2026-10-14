@@ -61,6 +61,16 @@ public class JCFChannelService implements ChannelService {
         return new ArrayList<>(data.values());
     }
 
+    public List<Optional<Channel>> findAll(User user) {
+        List<UUID> channelUUIDs = user.getChannelUUIDs();
+        List<Optional<Channel>> channels = new ArrayList<>();
+
+        for (UUID channelUUID : channelUUIDs) {
+            channels.add(findById(channelUUID));
+        }
+        return channels;
+    }
+
     @Override
     public Optional<Channel> updateChannelType(UUID id, ChannelType newChannelType) {
         Optional<Channel> channel = findById(id);

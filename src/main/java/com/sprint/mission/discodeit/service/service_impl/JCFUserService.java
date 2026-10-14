@@ -64,6 +64,17 @@ public class JCFUserService implements UserService {
         return new ArrayList<>(values);
     }
 
+    // channel을 파라미터에 주입 시 해당 채널에 속한 유저들 목록을 리스트로 리턴
+    public List<Optional<User>> findAll(Channel channel) {
+        List<UUID> userUUIDs = channel.getUserUUIDs();
+        List<Optional<User>> users = new ArrayList<>();
+
+        for (UUID userId : userUUIDs) {
+            users.add(findById(userId));
+        }
+        return users;
+    }
+
     @Override
     public Optional<User> updatePw(UUID id, String newPw) {
         if (data.containsKey(id)) {

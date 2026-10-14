@@ -33,9 +33,9 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public List<Message> findAll() {
-        return new ArrayList<>(data.values());
+        Collection<Message> values = data.values();
+        return new ArrayList<>(values);
     }
-
 
     @Override
     public Optional<Message> update(UUID id, String newMessage) {
