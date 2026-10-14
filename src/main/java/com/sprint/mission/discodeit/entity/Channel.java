@@ -67,12 +67,12 @@ public class Channel extends BaseEntity {
 
     @Override
     public String toString() {
-        String userStr = this.users.values()
+        String userStr = this.getUsers().values()
                 .stream()
                 .map(User::getName)
                 .collect(Collectors.joining(", "));
         String msgStr =
-                this.messages.values().stream().map(Message::getContent).collect(Collectors.joining("\n,"));
-        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ]".formatted(this.name, userStr, msgStr);
+                this.getMessages().values().stream().map(Message::getContent).collect(Collectors.joining(", "));
+        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ]".formatted(this.getName(), userStr, msgStr);
     }
 }

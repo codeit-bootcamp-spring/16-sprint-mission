@@ -38,7 +38,7 @@ public class JavaApplication {
             System.out.print("유저 및 채널 관계 설정\n\n");
             jcfChannelService.addUserToChannel(channel1.getId(), user1);
             jcfChannelService.addUserToChannel(channel1.getId(), user2);
-            jcfUserService.addChannelToUser(user1.getId(), channel2);
+            jcfChannelService.addUserToChannel(channel2.getId(), user1);
 
             // 조회 (단일)
             User foundUser = jcfUserService.findById(user1.getId());

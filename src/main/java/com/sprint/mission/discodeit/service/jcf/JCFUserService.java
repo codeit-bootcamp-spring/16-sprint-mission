@@ -23,6 +23,10 @@ public class JCFUserService implements UserService {
     public User updateName(UUID id, String name) {
         User user = this.findById(id);
         if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");
+
+        // 변경사항 전파
+//        user.getMessages().
+
         return user.updateName(name);
     }
 
@@ -30,35 +34,6 @@ public class JCFUserService implements UserService {
         User user = this.findById(id);
         if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");
         return user.updateChannels(channels);
-    }
-
-    public void addChannelToUser(UUID userId, Channel channel) {
-        User user = this.findById(userId);
-        if (user == null) throw new IllegalArgumentException("채널을 추가할 유저가 존재하지 않습니다.");
-
-        Map<UUID, Channel> channels = user.getChannels();
-        channels.put(channel.getId(), channel);
-        user.updateChannels(channels);
-
-        // 유저에 채널 추가 시 채널에도 유저 추가
-        channel.addUser(user);
-    }
-
-    public void removeChannelFromUser(UUID userId, UUID channelId) {
-        User user = this.findById(userId);
-        if (user == null) throw new IllegalArgumentException("채널을 삭제할 유저가 존재하지 않습니다.");
-
-        Map<UUID, Channel> channels = user.getChannels();
-
-        // 유저에 채널 삭제 시 채널에도 유저 삭제
-        channels.values()
-                .stream()
-                .filter(channel -> channel.getId() == channelId)
-                .findFirst()
-                .ifPresent(channel -> channel.removeUser(userId));
-
-        channels.remove(channelId);
-        user.updateChannels(channels);
     }
 
     @Override
@@ -79,6 +54,7 @@ public class JCFUserService implements UserService {
         // 유저 삭제 시 채널에도 유저 삭제
         Map<UUID, Channel> channels = user.getChannels();
         channels.values().forEach(channel -> channel.removeUser(user.getId()));
+
 
         this.data.remove(id);
     }
