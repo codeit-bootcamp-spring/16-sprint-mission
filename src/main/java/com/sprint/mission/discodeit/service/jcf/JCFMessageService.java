@@ -23,6 +23,8 @@ public class JCFMessageService implements MessageService {
         isValid(message); // 검증 메서드 통과 x시 예외 발생
 
         data.put(message.getId(), message);
+        userService.addMessage(message.getSenderId(), message.getId());
+        channelService.addMessage(message.getChannelId(), message.getId());
         return message;
     }
 

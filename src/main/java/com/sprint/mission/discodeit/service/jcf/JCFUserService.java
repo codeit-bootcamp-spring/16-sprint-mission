@@ -57,14 +57,50 @@ public class JCFUserService implements UserService {
     public void delete(UUID id) {
         findById(id);
 
-        for (Channel channel : channelService.findAll()) {
-            if (channel.getMembers().contains(id) &&
-                !channel.getOwnerId().equals(id)) {
-                channel.removeMember(id);
+        for (User user : data.values()) {
+            for (UUID channelId : user.getChannels()) {
+                Channel channel = channelService.findById(channelId);
+
+                if (!channel.getOwnerId().equals(user.getId())) {
+                    user.removeChannel(channelId);
+                }
             }
         }
 
         data.remove(id);
+    }
+
+    @Override
+    public boolean addMessage(UUID id, UUID messageId) {
+        User user = findById(id);
+        return user.addMessage(messageId);
+    }
+
+    @Override
+    public boolean removeMessage(UUID id, UUID messageId) {
+        User user = findById(id);
+        return user.removeMessage(messageId);
+    }
+
+    @Override
+    public boolean addChannel(UUID id, UUID channelId) {
+        User user = findById(id);
+
+        if (user.hasChannel(channelId)) {
+            throw new IllegalArgumentException("이미 가입된 채널입니다.");
+        }
+
+        return user.addChannel(channelId);
+    }
+
+    @Override
+    public boolean removeChannel(UUID id, UUID channelId) {
+        User user = findById(id);
+
+        if (!user.hasChannel(channelId)) {
+            throw new IllegalArgumentException("가입하지 않은 채널입니다.");
+        }
+        return user.removeChannel(channelId);
     }
 
     private void isValid(User user, UUID excludeUserId) {

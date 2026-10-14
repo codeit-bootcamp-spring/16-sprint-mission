@@ -38,13 +38,15 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public Channel update(UUID id, UUID requesterId) {
+    public Channel update(UUID id, UUID requesterId, String channelName, String description) {
         Channel channel = findById(id);
 
         if (!channel.getOwnerId().equals(requesterId)) {
             throw new IllegalArgumentException("채널 수정 권한이 없습니다.");
         }
 
+        channel.updateChannelName(channelName);
+        channel.updateDescription(description);
         data.put(id, channel);
         return channel;
     }
@@ -61,19 +63,10 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public List<User> findMember(UUID id) {
-        Channel channel = findById(id);
-        return channel.getMembers().stream()
-                .map(userService::findById)
-                .toList();
-    }
-
-    @Override
     public void joinChannel(UUID id, UUID userId) {
-        Channel channel = findById(id);
-        User user = userService.findById(userId);
-
-        channel.addMember(userId);
+        findById(id);
+        userService.findById(userId);
+        userService.addChannel(userId, id);
     }
 
     @Override
@@ -81,7 +74,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = findById(id);
         User user = userService.findById(userId);
 
-        if (!channel.getMembers().contains(userId)) {
+        if (!user.getChannels().contains(userId)) {
             throw new IllegalArgumentException("채널 멤버가 아닙니다.");
         }
 
@@ -89,20 +82,27 @@ public class JCFChannelService implements ChannelService {
             throw new IllegalArgumentException("채널 소유주는 퇴장이 불가합니다.");
         }
 
-        channel.removeMember(userId);
+        userService.removeChannel(userId, id);
     }
 
     @Override
     public void transformOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId) {
         Channel channel = findById(id);
+        User newOwner = userService.findById(newOwnerId);
 
         if (!channel.getOwnerId().equals(currentOwnerId)) {
             throw new IllegalArgumentException("소유자만 소유권을 양도 가능합니다.");
         }
 
-        if (!channel.getMembers().contains(newOwnerId)) {
+        if (!newOwner.getChannels().contains(id)) {
             throw new IllegalArgumentException("채널 멤버에게만 양도 가능합니다.");
         }
         channel.transferOwnership(newOwnerId);
+    }
+
+    @Override
+    public boolean addMessage(UUID id, UUID messageId) {
+        Channel channel = findById(id);
+        return channel.addMessage(messageId);
     }
 }

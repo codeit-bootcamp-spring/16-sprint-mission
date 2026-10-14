@@ -1,15 +1,22 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.*;
+
 public class User extends BaseEntity {
     private String username;
     private String email;
     private String password;
+    private Set<UUID> channels;
+    private List<UUID> messages;
 
     public User(String username, String email, String password) {
         super();
         this.username = username;
         this.email = email;
         this.password = password;
+
+        channels = new HashSet<>();
+        messages = new ArrayList<>();
 
         requiredValue(username, email, password);
     }
@@ -18,16 +25,20 @@ public class User extends BaseEntity {
         return username;
     }
 
-    private void setUsername(String username) {
-        this.username = username;
-    }
-
     public String getEmail() {
         return email;
     }
 
     public String getPassword() {
         return password;
+    }
+
+    public Set<UUID> getChannels() {
+        return Collections.unmodifiableSet(channels);
+    }
+
+    public List<UUID> getMessages() {
+        return Collections.unmodifiableList(messages);
     }
 
     public void updateUsername(String username) {
@@ -46,6 +57,26 @@ public class User extends BaseEntity {
         requiredPassword(password);
         this.password = password;
         super.update();
+    }
+
+    public boolean addMessage(UUID messageId) {
+        return messages.add(messageId);
+    }
+
+    public boolean removeMessage(UUID messageId) {
+        return messages.remove(messageId);
+    }
+
+    public boolean addChannel(UUID channelId) {
+        return channels.add(channelId);
+    }
+
+    public boolean removeChannel(UUID channelId) {
+        return channels.remove(channelId);
+    }
+
+    public boolean hasChannel(UUID channelId) {
+        return channels.contains(channelId);
     }
 
     private static void requiredValue(String username, String email, String password) {

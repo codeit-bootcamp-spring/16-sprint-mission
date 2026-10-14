@@ -11,7 +11,7 @@ import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) {
-        JCFUserService userService = new JCFUserService();
+        JCFUserService userService = new JCFUserService(channelService);
         JCFChannelService channelService = new JCFChannelService(userService);
         JCFMessageService messageService = new JCFMessageService(userService, channelService);
 

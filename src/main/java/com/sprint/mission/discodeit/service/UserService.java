@@ -11,4 +11,10 @@ public interface UserService {
     List<User> findAll();
     User update(UUID id, User user);
     void delete(UUID id);
+
+    boolean addMessage(UUID id, UUID messageId);
+    boolean removeMessage(UUID id, UUID messageId);
+
+    boolean addChannel(UUID id, UUID channelId);
+    boolean removeChannel(UUID id, UUID channelId);
 }

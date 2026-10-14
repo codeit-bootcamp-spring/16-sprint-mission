@@ -11,11 +11,12 @@ public interface ChannelService {
     Channel create(Channel channel);
     Channel findById(UUID id);
     List<Channel> findAll();
-    Channel update(UUID id, UUID requesterId);
+    Channel update(UUID id, UUID requesterId, String channelName, String description);
     void delete(UUID id, UUID requesterId);
 
-    List<User> findMember(UUID id);
     void joinChannel(UUID id, UUID userId);
     void leaveChannel(UUID id, UUID userId);
     void transformOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId);
+
+    boolean addMessage(UUID id, UUID messageId);
 }
