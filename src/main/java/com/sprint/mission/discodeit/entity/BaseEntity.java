@@ -5,29 +5,29 @@ import java.util.UUID;
 public abstract class BaseEntity {
 
     private UUID id;
-    private Long createAt;
-    protected Long updateAt;
+    private Long createdAt;
+    protected Long updatedAt;
 
     public BaseEntity() {
         this.id = UUID.randomUUID();
-        this.createAt = System.currentTimeMillis();
-        this.updateAt = System.currentTimeMillis();
+        this.createdAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
     }
 
     public UUID getId() {
         return id;
     }
 
-    public Long getCreateAt() {
-        return createAt;
+    public Long getCreatedAt() {
+        return createdAt;
     }
 
-    public Long getUpdateAt() {
-        return updateAt;
+    public Long getUpdatedAt() {
+        return updatedAt;
     }
 
     public void update() {
-        this.updateAt = System.currentTimeMillis();
+        this.updatedAt = System.currentTimeMillis();
     }
 
 }
