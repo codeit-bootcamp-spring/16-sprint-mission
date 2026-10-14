@@ -15,7 +15,7 @@ public class JCFUserService implements UserService {
 
     @Override
     public User create(String name) {
-        User user = new User(name);
+        User user = new User(name, new HashMap<>(), new LinkedHashMap<>());
         this.data.put(user.getId(), user);
         return user;
     }
@@ -24,12 +24,6 @@ public class JCFUserService implements UserService {
         User user = this.findById(id);
         if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");
         return user.updateName(name);
-    }
-
-    public User updateChannels(UUID id, Map<UUID, Channel> channels) {
-        User user = this.findById(id);
-        if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");
-        return user.updateChannels(channels);
     }
 
     @Override

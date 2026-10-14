@@ -17,19 +17,7 @@ public class Message extends BaseEntity {
         this.content = content;
         return this;
     }
-
-    public Message updateSentFrom(User user) {
-        super.update();
-        this.sentFrom = user;
-        return this;
-    }
-
-    public Message updateChannel(Channel channel) {
-        super.update();
-        this.channel = channel;
-        return this;
-    }
-
+    
     public User getSentFrom() {
         return this.sentFrom;
     }

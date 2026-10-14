@@ -11,11 +11,11 @@ public class User extends BaseEntity {
     private Map<UUID, Channel> channels;
     private Map<UUID, Message> messages;
 
-    public User(String name) {
+    public User(String name, Map<UUID, Channel> channels, Map<UUID, Message> messages) {
         super();
         this.name = name;
-        this.channels = new HashMap<>();
-        this.messages = new LinkedHashMap<>();
+        this.channels = channels;
+        this.messages = messages;
     }
 
     public User updateName(String name) {
@@ -44,11 +44,6 @@ public class User extends BaseEntity {
     public void removeChannel(UUID channelId) {
         this.channels.remove(channelId);
         this.updateChannels(this.channels);
-    }
-
-    public void addMessage(UUID channelId, Message message) {
-        this.messages.put(message.getId(), message);
-        this.updateMessages(this.messages);
     }
 
     public void removeMessage(UUID messageId) {

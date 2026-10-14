@@ -31,22 +31,10 @@ public class JCFMessageService implements MessageService {
         return message;
     }
 
-    public Message updateSentFrom(UUID id, User user) {
-        Message message = this.findById(id);
-        if (message == null) throw new NoSuchElementException("수정할 메세지가 존재하지 않습니다.");
-        return message.updateSentFrom(user);
-    }
-
     public Message updateContent(UUID id, String content) {
         Message message = this.findById(id);
         if (message == null) throw new NoSuchElementException("수정할 메세지가 존재하지 않습니다.");
         return message.updateContent(content);
-    }
-
-    public Message updateChannel(UUID id, Channel channel) {
-        Message message = this.findById(id);
-        if (message == null) throw new NoSuchElementException("수정할 메세지가 존재하지 않습니다.");
-        return message.updateChannel(channel);
     }
 
     @Override

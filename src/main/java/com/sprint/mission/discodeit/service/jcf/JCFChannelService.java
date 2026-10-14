@@ -16,7 +16,7 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel create(String name) {
-        Channel channel = new Channel(name);
+        Channel channel = new Channel(name, new HashMap<>(), new LinkedHashMap<>());
         this.data.put(channel.getId(), channel);
         return channel;
     }
@@ -25,18 +25,6 @@ public class JCFChannelService implements ChannelService {
         Channel channel = this.findById(id);
         if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
         return channel.updateName(name);
-    }
-
-    public Channel updateUsers(UUID id, Map<UUID, User> users) {
-        Channel channel = this.findById(id);
-        if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
-        return channel.updateUsers(users);
-    }
-
-    public Channel updateMessages(UUID id, Map<UUID, Message> messages) {
-        Channel channel = this.findById(id);
-        if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
-        return channel.updateMessages(messages);
     }
 
     public void addUserToChannel(UUID channelId, User user) {
@@ -49,23 +37,6 @@ public class JCFChannelService implements ChannelService {
 
         // 채널에 유저 추가 시 유저에도 채널 추가
         user.addChannel(channel);
-    }
-
-    public void removeUserFromChannel(UUID channelId, UUID userId) {
-        Channel channel = this.findById(channelId);
-        if (channel == null) throw new NoSuchElementException("유저를 삭제할 채널이 존재하지 않습니다.");
-
-        Map<UUID, User> users = channel.getUsers();
-        
-        // 채널에 유저 삭제 시 유저에도 채널 삭제
-        users.values()
-                .stream()
-                .filter(user -> user.getId() == userId)
-                .findFirst()
-                .ifPresent(user -> user.removeChannel(channelId));
-
-        users.remove(userId);
-        channel.updateUsers(users);
     }
 
     @Override
