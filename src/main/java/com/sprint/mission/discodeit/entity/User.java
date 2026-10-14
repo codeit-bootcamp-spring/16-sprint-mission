@@ -59,4 +59,11 @@ public class User extends BaseEntity {
         super.update();
     }
 
+    @Override
+    public String toString() {
+        return username + " 정보: " +
+                "{이름='" + username + '\'' +
+                ", 이메일='" + email + '\'' +
+                '}';
+    }
 }

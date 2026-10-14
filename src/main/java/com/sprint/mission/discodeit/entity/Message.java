@@ -42,4 +42,13 @@ public class Message extends BaseEntity {
         this.content = content;
         super.update();
     }
+
+    @Override
+    public String toString() {
+        return "메시지 정보: " +
+                "{메시지 내용='" + content + '\'' +
+                ", 발신자=" + senderId +
+                ", 채널=" + channelId +
+                '}';
+    }
 }

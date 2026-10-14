@@ -35,4 +35,12 @@ public class Channel extends BaseEntity {
         this.channelName = channelName;
         super.update();
     }
+
+    @Override
+    public String toString() {
+        return "채널 \"" + channelName + "\" 정보: {" +
+                "채널 이름='" + channelName + '\'' +
+                ", 채널 방장=" + creatorId +
+                '}';
+    }
 }
