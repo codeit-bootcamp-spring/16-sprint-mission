@@ -5,15 +5,18 @@ import com.sprint.mission.discodeit.entity.User;
 import java.util.UUID;
 
 public interface UserService {
-    boolean createUser(User user);
 
-    boolean updateUsername(UUID id, String username);
+    User getUserById(UUID userId);
 
-    boolean updateEmail(UUID id, String email);
+    void createUser(User user);
 
-    boolean updatePassword(UUID id, String originPassword, String newPassword);
+    void updateUsername(UUID id, String username);
 
-    boolean deleteUser(UUID id, String password);
+    void updateEmail(UUID id, String email);
 
-    void getUserById(UUID userId);
+    void updatePassword(UUID id, String originPassword, String newPassword);
+
+    void deleteUser(UUID id, String password);
+
+    void deleteEmail(UUID id);
 }

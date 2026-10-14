@@ -16,28 +16,24 @@ public class JCFMessageService implements MessageService {
     private UserService userService;
     private ChannelService channelService;
 
-    @Override
-    public boolean sendMessage(Message message) {
-        userService.getUserById(message.getSenderId());
-        channelService.getChannelById(message.getChannelId());
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
 
-        messageData.put(message.getId(), message);
-        return true;
+    public void setChannelService(ChannelService channelService) {
+        this.channelService = channelService;
     }
 
     @Override
-    public boolean updateMessage(UUID messageId, String content) {
+    public Message getMessageById(UUID messageId) {
         Message message = messageData.get(messageId);
-        message.updateMessage(content);
-        return true;
+        if (message == null) {
+            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        }
+        return message;
     }
 
     @Override
-    public boolean deleteMessage(UUID messageId) {
-        messageData.remove(messageId);
-        return true;
-    }
-
     public List<Message> getMessagesByUserId(UUID userId) {
         return messageData.values().stream()
                 .filter(m -> m.getSenderId().equals(userId))
@@ -49,5 +45,25 @@ public class JCFMessageService implements MessageService {
         return messageData.values().stream()
                 .filter(m -> m.getChannelId().equals(channelId))
                 .toList();
+    }
+
+    @Override
+    public void sendMessage(Message message) {
+        userService.getUserById(message.getSenderId());
+        channelService.getChannelById(message.getChannelId());
+
+        messageData.put(message.getId(), message);
+    }
+
+    @Override
+    public void updateMessage(UUID messageId, String content) {
+        Message message = getMessageById(messageId);
+        message.updateMessage(content);
+    }
+
+    @Override
+    public void deleteMessage(UUID messageId) {
+        getMessageById(messageId);
+        messageData.remove(messageId);
     }
 }
