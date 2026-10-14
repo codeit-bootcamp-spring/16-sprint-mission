@@ -1,15 +1,19 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFChannelService implements ChannelService {
     private final Map<UUID, Channel> data;
+    private final UserService userService;
 
-    public JCFChannelService() {
+    public JCFChannelService(UserService userService) {
         data = new HashMap<>();
+        this.userService = userService;
     }
 
     @Override
@@ -58,5 +62,29 @@ public class JCFChannelService implements ChannelService {
         }
 
         data.remove(id);
+    }
+
+    @Override
+    public void joinChannel(UUID id, UUID userId) {
+        Channel channel = findById(id);
+        User user = userService.findById(userId);
+
+        channel.addMember(userId);
+    }
+
+    @Override
+    public void leaveChannel(UUID id, UUID userId) {
+        Channel channel = findById(id);
+        User user = userService.findById(userId);
+
+        if (!channel.removeMember(userId)) {
+            throw new IllegalArgumentException("채널 멤버가 아닙니다.");
+        }
+
+        if (channel.getOwnerId().equals(userId)) {
+            throw new IllegalArgumentException("채널 소유주는 퇴장이 불가합니다.");
+        }
+
+        channel.removeMember(userId);
     }
 }
