@@ -39,28 +39,26 @@ public class JCFMessageService implements MessageService {
         Message message = this.data.stream()
                 .filter(m -> m.getId().equals(uuid))
                 .findFirst()
-                .orElse(null);
-
-        if (message == null) {
-            throw new NoSuchElementException("Message not found");
-        }
+                .orElseThrow(() -> new NoSuchElementException());
 
         return message;
     }
 
     @Override
-    public void updateContent(UUID id, String content) {
+    public Message updateContent(UUID id, String content) {
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("Message content cannot be null or empty");
         }
 
         Message message = this.findById(id);
         message.updateContent(content);
+
+        return message;
     }
 
     @Override
-    public boolean deleteMessage(UUID uuid) {
+    public void deleteMessage(UUID uuid) {
         Message message = this.findById(uuid);
-        return this.data.remove(message);
+        this.data.remove(message);
     }
 }

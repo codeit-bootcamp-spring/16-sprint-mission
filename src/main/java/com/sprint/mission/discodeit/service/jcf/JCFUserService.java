@@ -49,28 +49,26 @@ public class JCFUserService implements UserService {
         User user = this.data.stream()
             .filter(u -> u.getId().equals(id))
             .findFirst()
-            .orElse(null);
-
-        if (user == null) {
-            throw new NoSuchElementException("User not found");
-        }
+            .orElseThrow(() -> new NoSuchElementException());
 
         return user;
     }
 
     @Override
-    public void updateUsername(UUID id, String username) {
+    public User updateUsername(UUID id, String username) {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("Username cannot be null or empty");
         }
 
         User user = this.findById(id);
         user.updateUsername(username);
+
+        return user;
     }
 
     @Override
-    public boolean deleteUser(UUID id) {
+    public void deleteUser(UUID id) {
         User user = this.findById(id);
-        return this.data.remove(user);
+        this.data.remove(user);
     }
 }

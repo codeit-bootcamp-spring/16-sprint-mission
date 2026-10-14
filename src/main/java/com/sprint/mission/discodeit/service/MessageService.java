@@ -9,6 +9,6 @@ public interface MessageService {
     Message createMessage(String content);
     List<Message> findAll();
     Message findById(UUID id);
-    void updateContent(UUID id, String content);
-    boolean deleteMessage(UUID id);
+    Message updateContent(UUID id, String content);
+    void deleteMessage(UUID id);
 }

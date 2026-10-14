@@ -9,6 +9,6 @@ public interface ChannelService {
     Channel createChannel(String channelName);
     List<Channel> findAll();
     Channel findById(UUID id);
-    void updateChannelName(UUID id, String channelName);
-    boolean deleteChannel(UUID id);
+    Channel updateChannelName(UUID id, String channelName);
+    void deleteChannel(UUID id);
 }

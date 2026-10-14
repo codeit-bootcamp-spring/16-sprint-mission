@@ -41,28 +41,26 @@ public class JCFChannelService implements ChannelService {
         Channel channel = this.data.stream()
                 .filter(c -> c.getId().equals(id))
                 .findFirst()
-                .orElse(null);
-
-        if (channel == null) {
-            throw new NoSuchElementException("Channel not found");
-        }
+                .orElseThrow(() -> new NoSuchElementException());
 
         return channel;
     }
 
     @Override
-    public void updateChannelName(UUID id, String channelName) {
+    public Channel updateChannelName(UUID id, String channelName) {
         if (channelName == null || channelName.isBlank()) {
             throw new IllegalArgumentException("Channel Name cannot be null or empty");
         }
 
         Channel channel = this.findById(id);
         channel.updateChannelName(channelName);
+
+        return channel;
     }
 
     @Override
-    public boolean deleteChannel(UUID id) {
+    public void deleteChannel(UUID id) {
         Channel channel = this.findById(id);
-        return this.data.remove(channel);
+        this.data.remove(channel);
     }
 }
