@@ -146,5 +146,35 @@ public class JavaApplication {
         messageService.deleteMessage(message2.getId());
 //        System.out.println(messageService.getMessageById(message2.getId())); // "존재하지 않는 메시지입니다." 예외 처리
 
+
+        /**
+         *
+         *
+         *
+         * 유저 삭제 시 연관 데이터 삭제 확인
+         */
+
+        System.out.println("\n유저 삭제 시 연관 데이터 삭제");
+
+        User testUser = new User("testUser", "test1234", "test@example.com");
+        userService.createUser(testUser);
+
+        Channel testChannel = new Channel("삭제 테스트 채널", testUser.getId());
+        channelService.createChannel(testChannel);
+
+        Message message123 = new Message("유저가 보낸 메시지", testUser.getId(), testChannel.getId());
+        messageService.sendMessage(message123);
+
+        Message message234 = new Message("채널에 속한 메시지", user2.getId(), testChannel.getId());
+        messageService.sendMessage(message234);
+
+        System.out.println("삭제 전 유저 메시지: " + messageService.getMessagesByUserId(testUser.getId()));
+        System.out.println("삭제 전 채널 메시지: " + messageService.getMessagesByChannelId(testChannel.getId()));
+
+        userService.deleteUser(testUser.getId(), "test1234");
+
+        System.out.println("\n삭제 후 확인");
+        System.out.println("남은 채널: " + channelService.getChannelsByCreatorId(testUser.getId()));
+        System.out.println("남은 메시지: " + messageService.getMessagesByUserId(testUser.getId()));
     }
 }
