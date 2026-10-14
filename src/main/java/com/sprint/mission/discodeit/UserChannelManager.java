@@ -19,9 +19,8 @@ public class UserChannelManager {
     }
 
     public void addChannelToUser(UUID userId, UUID channelId) {
-        User user = jcfUserService.findById(userId).orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
-        Channel channel =
-                jcfChannelService.findById(channelId).orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
+        User user = jcfUserService.findById(userId);
+        Channel channel = jcfChannelService.findById(channelId);
         Map<UUID, Channel> channels = user.getChannels();
         channels.put(channel.getId(), channel);
         jcfUserService.update(userId, channels);
@@ -33,7 +32,7 @@ public class UserChannelManager {
     }
 
     public void removeChannelFromUser(UUID userId, UUID channelId) {
-        User user = jcfUserService.findById(userId).orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
+        User user = jcfUserService.findById(userId);
         Channel removedChannel = user.getChannels().remove(channelId);
         if (removedChannel == null) throw new NoSuchElementException("삭제할 채널이 존재하지 않습니다.");
 
@@ -43,20 +42,22 @@ public class UserChannelManager {
     }
 
     public void deleteChannel(UUID id) {
-        Channel deletedChannel = jcfChannelService.delete(id);
+        Channel channel = jcfChannelService.findById(id);
 
         // 채널 삭제 시 모든 등록 유저들에서 채널 삭제
-        deletedChannel.getUsers().values().forEach(user -> {
+        channel.getUsers().values().forEach(user -> {
             Map<UUID, Channel> channels = user.getChannels();
             Channel removed = channels.remove(id);
             if (removed == null) throw new NoSuchElementException("삭제할 채널이 존재하지 않습니다.");
             jcfUserService.update(user.getId(), channels);
         });
+
+        jcfChannelService.delete(id);
     }
 
     public void addUserToChannel(UUID channelId, UUID userId) {
-        Channel channel = jcfChannelService.findById(channelId).orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
-        User user = jcfUserService.findById(userId).orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
+        Channel channel = jcfChannelService.findById(channelId);
+        User user = jcfUserService.findById(userId);
         Map<UUID, User> users = channel.getUsers();
         users.put(userId, user);
         jcfChannelService.update(channelId, users);
@@ -68,7 +69,7 @@ public class UserChannelManager {
     }
 
     public void removeUserFromChannel(UUID channelId, UUID userId) {
-        Channel channel = jcfChannelService.findById(channelId).orElseThrow(() -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
+        Channel channel = jcfChannelService.findById(channelId);
         User removedUser = channel.getUsers().remove(userId);
         if (removedUser == null) throw new NoSuchElementException("삭제할 유저가 존재하지 않습니다.");
 
@@ -78,13 +79,15 @@ public class UserChannelManager {
     }
 
     public void deleteUser(UUID id) {
-        User deletedUser = jcfUserService.delete(id);
+        User user = jcfUserService.findById(id);
 
         // 유저 삭제 시 모든 등록 채널에서 유저 삭제
-        deletedUser.getChannels().values().forEach(channel -> {
+        user.getChannels().values().forEach(channel -> {
             Map<UUID, User> users = channel.getUsers();
             if (users.remove(id) == null) throw new NoSuchElementException("삭제할 유저가 존재하지 않습니다.");
             jcfChannelService.update(channel.getId(), users);
         });
+
+        jcfUserService.delete(id);
     }
 }

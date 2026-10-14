@@ -7,7 +7,6 @@ import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
 
 public class JavaApplication {
     public static void main(String[] args) {
@@ -33,21 +32,21 @@ public class JavaApplication {
             userChannelManager.addChannelToUser(user1.getId(), channel2.getId());
 
             // 조회 (단일)
-            Optional<User> foundUser = jcfUserService.findById(user1.getId());
-            foundUser.ifPresent(user -> System.out.printf("유저 단일 조회 --> %s\n\n", user));
+            User foundUser = jcfUserService.findById(user1.getId());
+            System.out.printf("유저 단일 조회 --> %s\n\n", foundUser);
 
-            Optional<Channel> foundChannel = jcfChannelService.findById(channel1.getId());
-            foundChannel.ifPresent(channel -> System.out.printf("채널 단일 조회 --> %s\n\n", channel));
+            Channel foundChannel = jcfChannelService.findById(channel1.getId());
+            System.out.printf("채널 단일 조회 --> %s\n\n", foundChannel);
 
             // 조회 (전체)
-            Optional<List<User>> users = jcfUserService.findAll();
+            List<User> users = jcfUserService.findAll();
             System.out.print("유저 전체 조회 --> [\n");
-            users.ifPresent(list -> list.forEach((user) -> System.out.printf("\t%s\n", user)));
+            users.forEach((user) -> System.out.printf("\t%s\n", user));
             System.out.print("]\n\n");
 
             System.out.print("채널 전체 조회 --> [\n");
-            Optional<List<Channel>> channels = jcfChannelService.findAll();
-            channels.ifPresent(list -> list.forEach((channel) -> System.out.printf("\t%s\n", channel)));
+            List<Channel> channels = jcfChannelService.findAll();
+            channels.forEach((channel) -> System.out.printf("\t%s\n", channel));
             System.out.print("]\n\n");
 
             // 수정
@@ -61,14 +60,14 @@ public class JavaApplication {
             userChannelManager.deleteUser(user1.getId());
             users = jcfUserService.findAll();
             System.out.print("유저 전체 조회 --> [\n");
-            users.ifPresent(list -> list.forEach((user) -> System.out.printf("\t%s\n", user)));
+            users.forEach((user) -> System.out.printf("\t%s\n", user));
             System.out.print("]\n\n");
 
             System.out.printf("채널 삭제 --> %s\n", channel2);
             userChannelManager.deleteChannel(channel2.getId());
             channels = jcfChannelService.findAll();
             System.out.print("채널 전체 조회 --> [\n");
-            channels.ifPresent(list -> list.forEach((channel) -> System.out.printf("\t%s\n", channel)));
+            channels.forEach((channel) -> System.out.printf("\t%s\n", channel));
             System.out.print("]\n\n");
 
         } catch (NoSuchElementException e) {

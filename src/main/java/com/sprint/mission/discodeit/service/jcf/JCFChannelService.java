@@ -21,28 +21,31 @@ public class JCFChannelService implements ChannelService {
     }
 
     public Channel update(UUID id, String name) {
-        Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
+        Channel channel = this.findById(id);
+        if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
         return channel.update(name);
     }
 
     public Channel update(UUID id, Map<UUID, User> users) {
-        Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
+        Channel channel = this.findById(id);
+        if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
         return channel.update(users);
     }
 
     @Override
-    public Optional<Channel> findById(UUID id) {
-        return Optional.ofNullable(this.data.get(id));
+    public Channel findById(UUID id) {
+        return this.data.get(id);
     }
 
     @Override
-    public Optional<List<Channel>> findAll() {
-        return Optional.of(this.data.values().stream().toList());
+    public List<Channel> findAll() {
+        return this.data.values().stream().toList();
     }
 
     @Override
-    public Channel delete(UUID id) {
-        this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
-        return this.data.remove(id);
+    public void delete(UUID id) {
+        Channel channel = this.findById(id);
+        if (channel == null) throw new NoSuchElementException("삭제할 채널이 존재하지 않습니다.");
+        this.data.remove(id);
     }
 }

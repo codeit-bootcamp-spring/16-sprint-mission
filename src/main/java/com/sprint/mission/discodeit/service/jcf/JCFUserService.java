@@ -21,28 +21,31 @@ public class JCFUserService implements UserService {
     }
 
     public User update(UUID id, String name) {
-        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
+        User user = this.findById(id);
+        if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");
         return user.update(name);
     }
 
     public User update(UUID id, Map<UUID, Channel> channels) {
-        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("존재하지 않는 유저입니다."));
+        User user = this.findById(id);
+        if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");
         return user.update(channels);
     }
 
     @Override
-    public Optional<User> findById(UUID id) {
-        return Optional.ofNullable(this.data.get(id));
+    public User findById(UUID id) {
+        return this.data.get(id);
     }
 
     @Override
-    public Optional<List<User>> findAll() {
-        return Optional.of(this.data.values().stream().toList());
+    public List<User> findAll() {
+        return this.data.values().stream().toList();
     }
 
     @Override
-    public User delete(UUID id) {
-        this.findById(id).orElseThrow(() -> new IllegalArgumentException("삭제할 유저가 존재하지 않습니다."));
-        return this.data.remove(id);
+    public void delete(UUID id) {
+        User user = this.findById(id);
+        if (user == null) throw new IllegalArgumentException("삭제할 유저가 존재하지 않습니다.");
+        this.data.remove(id);
     }
 }
