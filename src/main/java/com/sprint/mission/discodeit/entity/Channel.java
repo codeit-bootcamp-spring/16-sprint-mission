@@ -11,9 +11,11 @@ public class Channel extends Entity {
     private ChannelType channelType;
 
     private final List<UUID> userUUIDs;
+    private final List<Message> channelMessages;
 
     public Channel(ChannelType channelType, String title, String description) {
         this.userUUIDs = new ArrayList<>();
+        this.channelMessages = new ArrayList<>();
         this.channelType = channelType;
         this.title = title;
         this.description = description;
@@ -45,6 +47,26 @@ public class Channel extends Entity {
 
     public List<UUID> getUserUUIDs() {
         return userUUIDs;
+    }
+
+    public void addUser(User user) {
+        userUUIDs.add(user.getId());
+    }
+
+    public void deleteUser(User user) {
+        userUUIDs.remove(user.getId());
+    }
+
+    public List<Message> getChannelMessages() {
+        return channelMessages;
+    }
+
+    public void addMessage(Message message) {
+        channelMessages.add(message);
+    }
+
+    public void deleteMessage(Message message) {
+        channelMessages.remove(message);
     }
 
     @Override

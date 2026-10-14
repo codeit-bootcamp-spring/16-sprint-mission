@@ -24,4 +24,5 @@ public interface ChannelService {
     Optional<Channel> updateDescription(UUID id, String newDescription);
 
     void delete(UUID id);
+
 }

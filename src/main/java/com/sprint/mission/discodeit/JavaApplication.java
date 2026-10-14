@@ -16,9 +16,12 @@ import java.util.Scanner;
 public class JavaApplication {
 
     public static void main(String[] args) {
-        UserService userService = new JCFUserService();
-        MessageService messageService = new JCFMessageService();
-        ChannelService channelService = new JCFChannelService();
+        JCFChannelService channelService = new JCFChannelService();
+        JCFUserService userService = new JCFUserService(channelService);
+        MessageService messageService = new JCFMessageService(userService, channelService);
+        channelService.setUserService(userService);
+        channelService.setMessageService(messageService);
+        userService.setMessageService(messageService);
 
         Scanner scanner = new Scanner(System.in);
         while (true) {

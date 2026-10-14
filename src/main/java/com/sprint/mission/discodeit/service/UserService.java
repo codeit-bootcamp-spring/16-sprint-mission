@@ -11,7 +11,7 @@ public interface UserService{
 
     User create(String username, String email, String password);
 
-    List<User> getChannelsFromUser(Channel channel);
+    List<User> getUsersInChannel(Channel channel);
 
     Optional<User> findById(UUID id);
 
@@ -26,4 +26,5 @@ public interface UserService{
     List<User> findAll();
 
     void delete(UUID id);
+
 }

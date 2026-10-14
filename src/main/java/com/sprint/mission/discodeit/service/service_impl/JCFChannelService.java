@@ -2,8 +2,10 @@ package com.sprint.mission.discodeit.service.service_impl;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
@@ -11,15 +13,27 @@ import java.util.*;
 public class JCFChannelService implements ChannelService {
 
     private final Map<UUID, Channel> data;
+    private UserService userService;
+    private MessageService messageService;
 
     public JCFChannelService() {
         this.data = new HashMap<>();
     }
 
+    // JCFUserService가 생성자로 ChannelService를 받으므로 순환 참조를 피하기 위해 setter로 주입
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    // JCFMessageService가 생성자로 ChannelService를 받으므로 순환 참조를 피하기 위해 setter로 주입
+    public void setMessageService(MessageService messageService) {
+        this.messageService = messageService;
+    }
+
     // Channel에 참여중인 User들을 리스트로 반환
     public List<User> getJoiningUsers(Channel channelUUID, UserService userService) {
         Channel channel = data.get(channelUUID);
-        List<User> joiningChannels = userService.getChannelsFromUser(channel);
+        List<User> joiningChannels = userService.getUsersInChannel(channel);
         return joiningChannels;
     }
 
@@ -43,6 +57,7 @@ public class JCFChannelService implements ChannelService {
         Channel newChannel = new Channel(channelType, title, description);
         data.put(newChannel.getId(), newChannel);
         user.addChannel(newChannel);
+        newChannel.addUser(user);
         return newChannel;
     }
 
@@ -106,9 +121,22 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void delete(UUID id) {
-        Channel removed = data.remove(id);
+        Channel removed = data.get(id);
         if (removed == null) {
             throw new NoSuchElementException();
         }
+
+        // Channel에 속한 Message 삭제 (작성한 User의 myMessages도 함께 정리됨)
+        // messageService.delete()가 channelMessages를 수정하므로 복사본으로 순회
+        for (Message message : new ArrayList<>(removed.getChannelMessages())) {
+            messageService.delete(message.getId());
+        }
+
+        // 삭제된 Channel에 속해있던 User들에게서도 Channel 정보 삭제
+        for (User user : userService.getUsersInChannel(removed)) {
+            user.deleteChannel(removed);
+        }
+
+        data.remove(id);
     }
 }
