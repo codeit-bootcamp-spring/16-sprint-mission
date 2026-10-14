@@ -56,6 +56,7 @@ public class JCFChannelService implements ChannelService {
         if (channel == null) throw new NoSuchElementException("유저를 삭제할 채널이 존재하지 않습니다.");
 
         Map<UUID, User> users = channel.getUsers();
+        
         // 채널에 유저 삭제 시 유저에도 채널 삭제
         users.values()
                 .stream()

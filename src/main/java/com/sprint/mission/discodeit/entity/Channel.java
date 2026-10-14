@@ -23,13 +23,13 @@ public class Channel extends BaseEntity {
 
     public Channel updateUsers(Map<UUID, User> users) {
         super.update();
-        this.users = new HashMap<>(users);
+        this.users = users;
         return this;
     }
 
     public Channel updateMessages(Map<UUID, Message> messages) {
         super.update();
-        this.messages = new LinkedHashMap<>(messages);
+        this.messages = messages;
         return this;
     }
 
@@ -58,21 +58,21 @@ public class Channel extends BaseEntity {
     }
 
     public Map<UUID, User> getUsers() {
-        return new HashMap<>(this.users);
+        return this.users;
     }
 
     public Map<UUID, Message> getMessages() {
-        return new LinkedHashMap<>(this.messages);
+        return this.messages;
     }
 
     @Override
     public String toString() {
-        String userStr = this.getUsers().values()
+        String userStr = this.users.values()
                 .stream()
                 .map(User::getName)
                 .collect(Collectors.joining(", "));
         String msgStr =
                 this.getMessages().values().stream().map(Message::getContent).collect(Collectors.joining(", "));
-        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ]".formatted(this.getName(), userStr, msgStr);
+        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ]".formatted(this.name, userStr, msgStr);
     }
 }

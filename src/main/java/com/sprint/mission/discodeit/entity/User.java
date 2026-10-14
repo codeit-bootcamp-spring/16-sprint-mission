@@ -26,13 +26,13 @@ public class User extends BaseEntity {
 
     public User updateChannels(Map<UUID, Channel> channels) {
         super.update();
-        this.channels = new HashMap<>(channels);
+        this.channels = channels;
         return this;
     }
 
     public User updateMessages(Map<UUID, Message> messages) {
         super.update();
-        this.messages = new HashMap<>(messages);
+        this.messages = messages;
         return this;
     }
 
