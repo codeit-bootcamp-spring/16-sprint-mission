@@ -65,6 +65,14 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
+    public List<User> findMember(UUID id) {
+        Channel channel = findById(id);
+        return channel.getMembers().stream()
+                .map(userService::findById)
+                .toList();
+    }
+
+    @Override
     public void joinChannel(UUID id, UUID userId) {
         Channel channel = findById(id);
         User user = userService.findById(userId);
