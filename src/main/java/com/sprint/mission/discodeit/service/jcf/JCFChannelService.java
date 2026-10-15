@@ -45,7 +45,7 @@ public class JCFChannelService implements ChannelService {
         // 채널의 유저 탈퇴 시 유저에도 채널 지우기
         channel.getUsers().values()
                 .stream()
-                .filter(user -> user.getId() == userId)
+                .filter(user -> user.getId().equals(userId))
                 .findFirst()
                 .ifPresent(user -> user.removeChannel(channelId));
 

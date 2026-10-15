@@ -19,7 +19,7 @@ public class JCFMessageService implements MessageService {
         // 채널 가입 여부 확인
         channel.getUsers().values()
                 .stream()
-                .filter(user -> user.getId() == sentFrom.getId())
+                .filter(user -> user.getId().equals(sentFrom.getId()))
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
 
