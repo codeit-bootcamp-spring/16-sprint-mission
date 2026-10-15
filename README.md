@@ -1,6 +1,6 @@
 ## 진행 현황
 
-### 기본 요구사항
+### 1차 기본 요구사항
 
 #### 도메인 모델링
 - [x] 패키지 `com.sprint.mission.discodeit.entity` 구성
