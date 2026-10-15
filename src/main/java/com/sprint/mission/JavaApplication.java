@@ -19,123 +19,165 @@ public class JavaApplication {
 
         // Service 생성
         UserService userService = new JCFUserService();
-
         ChannelService channelService =
                 new JCFChannelService(userService);
-
         MessageService messageService =
                 new JCFMessageService(userService, channelService);
-
         DiscordService discordService =
-                new DiscordService(
-                        userService,
-                        channelService,
-                        messageService
-                );
+                new DiscordService(userService, channelService, messageService);
 
 
-        // 1. User 생성
-        User user = userService.createUser("세훈", 26);
-        User user2 = userService.createUser("아름", 24);
-        User user3 = userService.createUser("지훈", 20);
+        // USER
+        System.out.println("=== User 생성 ===");
+        User sehun = userService.createUser("세훈", 26);
+        User areum = userService.createUser("아름", 24);
+        User jihun = userService.createUser("지훈", 20);
+        User chulsu = userService.createUser("철수", 5);
 
+        System.out.println("\n====== User 생성 확인 ======");
+        System.out.println(userService.findAll());
 
-        // 2. Channel 생성
-        // 세훈 + 아름 + 지훈
-        Channel channel = channelService.createChannel(
-                "1번채팅방",
-                List.of(
-                        user.getId(),
-                        user2.getId(),
-                        user3.getId()
-                )
+        System.out.println("\n====== User 단건 조회 ======");
+        System.out.println(userService.findById(areum.getId()));
+        System.out.println("\n====== User 이름으로 조회 ======");
+        System.out.println(userService.findByName("지훈"));
+
+        System.out.println("\n====== User 수정 ======");
+        userService.updateUser(sehun.getId(), "박세훈", 27);
+        System.out.println("\n====== User 수정 확인 ======");
+        System.out.println(userService.findById(sehun.getId()));
+
+        // Channel 생성
+        System.out.println("\n====== Channel 생성 ======");
+        Channel channel1 = channelService.createChannel(
+                "1. 단체 채팅방",
+                List.of(sehun.getId(), areum.getId(), jihun.getId(), chulsu.getId())
         );
-
-        // 세훈 + 아름
         Channel channel2 = channelService.createChannel(
-                "2번채팅방",
-                List.of(
-                        user.getId(),
-                        user2.getId()
-                )
+                "2. 세훈 아름 채팅방",
+                List.of(sehun.getId(), areum.getId())
         );
-
-        // 세훈 혼자
-        // → 세훈 삭제 시 이 채널 자체가 삭제되어야 함
         Channel channel3 = channelService.createChannel(
-                "세훈혼자채팅방",
-                List.of(user.getId())
+                "3. 세훈 혼자 채팅방",
+                List.of(sehun.getId())
+        );
+        System.out.println(channelService.findAll());
+
+        System.out.println("\n====== Channel 수정 ======");
+        channelService.updateChannel(
+                channel1.getId(),
+                "1. 수정된 단체 채팅방"
+        );
+        System.out.println(channelService.findById(channel1.getId()));
+
+        // User <> Channel 관계 확인
+        System.out.println("\n====== 세훈이 참여한 채널 ======");
+        System.out.println(userService.findById(sehun.getId())
+                .orElseThrow()
+                .getChannels()
         );
 
-        // 3. Message 생성
-
-        // 세훈이 1번 채팅방에 작성
-        messageService.createMessage(
-                "세훈 메시지 1",
-                user.getId(),
-                channel.getId()
+        System.out.println("\n====== 1번 채팅방 참여 User ======");
+        System.out.println(channel1.getUsers()
         );
 
-        // 아름이 1번 채팅방에 작성
-        messageService.createMessage(
-                "아름 메시지",
-                user2.getId(),
-                channel.getId()
+        System.out.println("\n====== Channel 우저 추가 ======");
+        System.out.println(channel2.getUsers());
+        System.out.println("\n====== vvvvvvvvvvvvvvv ======");
+        channelService.addUserToChannel(
+                channel2.getId(),
+                List.of(chulsu.getId())
         );
+        System.out.println(channel2.getUsers());
 
-        // 세훈이 2번 채팅방에 작성
-        messageService.createMessage(
-                "세훈 메시지 2",
-                user.getId(),
+        System.out.println("\n====== Channel 유저 삭제 ======");
+        System.out.println(channel2.getUsers());
+        System.out.println("\n====== vvvvvvvvvvvvvvv ======");
+        channelService.removeUserFromChannel(
+                channel2.getId(),
+                List.of(chulsu.getId())
+        );
+        System.out.println(channel2.getUsers());
+
+        // 메세지
+        System.out.println("\n====== Message 생성 ======");
+        Message message1 = messageService.createMessage(
+                "세훈의 첫번째 메세지",
+                sehun.getId(),
+                channel1.getId()
+        );
+        Message message2 = messageService.createMessage(
+                "아름의 첫번째 메세지",
+                areum.getId(),
+                channel1.getId()
+        );
+        Message message3 = messageService.createMessage(
+                "철수의 첫번째 메세지",
+                chulsu.getId(),
+                channel1.getId()
+        );
+        Message message4 = messageService.createMessage(
+                "세훈의 두번째 메세지",
+                sehun.getId(),
                 channel2.getId()
         );
-
-        // 세훈 혼자 있는 채팅방에 작성
-        messageService.createMessage(
-                "세훈 혼자 작성한 메시지",
-                user.getId(),
+        Message message5 = messageService.createMessage(
+                "세훈이가 세훈에게 메세지",
+                sehun.getId(),
                 channel3.getId()
         );
-
-        // 삭제 전 상태
-        System.out.println("========== 세훈 삭제 전 ==========");
-
-        System.out.println("User 목록");
-        System.out.println(userService.findAll());
-
-        System.out.println("\nChannel 목록");
-        System.out.println(channelService.findAll());
-
-        System.out.println("\n1번 채팅방 User");
-        System.out.println(channel.getUsers());
-
-        System.out.println("\n2번 채팅방 User");
-        System.out.println(channel2.getUsers());
-
-        System.out.println("\nMessage 목록");
         System.out.println(messageService.findAll());
 
-        // 4. 세훈 삭제
-        System.out.println("\n\n========== 세훈 삭제 ==========");
+        System.out.println("\n====== Message 단건 조회 ======");
+        System.out.println(messageService.findMessageById(message1.getId()));
 
-        discordService.deleteUser(user.getId());
+        System.out.println("\n====== Message 수정 ======");
+        messageService.updateMessage(
+                message1.getId(),
+                "세훈이의 수정된 메세지"
+        );
+        System.out.println(messageService.findMessageById(message1.getId()));
 
-        // 삭제 후 상태
-        System.out.println("\n========== 세훈 삭제 후 ==========");
+        // USER CHANNEL MESSAGE 연관관계
+        System.out.println("\n====== 세훈의 메세지 ======");
+        System.out.println(sehun.getMessages());
 
-        System.out.println("User 목록");
+        System.out.println("\n====== 1번 채팅방 메세지 ======");
+        System.out.println(channel1.getMessages());
+
+        System.out.println("\n====== Message 삭제 ======");
+        messageService.deleteMessage(message2.getId());
+
+        System.out.println("전체 메세지");
+        System.out.println(messageService.findAll());
+
+        System.out.println("아름의 메세지");
+        System.out.println(areum.getMessages());
+
+        System.out.println("1번 채팅방 메세지");
+        System.out.println(channel1.getMessages());
+
+        // 연쇄 삭제 테스트
+        System.out.println("=====================================");
+        System.out.println("세훈 삭제 전");
+        System.out.println("=====================================");
+        System.out.println("USERS : ");
         System.out.println(userService.findAll());
-
-        System.out.println("\nChannel 목록");
+        System.out.println("CHANNELS : ");
         System.out.println(channelService.findAll());
+        System.out.println("MESSAGES : ");
+        System.out.println(messageService.findAll());
 
-        System.out.println("\n1번 채팅방 User");
-        System.out.println(channel.getUsers());
+        discordService.deleteUser(sehun.getId());
 
-        System.out.println("\n2번 채팅방 User");
-        System.out.println(channel2.getUsers());
-
-        System.out.println("\nMessage 목록");
+        System.out.println("=====================================");
+        System.out.println("세훈 삭제 후");
+        System.out.println("=====================================");
+        System.out.println("USERS : ");
+        System.out.println(userService.findAll());
+        System.out.println("CHANNELS : ");
+        System.out.println(channelService.findAll());
+        System.out.println("MESSAGES : ");
         System.out.println(messageService.findAll());
     }
 }

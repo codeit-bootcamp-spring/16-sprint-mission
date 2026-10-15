@@ -22,11 +22,11 @@ public class Channel extends Base{
     }
 
     public List<User> getUsers() {
-        return users;
+        return List.copyOf(users);
     }
 
     public List<Message> getMessages() {
-        return messages;
+        return List.copyOf(messages);
     }
 
     public void addUser(User user) {

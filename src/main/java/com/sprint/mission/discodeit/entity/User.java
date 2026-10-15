@@ -25,11 +25,11 @@ public class User extends Base{
     }
 
     public List<Channel> getChannels() {
-        return channels;
+        return List.copyOf(channels);
     }
 
     public List<Message> getMessages() {
-        return messages;
+        return List.copyOf(messages);
     }
 
     public void addChannel(Channel channel) {

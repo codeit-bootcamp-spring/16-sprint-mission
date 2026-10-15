@@ -27,6 +27,10 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message createMessage (String content, UUID userId, UUID channelId) {
+
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("메세지 내용은 비어있을 수 없습니다.");
+        }
         User user = userService.findById(userId)
                 .orElseThrow(
                         () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
@@ -35,6 +39,11 @@ public class JCFMessageService implements MessageService {
                 .orElseThrow(
                         () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
                 );
+        boolean joined = channel.getUsers().stream()
+                .anyMatch(channelUser -> channelUser.getId().equals(userId));
+        if (!joined) {
+            throw new IllegalArgumentException("채널에 참여한 사용자만 메세지를 작성할 수 있습니다.");
+        }
         Message message = new Message(content, user, channel);
         userService.addMessageToUser(userId, message);
         channelService.addMessageToChannel(channelId, message);
@@ -51,7 +60,7 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public List<Message> findAll() {
-        return messages;
+        return List.copyOf(messages);
     }
 
     @Override
@@ -59,6 +68,11 @@ public class JCFMessageService implements MessageService {
         Message message = findMessageById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 Id 입니다.")
         );
+
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("메세지 내용은 비어있을 수 없습니다.");
+        }
+
         message.update(content);
         return message;
     }
@@ -77,15 +91,25 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public void deleteByUserId (UUID userId) {
-        // removeIf(조건에 맞으면 삭제 후 true 반환 / 삭제한게 없다면 false 반환)
-        // message의 유저의 아이디가 userId와 같다면 삭제
-        messages.removeIf(message ->
-                message.getUser().getId().equals(userId));
+        List<UUID> messageIds = messages.stream()
+                .filter(message -> // 전달받은 유저의 메세지들만 찾기
+                        message.getUser().getId().equals(userId)
+                )
+                .map(Message::getId) // 해당 메세지 객체의 ID만 가져오기
+                .toList();
+
+        messageIds.forEach(this::deleteMessage); // 해당 메세지 객체들 ID를 통해 삭제
     }
 
     @Override
     public void deleteByChannelId (UUID channelId) {
-        messages.removeIf(message ->
-                message.getChannel().getId().equals(channelId));
+        List<UUID> messageIds = messages.stream()
+                .filter(message ->
+                        message.getChannel().getId().equals(channelId)
+                )
+                .map(Message::getId)
+                .toList();
+
+        messageIds.forEach(this::deleteMessage);
     }
 }

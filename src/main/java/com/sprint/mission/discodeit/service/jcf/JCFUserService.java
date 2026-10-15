@@ -16,8 +16,16 @@ public class JCFUserService implements UserService {
 
     @Override
     public User createUser(String name, int age) {
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("사용자 이름은 비어있을 수 없습니다.");
+        }
+        if (age < 0) {
+            throw new IllegalArgumentException("나이는 0 이상이어야 합니다.");
+        }
+
         User user = new User(name, age);
         users.add(user);
+
         return user;
     }
 
@@ -37,7 +45,7 @@ public class JCFUserService implements UserService {
 
     @Override
     public List<User> findAll() {
-        return users;
+        return List.copyOf(users);
     }
 
     @Override
@@ -46,6 +54,13 @@ public class JCFUserService implements UserService {
                 .orElseThrow(
                         () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("사용자 이름은 비어있을 수 없습니다.");
+        }
+        if (age < 0) {
+            throw new IllegalArgumentException("나이는 0 이상이어야 합니다.");
+        }
+
         user.update(name, age);
         return user;
     }
