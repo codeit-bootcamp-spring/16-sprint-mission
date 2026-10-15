@@ -1,7 +1,5 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -56,11 +54,11 @@ public class User extends BaseEntity {
     }
 
     public Map<UUID, Channel> getChannels() {
-        return new HashMap<>(this.channels);
+        return this.channels;
     }
 
     public Map<UUID, Message> getMessages() {
-        return new LinkedHashMap<>(this.messages);
+        return this.messages;
     }
 
     @Override
