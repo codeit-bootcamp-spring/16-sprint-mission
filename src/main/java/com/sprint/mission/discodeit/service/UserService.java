@@ -6,22 +6,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface UserService{
-
-    User create(String username, String email, String password);
+public interface UserService {
+    User create(User user);
 
     Optional<User> findById(UUID id);
 
     List<User> findAll();
 
-    Optional<User> findByName(String username);
-
-    Optional<User> updatePw(UUID id, String newPw);
-
-    Optional<User> updateUsername(UUID id, String newUsername);
-
-    Optional<User> updateEmail(UUID id, String newEmail);
+    User update(UUID id, String userName, String email, String password);
 
     void delete(UUID id);
-
 }

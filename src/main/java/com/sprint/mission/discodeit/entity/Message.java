@@ -24,6 +24,13 @@ public class Message extends Entity implements Serializable {
         this.message = message;
     }
 
+    public void update(String message) {
+        if (message != null) {
+            this.message = message;
+        }
+        touch();
+    }
+
     public Channel getChannel() {
         return channel;
     }

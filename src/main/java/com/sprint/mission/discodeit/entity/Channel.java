@@ -46,6 +46,20 @@ public class Channel extends Entity implements Serializable {
         this.channelType = channelType;
     }
 
+    // null이 아닌 값만 수정하고 수정 시간을 갱신한다.
+    public void update(ChannelType channelType, String title, String description) {
+        if (channelType != null) {
+            this.channelType = channelType;
+        }
+        if (title != null) {
+            this.title = title;
+        }
+        if (description != null) {
+            this.description = description;
+        }
+        touch();
+    }
+
     public List<User> getUsers() {
         return users;
     }

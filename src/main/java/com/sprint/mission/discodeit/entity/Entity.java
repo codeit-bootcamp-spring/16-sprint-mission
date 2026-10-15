@@ -7,8 +7,8 @@ import java.util.UUID;
 public abstract class Entity implements Serializable {
 
     protected UUID id;
-    protected long createdAt;
-    protected long updatedAt;
+    protected Long createdAt;
+    protected Long updatedAt;
 
     public Entity() {
         long epochSecond = Instant.now().getEpochSecond();
@@ -25,19 +25,23 @@ public abstract class Entity implements Serializable {
         this.id = id;
     }
 
-    public long getCreatedAt() {
+    public Long getCreatedAt() {
         return createdAt;
     }
 
-    public void setCreatedAt(long createdAt) {
+    public void setCreatedAt(Long createdAt) {
         this.createdAt = createdAt;
     }
 
-    public long getUpdatedAt() {
+    public Long getUpdatedAt() {
         return updatedAt;
     }
 
-    public void setUpdatedAt(long updatedAt) {
+    public void setUpdatedAt(Long updatedAt) {
         this.updatedAt = updatedAt;
+    }
+
+    protected void touch() {
+        this.updatedAt = Instant.now().getEpochSecond();
     }
 }

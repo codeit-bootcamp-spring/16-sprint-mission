@@ -46,6 +46,20 @@ public class User extends Entity implements Serializable {
         this.password = password;
     }
 
+    // null이 아닌 값만 수정하고 수정 시간을 갱신한다.
+    public void update(String userName, String email, String password) {
+        if (userName != null) {
+            this.userName = userName;
+        }
+        if (email != null) {
+            this.email = email;
+        }
+        if (password != null) {
+            this.password = password;
+        }
+        touch();
+    }
+
     public List<Channel> getChannels() {
         return channels;
     }

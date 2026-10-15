@@ -7,189 +7,99 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.file.file_service_impl.FileChannelService;
-import com.sprint.mission.discodeit.service.file.file_service_impl.FileMessageService;
-import com.sprint.mission.discodeit.service.file.file_service_impl.FileUserService;
-import com.sprint.mission.discodeit.service.service_impl.JCFChannelService;
-import com.sprint.mission.discodeit.service.service_impl.JCFMessageService;
-import com.sprint.mission.discodeit.service.service_impl.JCFUserService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
+import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
-import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.nio.file.FileAlreadyExistsException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.util.NoSuchElementException;
 
 public class JavaApplication {
 
+    private static int failCount = 0;
+
     public static void main(String[] args) throws IOException {
-        MessageService messageService = new FileMessageService();
-        UserService userService = new FileUserService(messageService);
-        ChannelService channelService = new FileChannelService(userService, messageService);
+        System.out.println("################ JCF 구현체 ################");
+        UserService jcfUser = new JCFUserService();
+        ChannelService jcfChannel = new JCFChannelService();
+        MessageService jcfMessage = new JCFMessageService(jcfUser, jcfChannel);
+        testServices(jcfUser, jcfChannel, jcfMessage);
 
-        // 1. User 생성
-        System.out.println("===== 1. User 생성 =====");
-        User kim = userService.create("kim", "kim@test.com", "1234");
-        User lee = userService.create("lee", "lee@test.com", "1234");
-        User park = userService.create("park", "park@test.com", "1234");
-        printUsers(userService);
+        System.out.println("\n################ File 구현체 ################");
+        UserService fileUser = new FileUserService();
+        ChannelService fileChannel = new FileChannelService();
+        MessageService fileMessage = new FileMessageService(fileUser, fileChannel);
+        testServices(fileUser, fileChannel, fileMessage);
 
-        // 2. Channel 생성 및 참여 (kim이 두 채널 생성, lee와 park이 참여)
-        System.out.println("\n===== 2. Channel 생성 및 참여 =====");
-        Channel general = channelService.create(kim, ChannelType.PUBLIC, "general", "자유 채널");
-        Channel study = channelService.create(kim, ChannelType.PRIVATE, "study", "스터디 채널");
-        joinChannel(lee, general);
-        joinChannel(park, general);
-        joinChannel(lee, study);
-        printChannels(channelService);
-
-        // 3. Message 생성
-        System.out.println("\n===== 3. Message 생성 =====");
-        messageService.create("안녕하세요 kim입니다", general, kim);
-        messageService.create("안녕하세요 lee입니다", general, lee);
-        messageService.create("안녕하세요 park입니다", general, park);
-        messageService.create("스터디 언제 하나요?", study, lee);
-        Message kimStudyMessage = messageService.create("내일 해요", study, kim);
-        printState(userService, channelService, messageService);
+        System.out.println("\n===== 결과: " + (failCount == 0 ? "모두 PASS" : "FAIL " + failCount + "건") + " =====");
     }
 
-    // User와 Channel 양쪽에 참여 정보를 기록
-    private static void joinChannel(User user, Channel channel) {
-        user.addChannel(channel);
-        channel.addUser(user);
+    // 등록 → 조회(단건/다건) → 수정 → 수정된 데이터 조회 → 삭제 → 삭제 확인 → 연관 검증
+    private static void testServices(UserService userService, ChannelService channelService,
+                                     MessageService messageService) {
+        String suffix = String.valueOf(System.currentTimeMillis() % 100000);
+
+        System.out.println("===== 등록 =====");
+        User user = userService.create(new User("kim" + suffix, "kim" + suffix + "@test.com", "1234"));
+        Channel channel = channelService.create(new Channel(ChannelType.PUBLIC, "general" + suffix, "자유 채널"));
+        Message message = messageService.create(new Message("안녕하세요" + suffix, channel, user));
+        check("User 등록", userService.findById(user.getId()).isPresent());
+        check("Channel 등록", channelService.findById(channel.getId()).isPresent());
+        check("Message 등록", messageService.findById(message.getId()).isPresent());
+
+        System.out.println("===== 조회 =====");
+        check("User 단건 조회", userService.findById(user.getId()).get().getUserName().equals("kim" + suffix));
+        check("Channel 단건 조회", channelService.findById(channel.getId()).get().getTitle().equals("general" + suffix));
+        check("Message 단건 조회", messageService.findById(message.getId()).get().getMessage().equals("안녕하세요" + suffix));
+        check("User 다건 조회", userService.findAll().stream().anyMatch(u -> u.getId().equals(user.getId())));
+        check("Channel 다건 조회", channelService.findAll().stream().anyMatch(c -> c.getId().equals(channel.getId())));
+        check("Message 다건 조회", messageService.findAll().stream().anyMatch(m -> m.getId().equals(message.getId())));
+
+        System.out.println("===== 수정 및 수정된 데이터 조회 =====");
+        userService.update(user.getId(), "lee" + suffix, null, null);
+        channelService.update(channel.getId(), ChannelType.PRIVATE, "study" + suffix, null);
+        messageService.update(message.getId(), "수정됨" + suffix);
+        User updatedUser = userService.findById(user.getId()).get();
+        Channel updatedChannel = channelService.findById(channel.getId()).get();
+        check("User 수정 반영 (null 필드는 유지)",
+                updatedUser.getUserName().equals("lee" + suffix) && updatedUser.getEmail().equals("kim" + suffix + "@test.com"));
+        check("Channel 수정 반영", updatedChannel.getTitle().equals("study" + suffix)
+                && updatedChannel.getChannelType() == ChannelType.PRIVATE
+                && updatedChannel.getDescription().equals("자유 채널"));
+        check("Message 수정 반영", messageService.findById(message.getId()).get().getMessage().equals("수정됨" + suffix));
+
+        System.out.println("===== 연관 도메인 검증 =====");
+        check("존재하지 않는 User의 Message 생성은 실패",
+                fails(() -> messageService.create(new Message("x", channel, new User("ghost", "g@t.com", "1")))));
+        check("존재하지 않는 Channel의 Message 생성은 실패",
+                fails(() -> messageService.create(new Message("x", new Channel(ChannelType.PUBLIC, "ghost", ""), user))));
+
+        System.out.println("===== 삭제 및 삭제 확인 =====");
+        messageService.delete(message.getId());
+        channelService.delete(channel.getId());
+        userService.delete(user.getId());
+        check("Message 삭제 확인", messageService.findById(message.getId()).isEmpty());
+        check("Channel 삭제 확인", channelService.findById(channel.getId()).isEmpty());
+        check("User 삭제 확인", userService.findById(user.getId()).isEmpty());
+        check("없는 User 삭제는 실패", fails(() -> userService.delete(user.getId())));
     }
 
-    private static void printState(UserService userService, ChannelService channelService,
-                                   MessageService messageService) {
-        printUsers(userService);
-        printChannels(channelService);
-        System.out.println("[전체 Message 수] " + messageService.findAll().size());
-    }
-
-    private static void printUsers(UserService userService) {
-        System.out.println("[User 목록]");
-        for (User user : userService.findAll()) {
-            List<String> messages = new ArrayList<>();
-            for (Message message : user.getMyMessages()) {
-                messages.add(message.getMessage());
-            }
-            System.out.println("  " + user.getUserName()
-                    + " | 참여 채널 수: " + user.getChannels().size()
-                    + " | 작성 Message: " + messages);
+    private static boolean fails(Runnable action) {
+        try {
+            action.run();
+            return false;
+        } catch (NoSuchElementException e) {
+            return true;
         }
     }
 
-    private static void printChannels(ChannelService channelService) {
-        System.out.println("[Channel 목록]");
-        for (Channel channel : channelService.findAll()) {
-            List<String> userNames = new ArrayList<>();
-            for (User user : channel.getUsers()) {
-                userNames.add(user.getUserName());
-            }
-            List<String> messages = new ArrayList<>();
-            for (Message message : channel.getChannelMessages()) {
-                messages.add(message.getMessage());
-            }
-            System.out.println("  " + channel.getTitle()
-                    + " | 참여 User: " + userNames
-                    + " | Message: " + messages);
+    private static void check(String description, boolean condition) {
+        if (!condition) {
+            failCount++;
         }
-    }
-
-    // 기존 콘솔 메뉴 (main에서 직접 입력으로 테스트하고 싶을 때 호출)
-    private static void runMenu(UserService userService, MessageService messageService,
-                                ChannelService channelService) {
-        Scanner scanner = new Scanner(System.in);
-        while (true) {
-            printMenu();
-            int menu = scanner.nextInt();
-            scanner.nextLine();
-            if (menu == -1) {
-                System.out.println("프로그램을 종료합니다.");
-                break;
-            }
-
-            mainLogic(menu, userService, messageService, channelService, scanner);
-        }
-    }
-
-    private static void mainLogic(int menu, UserService userService, MessageService messageService,
-                                  ChannelService channelService, Scanner scanner) {
-        switch (menu) {
-            case 1 -> {
-                User user = setupUser(userService, scanner);
-                System.out.println("user 생성 완료: " + user);
-            }
-            case 2 -> {
-                List<User> allUsers = userService.findAll();
-                for (int i = 0; i < allUsers.size(); i++) {
-                    System.out.println((i + 1) + ": " + allUsers.get(i));
-                }
-            }
-            case 3 -> {
-                User user = new User(null, null, null);
-                Channel channel = setUpChannel(user, channelService, scanner);
-                System.out.println("channel 생성 완료: " + channel);
-            }
-            case 4 -> {
-                List<Channel> allChannels = channelService.findAll();
-                for (int i = 0; i < allChannels.size(); i++) {
-                    System.out.println((i + 1) + ": " + allChannels.get(i));
-                }
-            }
-            default -> {
-                System.out.println("해당하는 메뉴가 없습니다.");
-            }
-        }
-    }
-
-    private static void printMenu() {
-        System.out.println("== 메뉴를 고르세요 ==");
-        System.out.println("1. 유저 생성");
-        System.out.println("2. 모든 유저 조회");
-        System.out.println("3. 채널 생성");
-        System.out.println("4. 모든 채널 조회");
-        System.out.print("메뉴 선택(종료는 -1): ");
-
-    }
-
-    private static User setupUser(UserService userService, Scanner scanner) {
-        System.out.print("유저명을 입력하세요: ");
-        String userName = scanner.nextLine();
-        System.out.print("이메일을 입력하세요: ");
-        String email = scanner.nextLine();
-        System.out.print("비밀번호를 입력하세요: ");
-        String password = scanner.nextLine();
-
-        System.out.println("\n==================");
-
-        return userService.create(userName, email, password);
-    }
-
-    private static Channel setUpChannel(User user, ChannelService channelService, Scanner scanner) {
-        ChannelType channelType = null;
-
-        while (true) {
-            System.out.print("채널을 Public으로 생성하시겠습니까?(y/n): ");
-            String s = scanner.nextLine().toLowerCase();
-            if (s.equals("y")) {
-                channelType = ChannelType.PUBLIC;
-                break;
-            } else if (s.equals("n")) {
-                channelType = ChannelType.PRIVATE;
-                break;
-            }
-            System.out.println("y또는 n만 입력해주세요");
-        }
-
-        System.out.print("채널명을 입력해주세요: ");
-        String title = scanner.nextLine();
-        System.out.print("채널 설명을 입력해주세요:");
-        String description = scanner.nextLine();
-
-        return channelService.create(user, channelType, title, description);
+        System.out.println("  [" + (condition ? "PASS" : "FAIL") + "] " + description);
     }
 }
