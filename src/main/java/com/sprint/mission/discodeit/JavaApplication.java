@@ -38,7 +38,7 @@ public class JavaApplication {
 //        userService.deleteUser(user1_uuid); // 첫 번째 사용자 삭제
 //        System.out.println("User List: " + userService.findAll()); // 모든(한 명) 사용자 출력
 
-        ChannelService channelService = new JCFChannelService(); // ChannelService 객체 생성
+        ChannelService channelService = new JCFChannelService(userService); // ChannelService 객체 생성
         Channel sp16Channel = channelService.createChannel("SP16"); // 채널 생성
         MessageService messageService = new JCFMessageService(userService, channelService); // MessageService 객체 생성
         messageService.createMessage("Hello, JungMin!", user1, sp16Channel); // 첫 번째 사용자가 첫 번째 메세지(최초) 작성
