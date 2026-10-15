@@ -124,6 +124,18 @@ public class FileChannelService implements ChannelService {
         save();
     }
 
+    @Override
+    public void addMessage(Message message) {
+        ChannelService.super.addMessage(message);
+        save();
+    }
+
+    @Override
+    public void refreshMessage(Message message) {
+        ChannelService.super.refreshMessage(message);
+        save();
+    }
+
     private void save() {
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
              ObjectOutputStream oos = new ObjectOutputStream(fos)

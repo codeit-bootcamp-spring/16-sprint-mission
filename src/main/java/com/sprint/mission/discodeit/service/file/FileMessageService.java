@@ -50,6 +50,10 @@ public class FileMessageService implements MessageService {
         }
         data.put(message.getId(), message);
         save();
+
+        // 작성자(users.ser)와 Channel(channels.ser)이 보관하는 Message 목록에도 반영하고 저장한다.
+        userService.addMessage(message);
+        channelService.addMessage(message);
         return message;
     }
 
@@ -71,6 +75,9 @@ public class FileMessageService implements MessageService {
         }
         message.update(newMessage);
         save();
+
+        userService.refreshMessage(message);
+        channelService.refreshMessage(message);
         return message;
     }
 

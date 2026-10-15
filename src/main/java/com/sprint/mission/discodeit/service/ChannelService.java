@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 
 import java.util.List;
@@ -34,6 +35,25 @@ public interface ChannelService {
     default void removeUser(UUID userId) {
         for (Channel channel : findAll()) {
             channel.getUsers().removeIf(u -> u.getId().equals(userId));
+        }
+    }
+
+    // Message가 속한 Channel(message.getChannel())이 보관하는 Message 목록에 새 Message를 추가한다.
+    default void addMessage(Message message) {
+        findById(message.getChannel().getId()).ifPresent(channel -> {
+            if (channel.getChannelMessages().stream().noneMatch(m -> m.getId().equals(message.getId()))) {
+                channel.addMessage(message);
+            }
+        });
+    }
+
+    default void refreshMessage(Message message) {
+        for (Channel channel : findAll()) {
+            for (Message m : channel.getChannelMessages()) {
+                if (m.getId().equals(message.getId())) {
+                    m.sync(message);
+                }
+            }
         }
     }
 

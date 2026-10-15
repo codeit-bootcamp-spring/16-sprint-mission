@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 
 import java.util.List;
@@ -39,6 +40,24 @@ public interface UserService {
     default void removeMessage(UUID messageId) {
         for (User user : findAll()) {
             user.getMyMessages().removeIf(m -> m.getId().equals(messageId));
+        }
+    }
+
+    default void addMessage(Message message) {
+        findById(message.getUser().getId()).ifPresent(user -> {
+            if (user.getMyMessages().stream().noneMatch(m -> m.getId().equals(message.getId()))) {
+                user.addMessage(message);
+            }
+        });
+    }
+
+    default void refreshMessage(Message message) {
+        for (User user : findAll()) {
+            for (Message m : user.getMyMessages()) {
+                if (m.getId().equals(message.getId())) {
+                    m.sync(message);
+                }
+            }
         }
     }
 }

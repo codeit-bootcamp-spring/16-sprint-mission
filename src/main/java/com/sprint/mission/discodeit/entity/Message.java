@@ -31,6 +31,12 @@ public class Message extends Entity implements Serializable {
         touch();
     }
 
+    // 다른 복사본(같은 id)의 최신 정보를 이 객체에 반영한다.
+    public void sync(Message source) {
+        this.message = source.message;
+        this.updatedAt = source.updatedAt;
+    }
+
     public Channel getChannel() {
         return channel;
     }

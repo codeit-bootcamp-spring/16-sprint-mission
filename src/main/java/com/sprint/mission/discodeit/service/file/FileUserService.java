@@ -123,6 +123,18 @@ public class FileUserService implements UserService {
         save();
     }
 
+    @Override
+    public void addMessage(Message message) {
+        UserService.super.addMessage(message);
+        save();
+    }
+
+    @Override
+    public void refreshMessage(Message message) {
+        UserService.super.refreshMessage(message);
+        save();
+    }
+
     private void save() {
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
              ObjectOutputStream oos = new ObjectOutputStream(fos)
