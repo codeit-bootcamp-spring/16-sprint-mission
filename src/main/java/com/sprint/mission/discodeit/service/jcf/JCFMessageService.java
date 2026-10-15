@@ -31,10 +31,10 @@ public class JCFMessageService implements MessageService {
     public Message create(String comment, UUID userId, UUID channelId) {
         User user = userService.findById(userId);
         Channel channel = channelService.findById(channelId);
-        if(user == null || channel == null){
-            System.out.println("유저또는 채널이 유효하지않습니다");
-            return null;
-        }
+//        if(user == null || channel == null){
+//            System.out.println("유저또는 채널이 유효하지않습니다");
+//            return null;
+//        }
         Message message = new Message(comment, user, channel);
         data.add(message);
         user.getMessages().add(message);
@@ -44,7 +44,8 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message findById(UUID id) {
-        return data.stream().filter(message -> message.getId().equals(id)).findFirst().orElse(null);
+        return data.stream().filter(message -> message.getId().equals(id)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("메시지를 찾을 수 없습니다."));
     }
 
     @Override
@@ -55,9 +56,9 @@ public class JCFMessageService implements MessageService {
     @Override
     public Message update(UUID id, String comment) {
         Message message = findById(id);
-        if (message == null) {
-            return null;
-        }
+//        if (message == null) {
+//            return null;
+//        }
         message.update(comment);
         return message;
     }
@@ -65,9 +66,9 @@ public class JCFMessageService implements MessageService {
     @Override
     public void delete(UUID id) {
         Message message = findById(id);
-        if(message == null){
-            return;
-        }
+//        if(message == null){
+//            return;
+//        }
         data.remove(message);
         message.getUser().getMessages().remove(message);
         message.getChannel().getMessages().remove(message);

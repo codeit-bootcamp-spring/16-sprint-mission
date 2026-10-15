@@ -26,7 +26,8 @@ public class JCFUserService implements UserService {
 
     @Override
     public User findById(UUID id) {
-        return data.stream().filter(user -> user.getId().equals(id)).findFirst().orElse(null);
+        return data.stream().filter(user -> user.getId().equals(id)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없습니다."));
     }
 
     @Override
@@ -38,8 +39,8 @@ public class JCFUserService implements UserService {
     @Override
     public User update(UUID id, String name, String password) {
         User user = findById(id);
-        if (user == null)
-            return null;
+//        if (user == null)
+//            return null;
         user.update(name, password);
         return user;
     }
@@ -47,9 +48,8 @@ public class JCFUserService implements UserService {
     @Override
     public void delete(UUID id) {
         User user = findById(id);
-        if (user == null){
-            return;
-        }
+//        if (user == null)
+//            return;
         for (Channel channel : user.getChannels()) {
             channel.getUsers().remove(user);
         }

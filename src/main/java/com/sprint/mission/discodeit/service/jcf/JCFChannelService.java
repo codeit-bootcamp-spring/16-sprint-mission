@@ -31,7 +31,8 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel findById(UUID id) {
-        return data.stream().filter(channel -> channel.getId().equals(id)).findFirst().orElse(null);
+        return data.stream().filter(channel -> channel.getId().equals(id)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("채널을 찾을 수 없습니다."));
     }
 
     @Override
@@ -42,9 +43,9 @@ public class JCFChannelService implements ChannelService {
     @Override
     public Channel update(UUID id, String name) {
         Channel channel = findById(id);
-        if (channel == null) {
-            return null;
-        }
+//        if (channel == null) {
+//            return null;
+//        }
         channel.update(name);
         return channel;
     }
@@ -52,9 +53,8 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void delete(UUID id) {
         Channel channel = findById(id);
-        if (channel == null) {
-            return;
-        }
+//        if (channel == null)
+//            return;
         for (User user : channel.getUsers()) {
             user.getChannels().remove(channel);
         }
@@ -66,10 +66,10 @@ public class JCFChannelService implements ChannelService {
     public void join(UUID channelId, UUID userId) {
         Channel channel = findById(channelId);
         User user = userService.findById(userId);
-        if(user == null || channel == null){
-            System.out.println("유저또는 채널이 유효하지않습니다!!");
-            return;
-        }
+//        if(user == null || channel == null){
+//            System.out.println("유저또는 채널이 유효하지않습니다!!");
+//            return;
+//        }
         if(channel.getUsers().contains(user)){
             System.out.println("중복입니다.");
             return;

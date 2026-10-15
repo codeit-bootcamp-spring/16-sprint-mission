@@ -26,12 +26,31 @@ public class JavaApplication {
         }
         System.out.println(userService.findAll().size());
 
-        userService.update(user.getId(),"홍길동","1234");//U
+        userService.update(user.getId(),"김무열","4885");//U
         User updateUser = userService.findById(user.getId());
         System.out.println(updateUser.getName());
 
+
+
         userService.delete(user.getId()); //D
-        System.out.println(userService.findById(user.getId()));
+        try {
+            userService.update(user.getId(), "김무열", "4885");
+
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+        try {
+            userService.delete(user.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
+
+        //System.out.println(userService.findById(user.getId()));
+        try {
+            userService.findById(user.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println(e.getMessage());
+        }
         System.out.println(userService.findAll().size());
 
         //Channel 테스트
@@ -52,7 +71,25 @@ public class JavaApplication {
         }
 
         channelService.delete(channel.getId());//D
-        System.out.println(channelService.findById(channel.getId()));
+
+        try{
+            channelService.update(channel.getId(),"뒷담채널");
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        try {
+            channelService.delete(channel.getId());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+
+
+        //System.out.println(channelService.findById(channel.getId()));
+        try{
+            channelService.findById(channel.getId());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
         System.out.println(channelService.findAll().size());
 
 
@@ -90,13 +127,46 @@ public class JavaApplication {
         System.out.println(updateMessage.getComment());
 
         messageService.delete(message.getId());//D
-        System.out.println(messageService.findById(message.getId()));
+
+        try{
+            messageService.update(message.getId(),"모르는 메시지입니다");
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        try {
+            messageService.delete(message.getId());
+        }
+        catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+
+        //System.out.println(messageService.findById(message.getId()));
+        try{
+            messageService.findById(message.getId());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
         System.out.println(messageService.findAll().size());
 
 
-        Message messageA = messageService.create("반갑습니다", user.getId(), channel.getId()); // 심화요구사항 테스트
-        Message messageB = messageService.create("안녕하세요", user.getId(), channel2.getId());
-        Message messageC = messageService.create("잘부탁드립니다", user2.getId(), channel.getId());
+        // 심화요구사항 테스트
+        try {
+            Message messageA = messageService.create("반갑습니다", user.getId(), channel.getId());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        try {
+            Message messageB = messageService.create("안녕하세요", user.getId(), channel2.getId());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        try {
+            Message messageC = messageService.create("잘부탁드립니다", user2.getId(), channel.getId());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+
+
 
         System.out.println(channel2.getMessages().size());
         System.out.println(user2.getMessages().size());
@@ -107,7 +177,13 @@ public class JavaApplication {
         Channel channelT = channelService.create("테스트 삭제");
         channelService.join(channelT.getId(), userT.getId());
         userService.delete(userT.getId());
-        System.out.println(userService.findById(userT.getId()));
+
+        //System.out.println(userService.findById(userT.getId()));
+        try{
+            userService.findById(userT.getId());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
         System.out.println(channelT.getUsers().size());
         System.out.println(userT.getChannels().size());
 
