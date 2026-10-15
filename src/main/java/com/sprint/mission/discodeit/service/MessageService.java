@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface MessageService {
@@ -12,7 +13,7 @@ public interface MessageService {
 
     Message updateContent(UUID id, String content);
 
-    Message findById(UUID id);
+    Optional<Message> findById(UUID id);
 
     List<Message> findAll();
 

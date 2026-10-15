@@ -22,15 +22,14 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel updateName(UUID id, String name) {
-        Channel channel = this.findById(id);
-        if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
+        Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
         return channel.updateName(name);
     }
 
     @Override
     public void addUserToChannel(UUID channelId, User user) {
-        Channel channel = this.findById(channelId);
-        if (channel == null) throw new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다.");
+        Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저를 추가할 채널이 존재하지 " +
+                "않습니다."));
 
         Map<UUID, User> users = channel.getUsers();
         users.put(user.getId(), user);
@@ -42,8 +41,8 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void removeUserFromChannel(UUID channelId, UUID userId) {
-        Channel channel = this.findById(channelId);
-        if (channel == null) throw new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다.");
+        Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 " +
+                "존재하지 않습니다."));
 
         Map<UUID, User> users = channel.getUsers();
 
@@ -59,8 +58,8 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public Channel findById(UUID id) {
-        return this.data.get(id);
+    public Optional<Channel> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
@@ -70,8 +69,7 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void delete(UUID id) {
-        Channel channel = this.findById(id);
-        if (channel == null) throw new NoSuchElementException("삭제할 채널이 존재하지 않습니다.");
+        Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
 
         // 채널 삭제 시 유저에도 채널 삭제
         Map<UUID, User> users = channel.getUsers();

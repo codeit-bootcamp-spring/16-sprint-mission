@@ -22,14 +22,13 @@ public class JCFUserService implements UserService {
 
     @Override
     public User updateName(UUID id, String name) {
-        User user = this.findById(id);
-        if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");
+        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
         return user.updateName(name);
     }
 
     @Override
-    public User findById(UUID id) {
-        return this.data.get(id);
+    public Optional<User> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
@@ -39,8 +38,7 @@ public class JCFUserService implements UserService {
 
     @Override
     public void delete(UUID id) {
-        User user = this.findById(id);
-        if (user == null) throw new NoSuchElementException("삭제할 유저가 존재하지 않습니다.");
+        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
 
         // 유저 삭제 시 채널에도 유저 삭제
         Map<UUID, Channel> channels = user.getChannels();

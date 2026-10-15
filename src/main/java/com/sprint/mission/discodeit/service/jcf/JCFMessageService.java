@@ -40,14 +40,13 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message updateContent(UUID id, String content) {
-        Message message = this.findById(id);
-        if (message == null) throw new NoSuchElementException("수정할 메세지가 존재하지 않습니다.");
+        Message message = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
         return message.updateContent(content);
     }
 
     @Override
-    public Message findById(UUID id) {
-        return this.data.get(id);
+    public Optional<Message> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
@@ -57,8 +56,7 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public void delete(UUID id) {
-        Message message = this.findById(id);
-        if (message == null) throw new NoSuchElementException("삭제할 메세지가 존재하지 않습니다.");
+        Message message = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 메세지가 존재하지 않습니다."));
 
         // 메세지 삭제 시 채널과 유저에도 메세지 삭제
         message.getChannel().removeMessage(id);

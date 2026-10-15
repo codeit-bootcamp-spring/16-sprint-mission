@@ -42,13 +42,16 @@ public class JavaApplication {
             System.out.printf("메세지 생성 --> %s\n\n", message3);
 
             // 조회 (단일)
-            User foundUser = jcfUserService.findById(user1.getId());
+            User foundUser = jcfUserService.findById(user1.getId()).orElseThrow(() -> new NoSuchElementException(
+                    "조회할 유저를 찾을 수 없습니다."));
             System.out.printf("유저 단일 조회 --> %s\n\n", foundUser);
 
-            Channel foundChannel = jcfChannelService.findById(channel1.getId());
+            Channel foundChannel = jcfChannelService.findById(channel1.getId()).orElseThrow(() -> new NoSuchElementException(
+                    "조회할 채널을 찾을 수 없습니다."));
             System.out.printf("채널 단일 조회 --> %s\n\n", foundChannel);
 
-            Message foundMessage = jcfMessageService.findById(message1.getId());
+            Message foundMessage = jcfMessageService.findById(message1.getId()).orElseThrow(() -> new NoSuchElementException(
+                    "조회할 메세지를 찾을 수 없습니다."));
             System.out.printf("메세지 단일 조회 --> %s\n\n", foundMessage);
 
             // 조회 (전체)
