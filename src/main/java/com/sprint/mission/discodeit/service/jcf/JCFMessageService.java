@@ -16,6 +16,13 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message create(User sentFrom, String content, Channel channel) {
+        // 채널 가입 여부 확인
+        channel.getUsers().values()
+                .stream()
+                .filter(user -> user.getId() == sentFrom.getId())
+                .findFirst()
+                .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
+
         Message message = new Message(sentFrom, content, channel);
 
         // 메세지 추가 시 유저와 채널에도 추가
