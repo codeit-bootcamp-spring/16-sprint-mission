@@ -6,17 +6,19 @@ import java.util.UUID;
 
 public interface UserService {
 
+    // 생성
+    User createUser(User user);
+
+    // 조회
     User getUserById(UUID userId);
 
-    void createUser(User user);
+    // 수정
+    User updateUsername(UUID id, String username);
+    User updatePassword(UUID id, String originPassword, String newPassword);
+    User updateEmail(UUID id, String email);
 
-    void updateUsername(UUID id, String username);
-
-    void updateEmail(UUID id, String email);
-
-    void updatePassword(UUID id, String originPassword, String newPassword);
-
+    // 삭제
     void deleteUser(UUID id, String password);
-
     void deleteEmail(UUID id);
+
 }
