@@ -22,7 +22,11 @@ public class JavaApplication {
         userService.createUser("Young0927"); // 새 사용자 생성 후 내부 컬레션에 추가
         System.out.println("User List: " + userService.findAll()); // 모든(두 명) 사용자 출력
 
-        UUID user1_uuid = ((JCFUserService) userService).getUserUUID(0); // 첫 번째 사용자의 UUID 저장
+        // UUID user1_uuid = ((JCFUserService) userService).getUserUUID(0); // 첫 번째 사용자의 UUID 저장
+        // 위 코드는 서비스의 구현체가 바뀌면 사용할 수 없습니다.
+        // 객체 지향 설계의 핵심 원칙 중 하나는 인터페이스에 의존하는 프로그래밍입니다.
+        User user = userService.createUser("Patrick1224");
+        UUID user1_uuid = user.getId();
 
         System.out.println("첫 번째 User의 UUID: " + user1_uuid); // 첫 번째 사용자의 UUID 출력
 

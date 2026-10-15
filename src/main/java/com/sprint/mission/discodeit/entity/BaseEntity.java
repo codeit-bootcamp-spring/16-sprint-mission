@@ -15,15 +15,15 @@ public abstract class BaseEntity {
     }
 
     public UUID getId() {
-        return id;
+        return this.id;
     }
 
     public Long getCreatedAt() {
-        return createdAt;
+        return this.createdAt;
     }
 
     public Long getUpdatedAt() {
-        return updatedAt;
+        return this.updatedAt;
     }
 
     public void update() {

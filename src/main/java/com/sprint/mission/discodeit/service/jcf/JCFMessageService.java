@@ -29,6 +29,10 @@ public class JCFMessageService implements MessageService {
             throw new IllegalArgumentException("Message content cannot be null or empty");
         }
 
+        if (sender == null || channel == null) {
+            throw new IllegalArgumentException("메시지 작성자와 채널은 필수입니다.");
+        }
+
         User validSender = this.userService.findById(sender.getId());
         Channel validChannel = this.channelService.findById(channel.getId());
 

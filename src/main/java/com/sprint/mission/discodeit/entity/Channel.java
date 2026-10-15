@@ -10,7 +10,7 @@ public class Channel extends BaseEntity {
     }
 
     public String getChannelName() {
-        return channelName;
+        return this.channelName;
     }
 
     public void updateChannelName(String channelName) {

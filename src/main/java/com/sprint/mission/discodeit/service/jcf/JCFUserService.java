@@ -28,6 +28,7 @@ public class JCFUserService implements UserService {
     }
 
     /* User의 UUID를 가져오기 위한 메서드입니다. */
+    /*
     public UUID getUserUUID(int index) {
         List<User> list = this.data;
         if (index < 0 || index >= list.size()) {
@@ -35,6 +36,7 @@ public class JCFUserService implements UserService {
         }
         return list.get(index).getId();
     }
+     */
 
     @Override
     public List<User> findAll() {

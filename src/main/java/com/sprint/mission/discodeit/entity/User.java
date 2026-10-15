@@ -10,7 +10,7 @@ public class User extends BaseEntity {
     }
 
     public String getUsername() {
-        return username;
+        return this.username;
     }
 
     public void updateUsername(String username) {
