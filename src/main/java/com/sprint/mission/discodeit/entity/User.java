@@ -6,8 +6,8 @@ public class User extends BaseEntity {
     private String username;
     private String email;
     private String password;
-    private Set<UUID> channels = new HashSet<>();
-    private List<UUID> messages = new ArrayList<>();
+    private final Set<UUID> channels = new HashSet<>();
+    private final List<UUID> messages = new ArrayList<>();
 
     public User(String username, String email, String password) {
         super();

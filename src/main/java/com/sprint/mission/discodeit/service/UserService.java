@@ -9,12 +9,12 @@ public interface UserService {
     User create(User user);
     User findById(UUID id);
     List<User> findAll();
-    User update(UUID id, User user);
+    List<User> findAllByChannelId(UUID channelId);
+    User update(UUID id, String username, String email, String password);
     void delete(UUID id);
 
-    boolean addMessage(UUID id, UUID messageId);
-    boolean removeMessage(UUID id, UUID messageId);
-
-    boolean addChannel(UUID id, UUID channelId);
-    boolean removeChannel(UUID id, UUID channelId);
+    void addChannel(UUID id, UUID channelId);
+    void removeChannel(UUID id, UUID channelId);
+    void addMessage(UUID id, UUID messageId);
+    void removeMessage(UUID id, UUID messageId);
 }

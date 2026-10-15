@@ -11,7 +11,7 @@ public class Channel extends BaseEntity {
 
     public Channel(UUID ownerId, String name, String description) {
         super();
-        this.ownerId = Objects.requireNonNull(ownerId, "소유자는 필수입니다.");;
+        this.ownerId = Objects.requireNonNull(ownerId, "소유자는 필수입니다.");
 
         validateName(name);
         this.name = name;
@@ -29,7 +29,7 @@ public class Channel extends BaseEntity {
     public boolean isOwner(UUID userId) { return ownerId.equals(userId); }
     public boolean hasUser(UUID userId) { return users.contains(userId); }
 
-    public void updateChannelName(String name) {
+    public void update(String name, String description) {
         validateName(name);
         this.name = name;
         this.description = description;
