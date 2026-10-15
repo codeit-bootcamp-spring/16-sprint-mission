@@ -66,13 +66,13 @@ public class User extends BaseEntity {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
 
-        getMyChannels().add(channel);
+        myChannels.add(channel);
     }
 
     public void addMessage(Message message) {
         Validation.validateNull(message, "message");
 
-        getMyMessages().add(message);
+        myMessages.add(message);
     }
 
     public void removeChannel(Channel channel) {
@@ -81,13 +81,13 @@ public class User extends BaseEntity {
             throw new IllegalArgumentException("해당 채널에 참여하고 있지 않습니다.");
         }
 
-        getMyChannels().remove(channel);
+        myChannels.remove(channel);
     }
 
     public void removeMessage(Message message) {
         Validation.validateNull(message, "message");
 
-        getMyMessages().remove(message);
+        myMessages.remove(message);
     }
 
     public void deleteEmail() {
