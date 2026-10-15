@@ -35,7 +35,8 @@ public class JavaApplication {
             System.out.printf("메세지 생성 --> %s\n", message2);
             System.out.printf("메세지 생성 --> %s\n\n", message3);
 
-            System.out.print("유저 및 채널 관계 설정\n\n");
+            System.out.printf("유저 및 채널 관계 설정\n\n채널 이름: %s, 유저 가입: %s, %s\n채널 이름: %s, 유저 가입: %s\n\n", channel1.getName(),
+                    user1.getName(), user2.getName(), channel2.getName(), user1.getName());
             jcfChannelService.addUserToChannel(channel1.getId(), user1);
             jcfChannelService.addUserToChannel(channel1.getId(), user2);
             jcfChannelService.addUserToChannel(channel2.getId(), user1);
@@ -95,6 +96,14 @@ public class JavaApplication {
             messages = jcfMessageService.findAll();
             System.out.print("메세지 전체 조회 --> [\n");
             messages.forEach((message) -> System.out.printf("\t%s\n", message));
+            System.out.print("]\n\n");
+
+            // 채널 탈퇴
+            System.out.printf("유저 채널 탈퇴 --> 유저 이름: %s, 채널 이름: %s\n", user2.getName(), channel1.getName());
+            jcfChannelService.removeUserFromChannel(channel1.getId(), user2.getId());
+            channels = jcfChannelService.findAll();
+            System.out.print("채널 전체 조회 --> [\n");
+            channels.forEach((channel) -> System.out.printf("\t%s\n", channel));
             System.out.print("]\n\n");
 
         } catch (NoSuchElementException e) {

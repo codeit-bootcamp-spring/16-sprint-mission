@@ -39,6 +39,23 @@ public class JCFChannelService implements ChannelService {
         user.addChannel(channel);
     }
 
+    public void removeUserFromChannel(UUID channelId, UUID userId) {
+        Channel channel = this.findById(channelId);
+        if (channel == null) throw new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다.");
+
+        Map<UUID, User> users = channel.getUsers();
+
+        // 채널의 유저 탈퇴 시 유저에도 채널 지우기
+        users.values()
+                .stream()
+                .filter(user -> user.getId() == userId)
+                .findFirst()
+                .ifPresent(user -> user.removeChannel(channelId));
+
+        users.remove(userId);
+        channel.updateUsers(users);
+    }
+
     @Override
     public Channel findById(UUID id) {
         return this.data.get(id);
