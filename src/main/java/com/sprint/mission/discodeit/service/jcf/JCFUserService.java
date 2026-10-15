@@ -1,4 +1,5 @@
 package com.sprint.mission.discodeit.service.jcf;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -16,6 +17,7 @@ public class JCFUserService implements UserService {
         this.data=new ConcurrentHashMap<>();
         this.messageService = messageService;
     }
+
     @Override
     public User save(User user) {
         if (user == null || user.getId() == null) {
@@ -23,7 +25,6 @@ public class JCFUserService implements UserService {
         }
         data.put(user.getId(), user);
         return user;
-
     }
 
     @Override
@@ -34,13 +35,15 @@ public class JCFUserService implements UserService {
             //데이터 없을 때
             return Collections.emptyList();
         }
-
         // 데이터가 있을 때
         List<User> result = new ArrayList<>();
         result.add(user);
         return result;
+    }
 
-
+    @Override
+    public List<Message> findMessagesByUserId(UUID userId) {
+        return messageService.findUserlId(userId); // messageService 기능 활용
     }
 
     @Override
@@ -58,16 +61,14 @@ public class JCFUserService implements UserService {
         return user;
     }
 
-//    @Override
-//    //userid삭제시 연쇄로 삭제 방법 찾기
-//    public void deleteId(UUID id) {
-//        data.remove(id);
-//
-//    }
+    @Override
+    public User findEntityId(UUID id) {
+        return data.get(id);
+    }
+
     @Override
     public void deleteId(UUID id) {
         messageService.deleteByUserId(id); // 연쇄 삭제
         data.remove(id);
-}
-
+    }
 }

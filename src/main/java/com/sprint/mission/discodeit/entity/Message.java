@@ -6,8 +6,6 @@ public class Message extends BaseEntity {
     UUID channelId;
     UUID userId;
     String content;
-    Long createdAt;
-    Long updatedAt;
 
     public Message(){
         super();
@@ -28,5 +26,4 @@ public class Message extends BaseEntity {
         this.content = message;
         this.updateTime();
     }
-
 }
