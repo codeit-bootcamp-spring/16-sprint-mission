@@ -10,11 +10,9 @@ import java.util.*;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> data;
-    private final ChannelService channelService;
 
-    public JCFUserService(ChannelService channelService) {
+    public JCFUserService() {
         data = new HashMap<>();
-        this.channelService = channelService;
     }
 
 

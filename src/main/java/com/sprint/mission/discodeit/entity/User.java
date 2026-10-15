@@ -6,100 +6,74 @@ public class User extends BaseEntity {
     private String username;
     private String email;
     private String password;
-    private Set<UUID> channels;
-    private List<UUID> messages;
+    private Set<UUID> channels = new HashSet<>();
+    private List<UUID> messages = new ArrayList<>();
 
     public User(String username, String email, String password) {
         super();
+        validate(username, email, password);
         this.username = username;
         this.email = email;
         this.password = password;
 
-        channels = new HashSet<>();
-        messages = new ArrayList<>();
-
-        requiredValue(username, email, password);
     }
 
-    public String getUsername() {
-        return username;
-    }
+    public String getUsername() { return username; }
+    public String getEmail() { return email; }
+    public String getPassword() { return password; }
 
-    public String getEmail() {
-        return email;
-    }
+    public Set<UUID> getChannels() { return Collections.unmodifiableSet(channels); }
+    public List<UUID> getMessages() { return Collections.unmodifiableList(messages); }
 
-    public String getPassword() {
-        return password;
-    }
+    public boolean hasChannel(UUID channelId) { return channels.contains(channelId); }
 
-    public Set<UUID> getChannels() {
-        return Collections.unmodifiableSet(channels);
-    }
-
-    public List<UUID> getMessages() {
-        return Collections.unmodifiableList(messages);
-    }
-
-    public void updateUsername(String username) {
-        requiredUsername(username);
+    public void update(String username, String email, String password) {
+        validate(username, email, password);
         this.username = username;
-        super.update();
-    }
-
-    public void updateEmail(String email) {
-        requiredEmail(email);
         this.email = email;
-        super.update();
-    }
-
-    public void updatePassword(String password) {
-        requiredPassword(password);
         this.password = password;
-        super.update();
+        touch();
     }
 
-    public boolean addMessage(UUID messageId) {
-        return messages.add(messageId);
-    }
-
-    public boolean removeMessage(UUID messageId) {
-        return messages.remove(messageId);
-    }
-
-    public boolean addChannel(UUID channelId) {
-        return channels.add(channelId);
-    }
-
-    public boolean removeChannel(UUID channelId) {
-        return channels.remove(channelId);
-    }
-
-    public boolean hasChannel(UUID channelId) {
-        return channels.contains(channelId);
-    }
-
-    private static void requiredValue(String username, String email, String password) {
-        requiredUsername(username);
-        requiredEmail(email);
-        requiredPassword(password);
-    }
-
-    private static void requiredPassword(String password) {
-        if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("비밀번호는 필수입니다.");
+    public void addChannel(UUID channelId) {
+        if (!channels.add(channelId)) {
+            throw new IllegalArgumentException("이미 가입된 채널입니다.");
         }
+        touch();
     }
 
-    private static void requiredEmail(String email) {
+    public void removeChannel(UUID channelId) {
+        if (!channels.remove(channelId)) {
+            throw new IllegalArgumentException("가입하지 않은 채널입니다.");
+        }
+        touch();
+    }
+
+    public void addMessage(UUID messageId) {
+        messages.add(messageId);
+        touch();
+    }
+
+    public void removeMessage(UUID messageId) {
+        messages.remove(messageId);
+        touch();
+    }
+
+    private static void validate(String username, String email, String password) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("이름은 필수입니다.");
+        }
+
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("이메일은 필수입니다.");
         }
-    }
 
-    private static void requiredUsername(String username) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("이름은 필수입니다.");
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("비밀번호는 필수입니다.");
+        }
+
+        if (password.length() < 8) {
+            throw new IllegalArgumentException("비밀번호는 8자 이상이어야 합니다.");
         }
     }
 }

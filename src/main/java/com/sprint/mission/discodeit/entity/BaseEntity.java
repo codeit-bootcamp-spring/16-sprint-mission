@@ -25,7 +25,7 @@ public abstract class BaseEntity {
         return updatedAt;
     }
 
-    public void update() {
+    protected void touch() {
         updatedAt = System.currentTimeMillis();
     };
 }
