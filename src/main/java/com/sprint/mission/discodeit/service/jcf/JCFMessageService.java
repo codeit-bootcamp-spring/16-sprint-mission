@@ -1,7 +1,11 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,18 +14,25 @@ import java.util.UUID;
 
 public class JCFMessageService implements MessageService {
     private final List<Message> data;
+    private final UserService userService;
+    private final ChannelService channelService;
 
-    public JCFMessageService() {
+    public JCFMessageService(UserService userService, ChannelService channelService) {
         this.data = new ArrayList<>();
+        this.userService = userService;
+        this.channelService = channelService;
     }
 
     @Override
-    public Message createMessage(String content) {
+    public Message createMessage(String content, User sender, Channel channel) {
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("Message content cannot be null or empty");
         }
 
-        Message message = new Message(content);
+        User validSender = this.userService.findById(sender.getId());
+        Channel validChannel = this.channelService.findById(channel.getId());
+
+        Message message = new Message(content, validSender, validChannel);
         this.data.add(message);
         return message;
     }
