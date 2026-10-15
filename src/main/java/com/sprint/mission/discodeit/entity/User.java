@@ -34,9 +34,9 @@ public class User extends BaseEntity {
 
     public String getEmail() { return email; }
 
-    public List<Channel> getMyChannels() { return myChannels; }
+    public List<Channel> getMyChannels() { return new ArrayList<>(myChannels); }
 
-    public List<Message> getMyMessages() { return myMessages; }
+    public List<Message> getMyMessages() { return new ArrayList<>(myMessages); }
 
     public void changeUsername(String username) {
         Validation.validateWhitespace(username, "username");

@@ -26,9 +26,9 @@ public class Channel extends BaseEntity {
 
     public UUID getCreatorId() { return creatorId; }
 
-    public List<User> getChannelParticipants() { return channelParticipants; }
+    public List<User> getChannelParticipants() { return new ArrayList<>(channelParticipants); }
 
-    public List<Message> getChannelMessages() { return channelMessages; }
+    public List<Message> getChannelMessages() { return new ArrayList<>(channelMessages); }
 
     public void changeChannelName(String channelName) {
         Validation.validateBlank(channelName, "channelName");
@@ -45,11 +45,6 @@ public class Channel extends BaseEntity {
 
         channelParticipants.add(user);
         user.addChannel(this);
-
-        Message message = new Message(
-                user.getUsername() + "님이 참여하셨습니다.", user.getId(), this.getId());
-
-        addChannelMessages(message);
     }
 
     public void leaveChannel(User user) {
@@ -60,14 +55,11 @@ public class Channel extends BaseEntity {
 
         channelParticipants.remove(user);
         user.removeChannel(this);
-
-        Message message = new Message(
-                user.getUsername() + "님이 퇴장하셨습니다.", user.getId(), this.getId());
-
-        addChannelMessages(message);
     }
 
     public void addChannelMessages(Message message) {
+        Validation.validateNull(message, "message");
+
         channelMessages.add(message);
     }
 

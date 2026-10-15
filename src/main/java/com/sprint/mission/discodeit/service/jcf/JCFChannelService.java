@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -64,11 +65,13 @@ public class JCFChannelService implements ChannelService {
     public Channel joinChannel(UUID channelId, UUID userId) {
         User user = userService.getUserById(userId);
         Channel channel = getChannelById(channelId);
-        if (isParticipant(channelId, userId)) {
-            throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
-        }
 
         channel.joinChannel(user);
+
+        Message message = new Message(
+                user.getUsername() + "님이 입장하셨습니다.", userId, channelId);
+        messageService.createMessage(message);
+
         return channel;
     }
 
@@ -76,12 +79,17 @@ public class JCFChannelService implements ChannelService {
     public void leaveChannel(UUID channelId, UUID userId) {
         User user = userService.getUserById(userId);
         Channel channel = getChannelById(channelId);
+
         if (!isParticipant(channelId, userId)) {
             throw new IllegalArgumentException("참여 중인 채널이 아닙니다.");
         }
         if (channel.getCreatorId().equals(user.getId())) {
             throw new IllegalArgumentException("방장은 채널을 나갈 수 없습니다. 채널을 삭제해 주세요.");
         }
+
+        Message message = new Message(
+                user.getUsername() + "님이 퇴장하셨습니다.", userId, channelId);
+        messageService.createMessage(message);
 
         channel.leaveChannel(user);
     }
@@ -154,14 +162,11 @@ public class JCFChannelService implements ChannelService {
         Channel channel = getChannelById(channelId);
         validateCreator(channel, userId, "삭제");
 
-        // 해당 채널 메시지 다 삭제
         messageService.deleteMessagesByChannelId(channelId);
 
-        // 2. 참여자들의 User.myChannels에서 해당 채널 삭제
         List<User> participants = new ArrayList<>(getParticipants(channelId));
         participants.forEach(user -> user.removeChannel(channel));
 
-        // 3. 채널 삭제
         channelsData.remove(channelId);
     }
 }

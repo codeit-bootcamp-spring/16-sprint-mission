@@ -65,6 +65,12 @@ public class JCFUserService implements UserService {
         return user;
     }
 
+    @Override
+    public List<User> getAllUsers() {
+        return userData.values().stream()
+                .toList();
+    }
+
     // 수정
     @Override
     public User updateUsername(UUID userId, String username) {
