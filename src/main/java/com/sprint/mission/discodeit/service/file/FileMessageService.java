@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.file;
 
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -47,7 +49,7 @@ public class FileMessageService implements MessageService {
             throw new NoSuchElementException("존재하지 않는 Channel에는 Message를 작성할 수 없습니다.");
         }
         data.put(message.getId(), message);
-        writeToFile();
+        save();
         return message;
     }
 
@@ -68,7 +70,7 @@ public class FileMessageService implements MessageService {
             throw new NoSuchElementException("존재하지 않는 Message입니다.");
         }
         message.update(newMessage);
-        writeToFile();
+        save();
         return message;
     }
 
@@ -77,10 +79,26 @@ public class FileMessageService implements MessageService {
         if (data.remove(id) == null) {
             throw new NoSuchElementException("존재하지 않는 Message입니다.");
         }
-        writeToFile();
+        save();
+
+        // User/Channel이 보관 중인 Message 목록에서도 제거한다.
+        userService.removeMessage(id);
+        channelService.removeMessage(id);
     }
 
-    private void writeToFile() {
+    @Override
+    public void refreshUser(User user) {
+        MessageService.super.refreshUser(user);
+        save();
+    }
+
+    @Override
+    public void refreshChannel(Channel channel) {
+        MessageService.super.refreshChannel(channel);
+        save();
+    }
+
+    private void save() {
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
              ObjectOutputStream oos = new ObjectOutputStream(fos)
         ) {

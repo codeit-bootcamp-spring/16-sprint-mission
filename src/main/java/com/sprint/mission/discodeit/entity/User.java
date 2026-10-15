@@ -60,6 +60,13 @@ public class User extends Entity implements Serializable {
         touch();
     }
 
+    // 다른 복사본(같은 id)의 최신 정보를 이 객체에 반영한다. (파일마다 객체 복사본이 따로 저장되기 때문)
+    public void sync(User source) {
+        this.userName = source.userName;
+        this.email = source.email;
+        this.updatedAt = source.updatedAt;
+    }
+
     public List<Channel> getChannels() {
         return channels;
     }

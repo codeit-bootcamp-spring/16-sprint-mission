@@ -1,6 +1,10 @@
 package com.sprint.mission.discodeit.service.file;
 
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.*;
@@ -13,6 +17,8 @@ public class FileUserService implements UserService {
     private static final String FILE_PATH = "temp/users.ser";
 
     private final Map<UUID, User> data;
+    private ChannelService channelService;
+    private MessageService messageService;
 
     public FileUserService() throws IOException {
         this.data = new HashMap<>();
@@ -30,6 +36,15 @@ public class FileUserService implements UserService {
         } catch (IOException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    // 서비스끼리 서로 참조하므로(순환) 생성자 대신 setter로 연결한다.
+    public void setChannelService(ChannelService channelService) {
+        this.channelService = channelService;
+    }
+
+    public void setMessageService(MessageService messageService) {
+        this.messageService = messageService;
     }
 
     @Override
@@ -57,14 +72,54 @@ public class FileUserService implements UserService {
         }
         user.update(userName, email, password);
         save();
+
+        // Channel/Message 파일에 저장된 User 복사본도 최신 정보로 맞춘다.
+        if (channelService != null) {
+            channelService.refreshUser(user);
+        }
+        if (messageService != null) {
+            messageService.refreshUser(user);
+        }
         return user;
     }
 
     @Override
     public void delete(UUID id) {
-        if (data.remove(id) == null) {
+        if (!data.containsKey(id)) {
             throw new NoSuchElementException("존재하지 않는 User입니다.");
         }
+
+        // User가 작성한 Message 삭제, 속해있던 Channel에서 User 제거
+        if (messageService != null) {
+            for (Message message : messageService.findAll()) {
+                if (message.getUser().getId().equals(id)) {
+                    messageService.delete(message.getId());
+                }
+            }
+        }
+        if (channelService != null) {
+            channelService.removeUser(id);
+        }
+
+        data.remove(id);
+        save();
+    }
+
+    @Override
+    public void refreshChannel(Channel channel) {
+        UserService.super.refreshChannel(channel);
+        save();
+    }
+
+    @Override
+    public void removeChannel(UUID channelId) {
+        UserService.super.removeChannel(channelId);
+        save();
+    }
+
+    @Override
+    public void removeMessage(UUID messageId) {
+        UserService.super.removeMessage(messageId);
         save();
     }
 

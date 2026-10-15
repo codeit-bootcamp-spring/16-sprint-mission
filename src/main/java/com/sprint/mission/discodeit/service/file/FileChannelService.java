@@ -2,6 +2,10 @@ package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import java.io.*;
@@ -14,6 +18,8 @@ public class FileChannelService implements ChannelService {
     private static final String FILE_PATH = "temp/channels.ser";
 
     private final Map<UUID, Channel> data;
+    private UserService userService;
+    private MessageService messageService;
 
     public FileChannelService() throws IOException {
         this.data = new HashMap<>();
@@ -33,10 +39,19 @@ public class FileChannelService implements ChannelService {
         }
     }
 
+    // 서비스끼리 서로 참조하므로(순환) 생성자 대신 setter로 연결한다.
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void setMessageService(MessageService messageService) {
+        this.messageService = messageService;
+    }
+
     @Override
     public Channel create(Channel channel) {
         data.put(channel.getId(), channel);
-        writeToFile();
+        save();
         return channel;
     }
 
@@ -57,19 +72,59 @@ public class FileChannelService implements ChannelService {
             throw new NoSuchElementException("존재하지 않는 Channel입니다.");
         }
         channel.update(channelType, title, description);
-        writeToFile();
+        save();
+
+        // User/Message 파일에 저장된 Channel 복사본도 최신 정보로 맞춘다.
+        if (userService != null) {
+            userService.refreshChannel(channel);
+        }
+        if (messageService != null) {
+            messageService.refreshChannel(channel);
+        }
         return channel;
     }
 
     @Override
     public void delete(UUID id) {
-        if (data.remove(id) == null) {
+        if (!data.containsKey(id)) {
             throw new NoSuchElementException("존재하지 않는 Channel입니다.");
         }
-        writeToFile();
+
+        // Channel의 Message 삭제, 참여 중이던 User에서 Channel 제거
+        if (messageService != null) {
+            for (Message message : messageService.findAll()) {
+                if (message.getChannel().getId().equals(id)) {
+                    messageService.delete(message.getId());
+                }
+            }
+        }
+        if (userService != null) {
+            userService.removeChannel(id);
+        }
+
+        data.remove(id);
+        save();
     }
 
-    private void writeToFile() {
+    @Override
+    public void refreshUser(User user) {
+        ChannelService.super.refreshUser(user);
+        save();
+    }
+
+    @Override
+    public void removeUser(UUID userId) {
+        ChannelService.super.removeUser(userId);
+        save();
+    }
+
+    @Override
+    public void removeMessage(UUID messageId) {
+        ChannelService.super.removeMessage(messageId);
+        save();
+    }
+
+    private void save() {
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
              ObjectOutputStream oos = new ObjectOutputStream(fos)
         ) {

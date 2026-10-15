@@ -60,6 +60,14 @@ public class Channel extends Entity implements Serializable {
         touch();
     }
 
+    // 다른 복사본(같은 id)의 최신 정보를 이 객체에 반영한다. (파일마다 객체 복사본이 따로 저장되기 때문)
+    public void sync(Channel source) {
+        this.channelType = source.channelType;
+        this.title = source.title;
+        this.description = source.description;
+        this.updatedAt = source.updatedAt;
+    }
+
     public List<User> getUsers() {
         return users;
     }
