@@ -31,9 +31,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저를 추가할 채널이 존재하지 " +
                 "않습니다."));
 
-        Map<UUID, User> users = channel.getUsers();
-        users.put(user.getId(), user);
-        channel.updateUsers(users);
+        channel.addUser(user);
 
         // 채널에 유저 추가 시 유저에도 채널 추가
         user.addChannel(channel);
@@ -44,17 +42,14 @@ public class JCFChannelService implements ChannelService {
         Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 " +
                 "존재하지 않습니다."));
 
-        Map<UUID, User> users = channel.getUsers();
-
         // 채널의 유저 탈퇴 시 유저에도 채널 지우기
-        users.values()
+        channel.getUsers().values()
                 .stream()
                 .filter(user -> user.getId() == userId)
                 .findFirst()
                 .ifPresent(user -> user.removeChannel(channelId));
 
-        users.remove(userId);
-        channel.updateUsers(users);
+        channel.removeUser(userId);
     }
 
     @Override
@@ -72,8 +67,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
 
         // 채널 삭제 시 유저에도 채널 삭제
-        Map<UUID, User> users = channel.getUsers();
-        users.values().forEach(user -> user.removeChannel(id));
+        channel.getUsers().values().forEach(user -> user.removeChannel(id));
 
         this.data.remove(id);
     }

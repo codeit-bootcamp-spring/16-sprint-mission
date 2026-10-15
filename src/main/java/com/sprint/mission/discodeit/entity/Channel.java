@@ -33,9 +33,19 @@ public class Channel extends BaseEntity {
         return this;
     }
 
+    public void addUser(User user) {
+        this.users.put(user.getId(), user);
+        this.updateUsers(this.users);
+    }
+
     public void removeUser(UUID userId) {
         this.users.remove(userId);
         this.updateUsers(this.users);
+    }
+
+    public void addMessage(Message message) {
+        this.messages.put(message.getId(), message);
+        this.updateMessages(this.messages);
     }
 
     public void removeMessage(UUID messageId) {

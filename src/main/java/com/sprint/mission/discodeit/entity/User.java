@@ -44,6 +44,11 @@ public class User extends BaseEntity {
         this.updateChannels(this.channels);
     }
 
+    public void addMessage(Message message) {
+        this.messages.put(message.getId(), message);
+        this.updateMessages(this.messages);
+    }
+
     public void removeMessage(UUID messageId) {
         this.messages.remove(messageId);
         this.updateMessages(this.messages);

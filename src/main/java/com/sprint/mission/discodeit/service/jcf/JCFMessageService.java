@@ -26,13 +26,8 @@ public class JCFMessageService implements MessageService {
         Message message = new Message(sentFrom, content, channel);
 
         // 메세지 추가 시 유저와 채널에도 추가
-        Map<UUID, Message> userMessages = sentFrom.getMessages();
-        userMessages.put(message.getId(), message);
-        sentFrom.updateMessages(userMessages);
-
-        Map<UUID, Message> channelMessages = channel.getMessages();
-        channelMessages.put(message.getId(), message);
-        channel.updateMessages(channelMessages);
+        sentFrom.addMessage(message);
+        channel.addMessage(message);
 
         this.data.put(message.getId(), message);
         return message;

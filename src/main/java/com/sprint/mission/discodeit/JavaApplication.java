@@ -28,8 +28,8 @@ public class JavaApplication {
             System.out.printf("채널 생성 --> %s\n", channel1);
             System.out.printf("채널 생성 --> %s\n\n", channel2);
 
-            System.out.printf("유저 및 채널 관계 설정\n\n채널 이름: %s, 유저 가입: %s, %s\n채널 이름: %s, 유저 가입: %s\n\n", channel1.getName(),
-                    user1.getName(), user2.getName(), channel2.getName(), user1.getName());
+            System.out.printf("유저 및 채널 관계 설정\n\n채널 이름: %s, 유저 가입: %s, %s\n채널 이름: %s, 유저 가입: %s\n\n"
+                    , channel1.getName(), user1.getName(), user2.getName(), channel2.getName(), user1.getName());
             jcfChannelService.addUserToChannel(channel1.getId(), user1);
             jcfChannelService.addUserToChannel(channel1.getId(), user2);
             jcfChannelService.addUserToChannel(channel2.getId(), user1);
@@ -42,16 +42,16 @@ public class JavaApplication {
             System.out.printf("메세지 생성 --> %s\n\n", message3);
 
             // 조회 (단일)
-            User foundUser = jcfUserService.findById(user1.getId()).orElseThrow(() -> new NoSuchElementException(
-                    "조회할 유저를 찾을 수 없습니다."));
+            User foundUser = jcfUserService.findById(user1.getId())
+                    .orElseThrow(() -> new NoSuchElementException("조회할 유저를 찾을 수 없습니다."));
             System.out.printf("유저 단일 조회 --> %s\n\n", foundUser);
 
-            Channel foundChannel = jcfChannelService.findById(channel1.getId()).orElseThrow(() -> new NoSuchElementException(
-                    "조회할 채널을 찾을 수 없습니다."));
+            Channel foundChannel = jcfChannelService.findById(channel1.getId())
+                    .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
             System.out.printf("채널 단일 조회 --> %s\n\n", foundChannel);
 
-            Message foundMessage = jcfMessageService.findById(message1.getId()).orElseThrow(() -> new NoSuchElementException(
-                    "조회할 메세지를 찾을 수 없습니다."));
+            Message foundMessage = jcfMessageService.findById(message1.getId())
+                    .orElseThrow(() -> new NoSuchElementException("조회할 메세지를 찾을 수 없습니다."));
             System.out.printf("메세지 단일 조회 --> %s\n\n", foundMessage);
 
             // 조회 (전체)
