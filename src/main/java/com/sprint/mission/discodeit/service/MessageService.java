@@ -10,6 +10,8 @@ import java.util.UUID;
 public interface MessageService {
     Message create(User sentFrom, String content, Channel channel);
 
+    Message updateContent(UUID id, String content);
+
     Message findById(UUID id);
 
     List<Message> findAll();

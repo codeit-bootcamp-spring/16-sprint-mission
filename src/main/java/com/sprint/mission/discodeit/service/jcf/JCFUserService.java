@@ -20,6 +20,7 @@ public class JCFUserService implements UserService {
         return user;
     }
 
+    @Override
     public User updateName(UUID id, String name) {
         User user = this.findById(id);
         if (user == null) throw new NoSuchElementException("수정할 유저가 존재하지 않습니다.");

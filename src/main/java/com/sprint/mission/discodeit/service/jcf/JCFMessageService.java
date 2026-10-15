@@ -38,6 +38,7 @@ public class JCFMessageService implements MessageService {
         return message;
     }
 
+    @Override
     public Message updateContent(UUID id, String content) {
         Message message = this.findById(id);
         if (message == null) throw new NoSuchElementException("수정할 메세지가 존재하지 않습니다.");

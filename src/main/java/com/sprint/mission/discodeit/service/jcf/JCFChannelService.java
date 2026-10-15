@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 
@@ -21,12 +20,14 @@ public class JCFChannelService implements ChannelService {
         return channel;
     }
 
+    @Override
     public Channel updateName(UUID id, String name) {
         Channel channel = this.findById(id);
         if (channel == null) throw new NoSuchElementException("수정할 채널이 존재하지 않습니다.");
         return channel.updateName(name);
     }
 
+    @Override
     public void addUserToChannel(UUID channelId, User user) {
         Channel channel = this.findById(channelId);
         if (channel == null) throw new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다.");
@@ -39,6 +40,7 @@ public class JCFChannelService implements ChannelService {
         user.addChannel(channel);
     }
 
+    @Override
     public void removeUserFromChannel(UUID channelId, UUID userId) {
         Channel channel = this.findById(channelId);
         if (channel == null) throw new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다.");
