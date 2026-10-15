@@ -13,5 +13,5 @@ public interface MessageService {
     Message findById(UUID id);
     Message updateContent(UUID id, String content);
     void deleteMessage(UUID id);
-
+    void deleteMessageWithoutChannel();
 }

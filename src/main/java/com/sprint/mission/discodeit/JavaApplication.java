@@ -60,5 +60,16 @@ public class JavaApplication {
         messageService.deleteMessage(messageList.get(0).getId()); // 첫 번째 메세지 객체를 삭제
         System.out.println("메세지 객체들: " + messageService.findAll()); // 하나의 메세지 객체만 남아있어야합니다
 
+        // deleteMessageWithoutChannel() 테스트, 자신의 필드를 통해 채널 객체를 참조하고 있지 않은 메세지 객체를 삭제하는 메서드입니다.
+        System.out.println("현재 모든 채널들 출력: " + channelService.findAll()); // 하나의 채널이 출력됩니다.
+        Channel channel1 = channelService.findById(sp16Channel.getId());
+        System.out.println("현재 채널의 ID: " + channel1.getId());
+        channelService.deleteChannel(channel1.getId()); // 현재 채널 삭제
+        System.out.println("현재 채널을 삭제합니다.");
+        System.out.println("현재 모든 채널들 출력: " + channelService.findAll()); // 존재하는 채널이 없어야 합니다.
+        System.out.println("현재 메시지들 출력: " + messageService.findAll()); // 하나의 메세지가 존재합니다.
+        System.out.println("채널을 가지고있지않은 모든 메세지를 삭제합니다");// 채널을 가지고있지않은 모든 메세지를 삭제합니다.
+        messageService.deleteMessageWithoutChannel();
+        System.out.println("현재 메세지들 출력: " + messageService.findAll()); // 메세지가 없습니다.
     }
 }

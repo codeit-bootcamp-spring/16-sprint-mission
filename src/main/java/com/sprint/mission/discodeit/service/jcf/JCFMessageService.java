@@ -13,6 +13,7 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 public class JCFMessageService implements MessageService {
+
     private final List<Message> data;
     private final UserService userService;
     private final ChannelService channelService;
@@ -75,5 +76,11 @@ public class JCFMessageService implements MessageService {
     public void deleteMessage(UUID uuid) {
         Message message = this.findById(uuid);
         this.data.remove(message);
+    }
+
+    @Override
+    public void deleteMessageWithoutChannel() {
+        this.data.removeIf(m ->
+                !this.channelService.findAll().contains(m.getChannel()));
     }
 }
