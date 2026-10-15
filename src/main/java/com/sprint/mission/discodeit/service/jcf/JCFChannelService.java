@@ -81,6 +81,9 @@ public class JCFChannelService implements ChannelService {
         Channel channel = findById(id).orElseThrow(
                 () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
         );
+        if (name == null || name.isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 비어있을 수 없습니다.");
+        }
         channel.update(name);
         return channel;
     }

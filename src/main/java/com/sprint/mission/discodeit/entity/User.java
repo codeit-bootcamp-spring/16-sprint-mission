@@ -33,6 +33,9 @@ public class User extends Base{
     }
 
     public void addChannel(Channel channel) {
+        if (channel == null) {
+            throw new IllegalArgumentException("채널이 존재하지 않습니다.");
+        }
         boolean exists = channels.stream()
                         .anyMatch(existsChannel -> existsChannel.getId().equals(channel.getId()));
 
@@ -44,6 +47,9 @@ public class User extends Base{
     }
 
     public void removeChannel(Channel channel) {
+        if (channel == null) {
+            throw new IllegalArgumentException("채널이 존재하지 않습니다.");
+        }
         boolean exists = channels.stream()
                         .anyMatch(existsChannel -> existsChannel.getId().equals(channel.getId()));
         if (!exists) {
