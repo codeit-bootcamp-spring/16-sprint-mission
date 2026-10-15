@@ -14,30 +14,22 @@ public class Message extends BaseEntity {
             throw new IllegalArgumentException("메시지를 작성해 주세요.");
         }
 
-        Validation.validateBlank(senderId, "senderId");
-        Validation.validateBlank(channelId, "channelId");
+        Validation.validateWhitespace(senderId, "senderId");
+        Validation.validateWhitespace(channelId, "channelId");
 
         this.content = content;
         this.senderId = senderId;
         this.channelId = channelId;
     }
 
-    public String getContent() {
-        return content;
-    }
+    public String getContent() { return content; }
 
-    public UUID getSenderId() {
-        return senderId;
-    }
+    public UUID getSenderId() { return senderId; }
 
-    public UUID getChannelId() {
-        return channelId;
-    }
+    public UUID getChannelId() { return channelId; }
 
     public void updateMessage(String content) {
-        if (content == null || content.isBlank()) {
-            throw new IllegalArgumentException("메시지를 작성해 주세요.");
-        }
+        Validation.validateBlank(content, "message");
 
         this.content = content;
         super.update();

@@ -10,6 +10,7 @@ public class BaseEntity {
     public BaseEntity() {
         this.id = UUID.randomUUID();
         this.createdAt = System.currentTimeMillis();
+        updatedAt = this.createdAt;
     }
 
     public UUID getId() {
