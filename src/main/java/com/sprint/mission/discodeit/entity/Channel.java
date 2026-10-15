@@ -1,22 +1,22 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.time.Instant;
+
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
-public class Channel {
-    private UUID id;
+
+public class Channel extends BaseEntity{
+//    private UUID id;
     private String name;
-    private Long createdAt;
-    private Long updatedAt;
+//    private Long createdAt;
+//    private Long updatedAt;
 
 
     public Channel(String name) {
-        this.id = UUID.randomUUID();
+//        this.id = UUID.randomUUID();
         this.name = name;
-        this.createdAt = Instant.now().getEpochSecond();
-        this.updatedAt = this.createdAt;
+//        this.createdAt = Instant.now().getEpochSecond();
+//        this.updatedAt = this.createdAt;
 
         this.users = new ArrayList<>();
         this.messages = new ArrayList<>();
@@ -24,25 +24,25 @@ public class Channel {
     private List<User> users;
     private List<Message> messages;
 
-    public UUID getId() {
-
-        return this.id;
-    }
+//    public UUID getId() {
+//
+//        return this.id;
+//    }
 
     public String getName() {
 
         return this.name;
     }
 
-    public Long getCreatedAt() {
-
-        return this.createdAt;
-    }
-
-    public Long getUpdatedAt() {
-
-        return this.updatedAt;
-    }
+//    public Long getCreatedAt() {
+//
+//        return this.createdAt;
+//    }
+//
+//    public Long getUpdatedAt() {
+//
+//        return this.updatedAt;
+//    }
 
     public List<User> getUsers() {
         return this.users;
@@ -54,7 +54,7 @@ public class Channel {
 
     public void update(String name) {
         this.name = name;
-        this.updatedAt = Instant.now().getEpochSecond();
+        updateTime();
     }
 
 }
