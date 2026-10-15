@@ -7,20 +7,28 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.file.file_service_impl.FileChannelService;
+import com.sprint.mission.discodeit.service.file.file_service_impl.FileMessageService;
+import com.sprint.mission.discodeit.service.file.file_service_impl.FileUserService;
 import com.sprint.mission.discodeit.service.service_impl.JCFChannelService;
 import com.sprint.mission.discodeit.service.service_impl.JCFMessageService;
 import com.sprint.mission.discodeit.service.service_impl.JCFUserService;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.file.FileAlreadyExistsException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
 
 public class JavaApplication {
 
-    public static void main(String[] args) {
-        MessageService messageService = new JCFMessageService();
-        UserService userService = new JCFUserService(messageService);
-        ChannelService channelService = new JCFChannelService(userService, messageService);
+    public static void main(String[] args) throws IOException {
+        MessageService messageService = new FileMessageService();
+        UserService userService = new FileUserService(messageService);
+        ChannelService channelService = new FileChannelService(userService, messageService);
 
         // 1. User 생성
         System.out.println("===== 1. User 생성 =====");
@@ -45,21 +53,6 @@ public class JavaApplication {
         messageService.create("안녕하세요 park입니다", general, park);
         messageService.create("스터디 언제 하나요?", study, lee);
         Message kimStudyMessage = messageService.create("내일 해요", study, kim);
-        printState(userService, channelService, messageService);
-
-        // 4. Message 단건 삭제 -> 작성자와 채널에서도 삭제되어야 함
-        System.out.println("\n===== 4. Message 삭제 (kim의 \"내일 해요\") =====");
-        messageService.delete(kimStudyMessage.getId());
-        printState(userService, channelService, messageService);
-
-        // 5. User 삭제 -> 소속 채널과 작성한 Message도 정리되어야 함
-        System.out.println("\n===== 5. User 삭제 (lee) =====");
-        userService.delete(lee.getId());
-        printState(userService, channelService, messageService);
-
-        // 6. Channel 삭제 -> 소속 User의 채널 정보와 채널 내 Message도 정리되어야 함
-        System.out.println("\n===== 6. Channel 삭제 (general) =====");
-        channelService.delete(general.getId());
         printState(userService, channelService, messageService);
     }
 

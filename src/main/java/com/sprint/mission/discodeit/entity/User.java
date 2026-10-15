@@ -1,14 +1,16 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class User extends Entity {
+public class User extends Entity implements Serializable {
 
     private String userName;
     private String email;
-    private String password;
+    private transient String password;
 
+    private static final long serialVersionUID = 1;
     private final List<Channel> channels;
     private final List<Message> myMessages;
 
