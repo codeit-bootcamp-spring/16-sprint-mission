@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -28,7 +29,8 @@ public class JCFChannelService implements ChannelService {
                 .toList();
 
         Channel channel = new Channel(name, users); // 새로운 채널 생성
-        users.forEach(user -> user.addChannel(channel)); // 유저 도메인에게도 해당 채널 생성(연결)
+        users.forEach(user ->
+                userService.addChannelToUser(user.getId(), channel)); // 유저 도메인에게도 해당 채널 생성(연결)
         channels.add(channel); // 채널 리스트에 채널 추가
         return channel;
     }
@@ -78,7 +80,7 @@ public class JCFChannelService implements ChannelService {
                 () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
         );
         channel.getUsers()
-                        .forEach(user -> user.removeChannel(channel));
+                        .forEach(user -> userService.removeChannelFromUser(user.getId(), channel));
 
         channels.remove(channel);
     }
@@ -96,7 +98,7 @@ public class JCFChannelService implements ChannelService {
 
         users.forEach(user -> {
             channel.addUser(user); // 위에서 받은 채널에 각 유저들을 추가하기
-            user.addChannel(channel); // 각 유저들에게 채널 추가하기
+            userService.addChannelToUser(user.getId(), channel); // 각 유저들에게 채널 추가하기
         });
     }
 
@@ -123,24 +125,25 @@ public class JCFChannelService implements ChannelService {
 
         users.forEach(user -> {
             channel.removeUser(user);
-            user.removeChannel(channel);
+            userService.removeChannelFromUser(user.getId(), channel);
         });
     }
 
-//    @Override
-//    public void removeUserFromAllChannels(UUID userId) {
-//        List<Channel> userChannels = channels.stream()
-//                .filter(channel ->
-//                        channel.getUsers().stream()
-//                                .anyMatch(user -> user.getId().equals(userId)))
-//                .toList();
-//
-//        for (Channel channel : userChannels) {
-//            if (channel.getUsers().size() == 1 ) {
-//                deleteChannel(channel.getId());
-//            } else {
-//                removeUserFromChannel(channel.getId(), List.of(userId));
-//            }
-//        }
-//    }
+    @Override
+    public void addMessageToChannel(UUID id, Message message) {
+        Channel channel = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
+                );
+        channel.addMessage(message);
+    }
+
+    @Override
+    public void removeMessageFromChannel(UUID id, Message message) {
+        Channel channel = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
+                );
+        channel.removeMessage(message);
+    }
 }

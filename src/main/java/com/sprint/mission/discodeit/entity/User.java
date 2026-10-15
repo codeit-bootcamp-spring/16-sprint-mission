@@ -6,12 +6,14 @@ import java.util.List;
 public class User extends Base{
     private String name;
     private int age;
-    private final List<Channel> channels = new ArrayList<>();
-    private final List<Message> messages = new ArrayList<>();
+    private final List<Channel> channels;
+    private final List<Message> messages;
 
     public User(String name, int age) {
         this.name = name;
         this.age = age;
+        this.channels = new ArrayList<>();
+        this.messages = new ArrayList<>();
     }
 
     public String getName() {

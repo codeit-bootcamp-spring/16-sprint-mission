@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -42,7 +44,7 @@ public class JCFUserService implements UserService {
     public User updateUser(UUID id, String name, int age) {
         User user = findById(id)
                 .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
+                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
         user.update(name, age);
         return user;
@@ -52,8 +54,44 @@ public class JCFUserService implements UserService {
     public void deleteUser(UUID id) {
         User user = findById(id)
                 .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
+                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
         users.remove(user);
+    }
+
+    @Override
+    public void addChannelToUser(UUID id, Channel channel) {
+        User user = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                );
+        user.addChannel(channel);
+    }
+
+    @Override
+    public void removeChannelFromUser(UUID id, Channel channel) {
+        User user = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
+                );
+        user.removeChannel(channel);
+    }
+
+    @Override
+    public void addMessageToUser(UUID id, Message message){
+        User user = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
+                );
+        user.addMessage(message);
+    }
+
+    @Override
+    public void removeMessageFromUser(UUID id, Message message){
+        User user = findById(id)
+                .orElseThrow(
+                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
+                );
+        user.removeMessage(message);
     }
 }

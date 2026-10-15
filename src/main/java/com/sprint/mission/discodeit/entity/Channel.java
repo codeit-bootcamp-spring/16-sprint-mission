@@ -6,7 +6,7 @@ import java.util.List;
 public class Channel extends Base{
     private String name;
     private final List<User> users;
-    private final List<Message> messages =  new ArrayList<>();
+    private final List<Message> messages;
 
     public Channel(String name, List<User> users) {
         if (users == null || users.isEmpty()) {
@@ -14,6 +14,7 @@ public class Channel extends Base{
         }
         this.name = name;
         this.users = new ArrayList<>(users);
+        this.messages = new ArrayList<>();
     }
 
     public String getName() {
