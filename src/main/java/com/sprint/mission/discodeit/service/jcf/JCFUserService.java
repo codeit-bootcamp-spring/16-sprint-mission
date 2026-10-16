@@ -18,13 +18,20 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public void add(User user) {
+    public User add(User user) {
         data.put(user.getId(), user);
+        return user;
     }
 
     @Override
     public User getById(UUID id) {
-        return data.get(id);
+        User user = data.get(id);
+
+        if (user == null) {
+            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+        }
+
+        return user;
     }
 
     @Override
@@ -33,13 +40,15 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public void update(UUID id, String username) {
-        User user = data.get(id);
+    public User update(UUID id, String username) {
+        User user = getById(id);
         user.update(username);
+        return user;
     }
 
     @Override
     public void delete(UUID id) {
+        getById(id);
         data.remove(id);
     }
 }

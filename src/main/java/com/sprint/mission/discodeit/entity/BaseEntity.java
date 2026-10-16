@@ -1,0 +1,27 @@
+package com.sprint.mission.discodeit.entity;
+
+import java.util.UUID;
+
+public class BaseEntity {
+
+    private UUID id;
+    private Long cratedAt;
+    private Long updatedAt;
+
+    public BaseEntity() {
+        this.id = UUID.randomUUID();
+        this.cratedAt = System.currentTimeMillis();
+    }
+    public UUID getId() {
+        return id;
+    }
+    public Long getCratedAt() {
+        return cratedAt;
+    }
+    public Long getUpdatedAt() {
+        return updatedAt;
+    }
+    protected void updateTimestamp() {
+        this.updatedAt = System.currentTimeMillis();
+    }
+}

@@ -14,63 +14,75 @@ public class JavaApplication {
 
         JCFUserService userService = new JCFUserService();
 
-        User user1 = new User("신지섭");
-        User user2 = new User("아무나");
-
-        userService.add(user1);
-        userService.add(user2);
+        User user1 = userService.add(new User("신지섭"));
+        User user2 = userService.add(new User("아무나"));
 
         System.out.println("추가 후 사용자 수: " + userService.getAll().size());
 
-        userService.update(user1.getId(), "코드잇");
+        System.out.println("조회한 사용자: " + userService.getById(user1.getId()).getUsername());
 
-        System.out.println("수정 후 이름: " + userService.getById(user1.getId()).getUsername());
+        User updatedUser = userService.update(user1.getId(), "코드잇");
+
+        System.out.println("수정 후 이름: " + updatedUser.getUsername());
 
         userService.delete(user1.getId());
 
         System.out.println("삭제 후 사용자 수: " + userService.getAll().size());
-        System.out.println("삭제 후 조회: " + userService.getById(user1.getId()));
+
+        try {
+            userService.getById(user1.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("사용자 삭제 확인: " + e.getMessage());
+        }
 
 
         JCFChannelService channelService = new JCFChannelService();
 
-        Channel channel = new Channel("자유게시판");
-
-        channelService.add(channel);
+        Channel channel = channelService.add(new Channel("자유게시판"));
 
         System.out.println("추가 후 채널 수: " + channelService.getAll().size());
+
         System.out.println("조회한 채널 이름: " + channelService.getById(channel.getId()).getName());
 
-        channelService.update(channel.getId(), "아무나방");
+        Channel updatedChannel = channelService.update(channel.getId(), "잡담방");
 
-        System.out.println("수정 후 채널 이름: " + channelService.getById(channel.getId()).getName());
+        System.out.println("수정 후 채널 이름: " + updatedChannel.getName());
 
         channelService.delete(channel.getId());
 
         System.out.println("삭제 후 채널 수: " + channelService.getAll().size());
-        System.out.println("삭제 후 채널 조회: " + channelService.getById(channel.getId()));
+
+        try {
+            channelService.getById(channel.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("채널 삭제 확인: " + e.getMessage());
+        }
 
 
         JCFMessageService messageService = new JCFMessageService();
 
-        Channel messageChannel = new Channel("일반");
-        channelService.add(messageChannel);
+        Channel messageChannel = channelService.add(new Channel("일반"));
 
-        Message message = new Message("안녕하세요!", user2.getId(), messageChannel.getId());
-
-        messageService.add(message);
+        Message message = messageService.add(
+                new Message("안녕하세요!", user2.getId(), messageChannel.getId())
+        );
 
         System.out.println("추가 후 메시지 수: " + messageService.getAll().size());
+
         System.out.println("조회한 메시지: " + messageService.getById(message.getId()).getContent());
 
-        messageService.update(message.getId(), "반갑습니다!");
+        Message updatedMessage = messageService.update(message.getId(), "반갑습니다!");
 
-        System.out.println("수정 후 메시지: " + messageService.getById(message.getId()).getContent());
+        System.out.println("수정 후 메시지: " + updatedMessage.getContent());
 
         messageService.delete(message.getId());
 
         System.out.println("삭제 후 메시지 수: " + messageService.getAll().size());
-        System.out.println("삭제 후 메시지 조회: " + messageService.getById(message.getId()));
 
+        try {
+            messageService.getById(message.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("메시지 삭제 확인: " + e.getMessage());
+        }
     }
 }

@@ -18,13 +18,20 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public void add(Message message) {
+    public Message add(Message message) {
         data.put(message.getId(), message);
+        return message;
     }
 
     @Override
     public Message getById(UUID id) {
-        return data.get(id);
+        Message message = data.get(id);
+
+        if (message == null) {
+            throw new IllegalArgumentException("메시지를 찾을 수 없습니다.");
+        }
+
+        return message;
     }
 
     @Override
@@ -33,13 +40,15 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public void update(UUID id, String content) {
-        Message message = data.get(id);
+    public Message update(UUID id, String content) {
+        Message message = getById(id);
         message.update(content);
+        return message;
     }
 
     @Override
     public void delete(UUID id) {
+        getById(id);
         data.remove(id);
     }
 }

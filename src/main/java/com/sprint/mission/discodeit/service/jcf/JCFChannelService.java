@@ -18,13 +18,20 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public void add(Channel channel) {
+    public Channel add(Channel channel) {
         data.put(channel.getId(), channel);
+        return channel;
     }
 
     @Override
     public Channel getById(UUID id) {
-        return data.get(id);
+        Channel channel = data.get(id);
+
+        if (channel == null) {
+            throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
+        }
+
+        return channel;
     }
 
     @Override
@@ -33,13 +40,15 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public void update(UUID id, String name) {
-        Channel channel = data.get(id);
+    public Channel update(UUID id, String name) {
+        Channel channel = getById(id);
         channel.update(name);
+        return channel;
     }
 
     @Override
     public void delete(UUID id) {
+        getById(id);
         data.remove(id);
     }
 }
