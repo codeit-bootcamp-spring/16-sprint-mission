@@ -24,6 +24,8 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel create(String name) {
+        if(data.stream().anyMatch(channel -> channel.getName().equals(name)))
+            throw new IllegalArgumentException("사용 중인 채널명");
         Channel  channel = new Channel(name);
         data.add(channel);
         return channel;
@@ -43,9 +45,9 @@ public class JCFChannelService implements ChannelService {
     @Override
     public Channel update(UUID id, String name) {
         Channel channel = findById(id);
-//        if (channel == null) {
-//            return null;
-//        }
+
+        if(data.stream().anyMatch(otherChannel->!otherChannel.getId().equals(id)&&otherChannel.getName().equals(name)))
+            throw new IllegalArgumentException("사용 중인 채널명");
         channel.update(name);
         return channel;
     }

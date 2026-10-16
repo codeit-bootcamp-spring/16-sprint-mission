@@ -9,13 +9,15 @@ public class User extends BaseEntity{
     //private UUID id;
     private String name;
     private String password;
+    private String email;
    //private Long createdAt;
    // private Long updatedAt;
 
-    public User(String name, String password) {
+    public User(String name, String password, String email) {
        //this.id = UUID.randomUUID();
         this.name = name;
         this.password = password;
+        this.email = email;
         //this.createdAt = Instant.now().getEpochSecond();
        // this.updatedAt = this.createdAt;
 
@@ -35,6 +37,7 @@ public class User extends BaseEntity{
     public String getPassword() {
         return this.password;
     }
+    public String getEmail() {return this.email;}
 //    public Long getCreatedAt() {
 //        return this.createdAt;
 //    }
@@ -48,9 +51,10 @@ public class User extends BaseEntity{
         return this.messages;
     }
 
-    public void update(String name, String password) {
+    public void update(String name, String password, String email) {
         this.name = name;
         this.password = password;
+        this.email = email;
         updateTime();
     }
 

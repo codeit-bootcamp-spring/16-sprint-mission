@@ -18,8 +18,12 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public User create(String name, String password) {
-        User user = new User(name, password);
+    public User create(String name, String password, String email) {
+        if(data.stream().anyMatch(user -> user.getEmail().equals(email)))
+            throw new IllegalArgumentException("사용 중인 이메일");
+
+        User user = new User(name, password, email);
+
         data.add(user);
         return user;
     }
@@ -37,11 +41,12 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public User update(UUID id, String name, String password) {
+    public User update(UUID id, String name, String password, String email) {
         User user = findById(id);
-//        if (user == null)
-//            return null;
-        user.update(name, password);
+        if(data.stream().anyMatch(otherUser->!otherUser.getId().equals(id)&&otherUser.getEmail().equals(email)))
+            throw new IllegalArgumentException("사용 중인 이메일");
+
+        user.update(name, password, email);
         return user;
     }
 

@@ -16,8 +16,8 @@ public class JavaApplication {
         //User 테스트
         UserService userService = new JCFUserService();
 
-        User user = userService.create("김신중","1234");//C
-        User user2 = userService.create("김길똥","4852");
+        User user = userService.create("김신중","1234","imkim@naerver.com");//C
+        User user2 = userService.create("김길똥","4852","ddong@gamil.ocm");
 
         User findUser = userService.findById(user.getId()); //R
         System.out.println(findUser.getName());
@@ -26,7 +26,7 @@ public class JavaApplication {
         }
         System.out.println(userService.findAll().size());
 
-        userService.update(user.getId(),"김무열","4885");//U
+        userService.update(user.getId(),"김무열","4885","mooooo@gmail.com");//U
         User updateUser = userService.findById(user.getId());
         System.out.println(updateUser.getName());
 
@@ -34,7 +34,7 @@ public class JavaApplication {
 
         userService.delete(user.getId()); //D
         try {
-            userService.update(user.getId(), "김무열", "4885");
+            userService.update(user.getId(), "김무열", "4885","moooo@gmail.com");
 
         } catch (IllegalArgumentException e) {
             System.out.println(e.getMessage());
@@ -173,7 +173,7 @@ public class JavaApplication {
 
         //관계 삭제 테스트
         System.out.println("==============================");
-        User userT = userService.create("테스트 삭제","1557");
+        User userT = userService.create("테스트 삭제","1557","imtest@naver.com");
         Channel channelT = channelService.create("테스트 삭제");
         channelService.join(channelT.getId(), userT.getId());
         userService.delete(userT.getId());
@@ -189,5 +189,39 @@ public class JavaApplication {
 
 
 
+        //예외 피드백 후 테스트
+        System.out.println("////////////////////////////////////");
+        try{
+            User userE = userService.create("김예외","4885",user2.getEmail());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        User userE = userService.create("김예외","4885","QWERASDF");
+        try{
+            userService.update(userE.getId(),"김창호","4885",user2.getEmail());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        System.out.println(userE.getName()+userE.getEmail());
+
+        userService.update(userE.getId(), userE.getName(), userE.getPassword(), userE.getEmail());
+        System.out.println(userE.getEmail());
+
+
+        try{
+            Channel channelE = channelService.create(channel2.getName());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        Channel channelE = channelService.create("노가리 채널");
+        try{
+            channelService.update(channelE.getId(),channel2.getName());
+        }catch (IllegalArgumentException e){
+            System.out.println(e.getMessage());
+        }
+        System.out.println(channelE.getName());
+
+        channelService.update(channelE.getId(), channelE.getName());
+        System.out.println(channelE.getName());
     }
 }
