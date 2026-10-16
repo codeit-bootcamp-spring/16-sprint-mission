@@ -3,6 +3,9 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
@@ -12,9 +15,9 @@ import java.util.NoSuchElementException;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        JCFUserService jcfUserService = new JCFUserService();
-        JCFChannelService jcfChannelService = new JCFChannelService(jcfUserService);
-        JCFMessageService jcfMessageService = new JCFMessageService(jcfUserService, jcfChannelService);
+        UserService jcfUserService = new JCFUserService();
+        ChannelService jcfChannelService = new JCFChannelService(jcfUserService);
+        MessageService jcfMessageService = new JCFMessageService(jcfUserService, jcfChannelService);
 
         try {
             // 등록
