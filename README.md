@@ -181,15 +181,15 @@ classDiagram
 | `User` ↔ `Message` | 일대다 양방향 | `Message.user`(final), `User.myMessages` |
 | `Channel` ↔ `Message` | 일대다 양방향 | `Message.channel`(final), `Channel.channelMessages` |
 | `JCF*Service` → `*Service` | 구현 | `implements` |
-| `JCFUserService`, `JCFChannelService` → `MessageService` | 의존 (생성자 주입) | 삭제 시 연관 Message를 `messageService.delete()`로 정리 |
-| `JCFChannelService` → `UserService` | 의존 (생성자 주입) | Channel 생성 시 `userService.findById()`로 등록된 User인지 검증 |
+| `JCFUserService`, `JCFChannelService` → `MessageRepository` | 의존 (생성자 주입) | 삭제 시 연관 Message를 `messageService.delete()`로 정리 |
+| `JCFChannelService` → `UserRepository` | 의존 (생성자 주입) | Channel 생성 시 `userService.findById()`로 등록된 User인지 검증 |
 
 ### Service 의존 방향 규칙
 
 Service 간 의존은 `ChannelService → UserService → MessageService` 한 방향으로만 둡니다.
 
-- `MessageService`는 다른 Service에 의존하지 않습니다.
-- `UserService`는 `ChannelService`에 의존하지 않습니다.
+- `MessageRepository`는 다른 Service에 의존하지 않습니다.
+- `UserRepository`는 `ChannelRepository`에 의존하지 않습니다.
 - 역방향 의존이 필요해지면(예: Message 생성 시 User/Channel 존재 여부 검증) 순환 참조가 생기므로, Service 간 직접 의존 대신 Repository 계층 분리를 검토합니다.
 
 

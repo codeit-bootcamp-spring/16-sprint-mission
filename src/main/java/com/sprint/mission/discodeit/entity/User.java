@@ -8,12 +8,14 @@ public class User extends Entity implements Serializable {
 
     private String userName;
     private String email;
-    private transient String password;
 
+    private boolean isLogin;
+
+    private String password;
     private static final long serialVersionUID = 1;
+
     private final List<Channel> channels;
     private final List<Message> myMessages;
-
     public User(String userName, String email, String password) {
         this.channels = new ArrayList<>();
         this.myMessages = new ArrayList<>();
@@ -36,6 +38,14 @@ public class User extends Entity implements Serializable {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public boolean isLogin() {
+        return isLogin;
+    }
+
+    public void setLogin(boolean login) {
+        isLogin = login;
     }
 
     public String getPassword() {
