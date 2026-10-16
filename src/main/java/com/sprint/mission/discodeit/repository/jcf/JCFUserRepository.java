@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
@@ -31,12 +30,11 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
-    public User update(UUID id, String userName, String email, String password) {
-        User user = data.get(id);
-        if (user == null) {
+    public User update(User user) {
+        if (!data.containsKey(user.getId())) {
             throw new NoSuchElementException("존재하지 않는 User입니다.");
         }
-        user.update(userName, email, password);
+        data.put(user.getId(), user);
         return user;
     }
 

@@ -2,26 +2,36 @@ package com.sprint.mission.discodeit.service.basic.v1;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicMessageService;
+import com.sprint.mission.discodeit.service.basic.BasicUserService;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class BasicChannelServiceV1 implements BasicChannelService {
 
     private final ChannelRepository channelRepository;
-    private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final BasicUserService userService;
+    private BasicMessageService messageService;
 
-    public BasicChannelServiceV1(ChannelRepository channelRepository, UserRepository userRepository,
-                                 MessageRepository messageRepository) {
+    public BasicChannelServiceV1(ChannelRepository channelRepository, MessageRepository messageRepository,
+                                 BasicUserService userService) {
         this.channelRepository = channelRepository;
-        this.userRepository = userRepository;
         this.messageRepository = messageRepository;
+        this.userService = userService;
+    }
+
+    // BasicMessageService도 이 서비스를 사용하므로(순환) 생성자 대신 setter로 연결한다.
+    public void setMessageService(BasicMessageService messageService) {
+        this.messageService = messageService;
     }
 
     @Override
@@ -43,7 +53,7 @@ public class BasicChannelServiceV1 implements BasicChannelService {
                 // Channel을 저장하고, 이미 저장된 User의 채널 목록에도 반영한다.
                 newChannel.addUser(user);
                 channelRepository.create(newChannel);
-                userRepository.addChannel(user.getId(), newChannel);
+                userService.addChannel(user.getId(), newChannel);
                 break;
             }
             System.out.println("1 또는 2만 입력해주세요.");
@@ -123,10 +133,17 @@ public class BasicChannelServiceV1 implements BasicChannelService {
         saveChannelUpdate(channel, null, null, newDescription);
     }
 
-    // null인 값은 변경하지 않는다. Channel 저장 후, User가 보관 중인 Channel 복사본도 최신 정보로 맞춘다.
+    // null인 값은 변경하지 않는다. Channel 저장 후, User/Message가 보관 중인 Channel 복사본도 최신 정보로 맞춘다.
     private void saveChannelUpdate(Channel channel, ChannelType channelType, String title, String description) {
-        Channel updated = channelRepository.update(channel.getId(), channelType, title, description);
-        userRepository.refreshChannel(updated);
+        Channel stored = channelRepository.findById(channel.getId())
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 Channel입니다."));
+        stored.update(channelType, title, description);
+        channelRepository.update(stored);
+
+        userService.refreshChannel(stored);
+        if (messageService != null) {
+            messageService.refreshChannel(stored);
+        }
     }
 
     @Override
@@ -154,11 +171,11 @@ public class BasicChannelServiceV1 implements BasicChannelService {
         }
 
         // Channel의 참여자 목록과 User의 채널 목록을 양쪽 모두 갱신하고 저장한다.
-        if (!channelRepository.addUser(channel.getId(), user)) {
+        if (!addUser(channel.getId(), user)) {
             System.out.println("이미 참여 중인 채널입니다.");
             return;
         }
-        userRepository.addChannel(user.getId(), channel);
+        userService.addChannel(user.getId(), channel);
         System.out.println("채널에 참여했습니다.");
     }
 
@@ -170,11 +187,11 @@ public class BasicChannelServiceV1 implements BasicChannelService {
         }
 
         // Channel의 참여자 목록과 User의 채널 목록에서 서로를 제거하고 저장
-        if (!channelRepository.removeUser(channel.getId(), user.getId())) {
+        if (!removeUser(channel.getId(), user.getId())) {
             System.out.println("참여 중인 채널이 아닙니다.");
             return;
         }
-        userRepository.removeChannel(user.getId(), channel.getId());
+        userService.removeChannel(user.getId(), channel.getId());
         System.out.println("채널에서 나갔습니다.");
 
         // 참여자가 아무도 남지 않으면 채널을 삭제ㅈ
@@ -188,12 +205,95 @@ public class BasicChannelServiceV1 implements BasicChannelService {
     }
 
 
+    // 채널의 Message 삭제 -> 참여 중인 User들의 채널 목록에서 제거 -> Channel 삭제
     private void removeChannelData(Channel channel) {
-        messageRepository.findAll()
-                .stream()
+        messageRepository.findAll().stream()
                 .filter(message -> message.getChannel().getId().equals(channel.getId()))
-                .forEach(message -> messageRepository.delete(message.getId()));
-        userRepository.removeChannel(channel.getId());
+                .forEach(message -> {
+                    messageRepository.delete(message.getId());
+                    userService.removeMessage(message.getId());
+                });
+        userService.removeChannel(channel.getId());
         channelRepository.delete(channel.getId());
     }
+
+    @Override
+    public boolean addUser(UUID channelId, User user) {
+        return channelRepository.findById(channelId)
+                .filter(channel -> channel.getUsers().stream().noneMatch(u -> u.getId().equals(user.getId())))
+                .map(channel -> {
+                    channel.addUser(user);
+                    channelRepository.update(channel);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public boolean removeUser(UUID channelId, UUID userId) {
+        return channelRepository.findById(channelId)
+                .filter(channel -> channel.getUsers().stream().anyMatch(u -> u.getId().equals(userId)))
+                .map(channel -> {
+                    channel.getUsers().removeIf(u -> u.getId().equals(userId));
+                    channelRepository.update(channel);
+                    return true;
+                })
+                .orElse(false);
+    }
+
+    @Override
+    public void removeUser(UUID userId) {
+        channelRepository.findAll().stream()
+                .filter(channel -> channel.getUsers().stream().anyMatch(u -> u.getId().equals(userId)))
+                .forEach(channel -> {
+                    channel.getUsers().removeIf(u -> u.getId().equals(userId));
+                    channelRepository.update(channel);
+                });
+    }
+
+    @Override
+    public void refreshUser(User user) {
+        channelRepository.findAll().stream()
+                .filter(channel -> channel.getUsers().stream().anyMatch(u -> u.getId().equals(user.getId())))
+                .forEach(channel -> {
+                    channel.getUsers().stream()
+                            .filter(u -> u.getId().equals(user.getId()))
+                            .forEach(u -> u.sync(user));
+                    channelRepository.update(channel);
+                });
+    }
+
+    @Override
+    public void addMessage(Message message) {
+        channelRepository.findById(message.getChannel().getId())
+                .filter(channel -> channel.getChannelMessages().stream().noneMatch(m -> m.getId().equals(message.getId())))
+                .ifPresent(channel -> {
+                    channel.addMessage(message);
+                    channelRepository.update(channel);
+                });
+    }
+
+    @Override
+    public void removeMessage(UUID messageId) {
+        channelRepository.findAll().stream()
+                .filter(channel -> channel.getChannelMessages().stream().anyMatch(m -> m.getId().equals(messageId)))
+                .forEach(channel -> {
+                    channel.getChannelMessages().removeIf(m -> m.getId().equals(messageId));
+                    channelRepository.update(channel);
+                });
+    }
+
+    @Override
+    public void refreshMessage(Message message) {
+        channelRepository.findAll().stream()
+                .filter(channel -> channel.getChannelMessages().stream().anyMatch(m -> m.getId().equals(message.getId())))
+                .forEach(channel -> {
+                    channel.getChannelMessages().stream()
+                            .filter(m -> m.getId().equals(message.getId()))
+                            .forEach(m -> m.sync(message));
+                    channelRepository.update(channel);
+                });
+    }
+
+
 }
