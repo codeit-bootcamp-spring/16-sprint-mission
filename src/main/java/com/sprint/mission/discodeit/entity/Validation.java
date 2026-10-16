@@ -4,7 +4,7 @@ import java.util.UUID;
 
 public class Validation {
     private static final String EMAIL_REGEX =
-            "^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*\\.[a-zA-Z]{2,3}$";
+            "^[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*@[0-9a-zA-Z]([-_.]?[0-9a-zA-Z])*\\.[a-zA-Z]{2,}$";
 
     // null 또는 공백을 포함하는지 검증
     public static void validateNull(Object value, String name) {
@@ -16,12 +16,6 @@ public class Validation {
     public static void validateBlank(String value, String name) {
         if (value == null || value.isBlank()) {
             throw new IllegalArgumentException(name + "을(를) 작성해 주세요.");
-        }
-    }
-
-    public static void validateWhitespace(UUID value, String name) {
-        if (value == null || value.toString().isBlank()) {
-            throw new IllegalArgumentException(name + "은(는) null이 불가능합니다.");
         }
     }
 

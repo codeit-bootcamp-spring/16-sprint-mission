@@ -1,32 +1,30 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.UUID;
-
 public class Message extends BaseEntity {
     private String content;
-    private final UUID senderId;
-    private final UUID channelId;
+    private final User sender;
+    private final Channel channel;
 
-    public Message(String content, UUID senderId, UUID channelId) {
+    public Message(String content, User sender, Channel channel) {
         super();
 
         if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("메시지를 작성해 주세요.");
         }
 
-        Validation.validateWhitespace(senderId, "senderId");
-        Validation.validateWhitespace(channelId, "channelId");
+        Validation.validateNull(sender, "sender");
+        Validation.validateNull(channel, "channel");
 
         this.content = content;
-        this.senderId = senderId;
-        this.channelId = channelId;
+        this.sender = sender;
+        this.channel = channel;
     }
 
     public String getContent() { return content; }
 
-    public UUID getSenderId() { return senderId; }
+    public User getSender() { return sender; }
 
-    public UUID getChannelId() { return channelId; }
+    public Channel getChannel() { return channel; }
 
     public void updateMessage(String content) {
         Validation.validateBlank(content, "message");
@@ -39,8 +37,8 @@ public class Message extends BaseEntity {
     public String toString() {
         return "메시지 정보: " +
                 "{메시지 내용='" + content + '\'' +
-                ", 발신자=" + senderId +
-                ", 채널=" + channelId +
+                ", 발신자=" + sender.getUsername() +
+                ", 채널=" + channel.getChannelName() +
                 '}';
     }
 }

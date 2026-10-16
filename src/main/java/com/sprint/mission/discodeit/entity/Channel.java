@@ -2,29 +2,28 @@ package com.sprint.mission.discodeit.entity;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 public class Channel extends BaseEntity {
     private String channelName;
     private final List<User> channelParticipants;
     private final List<Message> channelMessages;
-    private final UUID creatorId;
+    private final User creator;
 
-    public Channel(String channelName, UUID creatorId) {
+    public Channel(String channelName, User creator) {
         super();
 
         Validation.validateBlank(channelName, "channelName");
-        Validation.validateWhitespace(creatorId, "creatorId");
+        Validation.validateNull(creator, "creator");
 
         this.channelName = channelName;
         this.channelParticipants = new ArrayList<>();
         this.channelMessages = new ArrayList<>();
-        this.creatorId = creatorId;
+        this.creator = creator;
     }
 
     public String getChannelName() { return channelName; }
 
-    public UUID getCreatorId() { return creatorId; }
+    public User getCreator() { return creator; }
 
     public List<User> getChannelParticipants() { return new ArrayList<>(channelParticipants); }
 
@@ -45,6 +44,7 @@ public class Channel extends BaseEntity {
 
         channelParticipants.add(user);
         user.addChannel(this);
+        super.update();
     }
 
     public void leaveChannel(User user) {
@@ -55,23 +55,26 @@ public class Channel extends BaseEntity {
 
         channelParticipants.remove(user);
         user.removeChannel(this);
+        super.update();
     }
 
     public void addChannelMessages(Message message) {
         Validation.validateNull(message, "message");
 
         channelMessages.add(message);
+        super.update();
     }
 
     public void removeChannelMessages(Message message) {
         channelMessages.remove(message);
+        super.update();
     }
 
     @Override
     public String toString() {
         return "채널 \"" + channelName + "\" 정보: {" +
                 "채널 이름='" + channelName + '\'' +
-                ", 채널 방장=" + creatorId +
+                ", 채널 방장=" + creator.getUsername() +
                 '}';
     }
 }

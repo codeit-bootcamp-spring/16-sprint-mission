@@ -67,12 +67,14 @@ public class User extends BaseEntity {
         }
 
         myChannels.add(channel);
+        super.update();
     }
 
     public void addMessage(Message message) {
         Validation.validateNull(message, "message");
 
         myMessages.add(message);
+        super.update();
     }
 
     public void removeChannel(Channel channel) {
@@ -82,12 +84,14 @@ public class User extends BaseEntity {
         }
 
         myChannels.remove(channel);
+        super.update();
     }
 
     public void removeMessage(Message message) {
         Validation.validateNull(message, "message");
 
         myMessages.remove(message);
+        super.update();
     }
 
     public void deleteEmail() {

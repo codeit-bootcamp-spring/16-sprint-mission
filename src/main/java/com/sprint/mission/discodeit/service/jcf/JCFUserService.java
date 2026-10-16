@@ -9,10 +9,14 @@ import com.sprint.mission.discodeit.service.UserService;
 import java.util.*;
 
 public class JCFUserService implements UserService {
-    private final Map<UUID, User> userData = new HashMap<>();
+    private final Map<UUID, User> userData;
 
     private ChannelService channelService;
     private MessageService messageService;
+
+    public JCFUserService() {
+        this.userData = new HashMap<>();
+    }
 
     public void setChannelService(ChannelService channelService) {
         this.channelService = channelService;
@@ -95,6 +99,9 @@ public class JCFUserService implements UserService {
             throw new IllegalArgumentException("이메일을 입력해 주세요.");
         }
         User user = getUserById(userId);
+        if (email.equals(user.getEmail())) {
+            throw new IllegalArgumentException("현재 사용 중인 이메일과 같습니다.");
+        }
         validateDuplicateEmail(email);
 
         user.changeEmail(email);
@@ -111,7 +118,7 @@ public class JCFUserService implements UserService {
 
         List<Channel> channels = channelService.getChannelsByParticipantId(userId);
         for (Channel channel : channels) {
-            if (channel.getCreatorId().equals(userId)) {
+            if (channel.getCreator().getId().equals(userId)) {
                 // 내가 만든 채널 삭제
                 channelService.deleteChannel(channel.getId(), userId);
             } else {

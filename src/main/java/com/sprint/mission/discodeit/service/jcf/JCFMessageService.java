@@ -10,10 +10,14 @@ import com.sprint.mission.discodeit.service.UserService;
 import java.util.*;
 
 public class JCFMessageService implements MessageService {
-    private final Map<UUID, Message> messageData = new HashMap<>();
+    private final Map<UUID, Message> messageData;
 
     private UserService userService;
     private ChannelService channelService;
+
+    public JCFMessageService() {
+        this.messageData = new LinkedHashMap<>();
+    }
 
     public void setUserService(UserService userService) {
         this.userService = userService;
@@ -32,7 +36,7 @@ public class JCFMessageService implements MessageService {
 
     // 작성자가 본인인지 검증
     private void validateSender(Message message, UUID userId, String action) {
-        if (!message.getSenderId().equals(userId)) {
+        if (!message.getSender().getId().equals(userId)) {
             throw new IllegalArgumentException("본인이 작성한 메시지만 " + action + "할 수 있습니다.");
         }
     }
@@ -42,14 +46,14 @@ public class JCFMessageService implements MessageService {
     public Message createMessage(Message message) {
         if (message == null) throw new IllegalArgumentException("메시지가 null입니다.");
 
-        User user = userService.getUserById(message.getSenderId());
-        Channel channel = channelService.getChannelById(message.getChannelId());
+        User user = userService.getUserById(message.getSender().getId());
+        Channel channel = channelService.getChannelById(message.getChannel().getId());
 
         validateParticipant(user, channel, "작성");
 
-        messageData.put(message.getId(), message);
         user.addMessage(message);
         channel.addChannelMessages(message);
+        messageData.put(message.getId(), message);
 
         return message;
     }
@@ -75,7 +79,7 @@ public class JCFMessageService implements MessageService {
         userService.getUserById(userId);
 
         return messageData.values().stream()
-                .filter(m -> m.getSenderId().equals(userId))
+                .filter(m -> m.getSender().getId().equals(userId))
                 .sorted(Comparator.comparing(Message::getCreatedAt).reversed())
                 .toList();
     }
@@ -85,7 +89,7 @@ public class JCFMessageService implements MessageService {
         channelService.getChannelById(channelId);
 
         return messageData.values().stream()
-                .filter(m -> m.getChannelId().equals(channelId))
+                .filter(m -> m.getChannel().getId().equals(channelId))
                 .sorted(Comparator.comparing(Message::getCreatedAt))
                 .toList();
     }
@@ -96,8 +100,8 @@ public class JCFMessageService implements MessageService {
         channelService.getChannelById(channelId);
 
         return messageData.values().stream()
-                .filter(m -> m.getSenderId().equals(userId)
-                        && m.getChannelId().equals(channelId))
+                .filter(m -> m.getSender().getId().equals(userId)
+                        && m.getChannel().getId().equals(channelId))
                 .sorted(Comparator.comparing(Message::getCreatedAt))
                 .toList();
     }
@@ -108,8 +112,8 @@ public class JCFMessageService implements MessageService {
         Message message = getMessageById(messageId);
         validateSender(message, userId, "수정");
 
-        User user = userService.getUserById(message.getSenderId());
-        Channel channel = channelService.getChannelById(message.getChannelId());
+        User user = userService.getUserById(message.getSender().getId());
+        Channel channel = channelService.getChannelById(message.getChannel().getId());
         validateParticipant(user, channel, "수정");
 
         message.updateMessage(content);
@@ -128,8 +132,8 @@ public class JCFMessageService implements MessageService {
         Message message = getMessageById(messageId);
         validateSender(message, userId, "삭제");
 
-        User user = userService.getUserById(message.getSenderId());
-        Channel channel = channelService.getChannelById(message.getChannelId());
+        User user = userService.getUserById(message.getSender().getId());
+        Channel channel = channelService.getChannelById(message.getChannel().getId());
         validateParticipant(user, channel, "삭제");
 
         removeMessage(message, user, channel);
@@ -140,7 +144,7 @@ public class JCFMessageService implements MessageService {
         Channel channel = channelService.getChannelById(channelId);
 
         for (Message message : getMessagesByChannelId(channelId)) {
-            User user = userService.getUserById(message.getSenderId());
+            User user = userService.getUserById(message.getSender().getId());
             removeMessage(message, user, channel);
         }
     }
@@ -150,7 +154,7 @@ public class JCFMessageService implements MessageService {
         User user = userService.getUserById(userId);
 
         for (Message message : getMessagesByUserId(userId)) {
-            Channel channel = channelService.getChannelById(message.getChannelId());
+            Channel channel = channelService.getChannelById(message.getChannel().getId());
             removeMessage(message, user, channel);
         }
 
