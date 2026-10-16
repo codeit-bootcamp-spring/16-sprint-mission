@@ -12,6 +12,8 @@ public class JCFChannelService implements ChannelService {
     private final UserService userService;
 
     public JCFChannelService(UserService userService) {
+        if (userService == null) throw new NullPointerException("유저 서비스가 참조하는 값이 없습니다.");
+
         this.data = new HashMap<>();
         this.userService = userService;
     }
@@ -33,6 +35,8 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void addUserToChannel(UUID channelId, User user) {
+        if (user == null) throw new NullPointerException("채널에 추가할 유저가 참조하는 값이 없습니다.");
+
         // 유저가 존재하는지 확인
         this.userService.findById(user.getId())
                 .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));

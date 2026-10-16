@@ -113,6 +113,8 @@ public class JavaApplication {
             System.out.printf("해당 개체를 찾을 수 없습니다. 이유: %s\n", e.getMessage());
         } catch (IllegalStateException e) {
             System.out.printf("요청한 작업을 수행할 수 없는 상태입니다. 이유: %s\n", e.getMessage());
+        } catch (NullPointerException e) {
+            System.out.printf("개체가 참조하는 값이 없습니다. 이유: %s\n", e.getMessage());
         }
     }
 }

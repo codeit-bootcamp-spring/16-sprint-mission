@@ -15,6 +15,9 @@ public class JCFMessageService implements MessageService {
     private final ChannelService channelService;
 
     public JCFMessageService(UserService userService, ChannelService channelService) {
+        if (userService == null) throw new NullPointerException("유저 서비스가 참조하는 값이 없습니다.");
+        if (channelService == null) throw new NullPointerException("채널 서비스가 참조하는 값이 없습니다.");
+
         this.data = new LinkedHashMap<>();
         this.userService = userService;
         this.channelService = channelService;
@@ -22,6 +25,9 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Message create(User sentFrom, String content, Channel channel) {
+        if (sentFrom == null) throw new NullPointerException("메세지를 생성하는 유저가 참조하는 값이 없습니다.");
+        if (channel == null) throw new NullPointerException("메세지를 생성할 채널이 참조하는 값이 없습니다.");
+
         // 유저와 채널 존재 여부 확인
         this.userService.findById(sentFrom.getId())
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보내는 유저가 존재하지 않습니다."));
