@@ -52,9 +52,7 @@ public class JCFUserService implements UserService {
         if (!user.getChannels().isEmpty()) {
             throw new IllegalArgumentException("참여 중인 채널이 있어 삭제할 수 없습니다.");
         }
-        if (!user.getMessages().isEmpty()) {
-            throw new IllegalArgumentException("작성한 메시지가 있어 삭제할 수 없습니다.");
-        }
+
         data.remove(id);
     }
 

@@ -1,23 +1,27 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.UserWithdrawalService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+import com.sprint.mission.discodeit.service.jcf.JCFUserWithdrawalService;
 
 import java.util.UUID;
 
-class JavaApplication {
+public class JavaApplication {
     public static void main(String[] args) {
-        // 의존 방향: User <- Channel <- Message (아래 서비스부터 생성)
+        // 의존 방향: User <- Channel <- Message <- UserWithdrawal (아래 서비스부터 생성)
         UserService userService = new JCFUserService();
         ChannelService channelService = new JCFChannelService(userService);
         MessageService messageService = new JCFMessageService(userService, channelService);
+        UserWithdrawalService withdrawalService =
+                new JCFUserWithdrawalService(userService, channelService, messageService);
 
         // =========================
         // 1. User 테스트
@@ -172,10 +176,56 @@ class JavaApplication {
         System.out.println("삭제 후 채널 수: " + channelService.findAll().size());
         System.out.println("채널 삭제 후 user2의 채널 목록 정리: " + user2.getChannels().isEmpty());
 
+        // 관계가 없는 사용자는 바로 삭제 가능
         userService.delete(user1.getId());
-        userService.delete(user2.getId());
-        userService.delete(user3.getId());
         System.out.println("삭제 후 사용자 수: " + userService.findAll().size());
+        expectFail("삭제된 사용자 조회",
+                () -> userService.findById(user1.getId()));
+
+        // =========================
+        // 6. 탈퇴 테스트 (UserWithdrawalService)
+        // =========================
+        System.out.println("\n===== 탈퇴 테스트 =====");
+
+        Channel withdrawChannel = channelService.create(
+                new Channel(user2.getId(), "withdraw-test", "탈퇴 테스트 채널"));
+        channelService.join(withdrawChannel.getId(), user3.getId());
+
+        Message user3Message = messageService.create(
+                new Message(user3.getId(), withdrawChannel.getId(), "탈퇴할 사용자의 메시지"));
+        Message user2Message = messageService.create(
+                new Message(user2.getId(), withdrawChannel.getId(), "채널 소유자의 메시지"));
+
+        System.out.println("탈퇴 전 채널 멤버 수: "
+                + userService.findAllByChannelId(withdrawChannel.getId()).size());
+        System.out.println("탈퇴 전 채널 메시지 수: " + withdrawChannel.getMessages().size());
+
+        // 소유한 채널이 있으면 거부되고, 아무것도 바뀌지 않아야 함
+        expectFail("소유한 채널이 있는 사용자 탈퇴",
+                () -> withdrawalService.withdraw(user2.getId()));
+        System.out.println("탈퇴 거부 후 메시지 유지: " + (messageService.findAll().size() == 2));
+        System.out.println("탈퇴 거부 후 채널 멤버 유지: " + withdrawChannel.hasUser(user2.getId()));
+
+        // 소유한 채널이 없는 사용자는 탈퇴 가능
+        withdrawalService.withdraw(user3.getId());
+        System.out.println("탈퇴 후 사용자 삭제: "
+                + userService.findAll().stream().noneMatch(u -> u.getId().equals(user3.getId())));
+        System.out.println("탈퇴 후 채널 멤버 정리: " + !withdrawChannel.hasUser(user3.getId()));
+        System.out.println("탈퇴 후 채널 메시지 정리: "
+                + (withdrawChannel.getMessages().size() == 1
+                && !withdrawChannel.getMessages().contains(user3Message.getId())));
+        System.out.println("탈퇴 후 전체 메시지 수: " + messageService.findAll().size());
+
+        expectFail("이미 탈퇴한 사용자의 재탈퇴",
+                () -> withdrawalService.withdraw(user3.getId()));
+
+        // 정리: 메시지 -> 채널 -> 사용자
+        messageService.delete(user2Message.getId(), user2.getId());
+        channelService.delete(withdrawChannel.getId(), user2.getId());
+        userService.delete(user2.getId());
+        System.out.println("최종 사용자 수: " + userService.findAll().size());
+        System.out.println("최종 채널 수: " + channelService.findAll().size());
+        System.out.println("최종 메시지 수: " + messageService.findAll().size());
 
         System.out.println("\n===== 테스트 종료 =====");
     }
