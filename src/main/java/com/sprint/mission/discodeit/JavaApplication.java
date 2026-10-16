@@ -13,8 +13,8 @@ import java.util.NoSuchElementException;
 public class JavaApplication {
     public static void main(String[] args) {
         JCFUserService jcfUserService = new JCFUserService();
-        JCFChannelService jcfChannelService = new JCFChannelService();
-        JCFMessageService jcfMessageService = new JCFMessageService();
+        JCFChannelService jcfChannelService = new JCFChannelService(jcfUserService);
+        JCFMessageService jcfMessageService = new JCFMessageService(jcfUserService, jcfChannelService);
 
         try {
             // 등록

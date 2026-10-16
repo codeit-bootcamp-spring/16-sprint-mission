@@ -3,14 +3,17 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFChannelService implements ChannelService {
     private final Map<UUID, Channel> data;
+    private final UserService userService;
 
-    public JCFChannelService() {
+    public JCFChannelService(UserService userService) {
         this.data = new HashMap<>();
+        this.userService = userService;
     }
 
     @Override
@@ -28,9 +31,12 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void addUserToChannel(UUID channelId, User user) {
+        // 유저가 존재하는지 확인
+        this.userService.findById(user.getId())
+                .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));
+
         Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저를 추가할 채널이 존재하지 " +
                 "않습니다."));
-
         channel.addUser(user);
 
         // 채널에 유저 추가 시 유저에도 채널 추가
@@ -39,6 +45,10 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void removeUserFromChannel(UUID channelId, UUID userId) {
+        // 유저가 존재하는지 확인
+        this.userService.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("채널에서 탈퇴시킬 유저가 존재하지 않습니다."));
+
         Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 " +
                 "존재하지 않습니다."));
 

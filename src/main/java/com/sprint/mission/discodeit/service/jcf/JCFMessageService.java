@@ -3,19 +3,31 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFMessageService implements MessageService {
     private final Map<UUID, Message> data;
+    private final UserService userService;
+    private final ChannelService channelService;
 
-    public JCFMessageService() {
+    public JCFMessageService(UserService userService, ChannelService channelService) {
         this.data = new LinkedHashMap<>();
+        this.userService = userService;
+        this.channelService = channelService;
     }
 
     @Override
     public Message create(User sentFrom, String content, Channel channel) {
+        // 유저와 채널 존재 여부 확인
+        this.userService.findById(sentFrom.getId())
+                .orElseThrow(() -> new NoSuchElementException("메세지를 보내는 유저가 존재하지 않습니다."));
+        this.channelService.findById(channel.getId())
+                .orElseThrow(() -> new NoSuchElementException("메세지를 보낼 채널이 존재하지 않습니다."));
+
         // 채널 가입 여부 확인
         channel.getUsers().values()
                 .stream()
