@@ -8,11 +8,11 @@ public class Channel extends BaseEntity {
     private Map<UUID, User> users;
     private Map<UUID, Message> messages;
 
-    public Channel(String name, Map<UUID, User> users, Map<UUID, Message> messages) {
+    public Channel(String name) {
         super();
         this.name = name;
-        this.users = users;
-        this.messages = messages;
+        this.users = new HashMap<>();
+        this.messages = new LinkedHashMap<>();
     }
 
     public Channel updateName(String name) {

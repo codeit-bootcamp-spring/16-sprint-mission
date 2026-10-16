@@ -18,7 +18,7 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public Channel create(String name) {
-        Channel channel = new Channel(name, new HashMap<>(), new LinkedHashMap<>());
+        Channel channel = new Channel(name);
         this.data.put(channel.getId(), channel);
         return channel;
     }
