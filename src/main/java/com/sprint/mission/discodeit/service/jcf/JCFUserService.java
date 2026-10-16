@@ -14,7 +14,7 @@ public class JCFUserService implements UserService {
 
     @Override
     public User create(String name) {
-        User user = new User(name, new HashMap<>(), new LinkedHashMap<>());
+        User user = new User(name);
         this.data.put(user.getId(), user);
         return user;
     }

@@ -21,9 +21,8 @@ public abstract class BaseEntity {
         return this.id;
     }
 
-    protected BaseEntity update() {
+    protected void update() {
         this.updatedAt = Instant.now().toEpochMilli();
-        return this;
     }
 
     public void softDelete() {
@@ -60,11 +59,7 @@ public abstract class BaseEntity {
         EntityStatus(String value) {
             this.value = value;
         }
-
-        public String getValue() {
-            return this.value;
-        }
-
+        
         @Override
         public String toString() {
             return this.value;

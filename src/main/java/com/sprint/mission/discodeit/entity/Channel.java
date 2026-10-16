@@ -4,9 +4,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Channel extends BaseEntity {
+    private final Map<UUID, User> users;
+    private final Map<UUID, Message> messages;
     private String name;
-    private Map<UUID, User> users;
-    private Map<UUID, Message> messages;
 
     public Channel(String name) {
         super();
@@ -16,41 +16,29 @@ public class Channel extends BaseEntity {
     }
 
     public Channel updateName(String name) {
-        super.update();
         this.name = name;
-        return this;
-    }
-
-    public Channel updateUsers(Map<UUID, User> users) {
         super.update();
-        this.users = users;
-        return this;
-    }
-
-    public Channel updateMessages(Map<UUID, Message> messages) {
-        super.update();
-        this.messages = messages;
         return this;
     }
 
     public void addUser(User user) {
         this.users.put(user.getId(), user);
-        this.updateUsers(this.users);
+        super.update();
     }
 
     public void removeUser(UUID userId) {
         this.users.remove(userId);
-        this.updateUsers(this.users);
+        super.update();
     }
 
     public void addMessage(Message message) {
         this.messages.put(message.getId(), message);
-        this.updateMessages(this.messages);
+        super.update();
     }
 
     public void removeMessage(UUID messageId) {
         this.messages.remove(messageId);
-        this.updateMessages(this.messages);
+        super.update();
     }
 
     public String getName() {
@@ -73,6 +61,6 @@ public class Channel extends BaseEntity {
                 .collect(Collectors.joining(", "));
         String msgStr =
                 this.getMessages().values().stream().map(Message::getContent).collect(Collectors.joining(", "));
-        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ], 상태: %s".formatted(this.name, userStr, msgStr, this.getStatus());
+        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ], 상태: %s".formatted(this.name, userStr, msgStr, super.getStatus());
     }
 }
