@@ -13,6 +13,7 @@ public abstract class BaseEntity {
     protected BaseEntity() {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now().toEpochMilli();
+        this.updatedAt = this.createdAt;
         this.status = EntityStatus.ACTIVE;
     }
 
