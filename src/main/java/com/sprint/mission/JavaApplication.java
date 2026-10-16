@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.util.List;
+import java.util.UUID;
 
 public class JavaApplication {
 
@@ -51,7 +52,7 @@ public class JavaApplication {
         System.out.println("\n====== Channel 생성 ======");
         Channel channel1 = channelService.createChannel(
                 "1. 단체 채팅방",
-                List.of(sehun.getId(), areum.getId(), jihun.getId(), chulsu.getId())
+                List.of(sehun.getId(), areum.getId(), jihun.getId())
         );
         Channel channel2 = channelService.createChannel(
                 "2. 세훈 아름 채팅방",
@@ -70,34 +71,38 @@ public class JavaApplication {
         );
         System.out.println(channelService.findById(channel1.getId()));
 
+        System.out.println("\n====== Channel 삭제 ======");
+        channelService.deleteChannel(channel2.getId());
+        System.out.println(channelService.findAll());
+
         // User <> Channel 관계 확인
-        System.out.println("\n====== 세훈이 참여한 채널 ======");
+        System.out.println("\n====== 세훈이 참여한 Channels ======");
         System.out.println(userService.findById(sehun.getId())
                 .orElseThrow()
                 .getChannels()
         );
 
-        System.out.println("\n====== 1번 채팅방 참여 User ======");
+        System.out.println("\n====== 1번 채팅방 참여 Users ======");
         System.out.println(channel1.getUsers()
         );
 
-        System.out.println("\n====== Channel 우저 추가 ======");
-        System.out.println(channel2.getUsers());
+        System.out.println("\n====== Channel 유저 추가 ======");
+        System.out.println(channel1.getUsers());
         System.out.println("\n====== vvvvvvvvvvvvvvv ======");
         channelService.addUserToChannel(
-                channel2.getId(),
+                channel1.getId(),
                 List.of(chulsu.getId())
         );
-        System.out.println(channel2.getUsers());
+        System.out.println(channel1.getUsers());
 
         System.out.println("\n====== Channel 유저 삭제 ======");
-        System.out.println(channel2.getUsers());
+        System.out.println(channel1.getUsers());
         System.out.println("\n====== vvvvvvvvvvvvvvv ======");
         channelService.removeUserFromChannel(
-                channel2.getId(),
+                channel1.getId(),
                 List.of(chulsu.getId())
         );
-        System.out.println(channel2.getUsers());
+        System.out.println(channel1.getUsers());
 
         // 메세지
         System.out.println("\n====== Message 생성 ======");
@@ -112,14 +117,14 @@ public class JavaApplication {
                 channel1.getId()
         );
         Message message3 = messageService.createMessage(
-                "철수의 첫번째 메세지",
-                chulsu.getId(),
+                "지훈의 첫번째 메세지",
+                jihun.getId(),
                 channel1.getId()
         );
         Message message4 = messageService.createMessage(
                 "세훈의 두번째 메세지",
                 sehun.getId(),
-                channel2.getId()
+                channel1.getId()
         );
         Message message5 = messageService.createMessage(
                 "세훈이가 세훈에게 메세지",
@@ -157,10 +162,142 @@ public class JavaApplication {
         System.out.println("1번 채팅방 메세지");
         System.out.println(channel1.getMessages());
 
+        // 예외 처리 케이스
+        UUID testUUID = UUID.randomUUID();
+        System.out.println("\n====== 유저 이름 공백 ======");
+        try {
+            userService.createUser(" ", 20);
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 유저 나이 음수 ======");
+        try {
+            userService.createUser("테스트", -5);
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 유저 수정 ======");
+        try {
+            userService.updateUser(testUUID, "몰라", 1);
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 유저 삭제 ======");
+        try {
+            userService.updateUser(testUUID, "몰라", 1);
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 채널 이름 공백 생성 ======");
+        try {
+            channelService.createChannel(" ", List.of(sehun.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 채널 참여자 없이 생성 ======");
+        try {
+            channelService.createChannel("테스트 채널", List.of());
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 앟는 유저로 채널 생성 ======");
+        try {
+            channelService.createChannel("테스트 채널", List.of(testUUID));
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 중복되는 유저로 채널 생성 ======");
+        try {
+            channelService.createChannel("테스트 채널", List.of(sehun.getId(), sehun.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 이미 존재하는 유저 채널 추가 ======");
+        try {
+            channelService.addUserToChannel(channel1.getId(), List.of(sehun.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 참여하지 않은 유저 제거 ======");
+        try {
+            channelService.removeUserFromChannel(channel1.getId(), List.of(chulsu.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 채널 내 마지막 유저 제거 ======");
+        try {
+            channelService.removeUserFromChannel(channel3.getId(), List.of(sehun.getId()));
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 채널 수정 ======");
+        try {
+            channelService.updateChannel(testUUID, "이걸로");
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 채널 삭제 ======");
+        try {
+            channelService.deleteChannel(testUUID);
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+
+        System.out.println("\n====== 메세지 내용 없이 생성 ======");
+        try {
+            messageService.createMessage(" ", sehun.getId(), channel1.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 유저 메세지 생성 ======");
+        try {
+            messageService.createMessage("abc", testUUID, channel1.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 유저 메세지 생성 ======");
+        try {
+            messageService.createMessage("abc", testUUID, channel1.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 유저 메세지 생성 ======");
+        try {
+            messageService.createMessage("abc", testUUID, channel1.getId());
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 채널 메세지 생성 ======");
+        try {
+            messageService.createMessage("abc", sehun.getId(), testUUID);
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 메세지 수정 ======");
+        try {
+            messageService.updateMessage(testUUID, "가나다라");
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 메세지 공백으로 수정 ======");
+        try {
+            messageService.updateMessage(message1.getId(), " ");
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+        System.out.println("\n====== 존재하지 않는 메세지 삭제 ======");
+        try {
+            messageService.deleteMessage(testUUID);
+        } catch (IllegalArgumentException e) {
+            System.out.println("경고 : " + e.getMessage());
+        }
+
+
         // 연쇄 삭제 테스트
-        System.out.println("=====================================");
+        System.out.println("\n====== 연쇄 삭제 테스트 ======");
+        System.out.println("===============================");
         System.out.println("세훈 삭제 전");
-        System.out.println("=====================================");
+        System.out.println("===============================");
         System.out.println("USERS : ");
         System.out.println(userService.findAll());
         System.out.println("CHANNELS : ");
@@ -170,9 +307,9 @@ public class JavaApplication {
 
         discordService.deleteUser(sehun.getId());
 
-        System.out.println("=====================================");
+        System.out.println("===============================");
         System.out.println("세훈 삭제 후");
-        System.out.println("=====================================");
+        System.out.println("===============================");
         System.out.println("USERS : ");
         System.out.println(userService.findAll());
         System.out.println("CHANNELS : ");

@@ -32,7 +32,7 @@ public class JCFChannelService implements ChannelService {
             throw new IllegalArgumentException("채널 이름은 비어있을 수 없습니다.");
         }
         if (userIds.isEmpty()) {
-            throw new IllegalArgumentException("채널에는 최소 1명의 사용자가 필요합니다.");
+            throw new IllegalArgumentException("채널에는 최소 1명의 사용자가 존재해야 합니다.");
         }
         if (userIds.stream() // 변수로 받은 userIds를 순환
                 .distinct() // 중복제거 후 남은 개수와 원래 개수 비교 (차이가 있는 경우엔 예외처리)
@@ -111,6 +111,10 @@ public class JCFChannelService implements ChannelService {
                         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다.")))
                 .toList(); // 입력받은 userId들이 존재하는지 확인
 
+        if (userIds.stream().distinct().count() != userIds.size()) {
+            throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
+        }
+
         for (User user : users) {
             if (channel.getUsers().contains(user)) {
                 throw new IllegalArgumentException("이미 채널에 존재하는 사용자입니다.");
@@ -134,6 +138,10 @@ public class JCFChannelService implements ChannelService {
                         .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다.")))
                 .toList();
 
+        if (userIds.stream().distinct().count() != userIds.size()) {
+            throw new IllegalArgumentException("중복된 사용자가 존재합니다.");
+        }
+
         for (User user : users) {
             if (!channel.getUsers().contains(user)) {
                 throw new IllegalArgumentException("채널에 존재하는 사용자만 제거 가능합니다.");
@@ -141,7 +149,7 @@ public class JCFChannelService implements ChannelService {
         }
 
         if (users.size() >= channel.getUsers().size()){
-            throw new IllegalArgumentException("채널에는 최소 1명이 있어야 합니다.");
+            throw new IllegalArgumentException("채널에는 최소 1명의 사용자가 존재해야 합니다.");
         }
 
         users.forEach(user -> {

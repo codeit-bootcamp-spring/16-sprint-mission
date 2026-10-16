@@ -10,7 +10,7 @@ public class Channel extends Base{
 
     public Channel(String name, List<User> users) {
         if (users == null || users.isEmpty()) {
-            throw new IllegalArgumentException("채널에는 최소 1명이 있어야 합니다.");
+            throw new IllegalArgumentException("채널에는 최소 1명의 사용자가 존재해야 합니다.");
         }
         this.name = name;
         this.users = new ArrayList<>(users);

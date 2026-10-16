@@ -33,11 +33,11 @@ public class JCFMessageService implements MessageService {
         }
         User user = userService.findById(userId)
                 .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
+                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
         Channel channel = channelService.findById(channelId)
                 .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
+                        () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
         boolean joined = channel.getUsers().stream()
                 .anyMatch(channelUser -> channelUser.getId().equals(userId));
@@ -66,7 +66,7 @@ public class JCFMessageService implements MessageService {
     @Override
     public Message updateMessage(UUID id, String content) {
         Message message = findMessageById(id).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 Id 입니다.")
+                () -> new IllegalArgumentException("존재하지 않는  메세지입니다.")
         );
 
         if (content == null || content.isBlank()) {
@@ -80,7 +80,7 @@ public class JCFMessageService implements MessageService {
     @Override
     public void deleteMessage (UUID id) {
         Message message = findMessageById(id).orElseThrow(
-                () -> new IllegalArgumentException("존재하지 않는 ID 입니다.")
+                () -> new IllegalArgumentException("존재하지 않는 메세지입니다.")
         );
         User user = message.getUser();
         Channel channel = message.getChannel();
