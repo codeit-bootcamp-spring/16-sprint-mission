@@ -27,6 +27,8 @@ public class JCFMessageService implements MessageService {
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보내는 유저가 존재하지 않습니다."));
         this.channelService.findById(channel.getId())
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보낼 채널이 존재하지 않습니다."));
+        this.userService.validateNotDeleted(sentFrom);
+        this.channelService.validateNotDeleted(channel);
 
         // 채널 가입 여부 확인
         channel.getUsers().values()
@@ -48,6 +50,8 @@ public class JCFMessageService implements MessageService {
     @Override
     public Message updateContent(UUID id, String content) {
         Message message = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
+        this.validateNotDeleted(message);
+
         return message.updateContent(content);
     }
 
@@ -64,11 +68,16 @@ public class JCFMessageService implements MessageService {
     @Override
     public void delete(UUID id) {
         Message message = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 메세지가 존재하지 않습니다."));
+        this.validateNotDeleted(message);
 
         // 메세지 삭제 시 채널과 유저에도 메세지 삭제
         message.getChannel().removeMessage(id);
         message.getSentFrom().removeMessage(id);
 
-        this.data.remove(id);
+        message.softDelete();
+    }
+
+    public void validateNotDeleted(Message message) {
+        if (message.isDeleted()) throw new IllegalStateException("삭제된 메세지입니다.");
     }
 }

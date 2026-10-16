@@ -17,7 +17,7 @@ public class Message extends BaseEntity {
         this.content = content;
         return this;
     }
-    
+
     public User getSentFrom() {
         return this.sentFrom;
     }
@@ -32,6 +32,7 @@ public class Message extends BaseEntity {
 
     @Override
     public String toString() {
-        return "보낸 사람: %s, 내용: %s, 채널: %s".formatted(this.sentFrom.getName(), this.content, this.channel.getName());
+        return "보낸 사람: %s, 내용: %s, 채널: %s, 상태: %s".formatted(this.sentFrom.getName(), this.content,
+                this.channel.getName(), this.getStatus());
     }
 }

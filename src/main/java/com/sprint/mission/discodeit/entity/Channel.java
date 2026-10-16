@@ -73,6 +73,6 @@ public class Channel extends BaseEntity {
                 .collect(Collectors.joining(", "));
         String msgStr =
                 this.getMessages().values().stream().map(Message::getContent).collect(Collectors.joining(", "));
-        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ]".formatted(this.name, userStr, msgStr);
+        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ], 상태: %s".formatted(this.name, userStr, msgStr, this.getStatus());
     }
 }

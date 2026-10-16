@@ -22,6 +22,8 @@ public class JCFUserService implements UserService {
     @Override
     public User updateName(UUID id, String name) {
         User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
+        this.validateNotDeleted(user);
+
         return user.updateName(name);
     }
 
@@ -38,10 +40,15 @@ public class JCFUserService implements UserService {
     @Override
     public void delete(UUID id) {
         User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+        this.validateNotDeleted(user);
 
-        // 유저 삭제 시 채널에도 유저 삭제
+        // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
         user.getChannels().values().forEach(channel -> channel.removeUser(id));
 
-        this.data.remove(id);
+        user.softDelete();
+    }
+
+    public void validateNotDeleted(User user) {
+        if (user.isDeleted()) throw new IllegalStateException("삭제된 유저입니다.");
     }
 }

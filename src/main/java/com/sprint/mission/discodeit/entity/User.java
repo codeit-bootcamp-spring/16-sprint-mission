@@ -70,6 +70,6 @@ public class User extends BaseEntity {
     public String toString() {
         String str =
                 this.channels.values().stream().map(Channel::getName).collect(Collectors.joining(", "));
-        return "이름: %s, 가입 채널: [ %s ]".formatted(this.name, str);
+        return "이름: %s, 가입 채널: [ %s ], 상태: %s".formatted(this.name, str, this.getStatus());
     }
 }

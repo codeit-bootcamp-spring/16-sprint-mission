@@ -16,4 +16,6 @@ public interface UserService {
     List<User> findAll();
 
     void delete(UUID id);
+
+    void validateNotDeleted(User user);
 }

@@ -21,4 +21,6 @@ public interface ChannelService {
     List<Channel> findAll();
 
     void delete(UUID id);
+
+    void validateNotDeleted(Channel channel);
 }
