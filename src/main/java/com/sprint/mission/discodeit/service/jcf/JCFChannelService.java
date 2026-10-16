@@ -43,7 +43,7 @@ public class JCFChannelService implements ChannelService {
         }
     }
 
-    // 입/퇴장 메시시 등록
+    // 입/퇴장 메시지 등록
     private void postSystemMessage(User user, Channel channel, String content) {
         messageService.createMessage(new Message(content, user, channel));
     }
@@ -60,13 +60,9 @@ public class JCFChannelService implements ChannelService {
         User user = userService.getUserById(channel.getCreator().getId());
         validateDuplicateChannelName(channel.getChannelName());
 
+        channel.joinChannel(user);
         channelsData.put(channel.getId(), channel);
-        try {
-            joinChannel(channel.getId(), user.getId());
-        } catch (RuntimeException e) {
-            channelsData.remove(channel.getId());
-            throw e;
-        }
+        postSystemMessage(user, channel, "[" + channel.getChannelName() + "] 채널이 생성되었습니다.");
 
         return channel;
     }
@@ -78,12 +74,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = getChannelById(channelId);
 
         channel.joinChannel(user);
-        try {
-            postSystemMessage(user, channel, user.getUsername() + "님이 입장하셨습니다.");
-        } catch (RuntimeException e) {
-            channel.leaveChannel(user);
-            throw e;
-        }
+        postSystemMessage(user, channel, user.getUsername() + "님이 입장하셨습니다.");
 
         return channel;
     }
