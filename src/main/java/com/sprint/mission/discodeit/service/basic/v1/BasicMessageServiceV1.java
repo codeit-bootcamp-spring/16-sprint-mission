@@ -108,22 +108,20 @@ public class BasicMessageServiceV1 implements BasicMessageService {
 
     @Override
     public void refreshUser(User user) {
-        messageRepository.findAll().stream()
+        List<Message> targets = messageRepository.findAll().stream()
                 .filter(message -> message.getUser().getId().equals(user.getId()))
-                .forEach(message -> {
-                    message.getUser().sync(user);
-                    messageRepository.update(message);
-                });
+                .toList();
+        targets.forEach(message -> message.getUser().sync(user));
+        messageRepository.updateAll(targets);
     }
 
     @Override
     public void refreshChannel(Channel channel) {
-        messageRepository.findAll().stream()
+        List<Message> targets = messageRepository.findAll().stream()
                 .filter(message -> message.getChannel().getId().equals(channel.getId()))
-                .forEach(message -> {
-                    message.getChannel().sync(channel);
-                    messageRepository.update(message);
-                });
+                .toList();
+        targets.forEach(message -> message.getChannel().sync(channel));
+        messageRepository.updateAll(targets);
     }
 
     // 채널 참여자인지 확인, action은 안내 문구에 쓰인다. (전송/수정/삭제)

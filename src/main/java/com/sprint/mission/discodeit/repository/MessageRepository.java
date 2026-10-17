@@ -15,5 +15,8 @@ public interface MessageRepository {
 
     Message update(Message message);
 
+    // 여러 Message를 한 번에 갱신한다. 저장 비용이 큰 구현체는 한 번만 저장한다.
+    void updateAll(List<Message> messages);
+
     void delete(UUID id);
 }

@@ -11,10 +11,10 @@ public abstract class Entity implements Serializable {
     protected Long updatedAt;
 
     public Entity() {
-        long epochSecond = Instant.now().getEpochSecond();
+        long epochMilli = Instant.now().toEpochMilli();
         this.id = UUID.randomUUID();
-        this.createdAt = epochSecond;
-        this.updatedAt = epochSecond;
+        this.createdAt = epochMilli;
+        this.updatedAt = epochMilli;
     }
 
     public UUID getId() {
@@ -42,6 +42,6 @@ public abstract class Entity implements Serializable {
     }
 
     protected void touch() {
-        this.updatedAt = Instant.now().getEpochSecond();
+        this.updatedAt = Instant.now().toEpochMilli();
     }
 }
