@@ -9,6 +9,9 @@ import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.entity.Group;
+import com.sprint.mission.discodeit.service.GroupService;
+import com.sprint.mission.discodeit.service.jcf.JCFGroupService;
 
 import java.util.List;
 
@@ -30,11 +33,6 @@ public class JavaApplication {
         List<User> all = userService.readAll();
         System.out.println("전체회원 수: "+all.size());
 
-        userService.delete(user.getId());
-
-        User deleted = userService.read(user.getId());
-        System.out.println("삭제후 조회" + deleted);
-
 
         ChannelService channelService = new JCFChannelService();
 
@@ -52,11 +50,13 @@ public class JavaApplication {
         List<Channel> allchannel = channelService.readAll();
         System.out.println("전체 채널 수: "+allchannel.size());
 
-        channelService.delete(channel.getId());
+        channelService.addParticipant(channel.getId(), user.getId());
+        Channel channelWithParticipant = channelService.read(channel.getId());
+        System.out.println("채널 참여자 수: " + channelWithParticipant.getParticipantIds().size());
 
-        Channel channel1deleted = channelService.read(channel.getId());
-        System.out.println("채널 삭제후 조회" + channel1deleted);
-
+        channelService.removeParticipant(channel.getId(), user.getId());
+        Channel channelAfterRemove = channelService.read(channel.getId());
+        System.out.println("참여자 제거후 참여자 수: " + channelAfterRemove.getParticipantIds().size());
 
         MessageService messageService = new JCFMessageService(userService, channelService);
 
@@ -74,10 +74,67 @@ public class JavaApplication {
         List<Message> allmessage = messageService.readAll();
         System.out.println("전체 메세지 수: "+allmessage.size());
 
-        messageService.delete(message.getId());
 
+        List<Message> searchResult = messageService.findByContent("안녕?");
+        System.out.println("검섹 결과 : "+searchResult.size());
+        for(Message m : searchResult) {
+            System.out.println("-" +m.getContent() );
+        }
+
+        List<Message> searchResult2 = messageService.findByContent("안녕");
+        System.out.println("검섹 결과 : "+searchResult2.size());
+        for(Message m : searchResult2) {
+            System.out.println("-" +m.getContent() );
+        }
+
+        List<Message> searchResult3 = messageService.findByContent("빠이");
+        System.out.println("검색 결과 : "+searchResult3.size());
+        for(Message m : searchResult3) {
+            System.out.println("-" +m.getContent() );
+        }
+
+        System.out.println("북마크 여부(전): " + message.isBookmarked());
+
+        messageService.toggleBookmark(message.getId());
+        Message messageAfterBookmark = messageService.read(message.getId());
+        System.out.println(("북마크 여부(후): "+ messageAfterBookmark.isBookmarked()));
+
+        messageService.delete(message.getId());
         Message message1deleted = messageService.read(message.getId());
         System.out.println("메세지 삭제후 조회" + message1deleted);
+
+        GroupService groupService = new JCFGroupService();
+        Group gameGroup = groupService.create(user.getId(),"게임채널 모음", "CHANNEL");
+        System.out.println("그룹등록: " + gameGroup.getName());
+
+        groupService.addItem(gameGroup.getId(), channel.getId());
+        Group foundGroup = groupService.read(gameGroup.getId());
+        System.out.println("그룹에 속한 채널 수: " + foundGroup.getItemIds().size());
+
+        groupService.update(gameGroup.getId(), "친구 채널 모음");
+        Group updatedGroup = groupService.read(gameGroup.getId());
+        System.out.println("그룹 이름 수정후: " + updatedGroup.getName());
+
+        List<Group> channelGroups = groupService.findByType("CHANNEL");
+        System.out.println("CHANNEL 타입 그룹 수: " + channelGroups.size());
+
+        groupService.removeItem(gameGroup.getId(), channel.getId());
+        Group afterRemove = groupService.read(gameGroup.getId());
+        System.out.println("채널 제거후 그룹 아이템 수: " + afterRemove.getItemIds().size());
+
+        groupService.delete(gameGroup.getId());
+        Group deletedGroup = groupService.read(gameGroup.getId());
+        System.out.println("그룹 삭제후 조회: " + deletedGroup);
+
+        channelService.delete(channel.getId());
+
+        Channel channel1deleted = channelService.read(channel.getId());
+        System.out.println("채널 삭제후 조회" + channel1deleted);
+
+        userService.delete(user.getId());
+
+        User deleted = userService.read(user.getId());
+        System.out.println("삭제후 조회" + deleted);
     }
 
 }

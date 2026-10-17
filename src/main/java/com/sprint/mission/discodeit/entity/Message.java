@@ -9,6 +9,8 @@ public class Message {
     private final UUID channelId;
     private final UUID senduser;
     private String content;
+    private boolean bookmarked;
+
 
 public Message(UUID channelId, UUID senduser, String content) {
     this.id = UUID.randomUUID();
@@ -16,6 +18,7 @@ public Message(UUID channelId, UUID senduser, String content) {
     this.channelId = channelId;
     this.senduser = senduser;
     this.content = content;
+    this.bookmarked = false;
 }
 
 public UUID getId() {
@@ -36,8 +39,16 @@ public UUID getSenduser() {
 public String getContent() {
     return content;
 }
-public void update(String content) {
-    this.content = content;
-    this.updatedAt = System.currentTimeMillis();
-}
+
+public boolean isBookmarked() {
+    return bookmarked;
+    }
+
+    public void update(String content) {
+        this.content = content;
+        this.updatedAt = System.currentTimeMillis();
+    }
+    public void toggleBookmark() {
+        this.bookmarked = !this.bookmarked;
+        }
 }

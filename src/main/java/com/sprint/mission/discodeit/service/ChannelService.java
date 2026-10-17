@@ -10,5 +10,7 @@ public interface ChannelService {
     Channel read(UUID id);
     List<Channel> readAll();
     Channel update(UUID id, String channelName, String topic, String type, String serverId);
+    void addParticipant(UUID channelId, UUID userId);
+    void removeParticipant(UUID channelId, UUID userId);
     void delete(UUID id);
 }

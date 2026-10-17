@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class JCFMessageService implements MessageService {
     private final Map<UUID, Message> data;
@@ -45,11 +46,26 @@ public JCFMessageService(UserService userService,  ChannelService channelService
         return new ArrayList<>(data.values());
     }
     @Override
+    public List<Message> findByContent(String keyword) {
+        return data.values().stream()
+                .filter(message -> message.getContent().contains(keyword))
+                .collect(Collectors.toList());
+    }
+
+    @Override
     public Message update(UUID id, String content) {
         Message message = data.get(id);
         message.update(content);
         return message;
     }
+
+    @Override
+    public Message toggleBookmark(UUID id) {
+        Message message = data.get(id);
+        message.toggleBookmark();
+        return message;
+    }
+
     @Override
     public void delete(UUID id) {
         data.remove(id);

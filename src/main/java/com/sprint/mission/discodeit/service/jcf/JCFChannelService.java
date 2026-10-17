@@ -37,6 +37,18 @@ public JCFChannelService() {
         return channel;
     }
     @Override
+    public void addParticipant(UUID channelId, UUID userId) {
+        Channel channel = data.get(channelId);
+        channel.addParticipant(userId);
+    }
+
+    @Override
+    public void removeParticipant(UUID channelId, UUID userId) {
+        Channel channel = data.get(channelId);
+        channel.removeParticipant(userId);
+    }
+
+    @Override
     public void delete(UUID id) {
         data.remove(id);
     }
