@@ -17,8 +17,8 @@ public JCFChannelService() {
 }
 
     @Override
-    public Channel create(String channelName, String topic, String type, String serverId) {
-        Channel channel = new Channel(channelName, topic, type, serverId);
+    public Channel create(String channelName, String topic, String type) {
+        Channel channel = new Channel(channelName, topic, type);
         data.put(channel.getId(), channel);
         return channel;
     }
@@ -31,9 +31,9 @@ public JCFChannelService() {
         return new ArrayList<>(data.values());
     }
     @Override
-    public Channel update(UUID id, String channelName, String topic, String type, String serverId) {
+    public Channel update(UUID id, String channelName, String topic, String type) {
         Channel channel = data.get(id);
-        channel.update(channelName, topic, type, serverId);
+        channel.update(channelName, topic, type);
         return channel;
     }
     @Override

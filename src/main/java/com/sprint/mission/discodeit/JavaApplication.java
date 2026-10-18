@@ -36,13 +36,13 @@ public class JavaApplication {
 
         ChannelService channelService = new JCFChannelService();
 
-        Channel channel = channelService.create("자유채널","아무나와요","text","server1");
+        Channel channel = channelService.create("자유채널","아무나와요","text");
         System.out.println("채널 등록: "+ channel.getChannelName());
 
         Channel channel1found = channelService.read(channel.getId());
         System.out.println("채널 단건조회: "+ channel1found.getChannelName());
 
-        channelService.update(channel.getId(),"공지채널","공지사항","text","server001");
+        channelService.update(channel.getId(),"공지채널","공지사항","text");
 
         Channel channel1updated = channelService.read(channel.getId());
         System.out.println("채널 수정후조회: "+channel1updated.getChannelName());
