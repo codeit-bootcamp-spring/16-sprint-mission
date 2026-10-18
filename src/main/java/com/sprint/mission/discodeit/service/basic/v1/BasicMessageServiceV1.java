@@ -11,7 +11,6 @@ import com.sprint.mission.discodeit.service.basic.BasicUserService;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.Scanner;
 
 public class BasicMessageServiceV1 implements BasicMessageService {

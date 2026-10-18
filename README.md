@@ -43,11 +43,6 @@
   - [x] 서비스 계층에서 null 처리 로직 제거 (예외를 그대로 전파)
   - [x] 예외 발생 케이스(존재하지 않는 id 조회 등) 테스트
 
-## 남은 작업
-1. 코드 리뷰 반영: Null Object 제거 및 `main`에서 예외 처리
-2. `JavaApplication`에 수정 → 수정 후 조회 → 삭제 → 삭제 확인 테스트 추가
-3. 심화: Message 생성 시 User, Channel 존재 여부 검증 및 테스트
-
 ## 클래스 다이어그램
 
 ### Entity
@@ -59,16 +54,20 @@ classDiagram
     class Entity {
         <<abstract>>
         #UUID id
-        #long createdAt
-        #long updatedAt
+        #Long createdAt
+        #Long updatedAt
+        #touch()
     }
 
     class User {
         -String userName
         -String email
         -String password
+        -boolean isLogin
         -List~Channel~ channels
         -List~Message~ myMessages
+        +update(userName, email, password)
+        +sync(User)
         +addChannel(Channel)
         +deleteChannel(Channel)
         +addMessage(Message)
@@ -81,6 +80,8 @@ classDiagram
         -ChannelType channelType
         -List~User~ users
         -List~Message~ channelMessages
+        +update(channelType, title, description)
+        +sync(Channel)
         +addUser(User)
         +deleteUser(User)
         +addMessage(Message)
@@ -91,6 +92,8 @@ classDiagram
         -String message
         -Channel channel
         -User user
+        +update(message)
+        +sync(Message)
     }
 
     class ChannelType {
@@ -109,7 +112,76 @@ classDiagram
     Channel --> ChannelType
 ```
 
-### Service
+- 모든 Entity는 `Serializable`을 구현합니다.
+- `update()`는 null이 아닌 값만 바꾸고 `touch()`로 `updatedAt`을 갱신합니다.
+- `sync()`는 파일마다 따로 저장된 같은 id의 복사본에 최신 값을 반영합니다.
+
+### Repository
+
+```mermaid
+classDiagram
+    direction TB
+
+    class UserRepository {
+        <<interface>>
+        +create(User) User
+        +findById(UUID) Optional~User~
+        +findAll() List~User~
+        +update(User) User
+        +delete(UUID)
+    }
+
+    class ChannelRepository {
+        <<interface>>
+        +create(Channel) Channel
+        +findById(UUID) Optional~Channel~
+        +findAll() List~Channel~
+        +update(Channel) Channel
+        +delete(UUID)
+    }
+
+    class MessageRepository {
+        <<interface>>
+        +create(Message) Message
+        +findById(UUID) Optional~Message~
+        +findAll() List~Message~
+        +update(Message) Message
+        +updateAll(List~Message~)
+        +delete(UUID)
+    }
+
+    class JCFUserRepository { -Map~UUID, User~ data }
+    class JCFChannelRepository { -Map~UUID, Channel~ data }
+    class JCFMessageRepository { -Map~UUID, Message~ data }
+
+    class FileUserRepository {
+        -String FILE_PATH = "temp/users.ser"
+        -Map~UUID, User~ data
+        -save()
+    }
+    class FileChannelRepository {
+        -String FILE_PATH = "temp/channels.ser"
+        -Map~UUID, Channel~ data
+        -save()
+    }
+    class FileMessageRepository {
+        -String FILE_PATH = "temp/messages.ser"
+        -Map~UUID, Message~ data
+        -save()
+    }
+
+    UserRepository <|.. JCFUserRepository
+    UserRepository <|.. FileUserRepository
+    ChannelRepository <|.. JCFChannelRepository
+    ChannelRepository <|.. FileChannelRepository
+    MessageRepository <|.. JCFMessageRepository
+    MessageRepository <|.. FileMessageRepository
+```
+
+- `update()`/`delete()`는 저장되지 않은 id면 `NoSuchElementException`을 던집니다.
+- File 구현체는 생성 시 `.ser` 파일을 읽고, 변경할 때마다 `save()`로 전체를 다시 씁니다.
+
+### Service (JCF / File)
 
 ```mermaid
 classDiagram
@@ -117,58 +189,177 @@ classDiagram
 
     class UserService {
         <<interface>>
-        +create(username, email, password) User
+        +create(User) User
         +findById(UUID) Optional~User~
         +findAll() List~User~
-        +findByName(String) Optional~User~
-        +updatePw(UUID, String) Optional~User~
-        +updateUsername(UUID, String) Optional~User~
-        +updateEmail(UUID, String) Optional~User~
+        +update(UUID, userName, email, password) User
         +delete(UUID)
+        +refreshChannel(Channel)
+        +removeChannel(UUID)
+        +addMessage(Message)
+        +removeMessage(UUID)
+        +refreshMessage(Message)
     }
 
     class ChannelService {
         <<interface>>
-        +create(User, ChannelType, title, description) Channel
+        +create(Channel) Channel
         +findById(UUID) Optional~Channel~
         +findAll() List~Channel~
-        +updateChannelType(UUID, ChannelType) Optional~Channel~
-        +updateTitle(UUID, String) Optional~Channel~
-        +updateDescription(UUID, String) Optional~Channel~
+        +update(UUID, ChannelType, title, description) Channel
         +delete(UUID)
+        +refreshUser(User)
+        +removeUser(UUID)
+        +addMessage(Message)
+        +removeMessage(UUID)
+        +refreshMessage(Message)
     }
 
     class MessageService {
         <<interface>>
-        +create(message, Channel, User) Message
+        +create(Message) Message
         +findById(UUID) Optional~Message~
         +findAll() List~Message~
-        +update(UUID, String) Optional~Message~
+        +update(UUID, newMessage) Message
         +delete(UUID)
+        +refreshUser(User)
+        +refreshChannel(Channel)
     }
 
-    class JCFUserService {
+    class JCFUserService { -Map~UUID, User~ data }
+    class JCFChannelService { -Map~UUID, Channel~ data }
+    class JCFMessageService {
+        -Map~UUID, Message~ data
+        -UserService userService
+        -ChannelService channelService
+    }
+
+    class FileUserService {
         -Map~UUID, User~ data
+        -ChannelService channelService
         -MessageService messageService
+        +setChannelService(ChannelService)
+        +setMessageService(MessageService)
     }
-
-    class JCFChannelService {
+    class FileChannelService {
         -Map~UUID, Channel~ data
         -UserService userService
         -MessageService messageService
+        +setUserService(UserService)
+        +setMessageService(MessageService)
     }
-
-    class JCFMessageService {
+    class FileMessageService {
         -Map~UUID, Message~ data
+        -UserService userService
+        -ChannelService channelService
     }
 
     UserService <|.. JCFUserService
+    UserService <|.. FileUserService
     ChannelService <|.. JCFChannelService
+    ChannelService <|.. FileChannelService
     MessageService <|.. JCFMessageService
+    MessageService <|.. FileMessageService
 
-    JCFUserService --> MessageService : 삭제 시 Message 정리
-    JCFChannelService --> MessageService : 삭제 시 Message 정리
-    JCFChannelService --> UserService : 생성 시 User 등록 여부 검증
+    JCFMessageService --> UserService
+    JCFMessageService --> ChannelService
+    FileMessageService --> UserService
+    FileMessageService --> ChannelService
+    FileUserService --> ChannelService
+    FileUserService --> MessageService
+    FileChannelService --> UserService
+    FileChannelService --> MessageService
+```
+
+- `refresh*`/`add*`/`remove*`는 interface의 `default` 메서드로 메모리상의 복사본만 맞추고, `File*Service`는 이를 오버라이드해서 파일 저장까지 처리합니다.
+
+### Service (Basic, Repository 기반)
+
+```mermaid
+classDiagram
+    direction TB
+
+    class BasicUserService {
+        <<interface>>
+        +signUp(Scanner)
+        +login(Scanner) Optional~User~
+        +logout(User)
+        +modifyUserInfo(User, Scanner)
+        +addChannel(UUID, Channel)
+        +removeChannel(UUID, UUID)
+        +removeChannel(UUID)
+        +refreshChannel(Channel)
+        +addMessage(Message)
+        +removeMessage(UUID)
+        +refreshMessage(Message)
+    }
+
+    class BasicChannelService {
+        <<interface>>
+        +createChannel(User, Scanner) Channel
+        +listChannel(User)
+        +modifyChannelInfo(User, Channel, Scanner)
+        +deleteChannel(User, Channel)
+        +joinChannel(User, Channel)
+        +leaveChannel(User, Channel)
+        +addUser(UUID, User) boolean
+        +removeUser(UUID, UUID) boolean
+        +removeUser(UUID)
+        +refreshUser(User)
+        +addMessage(Message)
+        +removeMessage(UUID)
+        +refreshMessage(Message)
+    }
+
+    class BasicMessageService {
+        <<interface>>
+        +sendMessage(User, Channel, String)
+        +deleteMessage(User, Channel, Message)
+        +modifyMessage(User, Channel, Message, Scanner)
+        +listMessages(User, Channel)
+        +refreshUser(User)
+        +refreshChannel(Channel)
+    }
+
+    class BasicUserServiceV1 {
+        -UserRepository userRepository
+        -BasicChannelService channelService
+        -BasicMessageService messageService
+        +setChannelService(BasicChannelService)
+        +setMessageService(BasicMessageService)
+    }
+
+    class BasicChannelServiceV1 {
+        -ChannelRepository channelRepository
+        -MessageRepository messageRepository
+        -BasicUserService userService
+        -BasicMessageService messageService
+        +setMessageService(BasicMessageService)
+    }
+
+    class BasicMessageServiceV1 {
+        -MessageRepository messageRepository
+        -ChannelRepository channelRepository
+        -BasicChannelService channelService
+        -BasicUserService userService
+    }
+
+    BasicUserService <|.. BasicUserServiceV1
+    BasicChannelService <|.. BasicChannelServiceV1
+    BasicMessageService <|.. BasicMessageServiceV1
+
+    BasicUserServiceV1 --> UserRepository
+    BasicChannelServiceV1 --> ChannelRepository
+    BasicChannelServiceV1 --> MessageRepository
+    BasicMessageServiceV1 --> MessageRepository
+    BasicMessageServiceV1 --> ChannelRepository
+
+    BasicChannelServiceV1 --> BasicUserService
+    BasicMessageServiceV1 --> BasicChannelService
+    BasicMessageServiceV1 --> BasicUserService
+    BasicUserServiceV1 ..> BasicChannelService : setter
+    BasicUserServiceV1 ..> BasicMessageService : setter
+    BasicChannelServiceV1 ..> BasicMessageService : setter
 ```
 
 ### 관계 요약
@@ -180,17 +371,20 @@ classDiagram
 | `User` ↔ `Channel` | 다대다 양방향 | `User.channels`, `Channel.users` |
 | `User` ↔ `Message` | 일대다 양방향 | `Message.user`(final), `User.myMessages` |
 | `Channel` ↔ `Message` | 일대다 양방향 | `Message.channel`(final), `Channel.channelMessages` |
-| `JCF*Service` → `*Service` | 구현 | `implements` |
-| `JCFUserService`, `JCFChannelService` → `MessageRepository` | 의존 (생성자 주입) | 삭제 시 연관 Message를 `messageService.delete()`로 정리 |
-| `JCFChannelService` → `UserRepository` | 의존 (생성자 주입) | Channel 생성 시 `userService.findById()`로 등록된 User인지 검증 |
+| `JCF*`/`File*Repository` → `*Repository` | 구현 | `implements` |
+| `JCF*`/`File*Service` → `*Service` | 구현 | `implements` |
+| `Basic*ServiceV1` → `Basic*Service` | 구현 | `implements` |
+| `Basic*ServiceV1` → `*Repository` | 의존 (생성자 주입) | 저장 로직은 Repository에 위임 |
+| `*MessageService` → `UserService`, `ChannelService` | 의존 (생성자 주입) | Message 생성 시 User/Channel 존재 여부 검증 |
 
-### Service 의존 방향 규칙
+### Service 순환 의존 처리
 
-Service 간 의존은 `ChannelService → UserService → MessageService` 한 방향으로만 둡니다.
+User, Channel, Message 서비스는 서로가 보관한 복사본을 맞춰야 해서 순환 의존이 생깁니다.
+먼저 생성할 수 있는 쪽은 생성자로, 나중에 연결해야 하는 쪽은 setter로 주입합니다.
 
-- `MessageRepository`는 다른 Service에 의존하지 않습니다.
-- `UserRepository`는 `ChannelRepository`에 의존하지 않습니다.
-- 역방향 의존이 필요해지면(예: Message 생성 시 User/Channel 존재 여부 검증) 순환 참조가 생기므로, Service 간 직접 의존 대신 Repository 계층 분리를 검토합니다.
+- JCF: `JCFUserService`, `JCFChannelService` → `JCFMessageService(userService, channelService)`
+- File: `FileUserService`, `FileChannelService` 생성 → `FileMessageService(userService, channelService)` 생성 → `setChannelService`/`setUserService`/`setMessageService`로 연결
+- Basic: `BasicUserServiceV1(userRepository)` → `BasicChannelServiceV1(channelRepository, messageRepository, userService)` → `BasicMessageServiceV1(messageRepository, channelRepository, channelService, userService)` → `setChannelService`/`setMessageService`로 연결
 
 
 # 요구사항
@@ -199,10 +393,10 @@ Service 간 의존은 `ChannelService → UserService → MessageService` 한 �
 
 ### File IO를 통한 데이터 영속화
 
-- [ ] 다음 조건을 만족하는 서비스 인터페이스의 구현체를 작성하세요.
-  - [ ] 클래스 패키지명: `com.sprint.mission.discodeit.service.file`
-  - [ ] 클래스 네이밍 규칙: `File[인터페이스 이름]`
-  - [ ] JCF 대신 FileIO와 객체 직렬화를 활용해 메소드를 구현하세요.
+- [x] 다음 조건을 만족하는 서비스 인터페이스의 구현체를 작성하세요.
+  - [x] 클래스 패키지명: `com.sprint.mission.discodeit.service.file`
+  - [x] 클래스 네이밍 규칙: `File[인터페이스 이름]`
+  - [x] JCF 대신 FileIO와 객체 직렬화를 활용해 메소드를 구현하세요.
     - 참고: 객체 직렬화/역직렬화 가이드
 - [ ] `Application`에서 서비스 구현체를 `File*Service`로 바꾸어 테스트해보세요.
 
@@ -214,17 +408,17 @@ Service 간 의존은 `ChannelService → UserService → MessageService` 한 �
 
 ### 레포지토리 설계 및 구현
 
-- [ ] "저장 로직"과 관련된 기능을 도메인 모델 별 인터페이스로 선언하세요.
-  - [ ] 인터페이스 패키지명: `com.sprint.mission.discodeit.repository`
-  - [ ] 인터페이스 네이밍 규칙: `[도메인 모델 이름]Repository`
-- [ ] 다음 조건을 만족하는 레포지토리 인터페이스의 구현체를 작성하세요. (JCF)
-  - [ ] 클래스 패키지명: `com.sprint.mission.discodeit.repository.jcf`
-  - [ ] 클래스 네이밍 규칙: `JCF[인터페이스 이름]`
-  - [ ] 기존에 구현한 `JCF*Service` 구현체의 "저장 로직"과 관련된 코드를 참고하여 구현하세요.
-- [ ] 다음 조건을 만족하는 레포지토리 인터페이스의 구현체를 작성하세요. (File)
-  - [ ] 클래스 패키지명: `com.sprint.mission.discodeit.repository.file`
-  - [ ] 클래스 네이밍 규칙: `File[인터페이스 이름]`
-  - [ ] 기존에 구현한 `File*Service` 구현체의 "저장 로직"과 관련된 코드를 참고하여 구현하세요.
+- [x] "저장 로직"과 관련된 기능을 도메인 모델 별 인터페이스로 선언하세요.
+  - [x] 인터페이스 패키지명: `com.sprint.mission.discodeit.repository`
+  - [x] 인터페이스 네이밍 규칙: `[도메인 모델 이름]Repository`
+- [x] 다음 조건을 만족하는 레포지토리 인터페이스의 구현체를 작성하세요. (JCF)
+  - [x] 클래스 패키지명: `com.sprint.mission.discodeit.repository.jcf`
+  - [x] 클래스 네이밍 규칙: `JCF[인터페이스 이름]`
+  - [x] 기존에 구현한 `JCF*Service` 구현체의 "저장 로직"과 관련된 코드를 참고하여 구현하세요.
+- [x] 다음 조건을 만족하는 레포지토리 인터페이스의 구현체를 작성하세요. (File)
+  - [x] 클래스 패키지명: `com.sprint.mission.discodeit.repository.file`
+  - [x] 클래스 네이밍 규칙: `File[인터페이스 이름]`
+  - [x] 기존에 구현한 `File*Service` 구현체의 "저장 로직"과 관련된 코드를 참고하여 구현하세요.
 
 ---
 
@@ -232,9 +426,9 @@ Service 간 의존은 `ChannelService → UserService → MessageService` 한 �
 
 ### 관심사 분리를 통한 레이어 간 의존성 주입
 
-- [ ] 다음 조건을 만족하는 서비스 인터페이스의 구현체를 작성하세요.
-  - [ ] 클래스 패키지명: `com.sprint.mission.discodeit.service.basic`
-  - [ ] 클래스 네이밍 규칙: `Basic[인터페이스 이름]`
-  - [ ] 기존에 구현한 서비스 구현체의 "비즈니스 로직"과 관련된 코드를 참고하여 구현하세요.
-  - [ ] 필요한 Repository 인터페이스를 필드로 선언하고 생성자를 통해 초기화하세요.
-  - [ ] "저장 로직"은 Repository 인터페이스 필드를 활용하세요. (직접 구현하지 마세요.)
+- [x] 다음 조건을 만족하는 서비스 인터페이스의 구현체를 작성하세요.
+  - [x] 클래스 패키지명: `com.sprint.mission.discodeit.service.basic`
+  - [x] 클래스 네이밍 규칙: `Basic[인터페이스 이름]`
+  - [x] 기존에 구현한 서비스 구현체의 "비즈니스 로직"과 관련된 코드를 참고하여 구현하세요.
+  - [x] 필요한 Repository 인터페이스를 필드로 선언하고 생성자를 통해 초기화하세요.
+  - [x] "저장 로직"은 Repository 인터페이스 필드를 활용하세요. (직접 구현하지 마세요.)
