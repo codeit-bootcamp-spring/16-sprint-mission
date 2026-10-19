@@ -24,6 +24,12 @@ public class FileChannelService implements ChannelService {
     public FileChannelService() throws IOException {
         this.data = new HashMap<>();
 
+        Path path = Path.of(FILE_PATH);
+        Files.createDirectories(path.getParent());
+        if (Files.notExists(path)) {
+            return;
+        }
+
         try (FileInputStream fis = new FileInputStream(FILE_PATH);
              ObjectInputStream ois = new ObjectInputStream(fis)
         ) {
@@ -35,7 +41,7 @@ public class FileChannelService implements ChannelService {
             Files.createDirectories(file.getParent());
             Files.createFile(file);
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new IOException("사용자 데이터 형식이 올바르지 않습니다.", e);
         }
     }
 

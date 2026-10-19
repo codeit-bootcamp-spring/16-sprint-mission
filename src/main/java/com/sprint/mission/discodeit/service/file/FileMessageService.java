@@ -25,18 +25,20 @@ public class FileMessageService implements MessageService {
         this.userService = userService;
         this.channelService = channelService;
 
+        Path path = Path.of(FILE_PATH);
+        Files.createDirectories(path.getParent());
+        if (Files.notExists(path)) {
+            return;
+        }
+
         try (FileInputStream fis = new FileInputStream(FILE_PATH);
              ObjectInputStream ois = new ObjectInputStream(fis)
         ) {
             Object findObject = ois.readObject();
             Map<UUID, Message> loaded = (Map<UUID, Message>) findObject;
             data.putAll(loaded);
-        } catch (FileNotFoundException e) {
-            Path file = Path.of(FILE_PATH);
-            Files.createDirectories(file.getParent());
-            Files.createFile(file);
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new IOException("사용자 데이터 형식이 올바르지 않습니다.", e);
         }
     }
 
