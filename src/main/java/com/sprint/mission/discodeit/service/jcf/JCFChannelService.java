@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.HashMap;
 import java.util.UUID;
 import java.util.Map;
+import java.util.NoSuchElementException;
 
 public class JCFChannelService implements ChannelService {
     private final Map<UUID, Channel> data;
@@ -33,18 +34,27 @@ public JCFChannelService() {
     @Override
     public Channel update(UUID id, String channelName, String topic, String type) {
         Channel channel = data.get(id);
+        if (channel == null) {
+            throw new NoSuchElementException("존재하지 않는 Channel입니다." + id);
+        }
         channel.update(channelName, topic, type);
         return channel;
     }
     @Override
     public void addParticipant(UUID channelId, UUID userId) {
         Channel channel = data.get(channelId);
+        if (channel == null) {
+            throw new NoSuchElementException("존재하지 않는 Channel입니다." + channelId);
+        }
         channel.addParticipant(userId);
     }
 
     @Override
     public void removeParticipant(UUID channelId, UUID userId) {
         Channel channel = data.get(channelId);
+        if (channel == null) {
+            throw new NoSuchElementException("존재하지 않는 Channel입니다." + channelId);
+        }
         channel.removeParticipant(userId);
     }
 

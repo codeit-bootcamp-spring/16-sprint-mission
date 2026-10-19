@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
+import java.util.NoSuchElementException;
 
 public class JCFGroupService implements GroupService{
     private final Map<UUID,Group> data;
@@ -50,18 +51,27 @@ public class JCFGroupService implements GroupService{
     @Override
     public Group update(UUID id, String name) {
         Group group = data.get(id);
+        if (group == null) {
+            throw new NoSuchElementException("존재하지 않는 Group입니다." + id);
+        }
         group.update(name);
         return group;
     }
     @Override
     public void addItem(UUID groupId, UUID itemId) {
         Group group = data.get(groupId);
+        if (group == null) {
+            throw new NoSuchElementException("존재하지 않는 Group입니다." + groupId);
+        }
         group.addItem(itemId);
     }
 
     @Override
     public void removeItem(UUID groupId, UUID itemId) {
         Group group = data.get(groupId);
+        if (group == null) {
+            throw new NoSuchElementException("존재하지 않는 Group입니다." + groupId);
+        }
         group.removeItem(itemId);
     }
 

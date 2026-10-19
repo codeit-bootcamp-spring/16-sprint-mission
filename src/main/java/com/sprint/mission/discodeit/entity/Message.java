@@ -50,5 +50,6 @@ public boolean isBookmarked() {
     }
     public void toggleBookmark() {
         this.bookmarked = !this.bookmarked;
+        this.updatedAt = System.currentTimeMillis();
         }
 }

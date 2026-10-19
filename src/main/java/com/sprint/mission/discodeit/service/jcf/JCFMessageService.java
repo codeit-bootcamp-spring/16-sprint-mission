@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.UUID;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.NoSuchElementException;
 
 public class JCFMessageService implements MessageService {
     private final Map<UUID, Message> data;
@@ -55,6 +56,9 @@ public JCFMessageService(UserService userService,  ChannelService channelService
     @Override
     public Message update(UUID id, String content) {
         Message message = data.get(id);
+        if (message == null) {
+            throw new NoSuchElementException("존재하지 않는 Message입니다." + id);
+        }
         message.update(content);
         return message;
     }
@@ -62,6 +66,9 @@ public JCFMessageService(UserService userService,  ChannelService channelService
     @Override
     public Message toggleBookmark(UUID id) {
         Message message = data.get(id);
+            if (message == null) {
+                throw new NoSuchElementException("존재하지 않는 Message입니다." + id);
+            }
         message.toggleBookmark();
         return message;
     }

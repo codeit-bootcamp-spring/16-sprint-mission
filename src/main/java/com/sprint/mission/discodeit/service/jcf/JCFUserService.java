@@ -3,11 +3,8 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.entity.User;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.UUID;
-import java.util.Map;
+import java.util.*;
+import java.util.NoSuchElementException;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> data;
@@ -33,6 +30,10 @@ public class JCFUserService implements UserService {
     @Override
     public User update(UUID id, String username, String password, String phoneNumber, String email) {
        User user = data.get(id);
+
+       if(user == null) {
+           throw new NoSuchElementException("존재하지 않는 User입니다." + id);
+       }
        user.update(username, password, phoneNumber, email);
         return user;
     }

@@ -53,9 +53,11 @@ public class Channel {
     }
     public void addParticipant(UUID userId) {
         this.participantIds.add(userId);
+        this.updatedAt = System.currentTimeMillis();
     }
     public void removeParticipant(UUID userId) {
         this.participantIds.remove(userId);
+        this.updatedAt = System.currentTimeMillis();
     }
 
 
