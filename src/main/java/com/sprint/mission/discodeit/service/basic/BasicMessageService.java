@@ -1,4 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-public class BasicMessageService {
+import com.sprint.mission.discodeit.service.MessageService;
+
+public class BasicMessageService implements MessageService {
 }

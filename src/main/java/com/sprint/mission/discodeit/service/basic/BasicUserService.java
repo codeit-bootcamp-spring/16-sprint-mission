@@ -1,4 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-public class BasicUserService {
+import com.sprint.mission.discodeit.service.UserService;
+
+public class BasicUserService implements UserService {
 }
