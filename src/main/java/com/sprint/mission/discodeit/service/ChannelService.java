@@ -13,13 +13,13 @@ public interface ChannelService {
     List<Channel> findId(UUID id);
     // 전체조회
     List<Channel> findAll();
-    //findId랑 비슷함
+    //채널 메세지 조회
     List<Message> findMessagesByChannelId(UUID channelId);
+    //엔티티 조회
+    Channel findEntityChannel(UUID id);
     // 수정 (채널명 및 설명 수정)
     Channel update(UUID id, String name);
     // 삭제
     void deleteById(UUID id);
     //채널 관련
-    void joinChannel(UUID userId, UUID channelId);
-    void leaveChannel(UUID userId, UUID channelId);
 }

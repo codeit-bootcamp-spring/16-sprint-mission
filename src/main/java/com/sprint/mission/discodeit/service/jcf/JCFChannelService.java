@@ -13,12 +13,10 @@ import java.util.concurrent.ConcurrentHashMap;
 public class JCFChannelService implements ChannelService {
     final Map<UUID, Channel> data;
     final MessageService messageService;
-    final UserService userService;
 
-    public JCFChannelService(MessageService messageService , UserService userService) {
+    public JCFChannelService(MessageService messageService) {
         this.data = new ConcurrentHashMap<>();
         this.messageService = messageService;
-        this.userService=userService;
     }
 
     @Override
@@ -30,27 +28,6 @@ public class JCFChannelService implements ChannelService {
         return channel;
     }
 
-    @Override
-    public void joinChannel(UUID userId, UUID channelId) {
-        User user = userService.findEntityId(userId);
-        Channel channel = data.get(channelId);
-
-        if (user == null || channel == null) throw new NullPointerException("유저/채널 없음");
-
-        user.joinChannel(channelId);
-        channel.addUser(userId);
-    }
-
-    @Override
-    public void leaveChannel(UUID userId, UUID channelId) {
-        User user = userService.findEntityId(userId);
-        Channel channel = data.get(channelId);
-
-        if (user == null || channel == null) throw new NullPointerException("유저/채널 없음");
-
-        user.leaveChannel(channelId);
-        channel.removeUser(userId);
-    }
 
     @Override
     public List<Channel> findId(UUID id) {
@@ -61,6 +38,10 @@ public class JCFChannelService implements ChannelService {
         List<Channel> result = new ArrayList<>();
         result.add(channel);
         return result;
+    }
+    @Override
+    public Channel findEntityChannel (UUID id) {
+        return data.get(id); // Map에서 채널 객체 직접 반환
     }
     @Override
     public List<Message> findMessagesByChannelId(UUID channelId) {
@@ -84,13 +65,6 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void deleteById(UUID id) {
-        Channel channel = data.get(id);
-        if (channel != null) {
-            for (UUID userId : channel.getUserId()) {
-                User user = userService.findEntityId(userId);
-                if (user != null) user.leaveChannel(id);
-            }
-        }
         messageService.deleteByChannelId(id); // 채널메시지까지 삭제
         data.remove(id);
     }

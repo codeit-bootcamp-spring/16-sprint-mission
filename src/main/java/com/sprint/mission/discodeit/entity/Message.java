@@ -13,6 +13,12 @@ public class Message extends BaseEntity {
 
      public Message(UUID userId, UUID channelId, String content){
         this();
+         if (userId == null || channelId == null) {
+             throw new NullPointerException("ID 값들은 null일 수 없습니다.");
+         }
+         if (content == null || content.trim().isEmpty()) {
+             throw new NullPointerException("내용이 비어있습니다.");
+         }
         this.userId=userId;
         this.channelId=channelId;
         this.content=content;

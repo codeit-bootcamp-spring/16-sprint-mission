@@ -4,7 +4,6 @@ import java.util.UUID;
 
 public abstract class BaseEntity {
     UUID id;
-    String name;
     Long createdAt;
     Long updatedAt;
 

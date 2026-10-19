@@ -12,6 +12,7 @@ public class JCFUserService implements UserService {
 
     final Map<UUID, User> data;
     final MessageService messageService;
+
     public JCFUserService(MessageService messageService){
         //HashMap,Hashtable,ConcurrentHashMap 차이확인
         this.data=new ConcurrentHashMap<>();

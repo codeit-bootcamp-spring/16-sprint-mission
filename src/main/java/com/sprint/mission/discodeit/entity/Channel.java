@@ -10,6 +10,7 @@ public class Channel extends BaseEntity {
     public Channel() {
         super();
         this.userId=new HashSet<>();
+        messageList=new ArrayList<>();
     }
     public Channel(String name){
         this();

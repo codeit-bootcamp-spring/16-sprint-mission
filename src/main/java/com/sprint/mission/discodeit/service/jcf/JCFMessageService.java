@@ -13,12 +13,14 @@ public class JCFMessageService implements MessageService {
 
     public JCFMessageService() {
         this.data = new ConcurrentHashMap<>();
-        //this.messageService = messageService;
     }
 
     @Override
     public Message save(Message message) {
         if (message == null || message.getId() == null) {
+            throw new NullPointerException("데이터가 이상함");
+        }
+        if (message.getUserId() == null || message.getChannelId() == null) {
             throw new NullPointerException("데이터가 이상함");
         }
         data.put(message.getId(), message);
