@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.*;
 
 public class Channel extends BaseEntity {
@@ -8,6 +9,8 @@ public class Channel extends BaseEntity {
     private String description;
     private final Set<UUID> users = new HashSet<>();
     private final List<UUID> messages = new ArrayList<>();
+
+    private static final long serialVersionUID = 1L;
 
     public Channel(UUID ownerId, String name, String description) {
         super();

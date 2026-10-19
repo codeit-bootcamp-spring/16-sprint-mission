@@ -7,6 +7,10 @@ import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserWithdrawalService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.file.FileUserWithdrawalService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
@@ -15,13 +19,20 @@ import com.sprint.mission.discodeit.service.jcf.JCFUserWithdrawalService;
 import java.util.UUID;
 
 public class JavaApplication {
+
     public static void main(String[] args) {
         // 의존 방향: User <- Channel <- Message <- UserWithdrawal (아래 서비스부터 생성)
-        UserService userService = new JCFUserService();
-        ChannelService channelService = new JCFChannelService(userService);
-        MessageService messageService = new JCFMessageService(userService, channelService);
+        //UserService userService = new JCFUserService();
+        //ChannelService channelService = new JCFChannelService(userService);
+        //MessageService messageService = new JCFMessageService(userService, channelService);
+        //UserWithdrawalService withdrawalService =
+        //        new JCFUserWithdrawalService(userService, channelService, messageService);
+
+        UserService userService = new FileUserService();
+        ChannelService channelService = new FileChannelService(userService);
+        MessageService messageService = new FileMessageService(userService, channelService);
         UserWithdrawalService withdrawalService =
-                new JCFUserWithdrawalService(userService, channelService, messageService);
+                new FileUserWithdrawalService(userService, channelService, messageService);
 
         // =========================
         // 1. User 테스트
