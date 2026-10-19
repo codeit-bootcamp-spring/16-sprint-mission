@@ -61,11 +61,10 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public void updateAll(List<Message> messages) {
-        for (Message message : messages) {
-            if (!data.containsKey(message.getId())) {
-                throw new NoSuchElementException("존재하지 않는 Message입니다.");
-            }
+        if (!messages.stream().allMatch(message -> data.containsKey(message.getId()))) {
+            throw new NoSuchElementException("존재하지 않는 Message입니다.");
         }
+
         messages.forEach(message -> data.put(message.getId(), message));
         save();
     }

@@ -69,8 +69,7 @@ public class FileUserRepository implements UserRepository {
 
     private void save() {
         try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)
-        ) {
+             ObjectOutputStream oos = new ObjectOutputStream(fos)) {
             oos.writeObject(data);
         } catch (IOException e) {
             throw new RuntimeException(e);
