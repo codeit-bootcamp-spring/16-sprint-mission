@@ -5,22 +5,26 @@ import java.util.UUID;
 public class BaseEntity {
 
     private UUID id;
-    private Long cratedAt;
+    private Long createdAt;
     private Long updatedAt;
 
     public BaseEntity() {
         this.id = UUID.randomUUID();
-        this.cratedAt = System.currentTimeMillis();
+        this.createdAt = System.currentTimeMillis();
     }
+
     public UUID getId() {
         return id;
     }
-    public Long getCratedAt() {
-        return cratedAt;
+
+    public Long getCreatedAt() {
+        return createdAt;
     }
+
     public Long getUpdatedAt() {
         return updatedAt;
     }
+
     protected void updateTimestamp() {
         this.updatedAt = System.currentTimeMillis();
     }

@@ -59,7 +59,7 @@ public class JavaApplication {
         }
 
 
-        JCFMessageService messageService = new JCFMessageService();
+        JCFMessageService messageService = new JCFMessageService(userService, channelService);
 
         Channel messageChannel = channelService.add(new Channel("일반"));
 
@@ -84,5 +84,24 @@ public class JavaApplication {
         } catch (IllegalArgumentException e) {
             System.out.println("메시지 삭제 확인: " + e.getMessage());
         }
+
+
+        try {
+            Message message1 = new Message("테스트1", user1.getId(), messageChannel.getId());
+            messageService.add(message1);
+            System.out.println("사용자 검증 실패");
+        } catch (IllegalArgumentException e) {
+            System.out.println("사용자 검증 성공: " + e.getMessage());
+        }
+
+        try {
+            Message message2 = new Message("테스트2", user2.getId(), channel.getId());
+            messageService.add(message2);
+            System.out.println("채널 검증 실패");
+        } catch (IllegalArgumentException e) {
+            System.out.println("채널 검증 성공: " + e.getMessage());
+        }
+
+        System.out.println("최종 메시지 수: " + messageService.getAll().size());
     }
 }
