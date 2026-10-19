@@ -4,11 +4,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Group {
-    private final UUID id;
-    private final Long createdAt;
-    private Long updatedAt;
-
+public class Group extends BaseEntity {
     private UUID ownerId;
     private String name;
     private String type;
@@ -16,23 +12,13 @@ public class Group {
 
 
     public Group(UUID ownerId, String name, String type) {
-        this.id = UUID.randomUUID();
-        this.createdAt = System.currentTimeMillis();
+        super();
         this.ownerId = ownerId;
         this.name = name;
         this.type = type;
         this.itemIds = new ArrayList<>();
     }
 
-    public UUID getId() {
-        return id;
-    }
-    public Long getCreatedAt() {
-        return createdAt;
-    }
-    public  Long getUpdatedAt() {
-        return updatedAt;
-    }
     public  UUID getOwnerId() {
         return ownerId;
     }
@@ -43,18 +29,18 @@ public class Group {
         return type;
     }
     public  List<UUID> getItemIds() {
-        return itemIds;
+        return new ArrayList<>(itemIds);
     }
 public void update(String name) {
         this.name = name;
-        this.updatedAt = System.currentTimeMillis();
+    updateTimestamp();
 }
 public void addItem(UUID itemId) {
         this.itemIds.add(itemId);
-        this.updatedAt = System.currentTimeMillis();
+    updateTimestamp();
 }
 public void removeItem(UUID itemId) {
         this.itemIds.remove(itemId);
-        this.updatedAt = System.currentTimeMillis();
+    updateTimestamp();
 }
 }

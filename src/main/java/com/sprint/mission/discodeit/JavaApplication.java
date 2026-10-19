@@ -34,7 +34,7 @@ public class JavaApplication {
         System.out.println("전체회원 수: "+all.size());
 
 
-        ChannelService channelService = new JCFChannelService();
+        ChannelService channelService = new JCFChannelService(userService);
 
         Channel channel = channelService.create("자유채널","아무나와요","text");
         System.out.println("채널 등록: "+ channel.getChannelName());

@@ -1,10 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 import java.util.UUID;
 
-public class Message {
-    private final UUID id;
-    private final Long createdAt;
-    private Long updatedAt;
+public class Message extends BaseEntity {
 
     private final UUID channelId;
     private final UUID senduser;
@@ -13,23 +10,13 @@ public class Message {
 
 
 public Message(UUID channelId, UUID senduser, String content) {
-    this.id = UUID.randomUUID();
-    this.createdAt = System.currentTimeMillis();
+    super();
     this.channelId = channelId;
     this.senduser = senduser;
     this.content = content;
     this.bookmarked = false;
 }
 
-public UUID getId() {
-    return id;
-}
-public Long getCreatedAt() {
-    return createdAt;
-}
-public Long getUpdatedAt() {
-    return updatedAt;
-}
 public UUID getChannelId() {
     return channelId;
 }
@@ -46,10 +33,10 @@ public boolean isBookmarked() {
 
     public void update(String content) {
         this.content = content;
-        this.updatedAt = System.currentTimeMillis();
+        updateTimestamp();
     }
     public void toggleBookmark() {
         this.bookmarked = !this.bookmarked;
-        this.updatedAt = System.currentTimeMillis();
+        updateTimestamp();
         }
 }
