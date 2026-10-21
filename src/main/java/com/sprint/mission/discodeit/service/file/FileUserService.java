@@ -42,6 +42,7 @@ public class FileUserService implements UserService {
     public User update(UUID id, String username, String email, String password) {
         Map<UUID, User> data = load();
         User user = findById(id);
+        validateEmailUnique(data, email, id);
         user.update(username, email, password);
         save(data);
         return user;

@@ -3,10 +3,20 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserWithdrawalService;
+import com.sprint.mission.discodeit.service.basic.BasicChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicMessageService;
+import com.sprint.mission.discodeit.service.basic.BasicUserService;
+import com.sprint.mission.discodeit.service.basic.BasicUserWithdrawalService;
 import com.sprint.mission.discodeit.service.file.FileChannelService;
 import com.sprint.mission.discodeit.service.file.FileMessageService;
 import com.sprint.mission.discodeit.service.file.FileUserService;
@@ -21,6 +31,16 @@ import java.util.UUID;
 public class JavaApplication {
 
     public static void main(String[] args) {
+
+        UserRepository userRepository = new FileUserRepository();
+        ChannelRepository channelRepository = new FileChannelRepository();
+        MessageRepository messageRepository = new FileMessageRepository();
+
+        UserService userService = new BasicUserService(userRepository);
+        ChannelService channelService = new BasicChannelService(userService, channelRepository);
+        MessageService messageService = new BasicMessageService(userService, channelService, messageRepository);
+        UserWithdrawalService withdrawalService = new BasicUserWithdrawalService(userService, channelService, messageService);
+
         // 의존 방향: User <- Channel <- Message <- UserWithdrawal (아래 서비스부터 생성)
         //UserService userService = new JCFUserService();
         //ChannelService channelService = new JCFChannelService(userService);
@@ -28,11 +48,11 @@ public class JavaApplication {
         //UserWithdrawalService withdrawalService =
         //        new JCFUserWithdrawalService(userService, channelService, messageService);
 
-        UserService userService = new FileUserService();
-        ChannelService channelService = new FileChannelService(userService);
-        MessageService messageService = new FileMessageService(userService, channelService);
-        UserWithdrawalService withdrawalService =
-                new FileUserWithdrawalService(userService, channelService, messageService);
+        //UserService userService = new FileUserService();
+        //ChannelService channelService = new FileChannelService(userService);
+        //MessageService messageService = new FileMessageService(userService, channelService);
+        //UserWithdrawalService withdrawalService =
+        //        new FileUserWithdrawalService(userService, channelService, messageService);
 
         // =========================
         // 1. User 테스트
@@ -50,9 +70,7 @@ public class JavaApplication {
         User updatedUser = userService.update(
                 user1.getId(), "updatedUser1", "user1@test.com", "password123");
         System.out.println("사용자 수정: " + updatedUser.getUsername());
-        System.out.println("수정 후 조회: " + userService.findById(user1.getId()).getUsername());
-
-        expectFail("중복 이메일",
+        System.out.println("수정 후 조회: " + userService.findById(user1.getId()).getUsername());expectFail("중복 이메일",
                 () -> userService.create(new User("user3", "user1@test.com", "password789")));
         expectFail("짧은 비밀번호",
                 () -> userService.create(new User("user3", "user3@test.com", "123")));
