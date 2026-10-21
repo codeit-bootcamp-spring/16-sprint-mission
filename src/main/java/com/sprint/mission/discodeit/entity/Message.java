@@ -20,6 +20,10 @@ public class Message extends BaseEntity {
         return this;
     }
 
+    public void validateNotDeleted() {
+        if (this.isDeleted()) throw new IllegalStateException("삭제된 메세지입니다.");
+    }
+
     public User getSentFrom() {
         return this.sentFrom;
     }

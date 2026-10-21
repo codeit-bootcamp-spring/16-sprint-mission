@@ -18,6 +18,4 @@ public interface MessageService {
     List<Message> findAll();
 
     void delete(UUID id);
-
-    void validateNotDeleted(Message message);
 }

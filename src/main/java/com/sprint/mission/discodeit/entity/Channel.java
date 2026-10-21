@@ -23,6 +23,10 @@ public class Channel extends BaseEntity {
         return this;
     }
 
+    public void validateNotDeleted() {
+        if (this.isDeleted()) throw new IllegalStateException("삭제된 채널입니다.");
+    }
+
     public void addUser(User user) {
         this.users.put(user.getId(), user);
         super.update();

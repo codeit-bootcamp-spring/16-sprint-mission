@@ -25,7 +25,11 @@ public class User extends BaseEntity {
         super.update();
         return this;
     }
-    
+
+    public void validateNotDeleted() {
+        if (this.isDeleted()) throw new IllegalStateException("삭제된 유저입니다.");
+    }
+
     public void addChannel(Channel channel) {
         this.channels.put(channel.getId(), channel);
         super.update();
