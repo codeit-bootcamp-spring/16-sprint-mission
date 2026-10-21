@@ -26,11 +26,12 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public Channel updateName(UUID id, String name) {
+    public Channel update(UUID id, Channel newChannel) {
         Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
         this.validateNotDeleted(channel);
-
-        return channel.updateName(name);
+        channel.update(newChannel);
+        this.data.put(id, channel);
+        return channel;
     }
 
     @Override
@@ -94,6 +95,7 @@ public class JCFChannelService implements ChannelService {
         channel.softDelete();
     }
 
+    @Override
     public void validateNotDeleted(Channel channel) {
         if (channel.isDeleted()) throw new IllegalStateException("삭제된 채널입니다.");
     }

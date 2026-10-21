@@ -11,7 +11,7 @@ import java.util.UUID;
 public interface MessageService {
     Message create(User sentFrom, String content, Channel channel);
 
-    Message updateContent(UUID id, String content);
+    Message update(UUID id, Message message);
 
     Optional<Message> findById(UUID id);
 

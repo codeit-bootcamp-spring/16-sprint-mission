@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.entity;
 
 public class Message extends BaseEntity {
-    private final User sentFrom;
-    private final Channel channel;
+    private User sentFrom;
+    private Channel channel;
     private String content;
 
     public Message(User sentFrom, String content, Channel channel) {
@@ -12,8 +12,10 @@ public class Message extends BaseEntity {
         this.channel = channel;
     }
 
-    public Message updateContent(String content) {
-        this.content = content;
+    public Message update(Message message) {
+        this.sentFrom = message.sentFrom;
+        this.content = message.content;
+        this.channel = message.channel;
         super.update();
         return this;
     }
@@ -24,6 +26,10 @@ public class Message extends BaseEntity {
 
     public String getContent() {
         return this.content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 
     public Channel getChannel() {

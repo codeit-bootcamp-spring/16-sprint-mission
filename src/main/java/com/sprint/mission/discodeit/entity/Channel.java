@@ -4,8 +4,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Channel extends BaseEntity {
-    private final Map<UUID, User> users;
-    private final Map<UUID, Message> messages;
+    private Map<UUID, User> users;
+    private Map<UUID, Message> messages;
     private String name;
 
     public Channel(String name) {
@@ -15,8 +15,10 @@ public class Channel extends BaseEntity {
         this.messages = new LinkedHashMap<>();
     }
 
-    public Channel updateName(String name) {
-        this.name = name;
+    public Channel update(Channel channel) {
+        this.name = channel.name;
+        this.users = channel.users;
+        this.messages = channel.messages;
         super.update();
         return this;
     }
@@ -43,6 +45,10 @@ public class Channel extends BaseEntity {
 
     public String getName() {
         return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Map<UUID, User> getUsers() {

@@ -75,12 +75,14 @@ public class JavaApplication {
 
             // 수정
             System.out.printf("유저 수정 전 --> %s\n", user1);
-            System.out.printf("유저 수정 후 --> %s\n\n", jcfUserService.updateName(user1.getId(), "이수철"));
+            user1.setName("이수철");
+            System.out.printf("유저 수정 후 --> %s\n\n", jcfUserService.update(user1.getId(), user1));
             System.out.printf("채널 수정 전 --> %s\n", channel1);
-            System.out.printf("채널 수정 후 --> %s\n\n", jcfChannelService.updateName(channel1.getId(), "QR 코드 2"));
+            channel1.setName("QR 코드 2");
+            System.out.printf("채널 수정 후 --> %s\n\n", jcfChannelService.update(channel1.getId(), channel1));
             System.out.printf("메세지 수정 전 --> %s\n", message1);
-            System.out.printf("메세지 수정 후 --> %s\n\n", jcfMessageService.updateContent(message1.getId(), "안녕하세요 " +
-                    "이수철입니다!"));
+            message1.setContent("안녕하세요 이수철입니다!");
+            System.out.printf("메세지 수정 후 --> %s\n\n", jcfMessageService.update(message1.getId(), message1));
 
             // 삭제
             System.out.printf("유저 삭제 --> %s\n", user1);

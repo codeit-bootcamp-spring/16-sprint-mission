@@ -47,18 +47,22 @@ public class JCFMessageService implements MessageService {
 
         // 메세지 추가 시 유저와 채널에도 추가
         sentFrom.addMessage(message);
+        this.userService.update(sentFrom.getId(), sentFrom);
+
         channel.addMessage(message);
+        this.channelService.update(channel.getId(), channel);
 
         this.data.put(message.getId(), message);
         return message;
     }
 
     @Override
-    public Message updateContent(UUID id, String content) {
+    public Message update(UUID id, Message newMessage) {
         Message message = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
         this.validateNotDeleted(message);
-
-        return message.updateContent(content);
+        message.update(newMessage);
+        this.data.put(id, message);
+        return message;
     }
 
     @Override

@@ -7,8 +7,8 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class User extends BaseEntity {
-    private final Map<UUID, Channel> channels;
-    private final Map<UUID, Message> messages;
+    private Map<UUID, Channel> channels;
+    private Map<UUID, Message> messages;
     private String name;
 
     public User(String name) {
@@ -18,12 +18,14 @@ public class User extends BaseEntity {
         this.messages = new LinkedHashMap<>();
     }
 
-    public User updateName(String name) {
-        this.name = name;
+    public User update(User user) {
+        this.name = user.name;
+        this.channels = user.channels;
+        this.messages = user.messages;
         super.update();
         return this;
     }
-
+    
     public void addChannel(Channel channel) {
         this.channels.put(channel.getId(), channel);
         super.update();
@@ -34,6 +36,7 @@ public class User extends BaseEntity {
         super.update();
     }
 
+    //
     public void addMessage(Message message) {
         this.messages.put(message.getId(), message);
         super.update();
@@ -46,6 +49,10 @@ public class User extends BaseEntity {
 
     public String getName() {
         return this.name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
     }
 
     public Map<UUID, Channel> getChannels() {

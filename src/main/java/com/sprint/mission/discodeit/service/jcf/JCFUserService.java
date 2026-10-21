@@ -20,11 +20,12 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public User updateName(UUID id, String name) {
+    public User update(UUID id, User newUser) {
         User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
         this.validateNotDeleted(user);
-
-        return user.updateName(name);
+        user.update(newUser);
+        this.data.put(id, user);
+        return user;
     }
 
     @Override
