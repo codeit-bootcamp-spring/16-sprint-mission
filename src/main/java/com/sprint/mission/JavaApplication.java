@@ -41,12 +41,12 @@ public class JavaApplication {
         // 같은 이름의 채널이 있으면 재사용하고, 없으면 생성한다.
         Channel general = findOrCreateChannel(
                 channelService,
-                "💬 일반",
+                "일반",
                 woody
         );
         Channel games = findOrCreateChannel(
                 channelService,
-                "🎮 게임 이야기",
+                "게임 이야기",
                 buzz
         );
 
@@ -58,24 +58,31 @@ public class JavaApplication {
         // 테스트 메시지를 없으면 생성한다.
         Message woodyMessage = findOrCreateMessage(
                 messageService,
-                "안녕하세요! 오늘도 좋은 하루예요. 😊",
+                "안녕하세요! 오늘도 좋은 하루예요.",
                 woody,
                 general
         );
         findOrCreateMessage(
                 messageService,
-                "반가워요, 우디! 같이 이야기 나눠요. 👋",
+                "반가워요, 우디! 같이 이야기 나눠요.",
                 buzz,
                 general
         );
         findOrCreateMessage(
                 messageService,
-                "오늘은 어떤 게임을 할까요? 🎮",
+                "오늘은 어떤 게임을 할까요?",
                 buzz,
                 games
         );
 
         printAppHeader(woody);
+        printAllUsers(userService.getAllUsers());
+        printAllChannels(channelService.getAllChannels());
+        printAllMessages(
+                messageService.getAllMessages(),
+                userService,
+                channelService
+        );
         printChannelList(
                 channelService.getChannelsByParticipantId(woody.getId())
         );
@@ -95,7 +102,7 @@ public class JavaApplication {
         messageService.updateMessage(
                 woodyMessage.getId(),
                 woody.getId(),
-                "안녕하세요! 메시지를 수정했어요. ✨"
+                "안녕하세요! 메시지를 수정했어요."
         );
         printChatRoom(
                 general,
@@ -175,14 +182,54 @@ public class JavaApplication {
         return message;
     }
 
+    private static String removeEmojis(String text) {
+        return text.replaceAll("[\\x{1F000}-\\x{1FAFF}\\x{2600}-\\x{27BF}]", "");
+    }
     private static void printAppHeader(User currentUser) {
         System.out.println("로그인 사용자: " + currentUser.getUsername());
     }
 
+    private static void printAllUsers(List<User> users) {
+        System.out.println();
+        System.out.println("전체 사용자:");
+        for (User user : users) {
+            System.out.println(user.getUsername() + " (" + user.getEmail() + ")");
+        }
+    }
+
+    private static void printAllChannels(List<Channel> channels) {
+        System.out.println();
+        System.out.println("전체 채널:");
+        for (Channel channel : channels) {
+            System.out.println("# " + removeEmojis(channel.getChannelName()));
+        }
+    }
+
+    private static void printAllMessages(
+            List<Message> messages,
+            FileUserService userService,
+            FileChannelService channelService
+    ) {
+        System.out.println();
+        System.out.println("전체 메시지:");
+        for (Message message : messages) {
+            String username = userService
+                    .getUserById(message.getSender().getId())
+                    .getUsername();
+            String channelName = channelService
+                    .getChannelById(message.getChannel().getId())
+                    .getChannelName();
+            System.out.println(
+                    "# " + removeEmojis(channelName)
+                            + " | " + removeEmojis(username)
+                            + ": " + removeEmojis(message.getContent())
+            );
+        }
+    }
     private static void printChannelList(List<Channel> channels) {
         System.out.println("채널 목록:");
         for (Channel channel : channels) {
-            System.out.println("# " + channel.getChannelName());
+            System.out.println("# " + removeEmojis(channel.getChannelName()));
         }
     }
 
@@ -192,7 +239,7 @@ public class JavaApplication {
             FileUserService userService
     ) {
         System.out.println();
-        System.out.println(channel.getChannelName());
+        System.out.println(removeEmojis(channel.getChannelName()));
 
         if (messages.isEmpty()) {
             System.out.println("메시지가 없습니다.");
@@ -203,9 +250,11 @@ public class JavaApplication {
             String username = userService
                     .getUserById(message.getSender().getId())
                     .getUsername();
-            System.out.println(username + ": " + message.getContent());
+            System.out.println(removeEmojis(username) + ": " + removeEmojis(message.getContent()));
         }
     }
 }
+
+
 
 
