@@ -33,8 +33,8 @@ public class JCFMessageService implements MessageService {
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보내는 유저가 존재하지 않습니다."));
         this.channelService.findById(channel.getId())
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보낼 채널이 존재하지 않습니다."));
-        this.userService.validateNotDeleted(sentFrom);
-        this.channelService.validateNotDeleted(channel);
+        sentFrom.validateNotDeleted();
+        channel.validateNotDeleted();
 
         // 채널 가입 여부 확인
         channel.getUsers().values()

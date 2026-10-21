@@ -6,110 +6,137 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        UserService jcfUserService = new JCFUserService();
-        ChannelService jcfChannelService = new JCFChannelService(jcfUserService);
-        MessageService jcfMessageService = new JCFMessageService(jcfUserService, jcfChannelService);
+//        UserService userService = new JCFUserService(channelService);
+//        ChannelService channelService = new JCFChannelService(userService);
+//        MessageService messageService = new JCFMessageService(userService, channelService);
+
+        UserService userService = new JCFUserService();
+        ChannelService channelService = new JCFChannelService(userService);
+        MessageService messageService = new JCFMessageService(userService, channelService);
+
+
+//        FileUserService userService = new FileUserService();
+//        FileChannelService channelService = new FileChannelService();
+//        userService.setChannelService(channelService);
+//        channelService.setUserService(userService);
+//        MessageService messageService = new FileMessageService(userService, channelService);
 
         try {
             // 등록
-            User user1 = jcfUserService.create("김철수");
-            User user2 = jcfUserService.create("박영수");
+            User user1 = userService.create("김철수");
+            User user2 = userService.create("박영수");
             System.out.printf("유저 생성 --> %s\n", user1);
             System.out.printf("유저 생성 --> %s\n\n", user2);
 
-            Channel channel1 = jcfChannelService.create("QR 코드");
-            Channel channel2 = jcfChannelService.create("위클리 페이퍼");
+            Channel channel1 = channelService.create("QR 코드");
+            Channel channel2 = channelService.create("위클리 페이퍼");
             System.out.printf("채널 생성 --> %s\n", channel1);
             System.out.printf("채널 생성 --> %s\n\n", channel2);
 
             System.out.printf("유저 및 채널 관계 설정\n\n채널 이름: %s, 유저 가입: %s, %s\n채널 이름: %s, 유저 가입: %s\n\n"
                     , channel1.getName(), user1.getName(), user2.getName(), channel2.getName(), user1.getName());
-            jcfChannelService.addUserToChannel(channel1.getId(), user1);
-            jcfChannelService.addUserToChannel(channel1.getId(), user2);
-            jcfChannelService.addUserToChannel(channel2.getId(), user1);
+            channelService.addUserToChannel(channel1.getId(), user1);
+            channelService.addUserToChannel(channel1.getId(), user2);
+            channelService.addUserToChannel(channel2.getId(), user1);
 
-            Message message1 = jcfMessageService.create(user1, "안녕하세요 김철수입니다!", channel1);
-            Message message2 = jcfMessageService.create(user2, "저는 박영수입니다!", channel1);
-            Message message3 = jcfMessageService.create(user1, "안녕하세요!", channel2);
+
+            User foundUser1 = userService.findById(user1.getId())
+                    .orElseThrow(() -> new NoSuchElementException("조회할 유저를 찾을 수 없습니다."));
+            User foundUser2 = userService.findById(user2.getId())
+                    .orElseThrow(() -> new NoSuchElementException("조회할 유저를 찾을 수 없습니다."));
+            Channel foundChannel1 = channelService.findById(channel1.getId())
+                    .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
+            Channel foundChannel2 = channelService.findById(channel2.getId())
+                    .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
+
+
+            Message message1 = messageService.create(foundUser1, "안녕하세요 김철수입니다!", foundChannel1);
+            Message message2 = messageService.create(foundUser2, "저는 박영수입니다!", foundChannel1);
+            Message message3 = messageService.create(foundUser1, "안녕하세요!", foundChannel2);
             System.out.printf("메세지 생성 --> %s\n", message1);
             System.out.printf("메세지 생성 --> %s\n", message2);
             System.out.printf("메세지 생성 --> %s\n\n", message3);
 
             // 조회 (단일)
-            User foundUser = jcfUserService.findById(user1.getId())
+            foundUser1 = userService.findById(user1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 유저를 찾을 수 없습니다."));
-            System.out.printf("유저 단일 조회 --> %s\n\n", foundUser);
+            System.out.printf("유저 단일 조회 --> %s\n\n", foundUser1);
 
-            Channel foundChannel = jcfChannelService.findById(channel1.getId())
+            foundChannel1 = channelService.findById(channel1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
-            System.out.printf("채널 단일 조회 --> %s\n\n", foundChannel);
+            System.out.printf("채널 단일 조회 --> %s\n\n", foundChannel1);
 
-            Message foundMessage = jcfMessageService.findById(message1.getId())
+            Message foundMessage = messageService.findById(message1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 메세지를 찾을 수 없습니다."));
             System.out.printf("메세지 단일 조회 --> %s\n\n", foundMessage);
 
             // 조회 (전체)
-            List<User> users = jcfUserService.findAll();
+            List<User> users = userService.findAll();
             System.out.print("유저 전체 조회 --> [\n");
             users.forEach((user) -> System.out.printf("\t%s\n", user));
             System.out.print("]\n\n");
 
             System.out.print("채널 전체 조회 --> [\n");
-            List<Channel> channels = jcfChannelService.findAll();
+            List<Channel> channels = channelService.findAll();
             channels.forEach((channel) -> System.out.printf("\t%s\n", channel));
             System.out.print("]\n\n");
 
             System.out.print("메세지 전체 조회 --> [\n");
-            List<Message> messages = jcfMessageService.findAll();
+            List<Message> messages = messageService.findAll();
             messages.forEach((message) -> System.out.printf("\t%s\n", message));
             System.out.print("]\n\n");
 
             // 수정
             System.out.printf("유저 수정 전 --> %s\n", user1);
             user1.setName("이수철");
-            System.out.printf("유저 수정 후 --> %s\n\n", jcfUserService.update(user1.getId(), user1));
+            System.out.printf("유저 수정 후 --> %s\n\n", userService.update(user1.getId(), user1));
             System.out.printf("채널 수정 전 --> %s\n", channel1);
             channel1.setName("QR 코드 2");
-            System.out.printf("채널 수정 후 --> %s\n\n", jcfChannelService.update(channel1.getId(), channel1));
+            System.out.printf("채널 수정 후 --> %s\n\n", channelService.update(channel1.getId(), channel1));
             System.out.printf("메세지 수정 전 --> %s\n", message1);
             message1.setContent("안녕하세요 이수철입니다!");
-            System.out.printf("메세지 수정 후 --> %s\n\n", jcfMessageService.update(message1.getId(), message1));
+            System.out.printf("메세지 수정 후 --> %s\n\n", messageService.update(message1.getId(), message1));
 
             // 삭제
             System.out.printf("유저 삭제 --> %s\n", user1);
-            jcfUserService.delete(user1.getId());
-            users = jcfUserService.findAll();
+            userService.delete(user1.getId());
+            users = userService.findAll();
             System.out.print("유저 전체 조회 --> [\n");
             users.forEach((user) -> System.out.printf("\t%s\n", user));
             System.out.print("]\n\n");
 
             System.out.printf("채널 삭제 --> %s\n", channel2);
-            jcfChannelService.delete(channel2.getId());
-            channels = jcfChannelService.findAll();
+            channelService.delete(channel2.getId());
+            channels = channelService.findAll();
             System.out.print("채널 전체 조회 --> [\n");
             channels.forEach((channel) -> System.out.printf("\t%s\n", channel));
             System.out.print("]\n\n");
 
             System.out.printf("메세지 삭제 --> %s\n", message2);
-            jcfMessageService.delete(message2.getId());
-            messages = jcfMessageService.findAll();
+            messageService.delete(message2.getId());
+            messages = messageService.findAll();
             System.out.print("메세지 전체 조회 --> [\n");
             messages.forEach((message) -> System.out.printf("\t%s\n", message));
             System.out.print("]\n\n");
 
             // 채널 탈퇴
             System.out.printf("유저 채널 탈퇴 --> 유저 이름: %s, 채널 이름: %s\n", user2.getName(), channel1.getName());
-            jcfChannelService.removeUserFromChannel(channel1.getId(), user2.getId());
-            channels = jcfChannelService.findAll();
+            channelService.removeUserFromChannel(channel1.getId(), user2.getId());
+            channels = channelService.findAll();
             System.out.print("채널 전체 조회 --> [\n");
             channels.forEach((channel) -> System.out.printf("\t%s\n", channel));
             System.out.print("]\n\n");
@@ -120,6 +147,10 @@ public class JavaApplication {
             System.out.printf("요청한 작업을 수행할 수 없는 상태입니다. 이유: %s\n", e.getMessage());
         } catch (NullPointerException e) {
             System.out.printf("개체가 참조하는 값이 없습니다. 이유: %s\n", e.getMessage());
+        } catch (NoClassDefFoundError e) {
+            System.out.printf("정의되지 않은 클래스입니다. 이유: %s\n", e.getMessage());
+        } catch (UncheckedIOException e) {
+            System.out.printf("파일 입출력 예외가 발생했습니다. 이유: %s\n", e.getMessage());
         }
     }
 }
