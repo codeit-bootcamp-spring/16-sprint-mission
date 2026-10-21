@@ -1,13 +1,14 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 public class Channel extends BaseEntity {
 
     private String channelName;
-    private Set<User> users;
-    private Set<Message> messages;
+    private Set<User> users = new HashSet<>();
+    private Set<Message> messages = new HashSet<>();
 
     public Channel(String channelName) {
         super();
@@ -23,7 +24,9 @@ public class Channel extends BaseEntity {
         this.channelName = channelName;
     }
 
-    public void addUser(User user) {
-        this.users.add(user);
-    }
+    public void addUser(User user) { this.users.add(user); }
+
+    public void removeUser(User user) { this.users.remove(user); }
+
+    public Set<User> getUsers() { return this.users; }
 }

@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 public abstract class BaseEntity implements Serializable {
@@ -19,6 +20,18 @@ public abstract class BaseEntity implements Serializable {
 
     public UUID getId() {
         return this.id;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        BaseEntity base = (BaseEntity) o;
+        return Objects.equals(id, base.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 
     public Long getCreatedAt() {

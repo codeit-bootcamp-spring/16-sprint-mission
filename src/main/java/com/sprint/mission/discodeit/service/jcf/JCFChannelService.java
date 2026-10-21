@@ -71,6 +71,7 @@ public class JCFChannelService implements ChannelService {
     public void joinChannel(UUID id, UUID userId) {
         Channel channel = this.findById(id);
         User user = this.userService.findById(userId);
+
         channel.addUser(user);
         user.addChannel(channel);
     }
@@ -78,5 +79,9 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void leaveChannel(UUID id, UUID userId) {
         Channel channel = this.findById(id);
+        User user = this.userService.findById(userId);
+
+        channel.removeUser(user);
+        user.removeChannel(channel);
     }
 }

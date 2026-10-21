@@ -12,21 +12,17 @@ public class Message extends BaseEntity {
         super();
         this.content = content;
         this.sender = sender;
-        this.channel= channel;
+        this.channel = channel;
     }
 
-    public String getContent() {
-        return this.content;
-    }
+    public String getContent() { return this.content; }
 
     public void updateContent(String content) {
         this.update();
         this.content = content;
     }
 
-    public User getSender() {
-        return this.sender;
-    }
+    public User getSender() { return this.sender; }
 
     public Channel getChannel() {
         return this.channel;

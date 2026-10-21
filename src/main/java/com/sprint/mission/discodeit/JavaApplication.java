@@ -69,7 +69,7 @@ public class JavaApplication {
         System.out.println("현재 모든 채널들 출력: " + channelService.findAll()); // 존재하는 채널이 없어야 합니다.
         System.out.println("현재 메시지들 출력: " + messageService.findAll()); // 하나의 메세지가 존재합니다.
         System.out.println("채널을 가지고있지않은 모든 메세지를 삭제합니다");// 채널을 가지고있지않은 모든 메세지를 삭제합니다.
-        messageService.deleteMessageWithoutChannel();
+        // messageService.deleteMessageWithoutChannel();
         System.out.println("현재 메세지들 출력: " + messageService.findAll()); // 메세지가 없습니다.
     }
 }
