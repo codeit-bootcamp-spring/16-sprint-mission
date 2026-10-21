@@ -101,7 +101,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = getChannelById(channelId);
 
         return channel.getChannelParticipants().stream()
-                .anyMatch(u -> u.getId().equals(userId));
+                .anyMatch(user -> user.getId().equals(userId));
     }
 
     // 조회
@@ -135,7 +135,7 @@ public class JCFChannelService implements ChannelService {
 
         return channelsData.values().stream()
                 .filter(c -> c.getChannelParticipants().stream()
-                        .anyMatch(u -> u.getId().equals(participantId)))
+                        .anyMatch(user -> user.getId().equals(participantId)))
                 .toList();
     }
 

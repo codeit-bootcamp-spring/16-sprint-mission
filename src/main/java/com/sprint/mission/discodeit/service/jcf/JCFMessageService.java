@@ -157,6 +157,5 @@ public class JCFMessageService implements MessageService {
             Channel channel = channelService.getChannelById(message.getChannel().getId());
             removeMessage(message, user, channel);
         }
-
     }
 }

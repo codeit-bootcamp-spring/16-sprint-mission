@@ -1,9 +1,12 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Channel extends BaseEntity {
+public class Channel extends BaseEntity implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private String channelName;
     private final List<User> channelParticipants;
     private final List<Message> channelMessages;
@@ -11,10 +14,8 @@ public class Channel extends BaseEntity {
 
     public Channel(String channelName, User creator) {
         super();
-
         Validation.validateBlank(channelName, "channelName");
         Validation.validateNull(creator, "creator");
-
         this.channelName = channelName;
         this.channelParticipants = new ArrayList<>();
         this.channelMessages = new ArrayList<>();
@@ -22,16 +23,12 @@ public class Channel extends BaseEntity {
     }
 
     public String getChannelName() { return channelName; }
-
     public User getCreator() { return creator; }
-
     public List<User> getChannelParticipants() { return new ArrayList<>(channelParticipants); }
-
     public List<Message> getChannelMessages() { return new ArrayList<>(channelMessages); }
 
     public void changeChannelName(String channelName) {
         Validation.validateBlank(channelName, "channelName");
-
         this.channelName = channelName;
         super.update();
     }
@@ -41,7 +38,6 @@ public class Channel extends BaseEntity {
         if (channelParticipants.contains(user)) {
             throw new IllegalArgumentException("이미 채널에 참여 중인 유저입니다.");
         }
-
         channelParticipants.add(user);
         user.addChannel(this);
         super.update();
@@ -52,7 +48,6 @@ public class Channel extends BaseEntity {
         if (!channelParticipants.contains(user)) {
             throw new IllegalArgumentException("해당 유저는 채널에 참여하고 있지 않습니다.");
         }
-
         channelParticipants.remove(user);
         user.removeChannel(this);
         super.update();
@@ -60,7 +55,6 @@ public class Channel extends BaseEntity {
 
     public void addChannelMessages(Message message) {
         Validation.validateNull(message, "message");
-
         channelMessages.add(message);
         super.update();
     }
@@ -68,13 +62,5 @@ public class Channel extends BaseEntity {
     public void removeChannelMessages(Message message) {
         channelMessages.remove(message);
         super.update();
-    }
-
-    @Override
-    public String toString() {
-        return "채널 \"" + channelName + "\" 정보: {" +
-                "채널 이름='" + channelName + '\'' +
-                ", 채널 방장=" + creator.getUsername() +
-                '}';
     }
 }
