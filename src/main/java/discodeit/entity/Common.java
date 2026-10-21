@@ -1,8 +1,10 @@
 package discodeit.entity;
 
+import java.io.Serializable;
 import java.util.UUID;
 
-public class Common {
+public class Common implements Serializable {
+    private static final long serialVersionUID = 1L;
 
     protected UUID id;
     protected Long createdAt;

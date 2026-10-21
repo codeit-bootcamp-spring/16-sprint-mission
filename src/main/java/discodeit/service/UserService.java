@@ -2,13 +2,14 @@ package discodeit.service;
 
 import discodeit.entity.User;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Consumer;
 
 public interface UserService {
-    public User create(String name);
+    public User create(String name) throws IOException;
 
     public Optional<User> find(UUID userId);
 
