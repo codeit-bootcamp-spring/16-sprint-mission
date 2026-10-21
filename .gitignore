@@ -5,6 +5,7 @@ build/
 !**/src/test/**/build/
 .kotlin
 gradle.properties
+data
 
 ### IntelliJ IDEA ###
 .idea
