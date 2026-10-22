@@ -2,17 +2,16 @@ package com.sprint.mission.discodeit.entity;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
-public class User extends BaseEntity  {
+public class User extends BaseEntity {
 
     private String name;
     private String email;
-    private List<Message> messages = new ArrayList<>();
-    private List<Channel> channels = new ArrayList<>();
+    private List<UUID> channelIds = new ArrayList<>();
 
     public User(String name, String email) {
         super();
-
         this.name = name;
         this.email = email;
     }
@@ -30,35 +29,45 @@ public class User extends BaseEntity  {
         this.email = email;
         updateUpdatedAt();
     }
-    public List<Message> getMessages() {
-        return List.copyOf(messages);
+
+    public List<UUID> getChannelIds() {
+        return List.copyOf(channelIds);
     }
 
-    public List<Channel> getChannels() {
-        return List.copyOf(channels);
-    }
+    public void addChannel(UUID channelId) {
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
 
-    public void addMessage(Message message) {
-        if (!messages.contains(message)) {
-            messages.add(message);
+        if (!channelIds.contains(channelId)) {
+            channelIds.add(channelId);
         }
     }
 
-    public void addChannel(Channel channel) {
-        if (!channels.contains(channel)) {
-            channels.add(channel);
+    public void removeChannel(UUID channelId) {
+        channelIds.remove(channelId);
+    }
+
+    public boolean hasChannel(UUID channelId) {
+        return channelIds.contains(channelId);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj) {
+            return true;
         }
+
+        if (obj == null || getClass() != obj.getClass()) {
+            return false;
+        }
+
+        User user = (User) obj;
+        return getId().equals(user.getId());
     }
 
-    public void removeChannel(Channel channel) {
-        channels.remove(channel);
-    }
-
-    public void removeMessage(Message message) {
-        messages.remove(message);
-    }
-
-    public boolean hasChannel(Channel channel) {
-        return channels.contains(channel);
+    @Override
+    public int hashCode() {
+        return getId().hashCode();
     }
 }
