@@ -8,9 +8,9 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
 
 import java.util.UUID;
 
@@ -19,10 +19,11 @@ public class JavaApplication {
     public static void main(String[] args) {
 
         // 서비스 객체 생성
-        UserService userService = new JCFUserService();
-        ChannelService channelService = new JCFChannelService();
+        UserService userService = new FileUserService();
+        ChannelService channelService = new FileChannelService();
         MessageService messageService =
-                new JCFMessageService(userService, channelService);
+                new FileMessageService(userService, channelService);
+
 
         // =================================
         // 1. 사용자 테스트
