@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -15,9 +16,12 @@ public class JCFChannelService implements ChannelService {
     private final List<Channel> data;
     private final UserService userService;
 
-    public JCFChannelService(UserService userService) {
+    private final ChannelRepository  channelRepository;
+
+    public JCFChannelService(UserService userService, ChannelRepository channelRepository) {
         this.data = new ArrayList<>();
         this.userService = userService;
+        this.channelRepository = channelRepository;
     }
 
     @Override
@@ -27,24 +31,22 @@ public class JCFChannelService implements ChannelService {
         }
 
         Channel channel = new Channel(channelName);
-        this.data.add(channel);
+        // this.data.add(channel);
+        this.channelRepository.save(channel);
         return channel;
     }
 
     @Override
     public List<Channel> findAll() {
-        List<Channel> channelList = this.data.stream()
-                .toList();
 
+        List<Channel> channelList = this.channelRepository.getChannels();
         return channelList;
     }
 
     @Override
     public Channel findById(UUID id) {
-        Channel channel = this.data.stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException());
+
+        Channel channel = this.channelRepository.getChannel(id);
 
         return channel;
     }
@@ -63,8 +65,11 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void deleteChannel(UUID id) {
-        Channel channel = this.findById(id);
-        this.data.remove(channel);
+        try {
+            this.channelRepository.removeChannel(id);
+        } catch (NoSuchElementException exception) {
+            throw new NoSuchElementException("Channel with id " + id + " does not exist");
+        }
     }
 
     @Override
