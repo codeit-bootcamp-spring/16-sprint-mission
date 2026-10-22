@@ -75,4 +75,9 @@ public class JCFMessageService implements MessageService {
 
         data.removeIf(m -> m.getUser().getId().equals(userId));
     }
+
+    @Override
+    public void deleteMessagesByChannelId(UUID channelId) {
+
+    }
 }

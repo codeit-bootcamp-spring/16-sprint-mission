@@ -23,7 +23,16 @@ public class FileChannelService implements ChannelService {
     @Override
     public Channel create(List<User> userList, String channelName) {
         List<Channel> channels = load();
+        List<User> users = userList.stream()
+                .map(u -> userService.find(u.getId())
+                        .orElseThrow(() -> new NoSuchElementException("해당 유저가 존재하지 않습니다.")))
+                        .toList();
         Channel newChannel = new Channel(channelName);
+        users.forEach(newChannel::setUser);
+        channels.add(newChannel);
+
+        save(channels);
+
         return newChannel;
     }
 
@@ -59,20 +68,16 @@ public class FileChannelService implements ChannelService {
     @Override
     public void delete(UUID channelId) {
         List<Channel> channels = load();
-        Channel target = channels.stream()
-                .filter(c -> c.getId().equals(channelId))
-                .findFirst()
-                .orElseThrow(() ->
-                new NoSuchElementException("삭제할 채널을 찾을 수 없습니다."));
 
-        List<User> userList = userService.findAll();
-        target.getUserList()
-                .forEach(u -> u.deleteChannel(channelId));
+        boolean isRemoved = channels.removeIf(
+                c -> c.getId().equals(channelId)
+        );
 
-        if(channels.contains(target)){
-            channels.remove(target);
-            save(channels);
+        if(!isRemoved) {
+            throw new NoSuchElementException("삭제할 채널이 없습니다.");
         }
+        ChannelReferenceCleaner.clean(channels, channelId);
+        save(channels);
     }
 
     @Override
@@ -83,6 +88,7 @@ public class FileChannelService implements ChannelService {
 
         channels.forEach(c -> c.getUserList()
                 .removeIf(u -> u.getId().equals(userId)));
+        save(channels);
     }
 
     private void save(List<Channel> channelList) {

@@ -6,17 +6,17 @@ import discodeit.entity.User;
 import discodeit.service.ChannelService;
 import discodeit.service.MessageService;
 import discodeit.service.UserService;
+import discodeit.service.file.FileChannelService;
+import discodeit.service.file.FileMessageService;
+import discodeit.service.file.FileUserService;
 import discodeit.service.jcf.JCFChannelService;
 import discodeit.service.jcf.JCFMessageService;
 import discodeit.service.jcf.JCFUserService;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
+import java.util.*;
 
-public class JavaApplication {
-    public static void main(String[] args) {
+public class JCFJavaApplication {
+    public static void main(String[] args)  {
         // User CRUD
         UserService userService = new JCFUserService();
 
@@ -105,6 +105,8 @@ public class JavaApplication {
         userService.delete(user2.getId());
         System.out.println(userService.findAll());
         System.out.println(messageService.findAll());
+
+
 
     }
 }

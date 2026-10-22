@@ -1,5 +1,6 @@
 package discodeit.service.file;
 
+import discodeit.entity.Channel;
 import discodeit.entity.User;
 import discodeit.service.UserService;
 
@@ -15,13 +16,16 @@ public class FileUserService implements UserService {
     private final List<Consumer<UUID>> deleteListeners = new ArrayList<>();
 
     @Override
-    public User create(String name) throws IOException {
-        List<User> users = load();
-        User user = new User(name);
-        users.add(user);
-        save(users);
-
-        return user;
+    public User create(String name) {
+        try {
+            List<User> users = load();
+            User user = new User(name);
+            users.add(user);
+            save(users);
+            return user;
+        } catch (UncheckedIOException e) {
+            throw new IllegalStateException("유저 생성 실패: " + name, e);
+        }
     }
 
     @Override
@@ -29,7 +33,6 @@ public class FileUserService implements UserService {
         return load().stream()
                 .filter(u -> u.getId().equals(userId))
                 .findFirst();
-
     }
 
     @Override
@@ -73,9 +76,26 @@ public class FileUserService implements UserService {
         deleteListeners.add(listener);
     }
 
+    @Override
+    public void removeChannelFromUsers(UUID channelId) {
+        List<User> users = load();
+
+        for (User user : users) {
+            user.deleteChannel(channelId);
+        }
+        save(users);
+    }
+
+    public void addChannelToUsers(Channel channel) {
+        List<User> users = load();
+        for (User user : users) {
+            user.setChannel(channel);
+        }
+        save(users);
+    }
+
     private void save(List<User> userList) {
-        try (FileOutputStream fos = new FileOutputStream(FILE_PATH)) {
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
             oos.writeObject(userList);
         }  catch (IOException e) {
             e.printStackTrace();

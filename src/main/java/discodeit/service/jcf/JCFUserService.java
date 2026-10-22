@@ -62,4 +62,9 @@ public class JCFUserService implements UserService {
     public void addDeleteListener(Consumer<UUID> listener) {
         deleteListeners.add(listener);
     }
+
+    @Override
+    public void removeChannelFromUsers(UUID channelId) {
+
+    }
 }

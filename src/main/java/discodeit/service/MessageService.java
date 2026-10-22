@@ -20,4 +20,6 @@ public interface MessageService {
     public void delete(UUID messageId);
 
     public void deleteMessageByUserId(UUID userId);
+
+    public void deleteMessagesByChannelId(UUID channelId);
 }
