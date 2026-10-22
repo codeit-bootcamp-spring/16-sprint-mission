@@ -21,10 +21,8 @@ public class JCFChannelRepository implements ChannelRepository {
 
     @Override
     public Channel update(UUID id, Channel newChannel) {
-        Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
-        channel.validateNotDeleted();
-        channel.update(newChannel);
-        this.data.put(id, channel);
+        Channel channel = this.data.get(id);
+        this.data.put(id, newChannel);
         return channel;
     }
 
@@ -40,8 +38,7 @@ public class JCFChannelRepository implements ChannelRepository {
 
     @Override
     public void delete(UUID id) {
-        Channel channel = this.findById(id).orElseThrow(
-                () -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
+        Channel channel = this.data.get(id);
         channel.softDelete();
     }
 }

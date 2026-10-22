@@ -21,8 +21,7 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public User update(UUID id, User newUser) {
-        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
-        user.update(newUser);
+        User user = this.data.get(id);
         this.data.put(id, user);
         return user;
     }
@@ -39,8 +38,7 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public void delete(UUID id) {
-        User user = this.findById(id).orElseThrow(
-                () -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+        User user = this.data.get(id);
         user.softDelete();
     }
 }

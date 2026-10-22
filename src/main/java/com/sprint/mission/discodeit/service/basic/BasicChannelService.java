@@ -6,10 +6,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 public class BasicChannelService implements ChannelService {
     private final ChannelRepository channelRepository;
@@ -36,7 +33,14 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public Channel update(UUID id, Channel channel) {
+    public Channel update(UUID id, Channel newChannel) {
+        Channel channel = this.channelRepository.findById(id).orElseThrow(
+                () -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
+        // 갱신할 채널 정보의 상태가 활동 중이면 현재 채널도 검사
+        if (!newChannel.isDeleted()) {
+            channel.validateNotDeleted();
+        }
+        channel.update(newChannel);
         return this.channelRepository.update(id, channel);
     }
 
@@ -84,8 +88,10 @@ public class BasicChannelService implements ChannelService {
         channel.validateNotDeleted();
 
         channel.getUsers().forEach(userId -> this.userRepository.findById(userId).ifPresent(user -> {
-            user.removeChannel(id);
-            this.userRepository.update(userId, user);
+            if (!user.isDeleted()) {
+                user.removeChannel(id);
+                this.userRepository.update(userId, user);
+            }
         }));
         this.channelRepository.delete(id);
     }

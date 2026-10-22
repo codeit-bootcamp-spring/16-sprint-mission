@@ -24,9 +24,7 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public Message update(UUID id, Message newMessage) {
-        Message message = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
-        message.validateNotDeleted();
-        message.update(newMessage);
+        Message message = this.data.get(id);
         this.data.put(id, message);
         return message;
     }
@@ -43,7 +41,7 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public void delete(UUID id) {
-        Message message = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 메세지가 존재하지 않습니다."));
+        Message message = this.data.get(id);
         message.softDelete();
     }
 }

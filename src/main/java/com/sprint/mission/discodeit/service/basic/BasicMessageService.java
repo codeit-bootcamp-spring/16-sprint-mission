@@ -56,7 +56,15 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public Message update(UUID id, Message message) {
+    public Message update(UUID id, Message newMessage) {
+        Message message = this.messageRepository.findById(id).orElseThrow(
+                () -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
+        // 갱신할 메세지 정보의 상태가 활동 중이면 현재 메세지도 검사
+        if (!newMessage.isDeleted()) {
+            message.validateNotDeleted();
+        }
+
+        message.update(newMessage);
         return this.messageRepository.update(id, message);
     }
 

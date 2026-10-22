@@ -32,7 +32,14 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public User update(UUID id, User user) {
+    public User update(UUID id, User newUser) {
+        User user = this.userRepository.findById(id).orElseThrow(
+                () -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
+        // 갱신할 유저 정보의 상태가 활동 중이면 현재 유저도 검사
+        if (!newUser.isDeleted()) {
+            user.validateNotDeleted();
+        }
+        user.update(newUser);
         return this.userRepository.update(id, user);
     }
 
