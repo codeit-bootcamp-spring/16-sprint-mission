@@ -143,26 +143,15 @@ public class JavaApplication {
                 woodyMessage
         );
 
-        // 기존 메시지 수정 예시
-        System.out.println("\n[메시지 수정 예시]");
-        messageService.updateMessage(
-                woodyMessage.getId(),
-                woody.getId(),
-                "안녕하세요! 메시지를 수정했어요."
-        );
-        printChatRoom(
-                general,
-                messageService.getMessagesByChannelId(general.getId()),
-                userService
-        );
+        verifyRelationships(userService, channelService, messageService);
 
-        // 메시지 삭제 예시
-        System.out.println("\n[메시지 삭제 예시]");
-        messageService.deleteMessage(woodyMessage.getId(), woody.getId());
-        printChatRoom(
-                general,
-                messageService.getMessagesByChannelId(general.getId()),
-                userService
+        runCrudSuccessExamples(
+                userService,
+                channelService,
+                messageService,
+                woody,
+                buzz,
+                general
         );
         verifyRelationships(userService, channelService, messageService);
 
@@ -170,6 +159,254 @@ public class JavaApplication {
         System.out.println("사용자: " + userService.getAllUsers().size() + "명");
         System.out.println("채널: " + channelService.getAllChannels().size() + "개");
         System.out.println("메시지: " + messageService.getAllMessages().size() + "개");
+    }
+
+    private static void runCrudSuccessExamples(
+            UserService userService,
+            ChannelService channelService,
+            MessageService messageService,
+            User woody,
+            User buzz,
+            Channel general
+    ) {
+        String suffix = UUID.randomUUID().toString().substring(0, 8);
+        User originalWoody = userService.getUserById(woody.getId());
+        String originalUsername = originalWoody.getUsername();
+        String originalEmail = originalWoody.getEmail();
+        String originalPassword = originalWoody.getPassword();
+        User deletionUser = null;
+        UUID testChannelId = null;
+
+        try {
+            System.out.println("\n=== 사용자 수정 테스트 ===");
+            String updatedUsername = originalUsername + "-수정";
+            String updatedEmail = "woody-test-" + suffix + "@example.com";
+            String updatedPassword = "temporary-password-" + suffix;
+
+            userService.updateUsername(woody.getId(), updatedUsername);
+            userService.updateEmail(woody.getId(), updatedEmail);
+            userService.updatePassword(woody.getId(), originalPassword, updatedPassword);
+
+            User updatedWoody = userService.getUserById(woody.getId());
+            ensure(updatedUsername.equals(updatedWoody.getUsername()), "사용자 이름 수정 확인 실패");
+            ensure(updatedEmail.equals(updatedWoody.getEmail()), "사용자 이메일 수정 확인 실패");
+            ensure(updatedPassword.equals(updatedWoody.getPassword()), "비밀번호 수정 확인 실패");
+            System.out.println("수정 후 사용자: " + updatedWoody.getUsername());
+            System.out.println("사용자 수정 및 재조회 테스트 성공");
+
+            // 테스트가 기존 우디 계정에 남지 않도록 원래 정보를 되돌린다.
+            userService.updateUsername(woody.getId(), originalUsername);
+            userService.updateEmail(woody.getId(), originalEmail);
+            userService.updatePassword(woody.getId(), updatedPassword, originalPassword);
+
+            System.out.println("\n=== 채널 CRUD 테스트 ===");
+            Channel testChannel = channelService.createChannel(
+                    new Channel("테스트 채널 " + suffix, woody.getId())
+            );
+            testChannelId = testChannel.getId();
+            final UUID channelId = testChannelId;
+            System.out.println("채널 등록 완료");
+            System.out.println("채널 조회: " + channelService.getChannelById(testChannelId).getChannelName());
+            System.out.println("전체 채널 목록");
+            for (Channel savedChannel : channelService.getAllChannels()) {
+                System.out.println(savedChannel.getChannelName());
+            }
+
+            channelService.joinChannel(testChannelId, buzz.getId());
+            checkExpectedException(
+                    "중복 채널 참여 검증 성공",
+                    "이미",
+                    () -> channelService.joinChannel(channelId, buzz.getId())
+            );
+            System.out.println("채널 참여 테스트 성공");
+
+            System.out.println("\n=== 채널 나가기 테스트 ===");
+            channelService.leaveChannel(testChannelId, buzz.getId());
+            Channel channelAfterLeave = channelService.getChannelById(testChannelId);
+            User buzzAfterLeave = userService.getUserById(buzz.getId());
+            ensure(!channelAfterLeave.getParticipantIds().contains(buzz.getId()),
+                    "퇴장 후 채널 참여자 목록 확인 실패");
+            ensure(!buzzAfterLeave.getMyChannelIds().contains(testChannelId),
+                    "퇴장 후 사용자 채널 목록 확인 실패");
+            System.out.println("채널 나가기 테스트 성공");
+            checkExpectedException(
+                    "미참여 채널 나가기 검증 성공",
+                    "채널",
+                    () -> channelService.leaveChannel(channelId, buzz.getId())
+            );
+            printChannelParticipants(channelAfterLeave, userService);
+            printChatRoom(
+                    channelAfterLeave,
+                    messageService.getMessagesByChannelId(testChannelId),
+                    userService
+            );
+
+            // 메시지 및 삭제 검증을 위해 버즈를 다시 참여시킨다.
+            channelService.joinChannel(testChannelId, buzz.getId());
+
+            deletionUser = userService.createUser(new User(
+                    "탈퇴테스트-" + suffix,
+                    "password123!",
+                    "delete-user-" + suffix + "@example.com"
+            ));
+            final UUID deletionUserId = deletionUser.getId();
+            channelService.joinChannel(testChannelId, deletionUser.getId());
+
+            System.out.println("\n=== 중복 채널 이름 테스트 ===");
+            checkExpectedException(
+                    "중복 채널 이름 검증 성공",
+                    "라는 채널이 이미 존재합니다.",
+                    () -> channelService.createChannel(new Channel(
+                            general.getChannelName(),
+                            woody.getId()
+                    ))
+            );
+
+            System.out.println("\n=== 메시지 CRUD 테스트 ===");
+            Message deletionUserMessage = messageService.createMessage(new Message(
+                    "사용자 삭제 시 함께 정리될 메시지",
+                    deletionUserId,
+                    testChannelId
+            ));
+
+            Message woodyMessage = messageService.createMessage(new Message(
+                    "우디의 CRUD 확인 메시지 " + suffix,
+                    woody.getId(),
+                    testChannelId
+            ));
+
+            System.out.println("메시지 관계 테스트 성공");
+            System.out.println("메시지 등록 완료");
+            System.out.println("메시지 조회: " + messageService.getMessageById(woodyMessage.getId()).getContent());
+            System.out.println("전체 메시지 목록");
+            for (Message message : messageService.getMessagesByChannelId(testChannelId)) {
+                System.out.println(message.getContent());
+            }
+
+            String updatedContent = "수정된 메시지 " + suffix;
+            messageService.updateMessage(woodyMessage.getId(), woody.getId(), updatedContent);
+            ensure(updatedContent.equals(
+                    messageService.getMessageById(woodyMessage.getId()).getContent()
+            ), "메시지 수정 확인 실패");
+            System.out.println("수정 후 메시지: " + messageService.getMessageById(woodyMessage.getId()).getContent());
+
+            messageService.deleteMessage(woodyMessage.getId(), woody.getId());
+            ensure(messageService.getAllMessages().stream()
+                            .noneMatch(message -> message.getId().equals(woodyMessage.getId())),
+                    "메시지 삭제 확인 실패");
+            ensure(!userService.getUserById(woody.getId()).getMyMessageIds()
+                            .contains(woodyMessage.getId()),
+                    "메시지 삭제 후 작성자 관계가 남아 있습니다.");
+            ensure(!channelService.getChannelById(testChannelId).getMessageIds()
+                            .contains(woodyMessage.getId()),
+                    "메시지 삭제 후 채널 관계가 남아 있습니다.");
+            System.out.println("메시지 삭제 및 관계 제거 테스트 성공");
+
+            System.out.println("\n=== 채널 수정 테스트 ===");
+            String updatedChannelName = "수정된 테스트 채널 " + suffix;
+            channelService.updateChannelName(testChannelId, woody.getId(), updatedChannelName);
+            Channel updatedChannel = channelService.getChannelById(testChannelId);
+            ensure(updatedChannelName.equals(updatedChannel.getChannelName()), "채널 수정 확인 실패");
+            System.out.println("수정 후 채널: " + updatedChannel.getChannelName());
+
+            System.out.println("\n=== 사용자 삭제 후 관련 메시지·채널 확인 ===");
+            System.out.println("사용자 삭제 전 채널 상태:");
+            printChannelParticipants(updatedChannel, userService);
+            printChatRoom(
+                    updatedChannel,
+                    messageService.getMessagesByChannelId(testChannelId),
+                    userService
+            );
+
+            userService.deleteUser(deletionUserId, "password123!");
+            Channel channelAfterUserDeletion = channelService.getChannelById(testChannelId);
+            boolean userWasDeleted = userService.getAllUsers().stream()
+                    .noneMatch(user -> user.getId().equals(deletionUserId));
+            boolean participantWasRemoved = !channelAfterUserDeletion.getParticipantIds()
+                    .contains(deletionUserId);
+            boolean userMessagesWereDeleted = messageService.getAllMessages().stream()
+                    .noneMatch(message -> message.getSenderId().equals(deletionUserId)
+                            || message.getId().equals(deletionUserMessage.getId()));
+            ensure(userWasDeleted && participantWasRemoved && userMessagesWereDeleted,
+                    "사용자 삭제 후 관련 데이터가 정리되지 않았습니다.");
+            System.out.println("사용자 삭제 테스트 성공");
+            System.out.println("사용자 삭제 후 채널 상태:");
+            printChannelParticipants(channelAfterUserDeletion, userService);
+            printChatRoom(
+                    channelAfterUserDeletion,
+                    messageService.getMessagesByChannelId(testChannelId),
+                    userService
+            );
+
+            System.out.println("\n=== 채널 삭제 후 사용자 관계 제거 테스트 ===");
+            List<Message> messagesBeforeChannelDeletion =
+                    messageService.getMessagesByChannelId(testChannelId);
+            channelService.deleteChannel(testChannelId, woody.getId());
+
+            boolean messagesRemain = messagesBeforeChannelDeletion.stream()
+                    .anyMatch(message -> messageService.getAllMessages().stream()
+                            .anyMatch(savedMessage -> savedMessage.getId().equals(message.getId())));
+            boolean woodyRelationRemoved = !userService.getUserById(woody.getId())
+                    .getMyChannelIds().contains(testChannelId);
+            boolean buzzRelationRemoved = !userService.getUserById(buzz.getId())
+                    .getMyChannelIds().contains(testChannelId);
+            boolean channelWasDeleted = !hasChannel(channelService, testChannelId);
+
+            System.out.println("저장된 사용자 채널 목록에서 제거:");
+            System.out.println("- 우디: " + woodyRelationRemoved);
+            System.out.println("- 버즈: " + buzzRelationRemoved);
+            System.out.println("채널 저장소에서 삭제: " + channelWasDeleted);
+            System.out.println("채널 메시지가 남아 있는가: " + messagesRemain);
+            ensure(woodyRelationRemoved && buzzRelationRemoved && channelWasDeleted && !messagesRemain,
+                    "채널 삭제 후 관계나 메시지가 남아 있습니다.");
+            testChannelId = null;
+            System.out.println("채널 삭제 테스트 성공");
+        } finally {
+            // 테스트 도중 실패해도 임시 사용자와 채널을 정리하고 우디 정보를 복구한다.
+            if (deletionUser != null && hasUser(userService, deletionUser.getId())) {
+                userService.deleteUser(deletionUser.getId(), "password123!");
+            }
+            if (testChannelId != null && hasChannel(channelService, testChannelId)) {
+                channelService.deleteChannel(testChannelId, woody.getId());
+            }
+
+            User latestWoody = userService.getUserById(woody.getId());
+            if (!originalUsername.equals(latestWoody.getUsername())) {
+                userService.updateUsername(woody.getId(), originalUsername);
+            }
+            latestWoody = userService.getUserById(woody.getId());
+            if (!originalEmail.equals(latestWoody.getEmail())) {
+                userService.updateEmail(woody.getId(), originalEmail);
+            }
+            latestWoody = userService.getUserById(woody.getId());
+            if (!originalPassword.equals(latestWoody.getPassword())) {
+                userService.updatePassword(woody.getId(), latestWoody.getPassword(), originalPassword);
+            }
+        }
+    }
+
+    private static boolean hasChannel(ChannelService channelService, UUID channelId) {
+        return channelService.getAllChannels().stream()
+                .anyMatch(channel -> channel.getId().equals(channelId));
+    }
+
+    private static boolean hasUser(UserService userService, UUID userId) {
+        return userService.getAllUsers().stream()
+                .anyMatch(user -> user.getId().equals(userId));
+    }
+
+    private static void ensure(boolean condition, String errorMessage) {
+        if (!condition) {
+            throw new IllegalStateException(errorMessage);
+        }
+    }
+
+    private static void printChannelParticipants(Channel channel, UserService userService) {
+        System.out.println("채널 참여자:");
+        for (UUID participantId : channel.getParticipantIds()) {
+            User participant = userService.getUserById(participantId);
+            System.out.println("- " + removeEmojis(participant.getUsername()));
+        }
     }
 
     private static List<Channel> setupAdditionalChatData(
@@ -335,22 +572,22 @@ public class JavaApplication {
                 "방장이 아닌 사용자의 채널명 변경",
                 "방장만 채널을 수정할 수 있습니다.",
                 () ->
-                channelService.updateChannelName(
-                        games.getId(),
-                        woody.getId(),
-                        "권한 없는 변경 시도"
-                )
+                        channelService.updateChannelName(
+                                games.getId(),
+                                woody.getId(),
+                                "권한 없는 변경 시도"
+                        )
         );
 
         checkExpectedException(
                 "다른 사용자가 작성한 메시지 수정",
                 "본인이 작성한 메시지만 수정할 수 있습니다.",
                 () ->
-                messageService.updateMessage(
-                        woodyMessage.getId(),
-                        buzz.getId(),
-                        "권한 없는 수정 시도"
-                )
+                        messageService.updateMessage(
+                                woodyMessage.getId(),
+                                buzz.getId(),
+                                "권한 없는 수정 시도"
+                        )
         );
 
         User outsider = new User(
@@ -365,9 +602,9 @@ public class JavaApplication {
                     "채널 비참여자의 메시지 작성",
                     "채널에 참여한 유저만 메시지를 작성할 수 있습니다.",
                     () ->
-                    messageService.createMessage(
-                            new Message("참여하지 않은 채널에 보내는 메시지", outsider.getId(), general.getId())
-                    )
+                            messageService.createMessage(
+                                    new Message("참여하지 않은 채널에 보내는 메시지", outsider.getId(), general.getId())
+                            )
             );
         } finally {
             // 예외 테스트용으로 만든 사용자는 데이터 파일에 남기지 않는다.
@@ -522,9 +759,3 @@ public class JavaApplication {
         }
     }
 }
-
-
-
-
-
-

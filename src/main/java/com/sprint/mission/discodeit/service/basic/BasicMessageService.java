@@ -76,6 +76,7 @@ public class BasicMessageService implements MessageService {
 
         user.addMessageId(message.getId());
         channel.addMessageId(message.getId());
+
         userRepository.save(user);
         channelRepository.save(channel);
         return messageRepository.save(message);
@@ -117,6 +118,7 @@ public class BasicMessageService implements MessageService {
     public Message updateMessage(UUID messageId, UUID userId, String content) {
         Message message = requireMessage(messageId);
         validateSender(message, userId, "수정");
+
         requireUser(message.getSenderId());
         Channel channel = requireChannel(message.getChannelId());
         validateParticipant(userId, channel, "수정");
@@ -129,15 +131,18 @@ public class BasicMessageService implements MessageService {
     public void deleteMessage(UUID messageId, UUID userId) {
         Message message = requireMessage(messageId);
         validateSender(message, userId, "삭제");
+
         User user = requireUser(message.getSenderId());
         Channel channel = requireChannel(message.getChannelId());
         validateParticipant(userId, channel, "삭제");
+
         removeMessage(message, user, channel);
     }
 
     private void removeMessage(Message message, User user, Channel channel) {
         user.removeMessageId(message.getId());
         channel.removeMessageId(message.getId());
+
         userRepository.save(user);
         channelRepository.save(channel);
         messageRepository.deleteById(message.getId());
@@ -146,8 +151,10 @@ public class BasicMessageService implements MessageService {
     @Override
     public void deleteMessagesByChannelId(UUID channelId) {
         Channel channel = requireChannel(channelId);
+
         for (Message message : messageRepository.findByChannelId(channelId)) {
             User user = userRepository.findById(message.getSenderId());
+
             if (user != null) {
                 removeMessage(message, user, channel);
             }
@@ -169,6 +176,7 @@ public class BasicMessageService implements MessageService {
                 channel.removeMessageId(message.getId());
                 channelRepository.save(channel);
             }
+
             userRepository.save(user);
             messageRepository.deleteById(message.getId());
         }
