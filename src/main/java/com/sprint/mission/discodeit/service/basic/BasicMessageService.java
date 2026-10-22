@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.Validation;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -28,19 +27,25 @@ public class BasicMessageService implements MessageService {
 
     private User requireUser(UUID id) {
         User user = userRepository.findById(id);
-        if (user == null) throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
         return user;
     }
 
     private Channel requireChannel(UUID id) {
         Channel channel = channelRepository.findById(id);
-        if (channel == null) throw new IllegalArgumentException("해당 채널이 존재하지 않습니다.");
+        if (channel == null) {
+            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다.");
+        }
         return channel;
     }
 
     private Message requireMessage(UUID id) {
         Message message = messageRepository.findById(id);
-        if (message == null) throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        if (message == null) {
+            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        }
         return message;
     }
 
@@ -58,7 +63,9 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public Message createMessage(Message message) {
-        if (message == null) throw new IllegalArgumentException("메시지가 null입니다.");
+        if (message == null) {
+            throw new IllegalArgumentException("메시지가 null입니다.");
+        }
         if (messageRepository.findById(message.getId()) != null) {
             throw new IllegalArgumentException("이미 존재하는 메시지입니다.");
         }
@@ -75,10 +82,14 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public Message getMessageById(UUID messageId) { return requireMessage(messageId); }
+    public Message getMessageById(UUID messageId) {
+        return requireMessage(messageId);
+    }
 
     @Override
-    public List<Message> getAllMessages() { return messageRepository.findAll(); }
+    public List<Message> getAllMessages() {
+        return messageRepository.findAll();
+    }
 
     @Override
     public List<Message> getMessagesByUserId(UUID userId) {
@@ -106,15 +117,11 @@ public class BasicMessageService implements MessageService {
     public Message updateMessage(UUID messageId, UUID userId, String content) {
         Message message = requireMessage(messageId);
         validateSender(message, userId, "수정");
-        User user = requireUser(message.getSenderId());
+        requireUser(message.getSenderId());
         Channel channel = requireChannel(message.getChannelId());
         validateParticipant(userId, channel, "수정");
 
-        // 잘못된 내용이면 관계 ID를 변경하기 전에 실패시킨다.
-        Validation.validateBlank(content, "message");
         message.updateMessage(content);
-        userRepository.save(user);
-        channelRepository.save(channel);
         return messageRepository.save(message);
     }
 
@@ -141,7 +148,9 @@ public class BasicMessageService implements MessageService {
         Channel channel = requireChannel(channelId);
         for (Message message : messageRepository.findByChannelId(channelId)) {
             User user = userRepository.findById(message.getSenderId());
-            if (user != null) removeMessage(message, user, channel);
+            if (user != null) {
+                removeMessage(message, user, channel);
+            }
             else {
                 channel.removeMessageId(message.getId());
                 channelRepository.save(channel);

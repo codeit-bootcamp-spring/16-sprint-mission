@@ -29,11 +29,25 @@ public class User extends BaseEntity implements Serializable {
         this.myMessageIds = new ArrayList<>();
     }
 
-    public String getUsername() { return username; }
-    public String getPassword() { return password; }
-    public String getEmail() { return email; }
-    public List<UUID> getMyChannelIds() { return new ArrayList<>(myChannelIds); }
-    public List<UUID> getMyMessageIds() { return new ArrayList<>(myMessageIds); }
+    public String getUsername() {
+        return username;
+    }
+
+    public String getPassword() {
+        return password;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public List<UUID> getMyChannelIds() {
+        return new ArrayList<>(myChannelIds);
+    }
+
+    public List<UUID> getMyMessageIds() {
+        return new ArrayList<>(myMessageIds);
+    }
 
     public void changeUsername(String username) {
         Validation.validateWhitespace(username, "username");

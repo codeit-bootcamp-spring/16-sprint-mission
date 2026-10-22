@@ -35,7 +35,9 @@ public class JCFUserService implements UserService {
 
     // 이메일 중복 검증
     private void validateDuplicateEmail(String email) {
-        if (email == null) return;
+        if (email == null) {
+            return;
+        }
 
         boolean exists = userData.values().stream()
                 .anyMatch(u -> email.equals(u.getEmail()));

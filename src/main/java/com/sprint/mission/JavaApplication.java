@@ -94,6 +94,15 @@ public class JavaApplication {
                 games
         );
 
+        List<Channel> sampleChannels = setupAdditionalChatData(
+                userService,
+                channelService,
+                messageService,
+                woody,
+                buzz
+        );
+        verifyRelationships(userService, channelService, messageService);
+
         printAppHeader(woody);
         printAllUsers(userService.getAllUsers());
         printAllChannels(channelService.getAllChannels());
@@ -115,6 +124,13 @@ public class JavaApplication {
                 messageService.getMessagesByChannelId(games.getId()),
                 userService
         );
+        for (Channel sampleChannel : sampleChannels) {
+            printChatRoom(
+                    sampleChannel,
+                    messageService.getMessagesByChannelId(sampleChannel.getId()),
+                    userService
+            );
+        }
 
         runExceptionExamples(
                 userService,
@@ -148,11 +164,135 @@ public class JavaApplication {
                 messageService.getMessagesByChannelId(general.getId()),
                 userService
         );
+        verifyRelationships(userService, channelService, messageService);
 
         System.out.println("\n[저장된 데이터]");
         System.out.println("사용자: " + userService.getAllUsers().size() + "명");
         System.out.println("채널: " + channelService.getAllChannels().size() + "개");
         System.out.println("메시지: " + messageService.getAllMessages().size() + "개");
+    }
+
+    private static List<Channel> setupAdditionalChatData(
+            UserService userService,
+            ChannelService channelService,
+            MessageService messageService,
+            User woody,
+            User buzz
+    ) {
+        User alice = findOrCreateUser(
+                userService,
+                "alice@example.com",
+                "앨리스",
+                "password123!"
+        );
+        User jessie = findOrCreateUser(
+                userService,
+                "jessie@example.com",
+                "제시",
+                "password123!"
+        );
+        User rex = findOrCreateUser(
+                userService,
+                "rex@example.com",
+                "렉스",
+                "password123!"
+        );
+
+        Channel study = findOrCreateChannel(
+                channelService,
+                "샘플 스터디",
+                alice
+        );
+        Channel movies = findOrCreateChannel(
+                channelService,
+                "샘플 영화",
+                rex
+        );
+
+        List<User> users = List.of(woody, buzz, alice, jessie, rex);
+        List<Channel> channels = List.of(study, movies);
+
+        for (Channel channel : channels) {
+            for (User user : users) {
+                if (!channelService.isParticipant(channel.getId(), user.getId())) {
+                    channelService.joinChannel(channel.getId(), user.getId());
+                }
+            }
+        }
+
+        for (Channel channel : channels) {
+            for (User user : users) {
+                findOrCreateMessage(
+                        messageService,
+                        channel.getChannelName() + "에서 인사하는 " + user.getUsername(),
+                        user,
+                        channel
+                );
+            }
+        }
+
+        return channels;
+    }
+
+    private static void verifyRelationships(
+            UserService userService,
+            ChannelService channelService,
+            MessageService messageService
+    ) {
+        for (Channel channel : channelService.getAllChannels()) {
+            for (UUID participantId : channel.getParticipantIds()) {
+                User participant = userService.getUserById(participantId);
+                if (!participant.getMyChannelIds().contains(channel.getId())) {
+                    throw new IllegalStateException(
+                            "채널 참여 정보가 사용자 목록에 없습니다: " + channel.getChannelName()
+                    );
+                }
+            }
+
+            for (UUID messageId : channel.getMessageIds()) {
+                Message message = messageService.getMessageById(messageId);
+                if (!message.getChannelId().equals(channel.getId())) {
+                    throw new IllegalStateException(
+                            "채널의 메시지 정보가 일치하지 않습니다: " + channel.getChannelName()
+                    );
+                }
+            }
+        }
+
+        for (User user : userService.getAllUsers()) {
+            for (UUID channelId : user.getMyChannelIds()) {
+                Channel channel = channelService.getChannelById(channelId);
+                if (!channel.getParticipantIds().contains(user.getId())) {
+                    throw new IllegalStateException(
+                            "사용자 참여 정보가 채널 목록에 없습니다: " + user.getUsername()
+                    );
+                }
+            }
+
+            for (UUID messageId : user.getMyMessageIds()) {
+                Message message = messageService.getMessageById(messageId);
+                if (!message.getSenderId().equals(user.getId())) {
+                    throw new IllegalStateException(
+                            "사용자의 메시지 정보가 일치하지 않습니다: " + user.getUsername()
+                    );
+                }
+            }
+        }
+
+        for (Message message : messageService.getAllMessages()) {
+            User sender = userService.getUserById(message.getSenderId());
+            Channel channel = channelService.getChannelById(message.getChannelId());
+
+            if (!sender.getMyMessageIds().contains(message.getId())) {
+                throw new IllegalStateException("메시지가 작성자 목록에 없습니다: " + message.getId());
+            }
+            if (!channel.getMessageIds().contains(message.getId())) {
+                throw new IllegalStateException("메시지가 채널 목록에 없습니다: " + message.getId());
+            }
+        }
+
+        System.out.println("\n[연관 ID 검증]");
+        System.out.println("사용자·채널·메시지의 관계 ID가 모두 일치합니다.");
     }
 
     private static void runExceptionExamples(
@@ -262,10 +402,10 @@ public class JavaApplication {
     ) {
         for (User user : userService.getAllUsers()) {
             if (email.equalsIgnoreCase(user.getEmail())) {
-                if (!username.equals(user.getUsername())) {
-                    userService.updateUsername(user.getId(), username);
+                if (username.equals(user.getUsername())) {
+                    return user;
                 }
-                return userService.getUserById(user.getId());
+                return userService.updateUsername(user.getId(), username);
             }
         }
 
@@ -282,13 +422,12 @@ public class JavaApplication {
         for (Channel channel : channelService.getAllChannels()) {
             if (channelName.equals(channel.getChannelName())
                     && creator.getId().equals(channel.getCreatorId())) {
-                return channelService.getChannelById(channel.getId());
+                return channel;
             }
         }
 
         Channel channel = new Channel(channelName, creator.getId());
-        channelService.createChannel(channel);
-        return channelService.getChannelById(channel.getId());
+        return channelService.createChannel(channel);
     }
 
     private static Message findOrCreateMessage(

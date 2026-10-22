@@ -20,9 +20,17 @@ public class Message extends BaseEntity implements Serializable {
         this.channelId = channelId;
     }
 
-    public String getContent() { return content; }
-    public UUID getSenderId() { return senderId; }
-    public UUID getChannelId() { return channelId; }
+    public String getContent() {
+        return content;
+    }
+
+    public UUID getSenderId() {
+        return senderId;
+    }
+
+    public UUID getChannelId() {
+        return channelId;
+    }
 
     public void updateMessage(String content) {
         Validation.validateBlank(content, "message");

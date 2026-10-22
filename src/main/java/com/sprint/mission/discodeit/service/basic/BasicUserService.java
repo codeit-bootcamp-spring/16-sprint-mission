@@ -31,15 +31,21 @@ public class BasicUserService implements UserService {
     }
 
     private void validateDuplicateEmail(String email) {
-        if (email == null) return;
+        if (email == null) {
+            return;
+        }
         boolean exists = userRepository.findAll().stream()
                 .anyMatch(user -> email.equals(user.getEmail()));
-        if (exists) throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        if (exists) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        }
     }
 
     @Override
     public User createUser(User user) {
-        if (user == null) throw new IllegalArgumentException("유저가 null입니다.");
+        if (user == null) {
+            throw new IllegalArgumentException("유저가 null입니다.");
+        }
         if (userRepository.findById(user.getId()) != null) {
             throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
@@ -50,12 +56,16 @@ public class BasicUserService implements UserService {
     @Override
     public User getUserById(UUID userId) {
         User user = userRepository.findById(userId);
-        if (user == null) throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        if (user == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
         return user;
     }
 
     @Override
-    public List<User> getAllUsers() { return userRepository.findAll(); }
+    public List<User> getAllUsers() {
+        return userRepository.findAll();
+    }
 
     @Override
     public User updateUsername(UUID id, String username) {

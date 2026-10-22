@@ -23,10 +23,21 @@ public class Channel extends BaseEntity implements Serializable {
         this.creatorId = creatorId;
     }
 
-    public String getChannelName() { return channelName; }
-    public List<UUID> getParticipantIds() { return new ArrayList<>(participantIds); }
-    public List<UUID> getMessageIds() { return new ArrayList<>(messageIds); }
-    public UUID getCreatorId() { return creatorId; }
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public List<UUID> getParticipantIds() {
+        return new ArrayList<>(participantIds);
+    }
+
+    public List<UUID> getMessageIds() {
+        return new ArrayList<>(messageIds);
+    }
+
+    public UUID getCreatorId() {
+        return creatorId;
+    }
 
     public void changeChannelName(String channelName) {
         Validation.validateBlank(channelName, "channelName");

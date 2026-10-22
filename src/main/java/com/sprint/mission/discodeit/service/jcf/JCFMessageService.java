@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.Validation;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -19,12 +18,19 @@ public class JCFMessageService implements MessageService {
     private UserService userService;
     private ChannelService channelService;
 
-    public void setUserService(UserService userService) { this.userService = userService; }
-    public void setChannelService(ChannelService channelService) { this.channelService = channelService; }
+    public void setUserService(UserService userService) {
+        this.userService = userService;
+    }
+
+    public void setChannelService(ChannelService channelService) {
+        this.channelService = channelService;
+    }
 
     private Message requireMessage(UUID id) {
         Message message = messageData.get(id);
-        if (message == null) throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        if (message == null) {
+            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
+        }
         return message;
     }
 
@@ -35,13 +41,19 @@ public class JCFMessageService implements MessageService {
     }
 
     private void validateSender(Message message, UUID userId, String action) {
-        if (!message.getSenderId().equals(userId)) throw new IllegalArgumentException("본인이 작성한 메시지만 " + action + "할 수 있습니다.");
+        if (!message.getSenderId().equals(userId)) {
+            throw new IllegalArgumentException("본인이 작성한 메시지만 " + action + "할 수 있습니다.");
+        }
     }
 
     @Override
     public Message createMessage(Message message) {
-        if (message == null) throw new IllegalArgumentException("메시지가 null입니다.");
-        if (messageData.containsKey(message.getId())) throw new IllegalArgumentException("이미 존재하는 메시지입니다.");
+        if (message == null) {
+            throw new IllegalArgumentException("메시지가 null입니다.");
+        }
+        if (messageData.containsKey(message.getId())) {
+            throw new IllegalArgumentException("이미 존재하는 메시지입니다.");
+        }
         User user = userService.getUserById(message.getSenderId());
         Channel channel = channelService.getChannelById(message.getChannelId());
         validateParticipant(user.getId(), channel, "작성");
@@ -52,31 +64,42 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public Message getMessageById(UUID id) { return requireMessage(id); }
+    public Message getMessageById(UUID id) {
+        return requireMessage(id);
+    }
+
     @Override
-    public List<Message> getAllMessages() { return List.copyOf(messageData.values()); }
+    public List<Message> getAllMessages() {
+        return List.copyOf(messageData.values());
+    }
 
     @Override
     public List<Message> getMessagesByUserId(UUID userId) {
         userService.getUserById(userId);
-        return messageData.values().stream().filter(m -> m.getSenderId().equals(userId))
-                .sorted(Comparator.comparing(Message::getCreatedAt).reversed()).toList();
+        return messageData.values().stream()
+                .filter(message -> message.getSenderId().equals(userId))
+                .sorted(Comparator.comparing(Message::getCreatedAt).reversed())
+                .toList();
     }
 
     @Override
     public List<Message> getMessagesByChannelId(UUID channelId) {
         channelService.getChannelById(channelId);
-        return messageData.values().stream().filter(m -> m.getChannelId().equals(channelId))
-                .sorted(Comparator.comparing(Message::getCreatedAt)).toList();
+        return messageData.values().stream()
+                .filter(message -> message.getChannelId().equals(channelId))
+                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .toList();
     }
 
     @Override
     public List<Message> getMessagesByUserAndChannel(UUID userId, UUID channelId) {
         userService.getUserById(userId);
         channelService.getChannelById(channelId);
-        return messageData.values().stream().filter(m -> m.getSenderId().equals(userId)
-                        && m.getChannelId().equals(channelId))
-                .sorted(Comparator.comparing(Message::getCreatedAt)).toList();
+        return messageData.values().stream()
+                .filter(message -> message.getSenderId().equals(userId)
+                        && message.getChannelId().equals(channelId))
+                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .toList();
     }
 
     @Override
@@ -85,7 +108,6 @@ public class JCFMessageService implements MessageService {
         validateSender(message, userId, "수정");
         Channel channel = channelService.getChannelById(message.getChannelId());
         validateParticipant(userId, channel, "수정");
-        Validation.validateBlank(content, "message");
         message.updateMessage(content);
         return message;
     }
