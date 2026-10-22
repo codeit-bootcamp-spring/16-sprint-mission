@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
@@ -17,7 +17,7 @@ import java.util.List;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        UserService userService = new JCFUserService();
+        UserService userService = new FileUserService();
 
         User user = userService.create("아무1","1234","010-123-5678","abc@dfg");
         System.out.println("등록: "+ user.getUsername());
@@ -32,7 +32,6 @@ public class JavaApplication {
 
         List<User> all = userService.readAll();
         System.out.println("전체회원 수: "+all.size());
-
 
         ChannelService channelService = new JCFChannelService(userService);
 
@@ -73,7 +72,6 @@ public class JavaApplication {
 
         List<Message> allmessage = messageService.readAll();
         System.out.println("전체 메세지 수: "+allmessage.size());
-
 
         List<Message> searchResult = messageService.findByContent("안녕?");
         System.out.println("검섹 결과 : "+searchResult.size());

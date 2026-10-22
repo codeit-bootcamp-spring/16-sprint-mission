@@ -3,12 +3,14 @@ package com.sprint.mission.discodeit.entity;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.io.Serializable;
 
-public class Group extends BaseEntity {
+public class Group extends BaseEntity implements Serializable {
     private UUID ownerId;
     private String name;
     private String type;
     private List<UUID> itemIds;
+    private static final long serialVersionUID = 1L;
 
 
     public Group(UUID ownerId, String name, String type) {
