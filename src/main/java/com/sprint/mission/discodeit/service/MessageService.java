@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface MessageService {
-    Message create(User sentFrom, String content, Channel channel);
+    Message create(UUID sentFromId, String content, UUID channelId);
 
     Message update(UUID id, Message message);
 

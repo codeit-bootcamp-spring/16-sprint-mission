@@ -1,21 +1,23 @@
 package com.sprint.mission.discodeit.entity;
 
+import java.util.UUID;
+
 public class Message extends BaseEntity {
-    private User sentFrom;
-    private Channel channel;
+    private UUID sentFromId;
+    private UUID channelId;
     private String content;
 
-    public Message(User sentFrom, String content, Channel channel) {
+    public Message(UUID sentFromId, String content, UUID channelId) {
         super();
-        this.sentFrom = sentFrom;
+        this.sentFromId = sentFromId;
         this.content = content;
-        this.channel = channel;
+        this.channelId = channelId;
     }
 
     public Message update(Message message) {
-        this.sentFrom = message.sentFrom;
+        this.sentFromId = message.sentFromId;
         this.content = message.content;
-        this.channel = message.channel;
+        this.channelId = message.channelId;
         super.update();
         return this;
     }
@@ -24,8 +26,8 @@ public class Message extends BaseEntity {
         if (this.isDeleted()) throw new IllegalStateException("삭제된 메세지입니다.");
     }
 
-    public User getSentFrom() {
-        return this.sentFrom;
+    public UUID getSentFromId() {
+        return this.sentFromId;
     }
 
     public String getContent() {
@@ -36,15 +38,15 @@ public class Message extends BaseEntity {
         this.content = content;
     }
 
-    public Channel getChannel() {
-        return this.channel;
+    public UUID getChannelId() {
+        return this.channelId;
     }
 
     @Override
     public String toString() {
-        return "id: %s, 보낸 사람: %s, 내용: %s, 채널: %s, 상태: %s".formatted(
+        return "id: %s, 보낸 사람 (id): %s, 내용: %s, 채널 (id): %s, 상태: %s".formatted(
                 this.getId().toString().substring(0, 4),
-                this.sentFrom.getName(), this.content,
-                this.channel.getName(), super.getStatus());
+                this.sentFromId.toString().substring(0, 4), this.content,
+                this.channelId.toString().substring(0, 4), super.getStatus());
     }
 }

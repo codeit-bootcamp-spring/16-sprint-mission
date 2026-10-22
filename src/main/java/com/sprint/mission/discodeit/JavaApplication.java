@@ -3,6 +3,9 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+//import com.sprint.mission.discodeit.service.file.FileChannelService;
+//import com.sprint.mission.discodeit.service.file.FileMessageService;
+//import com.sprint.mission.discodeit.service.file.FileUserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
@@ -18,6 +21,12 @@ public class JavaApplication {
         JCFMessageService messageService = new JCFMessageService(userService, channelService);
         channelService.setUserService(userService);
         userService.setChannelService(channelService);
+//        FileUserService userService = new FileUserService();
+//        FileChannelService channelService = new FileChannelService();
+//        FileMessageService messageService = new FileMessageService(userService, channelService);
+//        channelService.setUserService(userService);
+//        userService.setChannelService(channelService);
+
 
         try {
             // 등록
@@ -48,9 +57,9 @@ public class JavaApplication {
                     .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
 
 
-            Message message1 = messageService.create(foundUser1, "안녕하세요 김철수입니다!", foundChannel1);
-            Message message2 = messageService.create(foundUser2, "저는 박영수입니다!", foundChannel1);
-            Message message3 = messageService.create(foundUser1, "안녕하세요!", foundChannel2);
+            Message message1 = messageService.create(foundUser1.getId(), "안녕하세요 김철수입니다!", foundChannel1.getId());
+            Message message2 = messageService.create(foundUser2.getId(), "저는 박영수입니다!", foundChannel1.getId());
+            Message message3 = messageService.create(foundUser1.getId(), "안녕하세요!", foundChannel2.getId());
             System.out.printf("메세지 생성 --> %s\n", message1);
             System.out.printf("메세지 생성 --> %s\n", message2);
             System.out.printf("메세지 생성 --> %s\n\n", message3);
