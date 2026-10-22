@@ -18,8 +18,8 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
+        this.users.removeIf(saved -> saved.getId().equals(user.getId()));
         this.users.add(user);
-
         return user;
     }
 

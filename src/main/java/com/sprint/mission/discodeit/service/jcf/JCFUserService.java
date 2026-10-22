@@ -1,7 +1,12 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
@@ -14,10 +19,14 @@ public class JCFUserService implements UserService {
     // private final List<User> data;
 
     private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
+    private final MessageRepository messageRepository;
 
-    public JCFUserService(UserRepository userRepository) {
+    public JCFUserService(UserRepository userRepository, MessageRepository messageRepository, ChannelRepository channelRepository) {
         // this.data = new ArrayList<>();
         this.userRepository = userRepository;
+        this.messageRepository = messageRepository;
+        this.channelRepository = channelRepository;
     }
 
 /*
@@ -94,7 +103,29 @@ public class JCFUserService implements UserService {
         User user = this.findById(id);
         user.updateUsername(username);
 
-        return user;
+        List< Channel> channelList = this.channelRepository.getChannels();
+
+        channelList.stream()
+                .filter(channel -> channel.getUsers().contains(user))
+                .forEach(channel -> {
+                    channel.getUsers().stream()
+                            .filter(u -> u.getId().equals(user.getId()))
+                            .forEach(u -> u.updateUsername(username));
+
+                    this.channelRepository.save(channel);
+                });
+
+        List<Message> messageList = this.messageRepository.getMessages();
+
+        messageList.stream()
+                .filter(message -> message.getSender().equals(user))
+                .forEach(message -> {
+                    message.getSender().updateUsername(username);
+
+                    this.messageRepository.save(message);
+                });
+
+        return this.userRepository.save(user);
     }
 
     @Override

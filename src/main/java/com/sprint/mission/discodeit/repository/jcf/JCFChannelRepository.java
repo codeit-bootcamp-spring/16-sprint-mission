@@ -18,6 +18,7 @@ public class JCFChannelRepository implements ChannelRepository {
 
     @Override
     public Channel save(Channel channel) {
+        this.channels.removeIf(saved -> saved.getId().equals(channel.getId()));
         this.channels.add(channel);
 
         return channel;

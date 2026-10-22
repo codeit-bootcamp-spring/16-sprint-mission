@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -14,13 +15,12 @@ import java.util.UUID;
 public class JCFChannelService implements ChannelService {
 
     private final List<Channel> data;
-    private final UserService userService;
-
+    private final UserRepository userRepository;
     private final ChannelRepository  channelRepository;
 
-    public JCFChannelService(UserService userService, ChannelRepository channelRepository) {
+    public JCFChannelService(UserService userService, UserRepository userRepository, ChannelRepository channelRepository) {
         this.data = new ArrayList<>();
-        this.userService = userService;
+        this.userRepository = userRepository;
         this.channelRepository = channelRepository;
     }
 
@@ -60,7 +60,7 @@ public class JCFChannelService implements ChannelService {
         Channel channel = this.findById(id);
         channel.updateChannelName(channelName);
 
-        return channel;
+        return this.channelRepository.save(channel);
     }
 
     @Override
@@ -75,7 +75,7 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void joinChannel(UUID id, UUID userId) {
         Channel channel = this.findById(id);
-        User user = this.userService.findById(userId);
+        User user = this.userRepository.getUser(userId);
 
         channel.addUser(user);
         user.addChannel(channel);
@@ -84,7 +84,7 @@ public class JCFChannelService implements ChannelService {
     @Override
     public void leaveChannel(UUID id, UUID userId) {
         Channel channel = this.findById(id);
-        User user = this.userService.findById(userId);
+        User user = this.userRepository.getUser(userId);
 
         channel.removeUser(user);
         user.removeChannel(channel);

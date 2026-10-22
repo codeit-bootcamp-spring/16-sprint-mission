@@ -17,7 +17,6 @@ public class JCFMessageService implements MessageService {
 
     private final UserService userService;
     private final ChannelService channelService;
-
     private final MessageRepository messageRepository;
 
     public JCFMessageService(UserService userService, ChannelService channelService, MessageRepository  messageRepository) {
@@ -38,11 +37,12 @@ public class JCFMessageService implements MessageService {
 
         User validSender = this.userService.findById(sender.getId());
         Channel validChannel = this.channelService.findById(channel.getId());
-
+        validChannel.addUser(sender);
         Message message = new Message(content, validSender, validChannel);
         //  this.data.add(message);
         // this.messageRepository.saveMessage(message);
         this.messageRepository.save(message);
+
         return message;
     }
 
@@ -82,7 +82,7 @@ public class JCFMessageService implements MessageService {
         Message message = this.findById(id);
         message.updateContent(content);
 
-        return message;
+        return this.messageRepository.save(message);
     }
 
     @Override

@@ -20,6 +20,7 @@ import java.util.UUID;
 
 public class JavaApplication3 {
     public static void main(String[] args) {
+        /*
         UserRepository userRepository = new JCFUserRepository();
         UserService userService = new JCFUserService(userRepository);
 
@@ -74,7 +75,6 @@ public class JavaApplication3 {
         System.out.println(channelService.findById(channel01.getId()).getChannelName());
         channelService.deleteChannel(channel01.getId());
         System.out.println("All channels: " + channelService.findAll());
-
-
+        */
     }
 }
