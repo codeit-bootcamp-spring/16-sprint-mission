@@ -3,10 +3,6 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserChannelManager;
-import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
@@ -20,9 +16,8 @@ public class JavaApplication {
         JCFUserService userService = new JCFUserService();
         JCFChannelService channelService = new JCFChannelService();
         JCFMessageService messageService = new JCFMessageService(userService, channelService);
-        UserChannelManager userChannelManager = new UserChannelManager(userService, channelService);
-        userService.setUserChannelManager(userChannelManager);
-        channelService.setUserChannelManager(userChannelManager);
+        channelService.setUserService(userService);
+        userService.setChannelService(channelService);
 
         try {
             // 등록

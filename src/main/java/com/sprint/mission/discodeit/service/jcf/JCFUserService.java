@@ -1,14 +1,14 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.UserChannelManager;
+import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFUserService implements UserService {
     private final Map<UUID, User> data;
-    private UserChannelManager userChannelManager;
+    private ChannelService channelService;
 
     public JCFUserService() {
         this.data = new HashMap<>();
@@ -42,10 +42,17 @@ public class JCFUserService implements UserService {
 
     @Override
     public void delete(UUID id) {
-        this.userChannelManager.deleteUser(id);
+        User user = this.findById(id).orElseThrow(
+                () -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+        user.validateNotDeleted();
+
+        // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
+        Set<UUID> channels = new HashSet<>(user.getChannels());
+        channels.forEach(channelId -> this.channelService.removeUserFromChannel(channelId, id));
+        user.softDelete();
     }
 
-    public void setUserChannelManager(UserChannelManager userChannelManager) {
-        this.userChannelManager = userChannelManager;
+    public void setChannelService(ChannelService channelService) {
+        this.channelService = channelService;
     }
 }
