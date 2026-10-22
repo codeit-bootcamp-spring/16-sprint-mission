@@ -3,16 +3,19 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public class JCFUserService implements UserService {
 
-    private final List<User> users = new ArrayList<>();
+    private final UserRepository userRepository;
+    public JCFUserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public User createUser(String name, int age) {
@@ -24,28 +27,22 @@ public class JCFUserService implements UserService {
         }
 
         User user = new User(name, age);
-        users.add(user);
-
-        return user;
+        return userRepository.save(user);
     }
 
     @Override
     public Optional<User> findById(UUID id) {
-        return users.stream()
-                .filter(user -> user.getId().equals(id))
-                .findFirst();
+        return userRepository.findById(id);
     }
 
     @Override
     public List<User> findByName(String name) {
-        return users.stream()
-                .filter(user -> user.getName().equals(name))
-                .toList();
+        return userRepository.findByName(name);
     }
 
     @Override
     public List<User> findAll() {
-        return List.copyOf(users);
+        return userRepository.findAll();
     }
 
     @Override
@@ -62,7 +59,7 @@ public class JCFUserService implements UserService {
         }
 
         user.update(name, age);
-        return user;
+        return userRepository.save(user);
     }
 
     @Override
@@ -71,7 +68,7 @@ public class JCFUserService implements UserService {
                 .orElseThrow(
                         () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
-        users.remove(user);
+        userRepository.delete(user);
     }
 
     @Override
@@ -81,6 +78,7 @@ public class JCFUserService implements UserService {
                         () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
         user.addChannel(channel);
+        userRepository.save(user);
     }
 
     @Override
@@ -90,6 +88,7 @@ public class JCFUserService implements UserService {
                         () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
                 );
         user.removeChannel(channel);
+        userRepository.save(user);
     }
 
     @Override
@@ -99,6 +98,7 @@ public class JCFUserService implements UserService {
                         () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
                 );
         user.addMessage(message);
+        userRepository.save(user);
     }
 
     @Override
@@ -108,5 +108,6 @@ public class JCFUserService implements UserService {
                         () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
                 );
         user.removeMessage(message);
+        userRepository.save(user);
     }
 }

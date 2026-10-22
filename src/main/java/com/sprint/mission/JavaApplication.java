@@ -3,8 +3,17 @@ package com.sprint.mission;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.DiscordService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.jcf.DiscordService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
@@ -18,15 +27,34 @@ public class JavaApplication {
 
     public static void main(String[] args) {
 
+//        // Service 생성
+//        UserService userService = new JCFUserService();
+//        ChannelService channelService =
+//                new JCFChannelService(userService);
+//        MessageService messageService =
+//                new JCFMessageService(userService, channelService);
+//        DiscordService discordService =
+//                new DiscordService(userService, channelService, messageService);
+        // Repository 생성
+        UserRepository userRepository = new FileUserRepository();
+
+        ChannelRepository channelRepository = new FileChannelRepository();
+
+        MessageRepository messageRepository = new FileMessageRepository();
+
+
         // Service 생성
-        UserService userService = new JCFUserService();
+        UserService userService =
+                new FileUserService(userRepository);
+
         ChannelService channelService =
-                new JCFChannelService(userService);
+                new FileChannelService(channelRepository, userService);
+
         MessageService messageService =
-                new JCFMessageService(userService, channelService);
+                new FileMessageService(messageRepository, userService, channelService);
+
         DiscordService discordService =
                 new DiscordService(userService, channelService, messageService);
-
 
         // USER
         System.out.println("=== User 생성 ===");
@@ -83,8 +111,7 @@ public class JavaApplication {
         );
 
         System.out.println("\n====== 1번 채팅방 참여 Users ======");
-        System.out.println(channel1.getUsers()
-        );
+        System.out.println(channel1.getUsers());
 
         System.out.println("\n====== Channel 유저 추가 ======");
         System.out.println(channel1.getUsers());
@@ -145,10 +172,14 @@ public class JavaApplication {
 
         // USER CHANNEL MESSAGE 연관관계
         System.out.println("\n====== 세훈의 메세지 ======");
-        System.out.println(sehun.getMessages());
+        System.out.println(userService.findById(sehun.getId())
+                .orElseThrow()
+                .getMessages());
 
         System.out.println("\n====== 1번 채팅방 메세지 ======");
-        System.out.println(channel1.getMessages());
+        System.out.println(channelService.findById(channel1.getId())
+                .orElseThrow()
+                .getMessages());
 
         System.out.println("\n====== Message 삭제 ======");
         messageService.deleteMessage(message2.getId());

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -14,13 +15,16 @@ import java.util.UUID;
 
 public class JCFMessageService implements MessageService {
 
-    private final List<Message> messages = new ArrayList<>();
-
+    private final MessageRepository messageRepository;
     private final UserService userService;
     private final ChannelService channelService;
 
-    public JCFMessageService(UserService userService,
-                             ChannelService channelService) {
+    public JCFMessageService(
+            MessageRepository messageRepository,
+            UserService userService,
+            ChannelService channelService
+    ) {
+        this.messageRepository = messageRepository;
         this.userService = userService;
         this.channelService = channelService;
     }
@@ -47,20 +51,17 @@ public class JCFMessageService implements MessageService {
         Message message = new Message(content, user, channel);
         userService.addMessageToUser(userId, message);
         channelService.addMessageToChannel(channelId, message);
-        messages.add(message);
-        return message;
+        return messageRepository.save(message);
     }
 
     @Override
     public Optional<Message> findMessageById(UUID id) {
-        return messages.stream()
-                .filter(message -> message.getId().equals(id))
-                .findFirst();
+        return messageRepository.findById(id);
     }
 
     @Override
     public List<Message> findAll() {
-        return List.copyOf(messages);
+        return messageRepository.findAll();
     }
 
     @Override
@@ -74,7 +75,7 @@ public class JCFMessageService implements MessageService {
         }
 
         message.update(content);
-        return message;
+        return messageRepository.save(message);
     }
 
     @Override
@@ -86,27 +87,25 @@ public class JCFMessageService implements MessageService {
         Channel channel = message.getChannel();
         userService.removeMessageFromUser(user.getId(), message);
         channelService.removeMessageFromChannel(channel.getId(), message);
-        messages.remove(message);
+        messageRepository.delete(message);
     }
 
     @Override
-    public void deleteByUserId (UUID userId) {
-        List<UUID> messageIds = messages.stream()
-                .filter(message -> // 전달받은 유저의 메세지들만 찾기
-                        message.getUser().getId().equals(userId)
-                )
-                .map(Message::getId) // 해당 메세지 객체의 ID만 가져오기
+    public void deleteByUserId(UUID userId) {
+        List<UUID> messageIds = messageRepository.findAll().stream()
+                .filter(message ->
+                        message.getUser().getId().equals(userId))
+                .map(Message::getId)
                 .toList();
 
-        messageIds.forEach(this::deleteMessage); // 해당 메세지 객체들 ID를 통해 삭제
+        messageIds.forEach(this::deleteMessage);
     }
 
     @Override
-    public void deleteByChannelId (UUID channelId) {
-        List<UUID> messageIds = messages.stream()
+    public void deleteByChannelId(UUID channelId) {
+        List<UUID> messageIds = messageRepository.findAll().stream()
                 .filter(message ->
-                        message.getChannel().getId().equals(channelId)
-                )
+                        message.getChannel().getId().equals(channelId))
                 .map(Message::getId)
                 .toList();
 

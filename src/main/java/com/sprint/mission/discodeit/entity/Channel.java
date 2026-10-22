@@ -56,7 +56,9 @@ public class Channel extends Base{
         if (users.size() == 1) {
             throw new IllegalStateException("채널에 최소 한명의 유저는 존재하여야합니다.");
         }
-        this.users.remove(user);
+        users.removeIf(existsUser ->
+                existsUser.getId().equals(user.getId()));
+
         updateUpdatedAt(System.currentTimeMillis());
     }
 
@@ -66,7 +68,8 @@ public class Channel extends Base{
     }
 
     public void removeMessage(Message message) {
-        messages.remove(message);
+        messages.removeIf(existsMessage ->
+                existsMessage.getId().equals(message.getId()));
         updateUpdatedAt(System.currentTimeMillis());
     }
 

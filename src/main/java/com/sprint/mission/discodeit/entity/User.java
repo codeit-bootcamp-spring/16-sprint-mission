@@ -55,7 +55,8 @@ public class User extends Base{
         if (!exists) {
             throw new IllegalArgumentException("참여하고 있지 않은 채널입니다.");
         }
-        channels.remove(channel);
+        channels.removeIf(existsChannel ->
+                existsChannel.getId().equals(channel.getId()));
         updateUpdatedAt(System.currentTimeMillis());
     }
 
@@ -65,7 +66,8 @@ public class User extends Base{
     }
 
     public void removeMessage(Message message) {
-        messages.remove(message);
+        messages.removeIf(existsMessage ->
+                existsMessage.getId().equals(message.getId()));
         updateUpdatedAt(System.currentTimeMillis());
     }
 

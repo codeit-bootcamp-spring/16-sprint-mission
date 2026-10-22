@@ -1,10 +1,12 @@
-package com.sprint.mission.discodeit.service;
+package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 public class DiscordService {

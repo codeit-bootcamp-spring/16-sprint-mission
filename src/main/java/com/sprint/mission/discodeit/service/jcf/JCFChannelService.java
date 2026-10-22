@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -13,11 +14,14 @@ import java.util.UUID;
 
 public class JCFChannelService implements ChannelService {
 
-    private final List<Channel> channels = new ArrayList<>();
-
+    private final ChannelRepository channelRepository;
     private final UserService userService;
 
-    public JCFChannelService(UserService userService) {
+    public JCFChannelService(
+            ChannelRepository channelRepository,
+            UserService userService
+    ) {
+        this.channelRepository = channelRepository;
         this.userService = userService;
     }
 
@@ -42,38 +46,27 @@ public class JCFChannelService implements ChannelService {
         Channel channel = new Channel(name, users); // 새로운 채널 생성
         users.forEach(user ->
                 userService.addChannelToUser(user.getId(), channel)); // 유저 도메인에게도 해당 채널 생성(연결)
-        channels.add(channel); // 채널 리스트에 채널 추가
-        return channel;
+        return channelRepository.save(channel);
     }
 
     @Override
     public Optional<Channel> findById(UUID id) {
-        return channels.stream()
-                .filter(channel -> channel.getId().equals(id))
-                .findFirst();
+        return channelRepository.findById(id);
     }
 
     @Override
     public Optional<Channel> findByName(String name) {
-        return channels.stream()
-                .filter(channel -> channel.getName().equals(name))
-                .findFirst();
+        return channelRepository.findByName(name);
     }
 
     @Override
     public List<Channel> findAll() {
-        return List.copyOf(channels);
+        return channelRepository.findAll();
     }
 
     @Override
     public List<Channel> findAllByUserId(UUID userId) {
-        return channels.stream() // 전체 채널들 순회
-                .filter(channel ->
-                        channel.getUsers().stream() // 채널 별 유저들 순회
-                                .anyMatch(user ->
-                                        user.getId().equals(userId)) // 유저들 중 userId가 하나라도 있는가?
-                )
-                .toList();
+        return channelRepository.findAllByUserId(userId);
     }
 
     @Override
@@ -85,7 +78,7 @@ public class JCFChannelService implements ChannelService {
             throw new IllegalArgumentException("채널 이름은 비어있을 수 없습니다.");
         }
         channel.update(name);
-        return channel;
+        return channelRepository.save(channel);
     }
 
     @Override
@@ -94,10 +87,10 @@ public class JCFChannelService implements ChannelService {
                 () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
         );
         channel.getUsers()
-                        .forEach(user ->
-                                userService.removeChannelFromUser(user.getId(), channel));
+                .forEach(user ->
+                        userService.removeChannelFromUser(user.getId(), channel));
 
-        channels.remove(channel);
+        channelRepository.delete(channel);
     }
 
     @Override
@@ -116,15 +109,22 @@ public class JCFChannelService implements ChannelService {
         }
 
         for (User user : users) {
-            if (channel.getUsers().contains(user)) {
-                throw new IllegalArgumentException("이미 채널에 존재하는 사용자입니다.");
+            boolean exists = channel.getUsers().stream()
+                    .anyMatch(existingUser ->
+                            existingUser.getId().equals(user.getId()));
+
+            if (exists) {
+                throw new IllegalArgumentException(
+                        "이미 채널에 존재하는 사용자입니다.");
             }
         }
 
         users.forEach(user -> {
-            channel.addUser(user); // 위에서 받은 채널에 각 유저들을 추가하기
-            userService.addChannelToUser(user.getId(), channel); // 각 유저들에게 채널 추가하기
+            channel.addUser(user);
+            userService.addChannelToUser(user.getId(), channel);
         });
+
+        channelRepository.save(channel);
     }
 
     @Override
@@ -143,12 +143,17 @@ public class JCFChannelService implements ChannelService {
         }
 
         for (User user : users) {
-            if (!channel.getUsers().contains(user)) {
-                throw new IllegalArgumentException("채널에 존재하는 사용자만 제거 가능합니다.");
+            boolean exists = channel.getUsers().stream()
+                    .anyMatch(existingUser ->
+                            existingUser.getId().equals(user.getId()));
+
+            if (!exists) {
+                throw new IllegalArgumentException(
+                        "채널에 존재하는 사용자만 제거 가능합니다.");
             }
         }
 
-        if (users.size() >= channel.getUsers().size()){
+        if (users.size() >= channel.getUsers().size()) {
             throw new IllegalArgumentException("채널에는 최소 1명의 사용자가 존재해야 합니다.");
         }
 
@@ -156,6 +161,8 @@ public class JCFChannelService implements ChannelService {
             channel.removeUser(user);
             userService.removeChannelFromUser(user.getId(), channel);
         });
+
+        channelRepository.save(channel);
     }
 
     @Override
@@ -165,6 +172,7 @@ public class JCFChannelService implements ChannelService {
                         () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
         channel.addMessage(message);
+        channelRepository.save(channel);
     }
 
     @Override
@@ -174,5 +182,6 @@ public class JCFChannelService implements ChannelService {
                         () -> new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
         channel.removeMessage(message);
+        channelRepository.save(channel);
     }
 }
