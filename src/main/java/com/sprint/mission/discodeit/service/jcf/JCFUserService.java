@@ -103,7 +103,7 @@ public class JCFUserService implements UserService {
         User user = this.findById(id);
         user.updateUsername(username);
 
-        List< Channel> channelList = this.channelRepository.getChannels();
+        List<Channel> channelList = this.channelRepository.getChannels();
 
         channelList.stream()
                 .filter(channel -> channel.getUsers().contains(user))
@@ -121,6 +121,19 @@ public class JCFUserService implements UserService {
                 .filter(message -> message.getSender().equals(user))
                 .forEach(message -> {
                     message.getSender().updateUsername(username);
+
+                    this.messageRepository.save(message);
+                });
+
+        // 각 메세지의, 채널의, 유저
+        messageList.stream()
+                .filter(message -> message.getChannel() != null)
+                .filter(message -> message.getChannel().getUsers().stream()
+                        .anyMatch(u -> u.getId().equals(user.getId())))
+                .forEach(message -> {
+                    message.getChannel().getUsers().stream()
+                            .filter(u -> u.getId().equals(user.getId()))
+                            .forEach(u -> u.updateUsername(username));
 
                     this.messageRepository.save(message);
                 });

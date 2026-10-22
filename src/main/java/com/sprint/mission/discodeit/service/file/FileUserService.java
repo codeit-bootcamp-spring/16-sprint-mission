@@ -22,6 +22,7 @@ public class FileUserService implements UserService {
 
         User user = new User(username);
 
+
         String fileName = "./data/users/" + user.getId() + ".ser";
 
         try (FileOutputStream fos = new FileOutputStream(fileName);
