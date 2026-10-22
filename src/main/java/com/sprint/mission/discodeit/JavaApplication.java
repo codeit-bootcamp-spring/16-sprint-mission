@@ -1,107 +1,141 @@
+
 package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 
-import com.sprint.mission.discodeit.service.jcf.JCFUserService;
-import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
-import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
+import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+
+import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
+
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+
+import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
+
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 
 public class JavaApplication {
 
     public static void main(String[] args) {
 
-        JCFUserService userService = new JCFUserService();
+        UserService userService = new FileUserService();
+        ChannelService channelService = new FileChannelService();
+        MessageService messageService = new FileMessageService(userService, channelService);
 
-        User user1 = userService.add(new User("신지섭"));
-        User user2 = userService.add(new User("아무나"));
+        System.out.println("기존 사용자 수: " + userService.getAll().size());
+        System.out.println("기존 채널 수: " + channelService.getAll().size());
+        System.out.println("기존 메시지 수: " + messageService.getAll().size());
 
-        System.out.println("추가 후 사용자 수: " + userService.getAll().size());
-
-        System.out.println("조회한 사용자: " + userService.getById(user1.getId()).getUsername());
-
-        User updatedUser = userService.update(user1.getId(), "코드잇");
-
-        System.out.println("수정 후 이름: " + updatedUser.getUsername());
-
-        userService.delete(user1.getId());
-
-        System.out.println("삭제 후 사용자 수: " + userService.getAll().size());
-
-        try {
-            userService.getById(user1.getId());
-        } catch (IllegalArgumentException e) {
-            System.out.println("사용자 삭제 확인: " + e.getMessage());
-        }
-
-
-        JCFChannelService channelService = new JCFChannelService();
-
-        Channel channel = channelService.add(new Channel("자유게시판"));
-
-        System.out.println("추가 후 채널 수: " + channelService.getAll().size());
-
-        System.out.println("조회한 채널 이름: " + channelService.getById(channel.getId()).getName());
-
-        Channel updatedChannel = channelService.update(channel.getId(), "잡담방");
-
-        System.out.println("수정 후 채널 이름: " + updatedChannel.getName());
-
-        channelService.delete(channel.getId());
-
-        System.out.println("삭제 후 채널 수: " + channelService.getAll().size());
-
-        try {
-            channelService.getById(channel.getId());
-        } catch (IllegalArgumentException e) {
-            System.out.println("채널 삭제 확인: " + e.getMessage());
-        }
-
-
-        JCFMessageService messageService = new JCFMessageService(userService, channelService);
-
-        Channel messageChannel = channelService.add(new Channel("일반"));
+        User user = userService.add(new User("신지섭"));
+        Channel channel = channelService.add(new Channel("일반"));
 
         Message message = messageService.add(
-                new Message("안녕하세요!", user2.getId(), messageChannel.getId())
+                new Message("안녕하세요!", user.getId(), channel.getId())
         );
 
-        System.out.println("추가 후 메시지 수: " + messageService.getAll().size());
+        System.out.println("저장한 사용자: " + user.getUsername());
+        System.out.println("저장한 채널: " + channel.getName());
+        System.out.println("저장한 메시지: " + message.getContent());
 
-        System.out.println("조회한 메시지: " + messageService.getById(message.getId()).getContent());
+        UserService newUserService = new FileUserService();
+        ChannelService newChannelService = new FileChannelService();
+        MessageService newMessageService = new FileMessageService(newUserService, newChannelService);
 
-        Message updatedMessage = messageService.update(message.getId(), "반갑습니다!");
+        System.out.println("불러온 사용자: " + newUserService.getById(user.getId()).getUsername());
+        System.out.println("불러온 채널: " + newChannelService.getById(channel.getId()).getName());
+        System.out.println("불러온 메시지: " + newMessageService.getById(message.getId()).getContent());
 
-        System.out.println("수정 후 메시지: " + updatedMessage.getContent());
+        System.out.println("전체 사용자 수: " + newUserService.getAll().size());
+        System.out.println("전체 채널 수: " + newChannelService.getAll().size());
+        System.out.println("전체 메시지 수: " + newMessageService.getAll().size());
 
-        messageService.delete(message.getId());
+        UserRepository jcfUserRepository = new JCFUserRepository();
+        User jcfUser = new User("JCF 테스트");
 
-        System.out.println("삭제 후 메시지 수: " + messageService.getAll().size());
+        jcfUserRepository.save(jcfUser);
+        System.out.println("JCF 사용자 저장: " + jcfUserRepository.getById(jcfUser.getId()).getUsername());
+
+        jcfUserRepository.delete(jcfUser.getId());
+        System.out.println("JCF 사용자 삭제 후 수: " + jcfUserRepository.getAll().size());
+
+        UserRepository fileUserRepository = new FileUserRepository();
+        User fileUser = new User("File 테스트");
+
+        fileUserRepository.save(fileUser);
+
+        UserRepository newFileUserRepository = new FileUserRepository();
+        System.out.println("File 사용자 조회: " + newFileUserRepository.getById(fileUser.getId()).getUsername());
+
+        newFileUserRepository.delete(fileUser.getId());
 
         try {
-            messageService.getById(message.getId());
+            newFileUserRepository.getById(fileUser.getId());
+            System.out.println("File 사용자 삭제 확인: 실패");
         } catch (IllegalArgumentException e) {
-            System.out.println("메시지 삭제 확인: " + e.getMessage());
+            System.out.println("File 사용자 삭제 확인: 성공");
         }
 
+        ChannelRepository jcfChannelRepository = new JCFChannelRepository();
+        Channel jcfChannel = new Channel("JCF 채널");
+
+        jcfChannelRepository.save(jcfChannel);
+        System.out.println("JCF 채널 조회: " + jcfChannelRepository.getById(jcfChannel.getId()).getName());
+
+        jcfChannelRepository.delete(jcfChannel.getId());
+        System.out.println("JCF 채널 삭제 후 수: " + jcfChannelRepository.getAll().size());
+
+        ChannelRepository fileChannelRepository = new FileChannelRepository();
+        Channel fileChannel = new Channel("File 채널");
+
+        fileChannelRepository.save(fileChannel);
+
+        ChannelRepository newFileChannelRepository = new FileChannelRepository();
+        System.out.println("File 채널 조회: " + newFileChannelRepository.getById(fileChannel.getId()).getName());
+
+        newFileChannelRepository.delete(fileChannel.getId());
 
         try {
-            Message message1 = new Message("테스트1", user1.getId(), messageChannel.getId());
-            messageService.add(message1);
-            System.out.println("사용자 검증 실패");
+            newFileChannelRepository.getById(fileChannel.getId());
+            System.out.println("File 채널 삭제 확인: 실패");
         } catch (IllegalArgumentException e) {
-            System.out.println("사용자 검증 성공: " + e.getMessage());
+            System.out.println("File 채널 삭제 확인: 성공");
         }
+
+        MessageRepository jcfMessageRepository = new JCFMessageRepository();
+        Message jcfMessage = new Message("JCF 메시지", user.getId(), channel.getId());
+
+        jcfMessageRepository.save(jcfMessage);
+        System.out.println("JCF 메시지 조회: " + jcfMessageRepository.getById(jcfMessage.getId()).getContent());
+
+        jcfMessageRepository.delete(jcfMessage.getId());
+        System.out.println("JCF 메시지 삭제 후 수: " + jcfMessageRepository.getAll().size());
+
+        MessageRepository fileMessageRepository = new FileMessageRepository();
+        Message fileMessage = new Message("File 메시지", user.getId(), channel.getId());
+
+        fileMessageRepository.save(fileMessage);
+
+        MessageRepository newFileMessageRepository = new FileMessageRepository();
+        System.out.println("File 메시지 조회: " + newFileMessageRepository.getById(fileMessage.getId()).getContent());
+
+        newFileMessageRepository.delete(fileMessage.getId());
 
         try {
-            Message message2 = new Message("테스트2", user2.getId(), channel.getId());
-            messageService.add(message2);
-            System.out.println("채널 검증 실패");
+            newFileMessageRepository.getById(fileMessage.getId());
+            System.out.println("File 메시지 삭제 확인: 실패");
         } catch (IllegalArgumentException e) {
-            System.out.println("채널 검증 성공: " + e.getMessage());
+            System.out.println("File 메시지 삭제 확인: 성공");
         }
-
-        System.out.println("최종 메시지 수: " + messageService.getAll().size());
     }
 }
