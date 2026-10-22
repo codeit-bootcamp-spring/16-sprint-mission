@@ -92,15 +92,14 @@ public class FileChannelRepository implements ChannelRepository {
     @Override
     public List<Channel> findByCreatorId(UUID creatorId) {
         return findAll().stream()
-                .filter(channel -> channel.getCreator().getId().equals(creatorId))
+                .filter(channel -> channel.getCreatorId().equals(creatorId))
                 .toList();
     }
 
     @Override
     public List<Channel> findByParticipantId(UUID userId) {
         return findAll().stream()
-                .filter(channel -> channel.getChannelParticipants().stream()
-                        .anyMatch(user -> user.getId().equals(userId)))
+                .filter(channel -> channel.getParticipantIds().contains(userId))
                 .toList();
     }
 }

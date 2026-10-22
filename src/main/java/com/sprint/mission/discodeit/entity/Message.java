@@ -1,29 +1,28 @@
 package com.sprint.mission.discodeit.entity;
 
 import java.io.Serializable;
+import java.util.UUID;
 
 public class Message extends BaseEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     private String content;
-    private final User sender;
-    private final Channel channel;
+    private final UUID senderId;
+    private final UUID channelId;
 
-    public Message(String content, User sender, Channel channel) {
+    public Message(String content, UUID senderId, UUID channelId) {
         super();
-        if (content == null || content.isBlank()) {
-            throw new IllegalArgumentException("메시지를 작성해 주세요.");
-        }
-        Validation.validateNull(sender, "sender");
-        Validation.validateNull(channel, "channel");
+        Validation.validateBlank(content, "message");
+        Validation.validateNull(senderId, "senderId");
+        Validation.validateNull(channelId, "channelId");
         this.content = content;
-        this.sender = sender;
-        this.channel = channel;
+        this.senderId = senderId;
+        this.channelId = channelId;
     }
 
     public String getContent() { return content; }
-    public User getSender() { return sender; }
-    public Channel getChannel() { return channel; }
+    public UUID getSenderId() { return senderId; }
+    public UUID getChannelId() { return channelId; }
 
     public void updateMessage(String content) {
         Validation.validateBlank(content, "message");

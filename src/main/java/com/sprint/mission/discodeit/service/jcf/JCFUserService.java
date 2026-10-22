@@ -118,12 +118,13 @@ public class JCFUserService implements UserService {
 
         List<Channel> channels = channelService.getChannelsByParticipantId(userId);
         for (Channel channel : channels) {
-            if (channel.getCreator().getId().equals(userId)) {
+            if (channel.getCreatorId().equals(userId)) {
                 // 내가 만든 채널 삭제
                 channelService.deleteChannel(channel.getId(), userId);
             } else {
                 // 참여만 한 채널은 퇴장만
-                channel.leaveChannel(user);
+                channel.leaveChannel(userId);
+                user.removeChannelId(channel.getId());
             }
         }
 
@@ -136,3 +137,4 @@ public class JCFUserService implements UserService {
         user.deleteEmail();
     }
 }
+

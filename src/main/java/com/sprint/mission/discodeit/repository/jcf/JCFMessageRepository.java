@@ -37,22 +37,22 @@ public class JCFMessageRepository implements MessageRepository {
     @Override
     public List<Message> findByUserId(UUID userId) {
         return messages.values().stream()
-                .filter(message -> message.getSender().getId().equals(userId))
+                .filter(message -> message.getSenderId().equals(userId))
                 .toList();
     }
 
     @Override
     public List<Message> findByChannelId(UUID channelId) {
         return messages.values().stream()
-                .filter(message -> message.getChannel().getId().equals(channelId))
+                .filter(message -> message.getChannelId().equals(channelId))
                 .toList();
     }
 
     @Override
     public List<Message> findByUserIdAndChannelId(UUID userId, UUID channelId) {
         return messages.values().stream()
-                .filter(message -> message.getSender().getId().equals(userId)
-                        && message.getChannel().getId().equals(channelId))
+                .filter(message -> message.getSenderId().equals(userId)
+                        && message.getChannelId().equals(channelId))
                 .toList();
     }
 }

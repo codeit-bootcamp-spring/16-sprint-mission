@@ -3,15 +3,16 @@ package com.sprint.mission.discodeit.entity;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class User extends BaseEntity implements Serializable {
-    private static final long serialVersionUID = 1L;
+    private static final long serialVersionUID = 2L;
 
     private String username;
     private String password;
     private String email;
-    private final List<Channel> myChannels;
-    private final List<Message> myMessages;
+    private final List<UUID> myChannelIds;
+    private final List<UUID> myMessageIds;
 
     public User(String username, String password, String email) {
         super();
@@ -24,15 +25,15 @@ public class User extends BaseEntity implements Serializable {
         this.username = username;
         this.password = password;
         this.email = email;
-        this.myChannels = new ArrayList<>();
-        this.myMessages = new ArrayList<>();
+        this.myChannelIds = new ArrayList<>();
+        this.myMessageIds = new ArrayList<>();
     }
 
     public String getUsername() { return username; }
     public String getPassword() { return password; }
     public String getEmail() { return email; }
-    public List<Channel> getMyChannels() { return new ArrayList<>(myChannels); }
-    public List<Message> getMyMessages() { return new ArrayList<>(myMessages); }
+    public List<UUID> getMyChannelIds() { return new ArrayList<>(myChannelIds); }
+    public List<UUID> getMyMessageIds() { return new ArrayList<>(myMessageIds); }
 
     public void changeUsername(String username) {
         Validation.validateWhitespace(username, "username");
@@ -53,33 +54,35 @@ public class User extends BaseEntity implements Serializable {
         super.update();
     }
 
-    public void addChannel(Channel channel) {
-        Validation.validateNull(channel, "channel");
-        if (myChannels.contains(channel)) {
+    public void addChannelId(UUID channelId) {
+        Validation.validateNull(channelId, "channelId");
+        if (myChannelIds.contains(channelId)) {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
-        myChannels.add(channel);
+        myChannelIds.add(channelId);
         super.update();
     }
 
-    public void addMessage(Message message) {
-        Validation.validateNull(message, "message");
-        myMessages.add(message);
+    public void addMessageId(UUID messageId) {
+        Validation.validateNull(messageId, "messageId");
+        if (myMessageIds.contains(messageId)) {
+            throw new IllegalArgumentException("이미 등록된 메시지입니다.");
+        }
+        myMessageIds.add(messageId);
         super.update();
     }
 
-    public void removeChannel(Channel channel) {
-        Validation.validateNull(channel, "channel");
-        if (!myChannels.contains(channel)) {
+    public void removeChannelId(UUID channelId) {
+        Validation.validateNull(channelId, "channelId");
+        if (!myChannelIds.remove(channelId)) {
             throw new IllegalArgumentException("해당 채널에 참여하고 있지 않습니다.");
         }
-        myChannels.remove(channel);
         super.update();
     }
 
-    public void removeMessage(Message message) {
-        Validation.validateNull(message, "message");
-        myMessages.remove(message);
+    public void removeMessageId(UUID messageId) {
+        Validation.validateNull(messageId, "messageId");
+        myMessageIds.remove(messageId);
         super.update();
     }
 

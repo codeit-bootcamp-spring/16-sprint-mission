@@ -7,75 +7,55 @@ import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
 
 public class JCFChannelService implements ChannelService {
-    private final Map<UUID, Channel> channelsData;
-
+    private final Map<UUID, Channel> channelsData = new HashMap<>();
     private UserService userService;
     private MessageService messageService;
 
-    public JCFChannelService() {
-        this.channelsData = new HashMap<>();
-    }
+    public void setUserService(UserService userService) { this.userService = userService; }
+    public void setMessageService(MessageService messageService) { this.messageService = messageService; }
 
-    public void setUserService(UserService userService) {
-        this.userService = userService;
-    }
-
-    public void setMessageService(MessageService messageService) {
-        this.messageService = messageService;
-    }
-
-    // 채널 이름 중복 검증
-    private void validateDuplicateChannelName(String channelName) {
-        boolean exists = channelsData.values().stream()
-                .anyMatch(c -> c.getChannelName().equals(channelName));
-        if (exists) {
-            throw new RuntimeException("\"" + channelName + "\" 라는 채널이 이미 존재합니다.");
+    private void validateDuplicateChannelName(String name, UUID excludedId) {
+        if (channelsData.values().stream().anyMatch(c -> c.getChannelName().equals(name)
+                && !c.getId().equals(excludedId))) {
+            throw new IllegalArgumentException("\"" + name + "\" 라는 채널이 이미 존재합니다.");
         }
     }
 
-    // 채널 생성자(방장) 검증
-    private void validateCreator(Channel channel, UUID creatorId, String action) {
-        if (!channel.getCreator().getId().equals(creatorId)) {
-            throw new IllegalArgumentException("방장만 채널을 " + action +"할 수 있습니다.");
-        }
+    private void validateCreator(Channel channel, UUID userId, String action) {
+        if (!channel.getCreatorId().equals(userId)) throw new IllegalArgumentException("방장만 채널을 " + action + "할 수 있습니다.");
     }
 
-    // 입/퇴장 메시지 등록
-    private void postSystemMessage(User user, Channel channel, String content) {
-        messageService.createMessage(new Message(content, user, channel));
+    private void postSystemMessage(UUID userId, UUID channelId, String content) {
+        messageService.createMessage(new Message(content, userId, channelId));
     }
 
-    // 생성
     @Override
     public Channel createChannel(Channel channel) {
-        if (channel == null) {
-            throw new IllegalArgumentException("채널이 null입니다.");
-        }
-        if (channelsData.containsKey(channel.getId())) {
-            throw new IllegalArgumentException("이미 존재하는 채널입니다.");
-        }
-        User user = userService.getUserById(channel.getCreator().getId());
-        validateDuplicateChannelName(channel.getChannelName());
-
-        channel.joinChannel(user);
+        if (channel == null) throw new IllegalArgumentException("채널이 null입니다.");
+        if (channelsData.containsKey(channel.getId())) throw new IllegalArgumentException("이미 존재하는 채널입니다.");
+        User creator = userService.getUserById(channel.getCreatorId());
+        validateDuplicateChannelName(channel.getChannelName(), null);
+        channel.joinChannel(creator.getId());
+        creator.addChannelId(channel.getId());
         channelsData.put(channel.getId(), channel);
-        postSystemMessage(user, channel, "[" + channel.getChannelName() + "] 채널이 생성되었습니다.");
-
+        postSystemMessage(creator.getId(), channel.getId(), "[" + channel.getChannelName() + "] 채널이 생성되었습니다.");
         return channel;
     }
 
-    // 참여/퇴장
     @Override
     public Channel joinChannel(UUID channelId, UUID userId) {
         User user = userService.getUserById(userId);
         Channel channel = getChannelById(channelId);
-
-        channel.joinChannel(user);
-        postSystemMessage(user, channel, user.getUsername() + "님이 입장하셨습니다.");
-
+        channel.joinChannel(userId);
+        user.addChannelId(channelId);
+        postSystemMessage(userId, channelId, user.getUsername() + "님이 입장하셨습니다.");
         return channel;
     }
 
@@ -83,89 +63,67 @@ public class JCFChannelService implements ChannelService {
     public void leaveChannel(UUID channelId, UUID userId) {
         User user = userService.getUserById(userId);
         Channel channel = getChannelById(channelId);
-
-        if (!isParticipant(channelId, userId)) {
-            throw new IllegalArgumentException("참여 중인 채널이 아닙니다.");
-        }
-        if (channel.getCreator().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("방장은 채널을 나갈 수 없습니다. 채널을 삭제해 주세요.");
-        }
-
-        postSystemMessage(user, channel, user.getUsername() + "님이 퇴장하셨습니다.");
-        channel.leaveChannel(user);
+        if (!isParticipant(channelId, userId)) throw new IllegalArgumentException("참여 중인 채널이 아닙니다.");
+        if (channel.getCreatorId().equals(userId)) throw new IllegalArgumentException("방장은 채널을 나갈 수 없습니다. 채널을 삭제해 주세요.");
+        postSystemMessage(userId, channelId, user.getUsername() + "님이 퇴장하셨습니다.");
+        channel.leaveChannel(userId);
+        user.removeChannelId(channelId);
     }
 
     @Override
     public boolean isParticipant(UUID channelId, UUID userId) {
         userService.getUserById(userId);
-        Channel channel = getChannelById(channelId);
-
-        return channel.getChannelParticipants().stream()
-                .anyMatch(user -> user.getId().equals(userId));
+        return getChannelById(channelId).getParticipantIds().contains(userId);
     }
 
-    // 조회
     @Override
-    public Channel getChannelById(UUID channelId) {
-        Channel channel = channelsData.get(channelId);
-        if (channel == null || !channelsData.containsKey(channelId)) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다.");
-        }
+    public Channel getChannelById(UUID id) {
+        Channel channel = channelsData.get(id);
+        if (channel == null) throw new IllegalArgumentException("해당 채널이 존재하지 않습니다.");
         return channel;
     }
 
     @Override
-    public List<Channel> getAllChannels() {
-        return channelsData.values().stream()
-                .toList();
-    }
+    public List<Channel> getAllChannels() { return new ArrayList<>(channelsData.values()); }
 
     @Override
     public List<Channel> getChannelsByCreatorId(UUID creatorId) {
         userService.getUserById(creatorId);
-
-        return channelsData.values().stream()
-                .filter(c -> c.getCreator().getId().equals(creatorId))
-                .toList();
+        return channelsData.values().stream().filter(c -> c.getCreatorId().equals(creatorId)).toList();
     }
 
     @Override
-    public List<Channel> getChannelsByParticipantId(UUID participantId) {
-        userService.getUserById(participantId);
-
-        return channelsData.values().stream()
-                .filter(c -> c.getChannelParticipants().stream()
-                        .anyMatch(user -> user.getId().equals(participantId)))
-                .toList();
+    public List<Channel> getChannelsByParticipantId(UUID userId) {
+        userService.getUserById(userId);
+        return channelsData.values().stream().filter(c -> c.getParticipantIds().contains(userId)).toList();
     }
 
     @Override
     public List<User> getParticipants(UUID channelId) {
-        return getChannelById(channelId).getChannelParticipants();
+        List<User> result = new ArrayList<>();
+        for (UUID userId : getChannelById(channelId).getParticipantIds()) result.add(userService.getUserById(userId));
+        return List.copyOf(result);
     }
 
-    // 수정
     @Override
-    public Channel updateChannelName(UUID channelId, UUID userId, String channelName) {
+    public Channel updateChannelName(UUID channelId, UUID userId, String name) {
         userService.getUserById(userId);
         Channel channel = getChannelById(channelId);
         validateCreator(channel, userId, "수정");
-        validateDuplicateChannelName(channelName);
-
-        channel.changeChannelName(channelName);
+        validateDuplicateChannelName(name, channelId);
+        channel.changeChannelName(name);
         return channel;
     }
 
-    // 삭제
     @Override
     public void deleteChannel(UUID channelId, UUID userId) {
         Channel channel = getChannelById(channelId);
         validateCreator(channel, userId, "삭제");
-
         messageService.deleteMessagesByChannelId(channelId);
-
-        channel.getChannelParticipants().forEach(channel::leaveChannel);
-
+        for (UUID participantId : channel.getParticipantIds()) {
+            channel.leaveChannel(participantId);
+            userService.getUserById(participantId).removeChannelId(channelId);
+        }
         channelsData.remove(channelId);
     }
 }
