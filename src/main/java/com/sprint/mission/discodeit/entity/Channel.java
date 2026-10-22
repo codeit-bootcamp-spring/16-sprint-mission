@@ -4,21 +4,21 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Channel extends BaseEntity {
-    private Map<UUID, User> users;
-    private Map<UUID, Message> messages;
+    private Set<UUID> users;
+    private Set<UUID> messages;
     private String name;
 
     public Channel(String name) {
         super();
         this.name = name;
-        this.users = new HashMap<>();
-        this.messages = new LinkedHashMap<>();
+        this.users = new HashSet<>();
+        this.messages = new LinkedHashSet<>();
     }
 
     public Channel update(Channel channel) {
         this.name = channel.name;
-        this.users = channel.users;
-        this.messages = channel.messages;
+        this.users = channel.getUsers();
+        this.messages = channel.getMessages();
         super.update();
         return this;
     }
@@ -27,8 +27,8 @@ public class Channel extends BaseEntity {
         if (this.isDeleted()) throw new IllegalStateException("삭제된 채널입니다.");
     }
 
-    public void addUser(User user) {
-        this.users.put(user.getId(), user);
+    public void addUser(UUID userId) {
+        this.users.add(userId);
         super.update();
     }
 
@@ -37,8 +37,8 @@ public class Channel extends BaseEntity {
         super.update();
     }
 
-    public void addMessage(Message message) {
-        this.messages.put(message.getId(), message);
+    public void addMessage(UUID messageId) {
+        this.messages.add(messageId);
         super.update();
     }
 
@@ -55,22 +55,25 @@ public class Channel extends BaseEntity {
         this.name = name;
     }
 
-    public Map<UUID, User> getUsers() {
+    public Set<UUID> getUsers() {
         return this.users;
     }
 
-    public Map<UUID, Message> getMessages() {
+    public Set<UUID> getMessages() {
         return this.messages;
     }
 
     @Override
     public String toString() {
-        String userStr = this.users.values()
-                .stream()
-                .map(User::getName)
-                .collect(Collectors.joining(", "));
+        String userStr = this.users.stream().map(uuid -> uuid.toString().substring(0, 4)).collect(Collectors.joining(
+                ", "));
         String msgStr =
-                this.getMessages().values().stream().map(Message::getContent).collect(Collectors.joining(", "));
-        return "이름: %s, 가입 유저: [ %s ], 메세지 내역: [ %s ], 상태: %s".formatted(this.name, userStr, msgStr, super.getStatus());
+                this.getMessages().stream().map(uuid -> uuid.toString().substring(0, 4)).collect(Collectors.joining(
+                        ", "));
+        return "이름: %s, id: %s, 가입 유저 (id): [ %s ], 메세지 내역 (id): [ %s ], 상태: %s".formatted(
+                this.name,
+                this.getId().toString().substring(0, 4), userStr,
+                msgStr,
+                super.getStatus());
     }
 }

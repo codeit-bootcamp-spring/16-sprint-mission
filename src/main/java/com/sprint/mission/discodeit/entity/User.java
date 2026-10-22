@@ -1,37 +1,36 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class User extends BaseEntity {
-    private Map<UUID, Channel> channels;
-    private Map<UUID, Message> messages;
+    private Set<UUID> channels;
+    private Set<UUID> messages;
     private String name;
 
     public User(String name) {
         super();
         this.name = name;
-        this.channels = new HashMap<>();
-        this.messages = new LinkedHashMap<>();
+        this.channels = new HashSet<>();
+        this.messages = new LinkedHashSet<>();
     }
 
     public User update(User user) {
-        this.name = user.name;
-        this.channels = user.channels;
-        this.messages = user.messages;
+        this.name = user.getName();
+        this.channels = user.getChannels();
+        this.messages = user.getMessages();
         super.update();
         return this;
     }
 
     public void validateNotDeleted() {
-        if (this.isDeleted()) throw new IllegalStateException("삭제된 유저입니다.");
+        if (this.isDeleted()) {
+            throw new IllegalStateException("삭제된 유저입니다.");
+        }
     }
 
-    public void addChannel(Channel channel) {
-        this.channels.put(channel.getId(), channel);
+    public void addChannel(UUID channelId) {
+        this.channels.add(channelId);
         super.update();
     }
 
@@ -41,8 +40,8 @@ public class User extends BaseEntity {
     }
 
     //
-    public void addMessage(Message message) {
-        this.messages.put(message.getId(), message);
+    public void addMessage(UUID messageId) {
+        this.messages.add(messageId);
         super.update();
     }
 
@@ -59,18 +58,21 @@ public class User extends BaseEntity {
         this.name = name;
     }
 
-    public Map<UUID, Channel> getChannels() {
+    public Set<UUID> getChannels() {
         return this.channels;
     }
 
-    public Map<UUID, Message> getMessages() {
+    public Set<UUID> getMessages() {
         return this.messages;
     }
 
     @Override
     public String toString() {
         String str =
-                this.channels.values().stream().map(Channel::getName).collect(Collectors.joining(", "));
-        return "이름: %s, 가입 채널: [ %s ], 상태: %s".formatted(this.name, str, super.getStatus());
+                this.channels.stream().map(uuid -> uuid.toString().substring(0, 4)).collect(Collectors.joining(", "));
+        return "이름: %s, id: %s, 가입 채널: [ %s ], 상태: %s".formatted(
+                this.name,
+                this.getId().toString().substring(0, 4),
+                str, super.getStatus());
     }
 }

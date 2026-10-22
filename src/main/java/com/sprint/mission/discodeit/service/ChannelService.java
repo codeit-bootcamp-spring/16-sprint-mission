@@ -12,7 +12,7 @@ public interface ChannelService {
 
     Channel update(UUID id, Channel channel);
 
-    void addUserToChannel(UUID channelId, User user);
+    void addUserToChannel(UUID channelId, UUID userId);
 
     void removeUserFromChannel(UUID channelId, UUID userId);
 

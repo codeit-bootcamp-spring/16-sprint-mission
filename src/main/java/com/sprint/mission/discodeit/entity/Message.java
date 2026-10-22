@@ -42,7 +42,9 @@ public class Message extends BaseEntity {
 
     @Override
     public String toString() {
-        return "보낸 사람: %s, 내용: %s, 채널: %s, 상태: %s".formatted(this.sentFrom.getName(), this.content,
+        return "id: %s, 보낸 사람: %s, 내용: %s, 채널: %s, 상태: %s".formatted(
+                this.getId().toString().substring(0, 4),
+                this.sentFrom.getName(), this.content,
                 this.channel.getName(), super.getStatus());
     }
 }
