@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 
 import java.io.*;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class FileMessageRepository implements MessageRepository {
     private final File file = new File("data/messages.ser");
@@ -54,6 +55,13 @@ public class FileMessageRepository implements MessageRepository {
         Map<UUID, Message> data = load();
         data.remove(id);
         saveAll(data);
+    }
+
+    @Override
+    public List<Message> findByContent(String keyword) {
+        return load().values().stream()
+                .filter(message -> message.getContent().contains(keyword))
+                .collect(Collectors.toList());
     }
 
 }
