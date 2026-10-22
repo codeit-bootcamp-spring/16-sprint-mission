@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.*;
@@ -10,10 +11,12 @@ import java.util.*;
 public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final ChannelService channelService;
+    private final MessageService messageService;
 
-    public BasicUserService(UserRepository userRepository, ChannelService channelService) {
+    public BasicUserService(UserRepository userRepository, ChannelService channelService, MessageService messageService) {
         this.userRepository = userRepository;
         this.channelService = channelService;
+        this.messageService = messageService;
     }
 
     @Override
@@ -53,6 +56,10 @@ public class BasicUserService implements UserService {
         // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
         Set<UUID> channels = new HashSet<>(user.getChannels());
         channels.forEach(channelId -> this.channelService.removeUserFromChannel(channelId, id));
+
+        // 유저 삭제 시 메세지들도 삭제
+        Set<UUID> messages = new HashSet<>(user.getMessages());
+        messages.forEach(this.messageService::delete);
 
         this.userRepository.delete(id);
     }

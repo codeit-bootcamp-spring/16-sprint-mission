@@ -35,9 +35,8 @@ public class JavaApplication {
 
 
         ChannelService channelService = new BasicChannelService(channelRepository, userRepository);
-        UserService userService = new BasicUserService(userRepository, channelService);
         MessageService messageService = new BasicMessageService(messageRepository, userRepository, channelRepository);
-
+        UserService userService = new BasicUserService(userRepository, channelService, messageService);
 
         try {
             // 등록
@@ -106,14 +105,17 @@ public class JavaApplication {
             // 수정
             System.out.printf("유저 수정 전 --> %s\n", user1);
             user1.setName("이수철");
-            System.out.printf("유저 수정 후 --> %s\n\n", userService.update(user1.getId(), user1));
+            userService.update(user1.getId(), user1);
+            System.out.printf("유저 수정 후 --> %s\n\n", user1);
             System.out.printf("채널 수정 전 --> %s\n", channel1);
             channel1.setName("QR 코드 2");
-            System.out.printf("채널 수정 후 --> %s\n\n", channelService.update(channel1.getId(), channel1));
+            channelService.update(channel1.getId(), channel1);
+            System.out.printf("채널 수정 후 --> %s\n\n", channel1);
             System.out.printf("메세지 수정 전 --> %s\n", message1);
             message1.setContent("안녕하세요 이수철입니다!");
-            System.out.printf("메세지 수정 후 --> %s\n\n", messageService.update(message1.getId(), message1));
-            
+            messageService.update(message1.getId(), message1);
+            System.out.printf("메세지 수정 후 --> %s\n\n", message1);
+
             // 삭제
             System.out.printf("유저 삭제 --> %s\n", user1);
             userService.delete(user1.getId());
