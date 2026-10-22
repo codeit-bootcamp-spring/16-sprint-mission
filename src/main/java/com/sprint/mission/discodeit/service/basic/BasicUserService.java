@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -12,58 +12,70 @@ import java.util.UUID;
 public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
+    private final MessageRepository messageRepository;
 
-    public BasicUserService(UserRepository userRepository, ChannelRepository channelRepository) {
+    public BasicUserService(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
+        this.messageRepository = messageRepository;
     }
 
     @Override
     public User create(String name, String password, String email) {
-        if(userRepository.findAll().stream().anyMatch(u -> u.getEmail().equals(email))){
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+        List<User> users = entities.getUsers();
+
+        if(users.stream().anyMatch(u -> u.getEmail().equals(email))){
             throw new IllegalArgumentException("사용 중인 이메일");
         }
 
         User user = new User(name, password, email);
-        return userRepository.save(user);
+        users.add(user);
+        entities.saveAll();
+        return user;
     }
 
     @Override
     public User findById(UUID id) {
-        return userRepository.findById(id).orElseThrow(() ->
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+
+        return entities.getUsers().stream().filter(u -> u.getId().equals(id)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
     }
 
     @Override
     public List<User> findAll() {
-        return userRepository.findAll();
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+        return entities.getUsers();
     }
 
     @Override
     public User update(UUID id, String name, String password, String email) {
-        User user = findById(id);
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+        List<User> users = entities.getUsers();
 
-        if(userRepository.findAll().stream().anyMatch(otherUser ->
+        User user = users.stream().filter(u -> u.getId().equals(id)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        if(users.stream().anyMatch(otherUser ->
                 !otherUser.getId().equals(id)&&otherUser.getEmail().equals(email))){
             throw new IllegalArgumentException("사용 중인 이메일");
         }
 
         user.update(name, password, email);
-        return userRepository.save(user);
+        entities.saveAll();
+        return user;
     }
 
     @Override
     public void delete(UUID id) {
-        User user = findById(id);
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+        List<User> users = entities.getUsers();
 
-        for(Channel channel : channelRepository.findAll()){
-            boolean removed = channel.getUsers().removeIf(u -> u.getId().equals(id));
-            if(removed){
-                channelRepository.save(channel);
-            }
-        }
+        User user = users.stream().filter(u -> u.getId().equals(id)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없음"));
 
-        user.getChannels().clear();
-        userRepository.deleteById(id);
+        users.remove(user);
+        entities.saveAll();
     }
 }

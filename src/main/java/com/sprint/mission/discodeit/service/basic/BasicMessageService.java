@@ -24,77 +24,66 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public Message create(String comment, UUID userId, UUID channelId) {
-        User user = userRepository.findById(userId).orElseThrow(() ->
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+
+        User user = entities.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
 
-        Channel channel = channelRepository.findById(channelId).orElseThrow(() ->
+        Channel channel = entities.getChannels().stream().filter(c -> c.getId().equals(channelId)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
         Message message = new Message(comment, user, channel);
-
-        user.getMessages().add(message);
-        channel.getMessages().add(message);
-
-        userRepository.save(user);
-        channelRepository.save(channel);
-        return messageRepository.save(message);
+        entities.getMessages().add(message);
+        entities.saveAll();
+        return message;
     }
 
     @Override
     public Message findById(UUID id) {
-        return messageRepository.findById(id).orElseThrow(() ->
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+
+        return entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("메시지를 찾을 수 없음"));
     }
 
     @Override
     public List<Message> findAll() {
-        return messageRepository.findAll();
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+        return entities.getMessages();
     }
 
     @Override
     public Message update(UUID id, String comment) {
-        Message message = findById(id);
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
 
-        User user = userRepository.findById(message.getUser().getId()).orElseThrow(() ->
+        Message message = entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("메시지를 찾을 수 없음"));
+
+        entities.getUsers().stream().filter(u -> u.getId().equals(message.getUser().getId())).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
 
-        Channel channel = channelRepository.findById(message.getChannel().getId()).orElseThrow(() ->
+        entities.getChannels().stream().filter(c -> c.getId().equals(message.getChannel().getId())).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
         message.update(comment);
-
-        for(Message userMessage : user.getMessages()){
-            if(userMessage.getId().equals(id)){
-                userMessage.update(comment);
-            }
-        }
-
-        for(Message channelMessage : channel.getMessages()){
-            if(channelMessage.getId().equals(id)){
-                channelMessage.update(comment);
-            }
-        }
-
-        userRepository.save(user);
-        channelRepository.save(channel);
-        return messageRepository.save(message);
+        entities.saveAll();
+        return message;
     }
 
     @Override
     public void delete(UUID id) {
-        Message message = findById(id);
+        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
 
-        User user = userRepository.findById(message.getUser().getId()).orElseThrow(() ->
+        Message message = entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("메시지를 찾을 수 없음"));
+
+        entities.getUsers().stream().filter(u -> u.getId().equals(message.getUser().getId())).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
 
-        Channel channel = channelRepository.findById(message.getChannel().getId()).orElseThrow(() ->
+        entities.getChannels().stream().filter(c -> c.getId().equals(message.getChannel().getId())).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
-        user.getMessages().removeIf(m -> m.getId().equals(id));
-        channel.getMessages().removeIf(m -> m.getId().equals(id));
-
-        userRepository.save(user);
-        channelRepository.save(channel);
-        messageRepository.deleteById(id);
+        entities.getMessages().remove(message);
+        entities.saveAll();
     }
 }

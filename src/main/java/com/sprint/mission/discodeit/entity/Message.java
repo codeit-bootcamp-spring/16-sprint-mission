@@ -33,5 +33,12 @@ public class Message extends BaseEntity {
         this.comment = comment;
         updateTime();
     }
+    public void updateUser(User user) {
+        this.user = user;
+    }
+
+    public void updateChannel(Channel channel) {
+        this.channel = channel;
+    }
 
 }

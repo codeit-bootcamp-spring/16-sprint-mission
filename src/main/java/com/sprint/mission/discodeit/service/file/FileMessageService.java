@@ -4,6 +4,10 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.service.basic.BasicEntityService;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -48,16 +52,18 @@ public class FileMessageService implements MessageService {
 
     @Override
     public Message create(String comment, UUID userId, UUID channelId) {
-        User user = userService.findById(userId);
-        Channel channel = channelService.findById(channelId);
+        BasicEntityService entities = new BasicEntityService(
+                new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
 
-        List<Message> messages = loadMessages();
+        User user = entities.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        Channel channel = entities.getChannels().stream().filter(c -> c.getId().equals(channelId)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("채널을 찾을 수 없음"));
+
         Message message = new Message(comment, user, channel);
-
-        messages.add(message);
-        userService.addMessage(userId, message);
-        channelService.addMessage(channelId, message);
-        saveMessage(messages);
+        entities.getMessages().add(message);
+        entities.saveAll();
         return message;
     }
 
@@ -74,27 +80,38 @@ public class FileMessageService implements MessageService {
 
     @Override
     public Message update(UUID id, String comment) {
-        List<Message> messages = loadMessages();
-        Message message = messages.stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(()->
+        BasicEntityService entities = new BasicEntityService(
+                new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
+
+        Message message = entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("메시지를 찾을 수 없음"));
 
+        entities.getUsers().stream().filter(u -> u.getId().equals(message.getUser().getId())).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        entities.getChannels().stream().filter(c -> c.getId().equals(message.getChannel().getId())).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("채널을 찾을 수 없음"));
+
         message.update(comment);
-        userService.updateMessage(message.getUser().getId(), id, comment);
-        channelService.updateMessage(message.getChannel().getId(), id, comment);
-        saveMessage(messages);
+        entities.saveAll();
         return message;
     }
 
     @Override
     public void delete(UUID id) {
-        List<Message> messages = loadMessages();
+        BasicEntityService entities = new BasicEntityService(
+                new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
 
-        Message message = messages.stream().filter(m->m.getId().equals(id)).findFirst().orElseThrow(()->
+        Message message = entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("메시지를 찾을 수 없음"));
 
-        userService.removeMessage(message.getUser().getId(), id);
-        channelService.removeMessage(message.getChannel().getId(), id);
-        messages.remove(message);
-        saveMessage(messages);
+        entities.getUsers().stream().filter(u -> u.getId().equals(message.getUser().getId())).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        entities.getChannels().stream().filter(c -> c.getId().equals(message.getChannel().getId())).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("채널을 찾을 수 없음"));
+
+        entities.getMessages().remove(message);
+        entities.saveAll();
     }
 }

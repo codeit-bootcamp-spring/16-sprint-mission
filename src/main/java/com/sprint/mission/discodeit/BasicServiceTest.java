@@ -39,8 +39,8 @@ public class BasicServiceTest {
     }
 
     static void test(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
-        UserService userService = new BasicUserService(userRepository, channelRepository);
-        ChannelService channelService = new BasicChannelService(channelRepository, userRepository);
+        UserService userService = new BasicUserService(userRepository, channelRepository, messageRepository);
+        ChannelService channelService = new BasicChannelService(channelRepository, userRepository, messageRepository);
         MessageService messageService = new BasicMessageService(messageRepository, userRepository, channelRepository);
 
         //기존 파일 데이터와 중복되지 않는 테스트 값
@@ -68,6 +68,32 @@ public class BasicServiceTest {
         //Message 생성 조회 수정
         Message message = messageService.create("안녕하세요",user.getId(),channel.getId());
         System.out.println(messageService.findById(message.getId()).getComment());
+
+        //사용자 수정 후 파일에 저장된 작성자와 참여자 확인
+        userService.update(user.getId(),"관계수정유저","5678",user.getEmail());
+
+        Message savedMessage = messageRepository.findById(message.getId()).orElseThrow(() ->
+                new IllegalArgumentException("메시지를 찾을 수 없음"));
+
+        Channel checkedChannel = channelRepository.findById(channel.getId()).orElseThrow(() ->
+                new IllegalArgumentException("채널을 찾을 수 없음"));
+
+        System.out.println("메시지 작성자: "+savedMessage.getUser().getName());
+        System.out.println("채널 참여자: "+checkedChannel.getUsers().get(0).getName());
+        System.out.println("채널 메시지 작성자: "+checkedChannel.getMessages().get(0).getUser().getName());
+
+//채널 수정 후 파일에 저장된 채널 정보 확인
+        channelService.update(channel.getId(),"관계수정채널-"+testId);
+
+        User checkedUser = userRepository.findById(user.getId()).orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        Message checkedMessage = messageRepository.findById(message.getId()).orElseThrow(() ->
+                new IllegalArgumentException("메시지를 찾을 수 없음"));
+
+        System.out.println("사용자 참여채널: "+checkedUser.getChannels().get(0).getName());
+        System.out.println("메시지 채널: "+checkedMessage.getChannel().getName());
+        System.out.println("사용자 메시지 채널: "+checkedUser.getMessages().get(0).getChannel().getName());
 
         messageService.update(message.getId(),"수정된 메시지");
         System.out.println(messageService.findById(message.getId()).getComment());
@@ -111,5 +137,6 @@ public class BasicServiceTest {
         }catch (IllegalArgumentException e){
             System.out.println(e.getMessage());
         }
+
     }
 }

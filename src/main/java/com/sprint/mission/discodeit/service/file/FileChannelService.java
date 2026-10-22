@@ -3,7 +3,11 @@ package com.sprint.mission.discodeit.service.file;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicEntityService;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -87,15 +91,18 @@ public class FileChannelService implements ChannelService {
 
     @Override
     public Channel create(String name) {
-        List<Channel> channels = loadChannels();
-        if(channels.stream().anyMatch(channel -> channel.getName().equals(name))){
-            throw new IllegalArgumentException("사용중인 채널명");
+        BasicEntityService entities = new BasicEntityService(
+                new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
+
+        List<Channel> channels = entities.getChannels();
+
+        if(channels.stream().anyMatch(c -> c.getName().equals(name))){
+            throw new IllegalArgumentException("사용 중인 채널명");
         }
+
         Channel channel = new Channel(name);
-
         channels.add(channel);
-       saveChannel(channels);
-
+        entities.saveAll();
         return channel;
     }
 
@@ -112,40 +119,55 @@ public class FileChannelService implements ChannelService {
 
     @Override
     public Channel update(UUID id, String name) {
-        List<Channel> channels = loadChannels();
+        BasicEntityService entities = new BasicEntityService(
+                new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
+
+        List<Channel> channels = entities.getChannels();
+
         Channel channel = channels.stream().filter(c -> c.getId().equals(id)).findFirst().orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없음"));
-        if (channels.stream().anyMatch(otherChannel -> !otherChannel.getId().equals(id) && otherChannel.getName().equals(name))) {
-            throw new IllegalArgumentException("사용중인 채널명");
+                new IllegalArgumentException("채널을 찾을 수 없음"));
+
+        if(channels.stream().anyMatch(otherChannel ->
+                !otherChannel.getId().equals(id)&&otherChannel.getName().equals(name))){
+            throw new IllegalArgumentException("사용 중인 채널명");
         }
+
         channel.update(name);
-        saveChannel(channels);
+        entities.saveAll();
         return channel;
     }
 
     @Override
     public void delete(UUID id) {
-        List<Channel> channels = loadChannels();
+        BasicEntityService entities = new BasicEntityService(new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
+
+        List<Channel> channels = entities.getChannels();
+
         Channel channel = channels.stream().filter(c -> c.getId().equals(id)).findFirst().orElseThrow(() ->
-                new IllegalArgumentException("채널명을 찾을 수 없음"));
+                new IllegalArgumentException("채널을 찾을 수 없음"));
+
         channels.remove(channel);
-        saveChannel(channels);
+        entities.saveAll();
     }
 
     @Override
     public void join(UUID channelId, UUID userId) {
-        List<Channel> channels = loadChannels();
-        Channel channel = channels.stream().filter(c -> c.getId().equals(channelId)).findFirst().orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없음"));
-        User user = fileUserService.findById(userId);
+        BasicEntityService entities = new BasicEntityService(
+                new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
 
-        if (channel.getUsers().stream().anyMatch(u -> u.getId().equals(userId))) {
+        Channel channel = entities.getChannels().stream().filter(c -> c.getId().equals(channelId)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("채널을 찾을 수 없음"));
+
+        User user = entities.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(() ->
+                new IllegalArgumentException("사용자를 찾을 수 없음"));
+
+        if(channel.getUsers().stream().anyMatch(u -> u.getId().equals(userId))){
             throw new IllegalArgumentException("이미 참여한 사용자입니다");
         }
 
         channel.getUsers().add(user);
-        fileUserService.addChannel(userId, channel);
-        saveChannel(channels);
+        user.getChannels().add(channel);
+        entities.saveAll();
     }
 
 
