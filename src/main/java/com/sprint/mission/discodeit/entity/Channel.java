@@ -42,6 +42,9 @@ public class Channel extends BaseEntity implements Serializable {
         updateTimestamp();
     }
     public void addParticipant(UUID userId) {
+        if(participantIds.contains(userId)) {
+            throw new IllegalArgumentException("이미 참여한 사용자입니다: " + userId);
+        }
         this.participantIds.add(userId);
         updateTimestamp();
     }
