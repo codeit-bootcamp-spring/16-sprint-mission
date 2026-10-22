@@ -1,0 +1,70 @@
+package com.sprint.mission.discodeit.repository.file;
+
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+
+import java.io.*;
+import java.util.*;
+
+public class FileChannelRepository implements ChannelRepository {
+    public FileChannelRepository() {
+        this.writeChannelFile(new HashMap<>());
+    }
+
+    @Override
+    public Channel create(String name) {
+        Channel channel = new Channel(name);
+        Map<UUID, Channel> channels = this.readChannelFile();
+        channels.put(channel.getId(), channel);
+        this.writeChannelFile(channels);
+        return channel;
+    }
+
+    @Override
+    public Channel update(UUID id, Channel newChannel) {
+        Map<UUID, Channel> channels = this.readChannelFile();
+        channels.put(id, newChannel);
+        this.writeChannelFile(channels);
+        return newChannel;
+    }
+
+    @Override
+    public Optional<Channel> findById(UUID id) {
+        Map<UUID, Channel> channels = this.readChannelFile();
+        return Optional.ofNullable(channels.get(id));
+    }
+
+    @Override
+    public List<Channel> findAll() {
+        Map<UUID, Channel> channels = this.readChannelFile();
+        return channels.values().stream().toList();
+    }
+
+    @Override
+    public void delete(UUID id) {
+        Map<UUID, Channel> channels = this.readChannelFile();
+        Channel channel = channels.get(id);
+        channel.softDelete();
+        this.writeChannelFile(channels);
+    }
+
+    public Map<UUID, Channel> readChannelFile() {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./data/channel.ser"))) {
+            @SuppressWarnings("unchecked")
+            Map<UUID, Channel> channels = (Map<UUID, Channel>) ois.readObject();
+            return channels;
+        } catch (IOException e) {
+            throw new UncheckedIOException("파일 입출력 도중 예외가 발생했습니다.", e);
+        } catch (ClassNotFoundException e) {
+            throw new NoClassDefFoundError("직렬화된 객체의 클래스를 찾을 수 없습니다.");
+        }
+    }
+
+    public void writeChannelFile(Map<UUID, Channel> channels) {
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("./data/channel.ser"))) {
+            oos.writeObject(channels);
+        } catch (IOException e) {
+            throw new UncheckedIOException("파일 입출력 도중 예외가 발생했습니다.", e);
+        }
+    }
+}

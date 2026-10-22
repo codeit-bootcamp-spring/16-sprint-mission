@@ -6,6 +6,9 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
@@ -23,9 +26,13 @@ import java.util.NoSuchElementException;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        UserRepository userRepository = new JCFUserRepository();
-        ChannelRepository channelRepository = new JCFChannelRepository();
-        MessageRepository messageRepository = new JCFMessageRepository();
+//        UserRepository userRepository = new JCFUserRepository();
+//        ChannelRepository channelRepository = new JCFChannelRepository();
+//        MessageRepository messageRepository = new JCFMessageRepository();
+        UserRepository userRepository = new FileUserRepository();
+        ChannelRepository channelRepository = new FileChannelRepository();
+        MessageRepository messageRepository = new FileMessageRepository();
+
 
         ChannelService channelService = new BasicChannelService(channelRepository, userRepository);
         UserService userService = new BasicUserService(userRepository, channelService);
@@ -106,7 +113,7 @@ public class JavaApplication {
             System.out.printf("메세지 수정 전 --> %s\n", message1);
             message1.setContent("안녕하세요 이수철입니다!");
             System.out.printf("메세지 수정 후 --> %s\n\n", messageService.update(message1.getId(), message1));
-
+            
             // 삭제
             System.out.printf("유저 삭제 --> %s\n", user1);
             userService.delete(user1.getId());
