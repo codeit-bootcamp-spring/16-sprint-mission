@@ -31,13 +31,15 @@ public class FileChannelRepository implements ChannelRepository {
     @Override
     public Optional<Channel> findById(UUID id) {
         Map<UUID, Channel> channels = this.readChannelFile();
-        return Optional.ofNullable(channels.get(id));
+        Channel channel = channels.get(id);
+        if (channel != null && !channel.isDeleted()) return Optional.of(channel);
+        return Optional.empty();
     }
 
     @Override
     public List<Channel> findAll() {
         Map<UUID, Channel> channels = this.readChannelFile();
-        return channels.values().stream().toList();
+        return channels.values().stream().filter(channel -> !channel.isDeleted()).toList();
     }
 
     @Override

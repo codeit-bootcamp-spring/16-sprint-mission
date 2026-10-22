@@ -26,12 +26,14 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public Optional<User> findById(UUID id) {
-        return Optional.ofNullable(this.data.get(id));
+        User user = this.data.get(id);
+        if (user != null && !user.isDeleted()) return Optional.of(user);
+        return Optional.empty();
     }
 
     @Override
     public List<User> findAll() {
-        return this.data.values().stream().toList();
+        return this.data.values().stream().filter(user -> !user.isDeleted()).toList();
     }
 
     @Override

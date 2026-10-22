@@ -26,12 +26,14 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public Optional<Message> findById(UUID id) {
-        return Optional.ofNullable(this.data.get(id));
+        Message message = this.data.get(id);
+        if (message != null && !message.isDeleted()) return Optional.of(message);
+        return Optional.empty();
     }
 
     @Override
     public List<Message> findAll() {
-        return this.data.values().stream().toList();
+        return this.data.values().stream().filter(message -> !message.isDeleted()).toList();
     }
 
     @Override

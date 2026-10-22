@@ -31,13 +31,15 @@ public class FileUserRepository implements UserRepository {
     @Override
     public Optional<User> findById(UUID id) {
         Map<UUID, User> users = this.readUserFile();
-        return Optional.ofNullable(users.get(id));
+        User user = users.get(id);
+        if (user != null && !user.isDeleted()) return Optional.of(user);
+        return Optional.empty();
     }
 
     @Override
     public List<User> findAll() {
         Map<UUID, User> users = this.readUserFile();
-        return users.values().stream().toList();
+        return users.values().stream().filter(user -> !user.isDeleted()).toList();
     }
 
     @Override

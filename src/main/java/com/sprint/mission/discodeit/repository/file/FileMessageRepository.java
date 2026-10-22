@@ -31,13 +31,15 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public Optional<Message> findById(UUID id) {
         Map<UUID, Message> messages = this.readMessageFile();
-        return Optional.ofNullable(messages.get(id));
+        Message message = messages.get(id);
+        if (message != null && !message.isDeleted()) return Optional.of(message);
+        return Optional.empty();
     }
 
     @Override
     public List<Message> findAll() {
         Map<UUID, Message> messages = this.readMessageFile();
-        return messages.values().stream().toList();
+        return messages.values().stream().filter(message -> !message.isDeleted()).toList();
     }
 
     @Override

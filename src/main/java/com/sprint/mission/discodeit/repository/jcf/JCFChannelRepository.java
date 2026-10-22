@@ -26,12 +26,14 @@ public class JCFChannelRepository implements ChannelRepository {
 
     @Override
     public Optional<Channel> findById(UUID id) {
-        return Optional.ofNullable(this.data.get(id));
+        Channel channel = this.data.get(id);
+        if (channel != null && !channel.isDeleted()) return Optional.of(channel);
+        return Optional.empty();
     }
 
     @Override
     public List<Channel> findAll() {
-        return this.data.values().stream().toList();
+        return this.data.values().stream().filter(channel -> !channel.isDeleted()).toList();
     }
 
     @Override
