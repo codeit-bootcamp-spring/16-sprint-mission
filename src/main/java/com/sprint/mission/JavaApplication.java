@@ -3,26 +3,45 @@ package com.sprint.mission;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.file.FileChannelService;
-import com.sprint.mission.discodeit.service.file.FileMessageService;
-import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.basic.BasicChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicMessageService;
+import com.sprint.mission.discodeit.service.basic.BasicUserService;
 
 import java.util.List;
+import java.util.UUID;
 
 public class JavaApplication {
 
     public static void main(String[] args) {
-        FileUserService userService = new FileUserService();
-        FileChannelService channelService = new FileChannelService();
-        FileMessageService messageService = new FileMessageService();
+        // File Repository를 Basic 서비스에 주입
+        UserRepository userRepository = new FileUserRepository();
+        ChannelRepository channelRepository = new FileChannelRepository();
+        MessageRepository messageRepository = new FileMessageRepository();
 
-        // 서비스 연결
-        userService.setChannelService(channelService);
-        userService.setMessageService(messageService);
-        channelService.setUserService(userService);
-        channelService.setMessageService(messageService);
-        messageService.setUserService(userService);
-        messageService.setChannelService(channelService);
+        UserService userService = new BasicUserService(
+                userRepository,
+                channelRepository,
+                messageRepository
+        );
+        ChannelService channelService = new BasicChannelService(
+                channelRepository,
+                userRepository,
+                messageRepository
+        );
+        MessageService messageService = new BasicMessageService(
+                userRepository,
+                channelRepository,
+                messageRepository
+        );
 
         // 저장된 사용자를 재사용하고, 없으면 생성한다.
         User woody = findOrCreateUser(
@@ -97,6 +116,17 @@ public class JavaApplication {
                 userService
         );
 
+        runExceptionExamples(
+                userService,
+                channelService,
+                messageService,
+                woody,
+                buzz,
+                general,
+                games,
+                woodyMessage
+        );
+
         // 기존 메시지 수정 예시
         System.out.println("\n[메시지 수정 예시]");
         messageService.updateMessage(
@@ -125,8 +155,107 @@ public class JavaApplication {
         System.out.println("메시지: " + messageService.getAllMessages().size() + "개");
     }
 
+    private static void runExceptionExamples(
+            UserService userService,
+            ChannelService channelService,
+            MessageService messageService,
+            User woody,
+            User buzz,
+            Channel general,
+            Channel games,
+            Message woodyMessage
+    ) {
+        System.out.println("\n[서비스 예외 처리 확인]");
+
+        checkExpectedException("틀린 비밀번호", "비밀번호가 일치하지 않습니다.", () ->
+                userService.updatePassword(
+                        woody.getId(),
+                        "wrong-password",
+                        "new-password"
+                )
+        );
+
+        checkExpectedException("이미 사용 중인 이메일", "이미 사용 중인 이메일입니다.", () ->
+                userService.createUser(
+                        new User(
+                                "duplicateEmailUser",
+                                "password123!",
+                                woody.getEmail()
+                        )
+                )
+        );
+
+        checkExpectedException("이미 사용 중인 채널명", "라는 채널이 이미 존재합니다.", () ->
+                channelService.createChannel(
+                        new Channel(general.getChannelName(), woody)
+                )
+        );
+
+        checkExpectedException(
+                "방장이 아닌 사용자의 채널명 변경",
+                "방장만 채널을 수정할 수 있습니다.",
+                () ->
+                channelService.updateChannelName(
+                        games.getId(),
+                        woody.getId(),
+                        "권한 없는 변경 시도"
+                )
+        );
+
+        checkExpectedException(
+                "다른 사용자가 작성한 메시지 수정",
+                "본인이 작성한 메시지만 수정할 수 있습니다.",
+                () ->
+                messageService.updateMessage(
+                        woodyMessage.getId(),
+                        buzz.getId(),
+                        "권한 없는 수정 시도"
+                )
+        );
+
+        User outsider = new User(
+                "outsider",
+                "password123!",
+                "exception-check-" + UUID.randomUUID() + "@example.com"
+        );
+        userService.createUser(outsider);
+
+        try {
+            checkExpectedException(
+                    "채널 비참여자의 메시지 작성",
+                    "채널에 참여한 유저만 메시지를 작성할 수 있습니다.",
+                    () ->
+                    messageService.createMessage(
+                            new Message("참여하지 않은 채널에 보내는 메시지", outsider, general)
+                    )
+            );
+        } finally {
+            // 예외 테스트용으로 만든 사용자는 데이터 파일에 남기지 않는다.
+            userService.deleteUser(outsider.getId(), "password123!");
+        }
+    }
+
+    private static void checkExpectedException(
+            String caseName,
+            String expectedMessage,
+            Runnable action
+    ) {
+        try {
+            action.run();
+            System.out.println("[예외 미발생] " + caseName
+                    + " (예상 메시지: " + expectedMessage + ")");
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage() != null && e.getMessage().contains(expectedMessage)) {
+                System.out.println("[예외 확인] " + caseName + " -> " + e.getMessage());
+            } else {
+                System.out.println("[예상과 다른 예외] " + caseName
+                        + " -> " + e.getMessage());
+            }
+        }
+    }
+
     private static User findOrCreateUser(
-            FileUserService userService,
+            UserService userService,
             String email,
             String username,
             String password
@@ -146,7 +275,7 @@ public class JavaApplication {
     }
 
     private static Channel findOrCreateChannel(
-            FileChannelService channelService,
+            ChannelService channelService,
             String channelName,
             User creator
     ) {
@@ -163,7 +292,7 @@ public class JavaApplication {
     }
 
     private static Message findOrCreateMessage(
-            FileMessageService messageService,
+            MessageService messageService,
             String content,
             User sender,
             Channel channel
@@ -207,8 +336,8 @@ public class JavaApplication {
 
     private static void printAllMessages(
             List<Message> messages,
-            FileUserService userService,
-            FileChannelService channelService
+            UserService userService,
+            ChannelService channelService
     ) {
         System.out.println();
         System.out.println("전체 메시지:");
@@ -236,7 +365,7 @@ public class JavaApplication {
     private static void printChatRoom(
             Channel channel,
             List<Message> messages,
-            FileUserService userService
+            UserService userService
     ) {
         System.out.println();
         System.out.println(removeEmojis(channel.getChannelName()));

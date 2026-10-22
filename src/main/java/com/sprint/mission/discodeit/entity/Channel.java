@@ -23,9 +23,9 @@ public class Channel extends BaseEntity implements Serializable {
     }
 
     public String getChannelName() { return channelName; }
-    public User getCreator() { return creator; }
     public List<User> getChannelParticipants() { return new ArrayList<>(channelParticipants); }
     public List<Message> getChannelMessages() { return new ArrayList<>(channelMessages); }
+    public User getCreator() { return creator; }
 
     public void changeChannelName(String channelName) {
         Validation.validateBlank(channelName, "channelName");

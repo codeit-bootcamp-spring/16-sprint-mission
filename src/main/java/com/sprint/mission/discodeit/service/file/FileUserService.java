@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -20,7 +19,7 @@ public class FileUserService implements UserService {
 
     private final Path userDirectory;
 
-    private ChannelService channelService;
+    private FileChannelService channelService;
     private MessageService messageService;
 
     public FileUserService() {
@@ -37,7 +36,7 @@ public class FileUserService implements UserService {
         }
     }
 
-    public void setChannelService(ChannelService channelService) {
+    public void setChannelService(FileChannelService channelService) {
         this.channelService = channelService;
     }
 
@@ -57,6 +56,11 @@ public class FileUserService implements UserService {
         } catch (IOException e) {
             throw new RuntimeException("사용자 저장에 실패했습니다.", e);
         }
+    }
+
+    // 같은 패키지의 File 서비스가 연관 객체 변경 후 사용자 파일을 저장할 때 사용
+    void saveUser(User user) {
+        writeUser(user);
     }
 
     private User readUser(Path file) {
@@ -90,25 +94,25 @@ public class FileUserService implements UserService {
         return users;
     }
 
-    // 비밀번호 검증
     private void validatePassword(String origin, String entered) {
         if (origin == null || !origin.equals(entered)) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
     }
 
-    // 이메일 중복 검증
     private void validateDuplicateEmail(String email) {
-        if (email == null) return;
+        if (email == null) {
+            return;
+        }
 
         boolean exists = readAllUsers().stream()
                 .anyMatch(user -> email.equals(user.getEmail()));
+
         if (exists) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
     }
 
-    // 생성
     @Override
     public User createUser(User user) {
         if (user == null) {
@@ -122,12 +126,10 @@ public class FileUserService implements UserService {
         }
 
         validateDuplicateEmail(user.getEmail());
-
         writeUser(user);
         return user;
     }
 
-    // 조회
     @Override
     public User getUserById(UUID userId) {
         return readUser(userId);
@@ -138,7 +140,6 @@ public class FileUserService implements UserService {
         return List.copyOf(readAllUsers());
     }
 
-    // 수정
     @Override
     public User updateUsername(UUID userId, String username) {
         User user = getUserById(userId);
@@ -148,7 +149,11 @@ public class FileUserService implements UserService {
     }
 
     @Override
-    public User updatePassword(UUID userId, String originPassword, String newPassword) {
+    public User updatePassword(
+            UUID userId,
+            String originPassword,
+            String newPassword
+    ) {
         User user = getUserById(userId);
         validatePassword(user.getPassword(), originPassword);
         user.changePassword(newPassword);
@@ -169,31 +174,31 @@ public class FileUserService implements UserService {
         }
 
         validateDuplicateEmail(email);
-
         user.changeEmail(email);
         writeUser(user);
         return user;
     }
 
-    // 삭제
     @Override
     public void deleteUser(UUID userId, String password) {
-        User user = readUser(userId);
+        User user = getUserById(userId);
         validatePassword(user.getPassword(), password);
 
-        // 1. 메시지 삭제
+        // 사용자가 작성한 메시지를 지우면서 연관된 사용자, 채널 파일도 갱신
         messageService.deleteMessagesByUserId(userId);
 
-        // 2. 채널 삭제
-        List<Channel> channels = channelService.getChannelsByParticipantId(userId);
+        List<Channel> channels =
+                channelService.getChannelsByParticipantId(userId);
 
         for (Channel channel : channels) {
             if (channel.getCreator().getId().equals(userId)) {
-                // 내가 만든 채널 삭제
                 channelService.deleteChannel(channel.getId(), userId);
             } else {
-                // 참여만 한 채널은 퇴장만
                 channel.leaveChannel(user);
+
+                // 퇴장한 채널과 사용자 파일을 모두 갱신
+                channelService.saveChannel(channel);
+                writeUser(user);
             }
         }
 
@@ -210,5 +215,4 @@ public class FileUserService implements UserService {
         user.deleteEmail();
         writeUser(user);
     }
-
 }

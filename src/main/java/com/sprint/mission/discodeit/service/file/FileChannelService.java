@@ -4,23 +4,23 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class FileChannelService implements ChannelService {
 
     private final Path channelDirectory;
 
-    private UserService userService;
-    private MessageService messageService;
+    private FileUserService userService;
+    private FileMessageService messageService;
 
     public FileChannelService() {
         this(Path.of("data", "channels"));
@@ -36,11 +36,11 @@ public class FileChannelService implements ChannelService {
         }
     }
 
-    public void setUserService(UserService userService) {
+    public void setUserService(FileUserService userService) {
         this.userService = userService;
     }
 
-    public void setMessageService(MessageService messageService) {
+    public void setMessageService(FileMessageService messageService) {
         this.messageService = messageService;
     }
 
@@ -58,8 +58,14 @@ public class FileChannelService implements ChannelService {
         }
     }
 
+    // 같은 패키지의 File 서비스가 연관 객체 변경 후 채널 파일을 저장할 때 사용
+    void saveChannel(Channel channel) {
+        writeChannel(channel);
+    }
+
     private Channel readChannel(Path file) {
-        try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
+        try (ObjectInputStream in =
+                     new ObjectInputStream(Files.newInputStream(file))) {
             return (Channel) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("채널 파일을 읽는 데 실패했습니다.", e);
@@ -79,28 +85,25 @@ public class FileChannelService implements ChannelService {
         return channels;
     }
 
-    // 채널 이름 중복 검증
     private void validateDuplicateChannelName(String channelName) {
         boolean exists = readAllChannels().stream()
                 .anyMatch(channel -> channel.getChannelName().equals(channelName));
+
         if (exists) {
-            throw new RuntimeException("\"" + channelName + "\" 라는 채널이 이미 존재합니다.");
+            throw new IllegalArgumentException("\"" + channelName + "\" 라는 채널이 이미 존재합니다.");
         }
     }
 
-    // 채널 생성자(방장) 검증
     private void validateCreator(Channel channel, UUID creatorId, String action) {
         if (!channel.getCreator().getId().equals(creatorId)) {
-            throw new IllegalArgumentException("방장만 채널을 " + action +"할 수 있습니다.");
+            throw new IllegalArgumentException("방장만 채널을 " + action + "할 수 있습니다.");
         }
     }
 
-    // 입/퇴장 메시지 등록
     private void postSystemMessage(User user, Channel channel, String content) {
         messageService.createMessage(new Message(content, user, channel));
     }
 
-    // 생성
     @Override
     public Channel createChannel(Channel channel) {
         if (channel == null) {
@@ -111,28 +114,32 @@ public class FileChannelService implements ChannelService {
             throw new IllegalArgumentException("이미 존재하는 채널입니다.");
         }
 
-        User user = userService.getUserById(channel.getCreator().getId());
+        User creator = userService.getUserById(channel.getCreator().getId());
         validateDuplicateChannelName(channel.getChannelName());
 
-        channel.joinChannel(user);
+        channel.joinChannel(creator);
+
+        userService.saveUser(creator);
         writeChannel(channel);
 
         postSystemMessage(
-                user,
+                creator,
                 channel,
                 "[" + channel.getChannelName() + "] 채널이 생성되었습니다."
         );
 
-        return channel;
+        return getChannelById(channel.getId());
     }
 
-    // 참여
     @Override
     public Channel joinChannel(UUID channelId, UUID userId) {
         User user = userService.getUserById(userId);
         Channel channel = getChannelById(channelId);
 
         channel.joinChannel(user);
+
+        // 참여 목록은 사용자와 채널 양쪽에 있으므로 둘 다 저장
+        userService.saveUser(user);
         writeChannel(channel);
 
         postSystemMessage(
@@ -141,10 +148,9 @@ public class FileChannelService implements ChannelService {
                 user.getUsername() + "님이 입장하셨습니다."
         );
 
-        return channel;
+        return getChannelById(channelId);
     }
 
-    // 퇴장
     @Override
     public void leaveChannel(UUID channelId, UUID userId) {
         User user = userService.getUserById(userId);
@@ -155,7 +161,9 @@ public class FileChannelService implements ChannelService {
         }
 
         if (channel.getCreator().getId().equals(user.getId())) {
-            throw new IllegalArgumentException("방장은 채널을 나갈 수 없습니다. 채널을 삭제해 주세요.");
+            throw new IllegalArgumentException(
+                    "방장은 채널을 나갈 수 없습니다. 채널을 삭제해 주세요."
+            );
         }
 
         postSystemMessage(
@@ -165,6 +173,8 @@ public class FileChannelService implements ChannelService {
         );
 
         channel.leaveChannel(user);
+
+        userService.saveUser(user);
         writeChannel(channel);
     }
 
@@ -177,7 +187,6 @@ public class FileChannelService implements ChannelService {
                 .anyMatch(user -> user.getId().equals(userId));
     }
 
-    // 조회
     @Override
     public Channel getChannelById(UUID channelId) {
         Path file = fileFor(channelId);
@@ -218,11 +227,11 @@ public class FileChannelService implements ChannelService {
         return getChannelById(channelId).getChannelParticipants();
     }
 
-    // 수정
     @Override
     public Channel updateChannelName(UUID channelId, UUID userId, String channelName) {
         userService.getUserById(userId);
         Channel channel = getChannelById(channelId);
+
         validateCreator(channel, userId, "수정");
         validateDuplicateChannelName(channelName);
 
@@ -231,7 +240,6 @@ public class FileChannelService implements ChannelService {
         return channel;
     }
 
-    // 삭제
     @Override
     public void deleteChannel(UUID channelId, UUID userId) {
         Channel channel = getChannelById(channelId);
@@ -239,7 +247,13 @@ public class FileChannelService implements ChannelService {
 
         messageService.deleteMessagesByChannelId(channelId);
 
-        channel.getChannelParticipants().forEach(channel::leaveChannel);
+        // 채널에 저장된 참여자 객체 대신 각 사용자의 최신 파일 객체를 갱신
+        for (User participant : channel.getChannelParticipants()) {
+            User savedParticipant = userService.getUserById(participant.getId());
+
+            channel.leaveChannel(savedParticipant);
+            userService.saveUser(savedParticipant);
+        }
 
         try {
             Files.delete(fileFor(channelId));

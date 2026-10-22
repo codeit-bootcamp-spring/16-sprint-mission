@@ -3,24 +3,25 @@ package com.sprint.mission.discodeit.service.file;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.UUID;
 import java.util.stream.Stream;
 
 public class FileMessageService implements MessageService {
 
     private final Path messageDirectory;
 
-    private UserService userService;
-    private ChannelService channelService;
+    private FileUserService userService;
+    private FileChannelService channelService;
 
     public FileMessageService() {
         this(Path.of("data", "messages"));
@@ -36,11 +37,11 @@ public class FileMessageService implements MessageService {
         }
     }
 
-    public void setUserService(UserService userService) {
+    public void setUserService(FileUserService userService) {
         this.userService = userService;
     }
 
-    public void setChannelService(ChannelService channelService) {
+    public void setChannelService(FileChannelService channelService) {
         this.channelService = channelService;
     }
 
@@ -79,21 +80,39 @@ public class FileMessageService implements MessageService {
         return messages;
     }
 
-    // 참여 검증
     private void validateParticipant(User user, Channel channel, String action) {
         if (!channelService.isParticipant(channel.getId(), user.getId())) {
             throw new IllegalArgumentException("채널에 참여한 유저만 메시지를 " + action + "할 수 있습니다.");
         }
     }
 
-    // 작성자가 본인인지 검증
     private void validateSender(Message message, UUID userId, String action) {
         if (!message.getSender().getId().equals(userId)) {
             throw new IllegalArgumentException("본인이 작성한 메시지만 " + action + "할 수 있습니다.");
         }
     }
 
-    // 생성
+    private void deleteMessageFile(UUID messageId) {
+        try {
+            Files.delete(fileFor(messageId));
+        } catch (IOException e) {
+            throw new RuntimeException("메시지 파일 삭제에 실패했습니다.", e);
+        }
+    }
+
+    // 사용자·채널의 메시지 목록에서도 메시지를 제거하고 각 파일을 갱신
+    private void removeMessage(Message message) {
+        User user = userService.getUserById(message.getSender().getId());
+        Channel channel = channelService.getChannelById(message.getChannel().getId());
+
+        user.removeMessage(message);
+        channel.removeChannelMessages(message);
+
+        userService.saveUser(user);
+        channelService.saveChannel(channel);
+        deleteMessageFile(message.getId());
+    }
+
     @Override
     public Message createMessage(Message message) {
         if (message == null) {
@@ -111,12 +130,14 @@ public class FileMessageService implements MessageService {
 
         user.addMessage(message);
         channel.addChannelMessages(message);
+
+        userService.saveUser(user);
+        channelService.saveChannel(channel);
         writeMessage(message);
 
         return message;
     }
 
-    // 조회
     @Override
     public Message getMessageById(UUID messageId) {
         Path file = fileFor(messageId);
@@ -165,7 +186,6 @@ public class FileMessageService implements MessageService {
                 .toList();
     }
 
-    // 수정
     @Override
     public Message updateMessage(UUID messageId, UUID userId, String content) {
         Message message = getMessageById(messageId);
@@ -173,21 +193,23 @@ public class FileMessageService implements MessageService {
 
         User user = userService.getUserById(message.getSender().getId());
         Channel channel = channelService.getChannelById(message.getChannel().getId());
+
         validateParticipant(user, channel, "수정");
 
+        // 연관 목록의 기존 메시지를 제거하고 수정된 메시지를 다시 추가
+        user.removeMessage(message);
+        channel.removeChannelMessages(message);
+
         message.updateMessage(content);
+
+        user.addMessage(message);
+        channel.addChannelMessages(message);
+
+        userService.saveUser(user);
+        channelService.saveChannel(channel);
         writeMessage(message);
 
         return message;
-    }
-
-    // 삭제
-    private void deleteMessageFile(UUID messageId) {
-        try {
-            Files.delete(fileFor(messageId));
-        } catch (IOException e) {
-            throw new RuntimeException("메시지 파일 삭제에 실패했습니다.", e);
-        }
     }
 
     @Override
@@ -197,9 +219,9 @@ public class FileMessageService implements MessageService {
 
         User user = userService.getUserById(message.getSender().getId());
         Channel channel = channelService.getChannelById(message.getChannel().getId());
-        validateParticipant(user, channel, "삭제");
 
-        deleteMessageFile(messageId);
+        validateParticipant(user, channel, "삭제");
+        removeMessage(message);
     }
 
     @Override
@@ -207,7 +229,7 @@ public class FileMessageService implements MessageService {
         channelService.getChannelById(channelId);
 
         for (Message message : getMessagesByChannelId(channelId)) {
-            deleteMessageFile(message.getId());
+            removeMessage(message);
         }
     }
 
@@ -216,7 +238,7 @@ public class FileMessageService implements MessageService {
         userService.getUserById(userId);
 
         for (Message message : getMessagesByUserId(userId)) {
-            deleteMessageFile(message.getId());
+            removeMessage(message);
         }
     }
 }
