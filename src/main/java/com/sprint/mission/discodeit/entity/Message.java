@@ -26,4 +26,13 @@ public class Message extends BaseEntity {
         this.content = content;
         touch();
     }
+
+    @Override
+    public String toString() {
+        return "Message{" +
+                "senderId=" + senderId +
+                ", channelId=" + channelId +
+                ", content='" + content + '\'' +
+                '}';
+    }
 }

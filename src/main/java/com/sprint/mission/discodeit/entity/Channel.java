@@ -74,6 +74,17 @@ public class Channel extends BaseEntity {
         touch();
     }
 
+    @Override
+    public String toString() {
+        return "Channel{" +
+                "ownerId=" + ownerId +
+                ", name='" + name + '\'' +
+                ", description='" + description + '\'' +
+                ", users=" + users +
+                ", messages=" + messages +
+                '}';
+    }
+
     private static void validateName(String name) {
         if (name == null || name.isBlank()) {
             throw new IllegalArgumentException("채널명은 필수입니다.");

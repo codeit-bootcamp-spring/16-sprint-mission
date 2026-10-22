@@ -62,6 +62,17 @@ public class User extends BaseEntity {
         touch();
     }
 
+    @Override
+    public String toString() {
+        return "User{" +
+                "username='" + username + '\'' +
+                ", email='" + email + '\'' +
+                ", password='" + password + '\'' +
+                ", channels=" + channels +
+                ", messages=" + messages +
+                '}';
+    }
+
     private static void validate(String username, String email, String password) {
         if (username == null || username.isBlank()) {
             throw new IllegalArgumentException("이름은 필수입니다.");

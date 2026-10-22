@@ -41,7 +41,7 @@ public class FileUserService implements UserService {
     @Override
     public User update(UUID id, String username, String email, String password) {
         Map<UUID, User> data = load();
-        User user = findById(id);
+        User user = getOrThrow(data, id);
         validateEmailUnique(data, email, id);
         user.update(username, email, password);
         save(data);
