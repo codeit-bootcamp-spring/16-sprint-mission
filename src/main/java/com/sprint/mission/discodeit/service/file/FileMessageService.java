@@ -17,36 +17,33 @@ public class FileMessageService implements MessageService {
     public FileMessageService(UserService userService, ChannelService channelService) {
         this.userService = userService;
         this.channelService = channelService;
-        this.writeMessageFile(new HashMap<>());
+        this.writeMessageFile(new LinkedHashMap<>());
     }
 
     @Override
-    public Message create(User sentFrom, String content, Channel channel) {
-        if (sentFrom == null) throw new NullPointerException("메세지를 생성하는 유저가 참조하는 값이 없습니다.");
-        if (channel == null) throw new NullPointerException("메세지를 생성할 채널이 참조하는 값이 없습니다.");
-
+    public Message create(UUID sentFromId, String content, UUID channelId) {
         // 유저와 채널 존재 여부 확인
-        this.userService.findById(sentFrom.getId())
+        User sentFrom = this.userService.findById(sentFromId)
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보내는 유저가 존재하지 않습니다."));
-        this.channelService.findById(channel.getId())
+        Channel channel = this.channelService.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보낼 채널이 존재하지 않습니다."));
         sentFrom.validateNotDeleted();
         channel.validateNotDeleted();
 
         // 채널 가입 여부 확인
-        channel.getUsers().values()
+        channel.getUsers()
                 .stream()
-                .filter(user -> user.getId().equals(sentFrom.getId()))
+                .filter(userId -> this.userService.findById(userId).isPresent())
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
 
-        Message message = new Message(sentFrom, content, channel);
+        Message message = new Message(sentFromId, content, channelId);
 
         // 메세지 추가 시 유저와 채널에도 추가
-        sentFrom.addMessage(message);
+        sentFrom.addMessage(message.getId());
         this.userService.update(sentFrom.getId(), sentFrom);
 
-        channel.addMessage(message);
+        channel.addMessage(message.getId());
         this.channelService.update(channel.getId(), channel);
 
         Map<UUID, Message> messages = this.readMessageFile();
@@ -60,7 +57,11 @@ public class FileMessageService implements MessageService {
         Map<UUID, Message> messages = this.readMessageFile();
         Message message = Optional.ofNullable(messages.get(id)).orElseThrow(
                 () -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
-        message.validateNotDeleted();
+        // 갱신할 메세지 정보의 상태가 활동 중이면 현재 메세지도 검사
+        if (!newMessage.isDeleted()) {
+            message.validateNotDeleted();
+        }
+
         message.update(newMessage);
         this.writeMessageFile(messages);
         return message;
@@ -85,11 +86,15 @@ public class FileMessageService implements MessageService {
                 () -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
 
         // 메세지 삭제 시 채널과 유저에도 메세지 삭제
-        Channel channel = message.getChannel();
+        Channel channel =
+                this.channelService.findById(message.getChannelId()).orElseThrow(
+                        () -> new NoSuchElementException("메세지를 삭제할 채널이 없습니다."));
         channel.removeMessage(id);
         this.channelService.update(channel.getId(), channel);
 
-        User user = message.getSentFrom();
+        User user =
+                this.userService.findById(message.getSentFromId()).orElseThrow(
+                        () -> new NoSuchElementException("메세지를 삭제할 채널이 없습니다."));
         user.removeMessage(id);
         this.userService.update(user.getId(), user);
 

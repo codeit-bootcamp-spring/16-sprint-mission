@@ -29,7 +29,10 @@ public class FileChannelService implements ChannelService {
         Map<UUID, Channel> channels = this.readChannelFile();
         Channel channel = Optional.ofNullable(channels.get(id)).orElseThrow(
                 () -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
-        channel.validateNotDeleted();
+        // 갱신할 채널 정보의 상태가 활동 중이면 현재 채널도 검사
+        if (!newChannel.isDeleted()) {
+            channel.validateNotDeleted();
+        }
 
         channel.update(newChannel);
         this.writeChannelFile(channels);
@@ -37,26 +40,23 @@ public class FileChannelService implements ChannelService {
     }
 
     @Override
-    public void addUserToChannel(UUID channelId, User user) {
-        if (user == null) throw new NullPointerException("채널에 추가할 유저가 참조하는 값이 없습니다.");
-
+    public void addUserToChannel(UUID channelId, UUID userId) {
         // 유저가 존재하는지 확인
-        this.userService.findById(user.getId())
+        User user = this.userService.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));
         user.validateNotDeleted();
 
         Map<UUID, Channel> channels = this.readChannelFile();
         Channel channel = Optional.ofNullable(channels.get(channelId)).orElseThrow(
                 () -> new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다."));
-
         channel.validateNotDeleted();
-        channel.addUser(user);
+
+        channel.addUser(userId);
+        this.update(channelId, channel);
 
         // 채널에 유저 추가 시 유저에도 채널 추가
-        user.addChannel(channel);
+        user.addChannel(channelId);
         this.userService.update(user.getId(), user);
-
-        this.update(channelId, channel);
     }
 
     @Override
@@ -70,15 +70,9 @@ public class FileChannelService implements ChannelService {
                 "존재하지 않습니다."));
         channel.validateNotDeleted();
 
-        // 채널의 유저 탈퇴 시 유저에도 채널 지우기
-        channel.getUsers().values()
-                .stream()
-                .filter(joinedUser -> joinedUser.getId().equals(userId))
-                .findFirst()
-                .ifPresent(joinedUser -> {
-                    joinedUser.removeChannel(channelId);
-                    this.userService.update(joinedUser.getId(), joinedUser);
-                });
+//         채널의 유저 탈퇴 시 유저에도 채널 지우기
+        user.removeChannel(channelId);
+        this.userService.update(userId, user);
 
         channel.removeUser(userId);
         this.update(channelId, channel);
@@ -105,13 +99,15 @@ public class FileChannelService implements ChannelService {
         channel.validateNotDeleted();
 
         // 채널 삭제 시 유저에도 채널 삭제
-        channel.getUsers().values().forEach(user -> {
-            user.removeChannel(id);
-            this.userService.update(user.getId(), user);
-        });
+        channel.getUsers().forEach(userId -> this.userService.findById(userId).ifPresent(user -> {
+            if (!user.isDeleted()) {
+                user.removeChannel(id);
+                this.userService.update(userId, user);
+            }
+        }));
 
         channel.softDelete();
-        this.update(id, channel);
+        this.writeChannelFile(channels);
     }
 
     public Map<UUID, Channel> readChannelFile() {
@@ -135,7 +131,6 @@ public class FileChannelService implements ChannelService {
     }
 
     public void setUserService(UserService userService) {
-        if (userService == null) throw new NullPointerException("유저 서비스가 참조하는 값이 없습니다.");
         this.userService = userService;
     }
 }

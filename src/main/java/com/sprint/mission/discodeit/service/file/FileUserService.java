@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.*;
@@ -28,8 +29,11 @@ public class FileUserService implements UserService {
         Map<UUID, User> users = this.readUserFile();
         User user = Optional.ofNullable(users.get(id)).orElseThrow(
                 () -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
-        user.validateNotDeleted();
 
+        // 갱신할 유저 정보의 상태가 활동 중이면 현재 유저도 검사
+        if (!newUser.isDeleted()) {
+            user.validateNotDeleted();
+        }
         user.update(newUser);
         this.writeUserFile(users);
         return user;
@@ -49,13 +53,14 @@ public class FileUserService implements UserService {
 
     @Override
     public void delete(UUID id) {
-        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+        User user = this.findById(id).orElseThrow(
+                () -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
         user.validateNotDeleted();
 
         // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
-        user.getChannels().values().forEach(channel -> {
-            channel.removeUser(id);
-            this.channelService.update(channel.getId(), channel);
+        Set<UUID> channels = new HashSet<>(user.getChannels());
+        channels.forEach(channelId -> {
+            this.channelService.removeUserFromChannel(channelId, id);
         });
 
         user.softDelete();

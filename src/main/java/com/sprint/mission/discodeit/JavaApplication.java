@@ -3,9 +3,9 @@ package com.sprint.mission.discodeit;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-//import com.sprint.mission.discodeit.service.file.FileChannelService;
-//import com.sprint.mission.discodeit.service.file.FileMessageService;
-//import com.sprint.mission.discodeit.service.file.FileUserService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
@@ -16,16 +16,16 @@ import java.util.NoSuchElementException;
 
 public class JavaApplication {
     public static void main(String[] args) {
-        JCFUserService userService = new JCFUserService();
-        JCFChannelService channelService = new JCFChannelService();
-        JCFMessageService messageService = new JCFMessageService(userService, channelService);
-        channelService.setUserService(userService);
-        userService.setChannelService(channelService);
-//        FileUserService userService = new FileUserService();
-//        FileChannelService channelService = new FileChannelService();
-//        FileMessageService messageService = new FileMessageService(userService, channelService);
+//        JCFUserService userService = new JCFUserService();
+//        JCFChannelService channelService = new JCFChannelService();
+//        JCFMessageService messageService = new JCFMessageService(userService, channelService);
 //        channelService.setUserService(userService);
 //        userService.setChannelService(channelService);
+        FileUserService userService = new FileUserService();
+        FileChannelService channelService = new FileChannelService();
+        FileMessageService messageService = new FileMessageService(userService, channelService);
+        channelService.setUserService(userService);
+        userService.setChannelService(channelService);
 
 
         try {
@@ -46,36 +46,35 @@ public class JavaApplication {
             channelService.addUserToChannel(channel1.getId(), user2.getId());
             channelService.addUserToChannel(channel2.getId(), user1.getId());
 
-
-            User foundUser1 = userService.findById(user1.getId())
+            user1 = userService.findById(user1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 유저를 찾을 수 없습니다."));
-            User foundUser2 = userService.findById(user2.getId())
+            user2 = userService.findById(user2.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 유저를 찾을 수 없습니다."));
-            Channel foundChannel1 = channelService.findById(channel1.getId())
+            channel1 = channelService.findById(channel1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
-            Channel foundChannel2 = channelService.findById(channel2.getId())
+            channel2 = channelService.findById(channel2.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
 
 
-            Message message1 = messageService.create(foundUser1.getId(), "안녕하세요 김철수입니다!", foundChannel1.getId());
-            Message message2 = messageService.create(foundUser2.getId(), "저는 박영수입니다!", foundChannel1.getId());
-            Message message3 = messageService.create(foundUser1.getId(), "안녕하세요!", foundChannel2.getId());
+            Message message1 = messageService.create(user1.getId(), "안녕하세요 김철수입니다!", channel1.getId());
+            Message message2 = messageService.create(user2.getId(), "저는 박영수입니다!", channel1.getId());
+            Message message3 = messageService.create(user1.getId(), "안녕하세요!", channel2.getId());
             System.out.printf("메세지 생성 --> %s\n", message1);
             System.out.printf("메세지 생성 --> %s\n", message2);
             System.out.printf("메세지 생성 --> %s\n\n", message3);
 
             // 조회 (단일)
-            foundUser1 = userService.findById(user1.getId())
+            user1 = userService.findById(user1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 유저를 찾을 수 없습니다."));
-            System.out.printf("유저 단일 조회 --> %s\n\n", foundUser1);
+            System.out.printf("유저 단일 조회 --> %s\n\n", user1);
 
-            foundChannel1 = channelService.findById(channel1.getId())
+            channel1 = channelService.findById(channel1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 채널을 찾을 수 없습니다."));
-            System.out.printf("채널 단일 조회 --> %s\n\n", foundChannel1);
+            System.out.printf("채널 단일 조회 --> %s\n\n", channel1);
 
-            Message foundMessage = messageService.findById(message1.getId())
+            message1 = messageService.findById(message1.getId())
                     .orElseThrow(() -> new NoSuchElementException("조회할 메세지를 찾을 수 없습니다."));
-            System.out.printf("메세지 단일 조회 --> %s\n\n", foundMessage);
+            System.out.printf("메세지 단일 조회 --> %s\n\n", message1);
 
             // 조회 (전체)
             List<User> users = userService.findAll();
