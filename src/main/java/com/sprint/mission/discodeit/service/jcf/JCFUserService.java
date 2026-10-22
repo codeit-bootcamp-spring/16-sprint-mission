@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.ArrayList;
@@ -12,10 +13,13 @@ public class JCFUserService implements UserService {
 
     private final List<User> data;
 
-    public JCFUserService() {
+    UserRepository userRepository;
+    public JCFUserService(UserRepository userRepository) {
         this.data = new ArrayList<>();
+        this.userRepository = userRepository;
     }
 
+/*
     @Override
     public User createUser(String username) {
         if (username == null || username.isBlank()) {
@@ -25,6 +29,17 @@ public class JCFUserService implements UserService {
         User user = new User(username);
         this.data.add(user);
         return user;
+    }
+*/
+
+    @Override
+    public User createUser(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("Username cannot be null or empty");
+        }
+
+        this.userRepository.saveUser(new User(username));
+
     }
 
     /* User의 UUID를 가져오기 위한 메서드입니다. */

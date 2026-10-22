@@ -5,8 +5,8 @@ import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -17,7 +17,7 @@ public class FileUserService implements UserService {
     @Override
     public User createUser(String username) {
         if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("Username cannot be null or empty");
+            throw new IllegalArgumentException("Username cannot be null or empty.");
         }
 
         User user = new User(username);
@@ -29,10 +29,8 @@ public class FileUserService implements UserService {
         ) {
             oos.writeObject(user);
         } catch (IOException exception) {
-            exception.printStackTrace();
+            throw new UncheckedIOException("사용자 저장에 실패했습니다.", exception);
         }
-
-        // System.out.println(user.getId());
 
         return user;
     }
@@ -50,14 +48,12 @@ public class FileUserService implements UserService {
                     .map(UUID::fromString)
                     .toList();
         } catch (IOException exception) {
-            throw new UncheckedIOException(exception);
+            throw new UncheckedIOException("사용자 목록 조회에 실패했습니다.", exception);
         }
 
         users = userIds.stream()
                 .map(this::findById)
                 .toList();
-
-        // System.out.println("All users : " + users);
 
         return users;
     }
@@ -69,8 +65,12 @@ public class FileUserService implements UserService {
         try (FileInputStream fis = new FileInputStream("./data/users/" + id + ".ser");
              ObjectInputStream ois = new ObjectInputStream(fis)) {
             user = (User) ois.readObject();
-        } catch (IOException | ClassNotFoundException exception) {
-            exception.printStackTrace();
+        } catch (NoSuchFileException exception) {
+            throw new NoSuchElementException("사용자가 없습니다: " + id);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("사용자 조회에 실패했습니다.", exception);
+        } catch(ClassNotFoundException exception) {
+            throw new IllegalStateException("사용자 역직렬화에 실패했습니다.", exception);
         }
 
         return user;
@@ -79,7 +79,7 @@ public class FileUserService implements UserService {
     @Override
     public User updateUsername(UUID id, String username) {
         if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("Username cannot be null or empty");
+            throw new IllegalArgumentException("Username cannot be null or empty.");
         }
 
         User user = this.findById(id);
@@ -90,10 +90,10 @@ public class FileUserService implements UserService {
         try (FileOutputStream fos = new FileOutputStream(fileName);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
-            oos.writeObject(user); // 수정된 객체로 덮어쓰기
+            oos.writeObject(user);
 
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("사용자 업데이트에 실패했습니다.", exception);
         }
 
         return user;
@@ -104,7 +104,7 @@ public class FileUserService implements UserService {
         try {
             Files.deleteIfExists(Path.of("./data/users/" + id + ".ser"));
         } catch (IOException exception) {
-            exception.printStackTrace();
+            throw new UncheckedIOException("사용자 삭제에 실패했습니다.", exception);
         }
     }
 }

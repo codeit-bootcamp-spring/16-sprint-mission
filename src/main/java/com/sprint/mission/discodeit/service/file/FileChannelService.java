@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.*;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,18 +17,16 @@ import java.util.stream.Stream;
 
 public class FileChannelService implements ChannelService {
 
-    // private final List<Channel> data;
     private final UserService userService;
 
     public FileChannelService(UserService userService) {
-        // this.data = new ArrayList<>();
         this.userService = userService;
     }
 
     @Override
     public Channel createChannel(String channelName) {
         if (channelName == null || channelName.isBlank()) {
-            throw new IllegalArgumentException("Channel Name cannot be null or empty");
+            throw new IllegalArgumentException("Channel Name cannot be null or empty.");
         }
 
         Channel channel = new Channel(channelName);
@@ -39,10 +38,8 @@ public class FileChannelService implements ChannelService {
         ) {
             oos.writeObject(channel);
         } catch (IOException exception) {
-            exception.printStackTrace();
+            throw new UncheckedIOException("채널을 생성할 수 없습니다.", exception);
         }
-
-        // System.out.println(channel.getId());
 
         return channel;
     }
@@ -60,14 +57,12 @@ public class FileChannelService implements ChannelService {
                     .map(UUID::fromString)
                     .toList();
         } catch (IOException exception) {
-            throw new UncheckedIOException(exception);
+            throw new UncheckedIOException("채널 목록 조회에 실패했습니다.", exception);
         }
 
         channels = channelIds.stream()
                 .map(this::findById)
                 .toList();
-
-        // System.out.println("All channels: " + channels);
 
         return channels;
     }
@@ -79,8 +74,12 @@ public class FileChannelService implements ChannelService {
         try (FileInputStream fis = new FileInputStream("./data/channels/" + id + ".ser");
              ObjectInputStream ois = new ObjectInputStream(fis)) {
             channel = (Channel) ois.readObject();
-        } catch (IOException | ClassNotFoundException exception) {
-            exception.printStackTrace();
+        } catch (NoSuchFileException exception) {
+            throw new NoSuchElementException("채널이 없습니다: " + id);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("채널 검색에 실패했습니다", exception);
+        } catch (ClassNotFoundException exception) {
+            throw new IllegalStateException("채널 역직렬화에 실패했습니다", exception);
         }
 
         return channel;
@@ -89,7 +88,7 @@ public class FileChannelService implements ChannelService {
     @Override
     public Channel updateChannelName(UUID id, String channelName) {
         if (channelName == null || channelName.isBlank()) {
-            throw new IllegalArgumentException("Channel Name cannot be null or empty");
+            throw new IllegalArgumentException("Channel Name cannot be null or empty.");
         }
 
         Channel channel = this.findById(id);
@@ -100,10 +99,10 @@ public class FileChannelService implements ChannelService {
         try (FileOutputStream fos = new FileOutputStream(fileName);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
-            oos.writeObject(channel); // 수정된 객체로 덮어쓰기
+            oos.writeObject(channel);
 
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
+        } catch (IOException exception) {
+            throw new UncheckedIOException("채널 업데이트에 실패했습니다.", exception);
         }
 
         return channel;
@@ -114,7 +113,7 @@ public class FileChannelService implements ChannelService {
         try {
             Files.deleteIfExists(Path.of("./data/channels/" + id + ".ser"));
         } catch (IOException exception) {
-            exception.printStackTrace();
+            throw new UncheckedIOException("채널 삭제에 실패했습니다.", exception);
         }
     }
 
@@ -131,10 +130,10 @@ public class FileChannelService implements ChannelService {
         try (FileOutputStream fos = new FileOutputStream(channelFileName);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
-            oos.writeObject(channel); // 수정된 객체로 덮어쓰기
+            oos.writeObject(channel);
 
         } catch (IOException exception) {
-            throw new UncheckedIOException(exception);
+            throw new UncheckedIOException("채널 입장 중 채널 정보 저장에 실패했습니다.", exception);
         }
 
         user.addChannel(channel);
@@ -144,10 +143,10 @@ public class FileChannelService implements ChannelService {
         try (FileOutputStream fos = new FileOutputStream(userFileName);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
-            oos.writeObject(user); // 수정된 객체로 덮어쓰기
+            oos.writeObject(user);
 
         } catch (IOException exception) {
-            throw new UncheckedIOException(exception);
+            throw new UncheckedIOException("채널 입장 중 사용자 정보 저장에 실패했습니다.", exception);
         }
 
     }
@@ -171,10 +170,10 @@ public class FileChannelService implements ChannelService {
         try (FileOutputStream fos = new FileOutputStream(channelFileName);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
-            oos.writeObject(channel); // 수정된 객체로 덮어쓰기
+            oos.writeObject(channel);
 
         } catch (IOException exception) {
-            throw new UncheckedIOException(exception);
+            throw new UncheckedIOException("채널 퇴장 중 채널 정보 저장에 실패했습니다.", exception);
         }
 
         user.removeChannel(channel);
@@ -184,10 +183,10 @@ public class FileChannelService implements ChannelService {
         try (FileOutputStream fos = new FileOutputStream(userFileName);
              ObjectOutputStream oos = new ObjectOutputStream(fos)) {
 
-            oos.writeObject(user); // 수정된 객체로 덮어쓰기
+            oos.writeObject(user);
 
         } catch (IOException exception) {
-            throw new UncheckedIOException(exception);
+            throw new UncheckedIOException("채널 퇴장 중 사용자 정보 저장에 실패했습니다.", exception);
         }
     }
 
