@@ -29,5 +29,4 @@ public class User extends BaseEntity {
 
     public void joinChannel(UUID channelId) { this.channels.add(channelId); }
     public void leaveChannel(UUID channelId){ this.channels.remove(channelId); }
-
 }

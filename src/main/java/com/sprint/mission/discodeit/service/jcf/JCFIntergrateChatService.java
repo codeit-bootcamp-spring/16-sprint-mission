@@ -26,6 +26,9 @@ public class JCFIntergrateChatService implements IntergrateChatService {
 
         user.joinChannel(channelId);
         channel.addUser(userId);
+
+        userService.save(user);
+        channelService.save(channel);
     }
 
     public void leaveChannel(UUID userId, UUID channelId) {
@@ -35,6 +38,9 @@ public class JCFIntergrateChatService implements IntergrateChatService {
 
         user.leaveChannel(channelId);
         channel.removeUser(userId);
+
+        userService.save(user);
+        channelService.save(channel);
     }
 
     public void deleteUserCompletely(UUID userId) {

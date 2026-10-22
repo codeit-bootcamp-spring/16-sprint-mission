@@ -2,10 +2,16 @@
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.IntergrateChatService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
+import com.sprint.mission.discodeit.service.file.FileUserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFIntergrateChatService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
@@ -18,9 +24,20 @@ import java.util.stream.Collectors;
 public class JavaApplication {
     public static void main(String[] args) {
 
+/*     이전
         MessageService messageService = new JCFMessageService();
         UserService userService = new JCFUserService(messageService);
         ChannelService channelService = new JCFChannelService(messageService);
+*/
+        // 1.직렬화 적용
+        FileMessageRepository fileMessageRepository = new FileMessageRepository();
+        FileUserRepository fileUserRepository = new FileUserRepository();
+        FileChannelRepository fileChannelRepository = new FileChannelRepository();
+
+        // 2.구현체 생성
+        MessageService messageService = new FileMessageService(fileMessageRepository);
+        UserService userService = new FileUserService(fileUserRepository, messageService);
+        ChannelService channelService = new FileChannelService(fileChannelRepository, messageService);
 
         IntergrateChatService intergrateChatService =new JCFIntergrateChatService(userService, channelService, messageService);
 
