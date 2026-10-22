@@ -9,7 +9,7 @@
 /dataSources/
 /dataSources.local.xml
 .gradle
-.idea
+/.idea/
 build
 .DS_Store
 .ser

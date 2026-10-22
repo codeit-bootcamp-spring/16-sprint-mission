@@ -2,18 +2,19 @@ package discodeit.service.jcf;
 
 import discodeit.entity.Channel;
 import discodeit.entity.User;
+import discodeit.repository.ChannelRepository;
 import discodeit.service.ChannelService;
 import discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFChannelService implements ChannelService {
-    private final List<Channel> data;
+    private final ChannelRepository channelRepository;
     private final UserService userService;
 
-    public JCFChannelService(UserService userService) {
-        this.data = new ArrayList<>();
+    public JCFChannelService(UserService userService, ChannelRepository channelRepository) {
         this.userService = userService;
+        this.channelRepository = channelRepository;
         userService.addDeleteListener(this::deleteUserFromChannels);
     }
 
@@ -22,24 +23,19 @@ public class JCFChannelService implements ChannelService {
         Channel newChannel = new Channel(channelName);
         userList.stream()
                 .forEach(user -> user.setChannel(newChannel));
-        if (!data.contains(newChannel)) {
-            data.add(newChannel);
-        }
+
+        channelRepository.save(newChannel);
         return newChannel;
     }
 
     @Override
     public Optional<Channel> find(UUID channelId) {
-        Optional<Channel> channel = data.stream()
-                .filter(c -> c.getId().equals(channelId))
-                .findFirst();
-        return channel;
+        return channelRepository.findById(channelId);
     }
 
     @Override
     public List<Channel> findAll() {
-        System.out.println("모든 채널을 조회합니다.");
-        return List.copyOf(data);
+        return channelRepository.findAll();
     }
 
     @Override
@@ -51,6 +47,8 @@ public class JCFChannelService implements ChannelService {
             target.setChannelName(newName);
             target.setUpdatedAt(System.currentTimeMillis());
         }
+
+        channelRepository.save(target);
 
         return target;
     }
@@ -64,9 +62,7 @@ public class JCFChannelService implements ChannelService {
         target.getUserList()
                 .forEach(u -> u.deleteChannel(channelId));
 
-        if(data.contains(target)){
-            data.remove(target);
-        }
+        channelRepository.deleteById(channelId);
     }
 
     @Override
@@ -74,7 +70,8 @@ public class JCFChannelService implements ChannelService {
         userService.find(userId).orElseThrow(() ->
                 new NoSuchElementException("해당 사용자가 없습니다."));
 
-        data.forEach(c -> c.getUserList()
-                .removeIf(u -> u.getId().equals(userId)));
+        channelRepository.findById(userId).ifPresent(channel -> {
+            channel.getUserList().forEach(u -> u.deleteChannel(userId));
+        });
     }
 }

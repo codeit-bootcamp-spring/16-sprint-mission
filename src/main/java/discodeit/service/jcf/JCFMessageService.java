@@ -3,18 +3,20 @@ package discodeit.service.jcf;
 import discodeit.entity.Channel;
 import discodeit.entity.Message;
 import discodeit.entity.User;
+import discodeit.repository.MessageRepository;
 import discodeit.service.MessageService;
 import discodeit.service.UserService;
 
 import java.util.*;
 
 public class JCFMessageService implements MessageService {
-    private final List<Message> data;
+
+    private final MessageRepository messageRepository;
     private final UserService userService;
 
-    public JCFMessageService(UserService userService) {
-        this.data = new ArrayList<>();
+    public JCFMessageService(UserService userService, MessageRepository messageRepository) {
         this.userService = userService;
+        this.messageRepository = messageRepository;
         userService.addDeleteListener(this::deleteMessageByUserId);
     }
 
@@ -23,9 +25,7 @@ public class JCFMessageService implements MessageService {
         Message newMessage = new Message(user, channel, comment);
         Optional<User> checkUser = userService.find(user.getId());
         if (checkUser.isPresent()){
-            if (!data.contains(newMessage)) {
-                data.add(newMessage);
-            }
+            messageRepository.save(newMessage);
         } else {
             throw new NoSuchElementException("해당 유저가 존재하지 않으므로 메세지 생성이 불가합니다.");
         }
@@ -35,15 +35,12 @@ public class JCFMessageService implements MessageService {
 
     @Override
     public Optional<Message> find(UUID messageId) {
-       Optional<Message> message = data.stream()
-               .filter(m -> m.getId().equals(messageId))
-               .findFirst();
-       return message;
+       return messageRepository.findById(messageId);
     }
 
     @Override
     public List<Message> findAll() {
-        return List.copyOf(data);
+        return messageRepository.findAll();
     }
 
     @Override
@@ -52,7 +49,7 @@ public class JCFMessageService implements MessageService {
                 new NoSuchElementException("삭제하려는 메세지를 찾을 수 없습니다."));
 
         if(target.getId().equals(messageId)){
-            data.remove(target);
+            messageRepository.deleteById(messageId);
         }
     }
 
@@ -73,7 +70,7 @@ public class JCFMessageService implements MessageService {
         userService.find(userId).orElseThrow(() ->
                 new NoSuchElementException("해당 사용자가 없습니다."));
 
-        data.removeIf(m -> m.getUser().getId().equals(userId));
+        messageRepository.deleteByUserId(userId);
     }
 
     @Override

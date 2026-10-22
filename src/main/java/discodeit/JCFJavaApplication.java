@@ -3,6 +3,7 @@ package discodeit;
 import discodeit.entity.Channel;
 import discodeit.entity.Message;
 import discodeit.entity.User;
+import discodeit.repository.jcf.JCFUserRepository;
 import discodeit.service.ChannelService;
 import discodeit.service.MessageService;
 import discodeit.service.UserService;
@@ -18,7 +19,7 @@ import java.util.*;
 public class JCFJavaApplication {
     public static void main(String[] args)  {
         // User CRUD
-        UserService userService = new JCFUserService();
+        UserService userService = new JCFUserService(new JCFUserRepository());
 
         System.out.println("User 관련 출력 시작");
         // 저장
