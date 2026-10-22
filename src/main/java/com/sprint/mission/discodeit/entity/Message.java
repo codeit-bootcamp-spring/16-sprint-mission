@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.entity;
 import java.util.UUID;
 
 public class Message extends BaseEntity {
-
     private String content;
     private final UUID userId;
     private final UUID channelId;

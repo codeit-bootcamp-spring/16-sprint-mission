@@ -6,7 +6,6 @@ import java.util.Set;
 import java.util.UUID;
 
 public class User extends BaseEntity {
-
     private String username;
     private String email;
     private String password;
