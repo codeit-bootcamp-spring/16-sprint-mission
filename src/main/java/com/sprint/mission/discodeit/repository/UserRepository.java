@@ -11,4 +11,5 @@ public interface UserRepository extends SaveObject<User> {
     List<User> getAllUsers();
     User getUser(UUID id);
     void removeUser(UUID id);
+    void updateUser(User user);
 }

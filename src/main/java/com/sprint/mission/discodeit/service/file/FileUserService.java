@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.io.*;
@@ -14,6 +16,12 @@ import java.util.stream.Stream;
 
 public class FileUserService implements UserService {
 
+    private final UserRepository userRepository;
+
+    FileUserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
+
     @Override
     public User createUser(String username) {
         if (username == null || username.isBlank()) {
@@ -22,7 +30,7 @@ public class FileUserService implements UserService {
 
         User user = new User(username);
 
-
+        /*
         String fileName = "./data/users/" + user.getId() + ".ser";
 
         try (FileOutputStream fos = new FileOutputStream(fileName);
@@ -34,10 +42,17 @@ public class FileUserService implements UserService {
         }
 
         return user;
+         */
+
+        this.userRepository.save(user);
+
+        return user;
+
     }
 
     @Override
     public List<User> findAll() {
+        /*
         List<UUID> userIds;
         List<User> users;
 
@@ -55,12 +70,16 @@ public class FileUserService implements UserService {
         users = userIds.stream()
                 .map(this::findById)
                 .toList();
+        */
+
+        List<User> users = this.userRepository.getAllUsers();
 
         return users;
     }
 
     @Override
     public User findById(UUID id) {
+        /*
         User user = null;
 
         try (FileInputStream fis = new FileInputStream("./data/users/" + id + ".ser");
@@ -73,6 +92,10 @@ public class FileUserService implements UserService {
         } catch(ClassNotFoundException exception) {
             throw new IllegalStateException("사용자 역직렬화에 실패했습니다.", exception);
         }
+
+        return user;
+         */
+        User user = this.userRepository.getUser(id);
 
         return user;
     }
