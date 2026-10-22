@@ -22,9 +22,9 @@ public class FileUserRepository implements UserRepository {
     @Override
     public User update(UUID id, User newUser) {
         Map<UUID, User> users = this.readUserFile();
-        users.put(id, newUser);
+        User user = users.replace(id, newUser);
         this.writeUserFile(users);
-        return newUser;
+        return user;
     }
 
     @Override

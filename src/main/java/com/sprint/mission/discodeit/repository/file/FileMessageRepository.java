@@ -22,9 +22,9 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public Message update(UUID id, Message newMessage) {
         Map<UUID, Message> messages = this.readMessageFile();
-        messages.put(id, newMessage);
+        Message message = messages.replace(id, newMessage);
         this.writeMessageFile(messages);
-        return newMessage;
+        return message;
     }
 
     @Override

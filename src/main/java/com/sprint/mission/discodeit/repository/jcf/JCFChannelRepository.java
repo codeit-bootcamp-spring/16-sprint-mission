@@ -20,9 +20,7 @@ public class JCFChannelRepository implements ChannelRepository {
 
     @Override
     public Channel update(UUID id, Channel newChannel) {
-        Channel channel = this.data.get(id);
-        this.data.put(id, newChannel);
-        return channel;
+        return this.data.replace(id, newChannel);
     }
 
     @Override

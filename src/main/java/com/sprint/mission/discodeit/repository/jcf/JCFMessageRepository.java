@@ -20,9 +20,7 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public Message update(UUID id, Message newMessage) {
-        Message message = this.data.get(id);
-        this.data.put(id, message);
-        return message;
+        return this.data.replace(id, newMessage);
     }
 
     @Override

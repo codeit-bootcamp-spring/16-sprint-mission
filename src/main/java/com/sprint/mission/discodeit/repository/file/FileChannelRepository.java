@@ -22,9 +22,9 @@ public class FileChannelRepository implements ChannelRepository {
     @Override
     public Channel update(UUID id, Channel newChannel) {
         Map<UUID, Channel> channels = this.readChannelFile();
-        channels.put(id, newChannel);
+        Channel channel = channels.replace(id, newChannel);
         this.writeChannelFile(channels);
-        return newChannel;
+        return channel;
     }
 
     @Override

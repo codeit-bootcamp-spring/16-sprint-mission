@@ -20,9 +20,7 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public User update(UUID id, User newUser) {
-        User user = this.data.get(id);
-        this.data.put(id, user);
-        return user;
+        return this.data.replace(id, newUser);
     }
 
     @Override
