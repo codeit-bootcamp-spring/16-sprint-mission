@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface MessageRepository {
-    Message create(UUID sentFromId, String content, UUID channelId);
+    Message save(Message message);
 
     Message update(UUID id, Message message);
 

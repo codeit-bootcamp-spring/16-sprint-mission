@@ -13,8 +13,7 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
-    public User create(String name) {
-        User user = new User(name);
+    public User save(User user) {
         this.data.put(user.getId(), user);
         return user;
     }

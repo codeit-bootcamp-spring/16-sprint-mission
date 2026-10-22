@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository {
-    User create(String name);
+    User save(User user);
 
     User update(UUID id, User user);
 

@@ -43,7 +43,8 @@ public class BasicMessageService implements MessageService {
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
 
-        Message message = this.messageRepository.create(sentFromId, content, channelId);
+        Message message = new Message(sentFromId, content, channelId);
+        this.messageRepository.save(message);
 
         // 메세지 추가 시 유저와 채널에도 추가
         sentFrom.addMessage(message.getId());

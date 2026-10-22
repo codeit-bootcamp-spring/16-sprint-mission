@@ -7,10 +7,10 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ChannelRepository {
-    Channel create(String name);
+    Channel save(Channel channel);
 
     Channel update(UUID id, Channel channel);
-    
+
     Optional<Channel> findById(UUID id);
 
     List<Channel> findAll();

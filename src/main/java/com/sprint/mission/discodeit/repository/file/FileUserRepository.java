@@ -12,8 +12,7 @@ public class FileUserRepository implements UserRepository {
     }
 
     @Override
-    public User create(String name) {
-        User user = new User(name);
+    public User save(User user) {
         Map<UUID, User> users = this.readUserFile();
         users.put(user.getId(), user);
         this.writeUserFile(users);

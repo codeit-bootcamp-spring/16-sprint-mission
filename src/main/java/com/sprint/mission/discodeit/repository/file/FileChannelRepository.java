@@ -12,8 +12,7 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Channel create(String name) {
-        Channel channel = new Channel(name);
+    public Channel save(Channel channel) {
         Map<UUID, Channel> channels = this.readChannelFile();
         channels.put(channel.getId(), channel);
         this.writeChannelFile(channels);

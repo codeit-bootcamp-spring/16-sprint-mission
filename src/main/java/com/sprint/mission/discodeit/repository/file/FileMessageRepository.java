@@ -12,9 +12,8 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     @Override
-    public Message create(UUID sentFromId, String content, UUID channelId) {
+    public Message save(Message message) {
         Map<UUID, Message> messages = this.readMessageFile();
-        Message message = new Message(sentFromId, content, channelId);
         messages.put(message.getId(), message);
         this.writeMessageFile(messages);
         return message;

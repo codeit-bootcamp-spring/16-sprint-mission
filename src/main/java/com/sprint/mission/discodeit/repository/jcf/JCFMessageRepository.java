@@ -1,8 +1,6 @@
 package com.sprint.mission.discodeit.repository.jcf;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
 import java.util.*;
@@ -15,9 +13,7 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     @Override
-    public Message create(UUID sentFromId, String content, UUID channelId) {
-        Message message = new Message(sentFromId, content, channelId);
-
+    public Message save(Message message) {
         this.data.put(message.getId(), message);
         return message;
     }
