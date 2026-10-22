@@ -3,17 +3,17 @@ package com.sprint.mission.discodeit.service.jcf;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.IntergrateChatService;
+import com.sprint.mission.discodeit.service.IntegrateChatService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.UUID;
 
-public class JCFIntergrateChatService implements IntergrateChatService {
+public class JCFIntegrateChatService implements IntegrateChatService {
     final UserService userService;
     final ChannelService channelService;
     final MessageService messageService;
-    public JCFIntergrateChatService(UserService userService, ChannelService channelService, MessageService messageService) {
+    public JCFIntegrateChatService(UserService userService, ChannelService channelService, MessageService messageService) {
         this.userService = userService;
         this.channelService = channelService;
         this.messageService = messageService;
@@ -52,6 +52,7 @@ public class JCFIntergrateChatService implements IntergrateChatService {
             Channel channel = channelService.findEntityChannel(channelId);
             if (channel != null) {
                 channel.removeUser(userId);
+                channelService.save(channel);
             }
         }
         messageService.deleteByUserId(userId);
@@ -66,6 +67,7 @@ public class JCFIntergrateChatService implements IntergrateChatService {
             User user = userService.findEntityId(userId);
             if (user != null) {
                 user.leaveChannel(channelId);
+                userService.save(user);
             }
         }
         messageService.deleteByChannelId(channelId);

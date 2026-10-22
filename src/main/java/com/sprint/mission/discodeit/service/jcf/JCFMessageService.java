@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -8,25 +10,34 @@ import java.util.stream.Collectors;
 
 
 public class JCFMessageService implements MessageService {
+    private final Map<UUID, Message> data = new ConcurrentHashMap<>();
+    private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
 
-    final Map<UUID, Message> data;
-
-    public JCFMessageService() {
-        this.data = new ConcurrentHashMap<>();
+    public JCFMessageService(UserRepository userRepository, ChannelRepository channelRepository) {
+        this.userRepository = userRepository;
+        this.channelRepository = channelRepository;
     }
 
     @Override
     public Message save(Message message) {
         if (message == null || message.getId() == null) {
-            throw new NullPointerException("데이터가 이상함");
+            throw new NullPointerException("데이터 오류");
         }
         if (message.getUserId() == null || message.getChannelId() == null) {
-            throw new NullPointerException("데이터가 이상함");
+            throw new NullPointerException("ID 데이터 누락");
         }
+
+        if (userRepository.findId(message.getUserId()) == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+        }
+        if (channelRepository.findId(message.getChannelId()) == null) {
+            throw new IllegalArgumentException("존재하지 않는 채널입니다.");
+        }
+
         data.put(message.getId(), message);
         return message;
     }
-
     @Override
     public List<Message> findId(UUID id) {
         Message message = data.get(id);

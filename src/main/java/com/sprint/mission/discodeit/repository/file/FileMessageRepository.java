@@ -55,9 +55,10 @@ public class FileMessageRepository implements MessageRepository {
         try (OutputStream os = Files.newOutputStream(PATH);
              ObjectOutputStream oos = new ObjectOutputStream(os))
         {
+            oos.reset();
             oos.writeObject(data);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("메시지 파일 저장 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
         }
     }
 
@@ -69,7 +70,7 @@ public class FileMessageRepository implements MessageRepository {
         {
             this.data = (Map<UUID, Message>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException("메시지 파일 로딩 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
         }
     }
 }

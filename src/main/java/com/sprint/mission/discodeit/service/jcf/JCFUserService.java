@@ -8,7 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 
-public class JCFUserService implements UserService {
+public class
+JCFUserService implements UserService {
 
     final Map<UUID, User> data;
     final MessageService messageService;

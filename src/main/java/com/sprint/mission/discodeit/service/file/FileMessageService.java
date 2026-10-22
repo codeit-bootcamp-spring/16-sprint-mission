@@ -2,16 +2,24 @@ package com.sprint.mission.discodeit.service.file;
 
 
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.*;
+
 import com.sprint.mission.discodeit.service.MessageService;
 import java.util.*;
 import java.util.stream.Collectors;
 
 public class FileMessageService implements MessageService {
     private final MessageRepository messageRepository;
+    private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
 
-    public FileMessageService(MessageRepository messageRepository) {
+
+    public FileMessageService(MessageRepository messageRepository,
+                              UserRepository userRepository,
+                              ChannelRepository channelRepository) {
         this.messageRepository = messageRepository;
+        this.userRepository = userRepository;
+        this.channelRepository = channelRepository;
     }
 
     @Override
@@ -22,6 +30,13 @@ public class FileMessageService implements MessageService {
         if (message.getUserId() == null || message.getChannelId() == null) {
             throw new NullPointerException("데이터가 이상함");
         }
+        if (userRepository.findId(message.getUserId()) == null) {
+            throw new IllegalArgumentException("존재하지 않는 사용자 ID입니다: " + message.getUserId());
+        }
+        if (channelRepository.findId(message.getChannelId()) == null) {
+            throw new IllegalArgumentException("존재하지 않는 채널 ID입니다: " + message.getChannelId());
+        }
+
         messageRepository.save(message);
         return message;
     }

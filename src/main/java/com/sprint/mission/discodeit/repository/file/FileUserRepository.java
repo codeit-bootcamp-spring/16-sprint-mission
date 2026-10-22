@@ -52,9 +52,10 @@ public class FileUserRepository implements UserRepository {
         try (OutputStream os = Files.newOutputStream(PATH);
                 ObjectOutputStream oos = new ObjectOutputStream(os))
          {
+             oos.reset(); //직렬화 캐시 초기화
              oos.writeObject(data);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("유저 파일 저장 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
         }
     }
 
@@ -66,7 +67,7 @@ public class FileUserRepository implements UserRepository {
          {
             this.data = (Map<UUID, User>) ois.readObject(); // 파일에서 Map 통째로 복원
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException("유저 파일 로딩 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
         }
     }
 }

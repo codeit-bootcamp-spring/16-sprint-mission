@@ -47,11 +47,11 @@ public class FileChannelRepository implements ChannelRepository {
 
     private void saveFile() {
         try (OutputStream os = Files.newOutputStream(PATH);
-                ObjectOutputStream oos = new ObjectOutputStream(os))
-         {
+                ObjectOutputStream oos = new ObjectOutputStream(os)) {
+            oos.reset();
             oos.writeObject(data);
         } catch (IOException e) {
-            e.printStackTrace();
+            throw new RuntimeException("채널 파일 저장 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
         }
     }
 
@@ -63,7 +63,7 @@ public class FileChannelRepository implements ChannelRepository {
          {
             this.data = (Map<UUID, Channel>) ois.readObject();
         } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException("채널 파일 로딩 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
         }
     }
 }
