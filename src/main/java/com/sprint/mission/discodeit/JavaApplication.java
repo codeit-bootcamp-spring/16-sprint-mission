@@ -2,6 +2,9 @@ package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.file.FileChannelService;
+import com.sprint.mission.discodeit.service.file.FileGroupService;
+import com.sprint.mission.discodeit.service.file.FileMessageService;
 import com.sprint.mission.discodeit.service.file.FileUserService;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -33,7 +36,7 @@ public class JavaApplication {
         List<User> all = userService.readAll();
         System.out.println("전체회원 수: "+all.size());
 
-        ChannelService channelService = new JCFChannelService(userService);
+        ChannelService channelService = new FileChannelService(userService);
 
         Channel channel = channelService.create("자유채널","아무나와요","text");
         System.out.println("채널 등록: "+ channel.getChannelName());
@@ -57,7 +60,7 @@ public class JavaApplication {
         Channel channelAfterRemove = channelService.read(channel.getId());
         System.out.println("참여자 제거후 참여자 수: " + channelAfterRemove.getParticipantIds().size());
 
-        MessageService messageService = new JCFMessageService(userService, channelService);
+        MessageService messageService = new FileMessageService(userService, channelService);
 
         Message message = messageService.create(channel.getId(),user.getId(),"안녕하세욥");
         System.out.println("메세지 등록: "+ message.getContent());
@@ -101,7 +104,7 @@ public class JavaApplication {
         Message message1deleted = messageService.read(message.getId());
         System.out.println("메세지 삭제후 조회" + message1deleted);
 
-        GroupService groupService = new JCFGroupService();
+        GroupService groupService = new FileGroupService();
         Group gameGroup = groupService.create(user.getId(),"게임채널 모음", "CHANNEL");
         System.out.println("그룹등록: " + gameGroup.getName());
 
