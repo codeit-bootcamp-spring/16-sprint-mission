@@ -14,7 +14,8 @@ public class JCFChannelRepository implements ChannelRepository {
 
     @Override
     public Channel save(Channel channel) {
-        this.data.put(channel.getId(), channel);
+        Channel existingChannel = this.data.putIfAbsent(channel.getId(), channel);
+        if (existingChannel != null) throw new IllegalStateException("이미 저장된 채널입니다.");
         return channel;
     }
 

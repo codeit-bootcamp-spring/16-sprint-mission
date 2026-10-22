@@ -14,7 +14,8 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        this.data.put(user.getId(), user);
+        User existingUser = this.data.putIfAbsent(user.getId(), user);
+        if (existingUser != null) throw new IllegalStateException("이미 저장된 유저입니다.");
         return user;
     }
 

@@ -14,7 +14,8 @@ public class FileChannelRepository implements ChannelRepository {
     @Override
     public Channel save(Channel channel) {
         Map<UUID, Channel> channels = this.readChannelFile();
-        channels.put(channel.getId(), channel);
+        Channel existingChannel = channels.putIfAbsent(channel.getId(), channel);
+        if (existingChannel != null) throw new IllegalStateException("이미 저장된 채널입니다.");
         this.writeChannelFile(channels);
         return channel;
     }

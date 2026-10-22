@@ -14,7 +14,8 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public Message save(Message message) {
-        this.data.put(message.getId(), message);
+        Message existingMessage = this.data.putIfAbsent(message.getId(), message);
+        if (existingMessage != null) throw new IllegalStateException("이미 저장된 메세지입니다.");
         return message;
     }
 

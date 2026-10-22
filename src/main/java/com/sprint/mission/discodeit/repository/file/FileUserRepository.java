@@ -14,7 +14,8 @@ public class FileUserRepository implements UserRepository {
     @Override
     public User save(User user) {
         Map<UUID, User> users = this.readUserFile();
-        users.put(user.getId(), user);
+        User existingUser = users.putIfAbsent(user.getId(), user);
+        if (existingUser != null) throw new IllegalStateException("이미 저장된 유저입니다.");
         this.writeUserFile(users);
         return user;
     }

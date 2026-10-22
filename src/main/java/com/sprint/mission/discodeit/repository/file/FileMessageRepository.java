@@ -14,7 +14,8 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public Message save(Message message) {
         Map<UUID, Message> messages = this.readMessageFile();
-        messages.put(message.getId(), message);
+        Message existingMessage = messages.putIfAbsent(message.getId(), message);
+        if (existingMessage != null) throw new IllegalStateException("이미 저장된 메세지입니다.");
         this.writeMessageFile(messages);
         return message;
     }
