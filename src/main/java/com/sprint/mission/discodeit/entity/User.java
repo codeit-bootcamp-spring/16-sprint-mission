@@ -19,6 +19,10 @@ public class User extends BaseEntity {
         this.name = user.getName();
         this.channels = user.getChannels();
         this.messages = user.getMessages();
+        if (user.isDeleted()) {
+            if (this.isDeleted()) throw new IllegalStateException("삭제된 유저는 갱신할 수 없습니다.");
+            this.updateToDeleted(user.getDeleteAt());
+        }
         super.update();
         return this;
     }

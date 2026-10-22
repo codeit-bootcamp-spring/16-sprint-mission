@@ -19,6 +19,10 @@ public class Channel extends BaseEntity {
         this.name = channel.name;
         this.users = channel.getUsers();
         this.messages = channel.getMessages();
+        if (channel.isDeleted()) {
+            if (this.isDeleted()) throw new IllegalStateException("삭제된 채널은 갱신할 수 없습니다.");
+            this.updateToDeleted(channel.getDeleteAt());
+        }
         super.update();
         return this;
     }

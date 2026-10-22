@@ -18,6 +18,10 @@ public class Message extends BaseEntity {
         this.sentFromId = message.sentFromId;
         this.content = message.content;
         this.channelId = message.channelId;
+        if (message.isDeleted()) {
+            if (this.isDeleted()) throw new IllegalStateException("삭제된 메세지는 갱신할 수 없습니다.");
+            this.updateToDeleted(message.getDeleteAt());
+        }
         super.update();
         return this;
     }
