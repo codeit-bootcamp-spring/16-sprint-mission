@@ -53,8 +53,7 @@ public class JCFUserService implements UserService {
     @Override
     public void delete(UUID id) {
         User user = findById(id);
-//        if (user == null)
-//            return;
+
         for (Channel channel : user.getChannels()) {
             channel.getUsers().remove(user);
         }

@@ -2,8 +2,9 @@ package com.sprint.mission.discodeit.entity;
 
 import java.time.Instant;
 import java.util.UUID;
+import java.io.Serializable;
 
-public class BaseEntity {
+public class BaseEntity implements Serializable {
     private UUID id;
     private Long createdAt;
     private Long updatedAt;
@@ -26,5 +27,6 @@ public class BaseEntity {
     protected void updateTime(){
         this.updatedAt = Instant.now().getEpochSecond();
     }
+
 }
 

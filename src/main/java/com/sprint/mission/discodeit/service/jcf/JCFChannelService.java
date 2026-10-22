@@ -80,4 +80,5 @@ public class JCFChannelService implements ChannelService {
         user.getChannels().add(channel);
     }
 
+
 }
