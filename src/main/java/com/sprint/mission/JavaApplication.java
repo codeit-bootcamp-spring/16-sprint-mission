@@ -187,7 +187,7 @@ public class JavaApplication {
 
         checkExpectedException("이미 사용 중인 채널명", "라는 채널이 이미 존재합니다.", () ->
                 channelService.createChannel(
-                        new Channel(general.getChannelName(), woody)
+                        new Channel(general.getChannelName(), woody.getId())
                 )
         );
 
@@ -226,7 +226,7 @@ public class JavaApplication {
                     "채널에 참여한 유저만 메시지를 작성할 수 있습니다.",
                     () ->
                     messageService.createMessage(
-                            new Message("참여하지 않은 채널에 보내는 메시지", outsider, general)
+                            new Message("참여하지 않은 채널에 보내는 메시지", outsider.getId(), general.getId())
                     )
             );
         } finally {
@@ -281,12 +281,12 @@ public class JavaApplication {
     ) {
         for (Channel channel : channelService.getAllChannels()) {
             if (channelName.equals(channel.getChannelName())
-                    && creator.getId().equals(channel.getCreator().getId())) {
+                    && creator.getId().equals(channel.getCreatorId())) {
                 return channelService.getChannelById(channel.getId());
             }
         }
 
-        Channel channel = new Channel(channelName, creator);
+        Channel channel = new Channel(channelName, creator.getId());
         channelService.createChannel(channel);
         return channelService.getChannelById(channel.getId());
     }
@@ -301,12 +301,12 @@ public class JavaApplication {
 
         for (Message message : messages) {
             if (content.equals(message.getContent())
-                    && sender.getId().equals(message.getSender().getId())) {
+                    && sender.getId().equals(message.getSenderId())) {
                 return message;
             }
         }
 
-        Message message = new Message(content, sender, channel);
+        Message message = new Message(content, sender.getId(), channel.getId());
         messageService.createMessage(message);
         return message;
     }
@@ -343,10 +343,10 @@ public class JavaApplication {
         System.out.println("전체 메시지:");
         for (Message message : messages) {
             String username = userService
-                    .getUserById(message.getSender().getId())
+                    .getUserById(message.getSenderId())
                     .getUsername();
             String channelName = channelService
-                    .getChannelById(message.getChannel().getId())
+                    .getChannelById(message.getChannelId())
                     .getChannelName();
             System.out.println(
                     "# " + removeEmojis(channelName)
@@ -377,12 +377,14 @@ public class JavaApplication {
 
         for (Message message : messages) {
             String username = userService
-                    .getUserById(message.getSender().getId())
+                    .getUserById(message.getSenderId())
                     .getUsername();
             System.out.println(removeEmojis(username) + ": " + removeEmojis(message.getContent()));
         }
     }
 }
+
+
 
 
 
