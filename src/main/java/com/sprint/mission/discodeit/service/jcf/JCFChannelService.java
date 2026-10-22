@@ -1,21 +1,17 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.UserChannelManager;
 
 import java.util.*;
 
 public class JCFChannelService implements ChannelService {
     private final Map<UUID, Channel> data;
-    private final UserService userService;
+    private UserChannelManager userChannelManager;
 
-    public JCFChannelService(UserService userService) {
-        if (userService == null) throw new NullPointerException("유저 서비스가 참조하는 값이 없습니다.");
-
+    public JCFChannelService() {
         this.data = new HashMap<>();
-        this.userService = userService;
     }
 
     @Override
@@ -35,43 +31,13 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public void addUserToChannel(UUID channelId, User user) {
-        if (user == null) throw new NullPointerException("채널에 추가할 유저가 참조하는 값이 없습니다.");
-
-        // 유저가 존재하는지 확인
-        this.userService.findById(user.getId())
-                .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));
-        user.validateNotDeleted();
-
-        Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저를 추가할 채널이 존재하지 " +
-                "않습니다."));
-        channel.validateNotDeleted();
-
-        channel.addUser(user);
-
-        // 채널에 유저 추가 시 유저에도 채널 추가
-        user.addChannel(channel);
+    public void addUserToChannel(UUID channelId, UUID userId) {
+        this.userChannelManager.addUserToChannel(channelId, userId);
     }
 
     @Override
     public void removeUserFromChannel(UUID channelId, UUID userId) {
-        // 유저가 존재하는지 확인
-        User user = this.userService.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("채널에서 탈퇴시킬 유저가 존재하지 않습니다."));
-        user.validateNotDeleted();
-
-        Channel channel = this.findById(channelId).orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 " +
-                "존재하지 않습니다."));
-        channel.validateNotDeleted();
-
-        // 채널의 유저 탈퇴 시 유저에도 채널 지우기
-        channel.getUsers().values()
-                .stream()
-                .filter(joinedUser -> joinedUser.getId().equals(userId))
-                .findFirst()
-                .ifPresent(joinedUser -> joinedUser.removeChannel(channelId));
-
-        channel.removeUser(userId);
+        this.userChannelManager.removeUserFromChannel(channelId, userId);
     }
 
     @Override
@@ -86,12 +52,10 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void delete(UUID id) {
-        Channel channel = this.findById(id).orElseThrow(() -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
-        channel.validateNotDeleted();
+        this.userChannelManager.deleteChannel(id);
+    }
 
-        // 채널 삭제 시 유저에도 채널 삭제
-        channel.getUsers().values().forEach(user -> user.removeChannel(id));
-
-        channel.softDelete();
+    public void setUserChannelManager(UserChannelManager userChannelManager) {
+        this.userChannelManager = userChannelManager;
     }
 }

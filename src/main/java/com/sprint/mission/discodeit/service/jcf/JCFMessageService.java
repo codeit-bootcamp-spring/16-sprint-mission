@@ -37,19 +37,19 @@ public class JCFMessageService implements MessageService {
         channel.validateNotDeleted();
 
         // 채널 가입 여부 확인
-        channel.getUsers().values()
+        channel.getUsers()
                 .stream()
-                .filter(user -> user.getId().equals(sentFrom.getId()))
+                .filter(userId -> this.userService.findById(userId).isPresent())
                 .findFirst()
                 .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
 
         Message message = new Message(sentFrom, content, channel);
 
         // 메세지 추가 시 유저와 채널에도 추가
-        sentFrom.addMessage(message);
+        sentFrom.addMessage(message.getId());
         this.userService.update(sentFrom.getId(), sentFrom);
 
-        channel.addMessage(message);
+        channel.addMessage(message.getId());
         this.channelService.update(channel.getId(), channel);
 
         this.data.put(message.getId(), message);

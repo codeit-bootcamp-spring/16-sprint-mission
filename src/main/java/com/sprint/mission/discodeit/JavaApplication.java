@@ -5,35 +5,24 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.service.UserChannelManager;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.file.FileChannelService;
-import com.sprint.mission.discodeit.service.file.FileMessageService;
-import com.sprint.mission.discodeit.service.file.FileUserService;
 import com.sprint.mission.discodeit.service.jcf.JCFChannelService;
 import com.sprint.mission.discodeit.service.jcf.JCFMessageService;
 import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
-import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 public class JavaApplication {
     public static void main(String[] args) {
-//        UserService userService = new JCFUserService(channelService);
-//        ChannelService channelService = new JCFChannelService(userService);
-//        MessageService messageService = new JCFMessageService(userService, channelService);
-
-        UserService userService = new JCFUserService();
-        ChannelService channelService = new JCFChannelService(userService);
-        MessageService messageService = new JCFMessageService(userService, channelService);
-
-
-//        FileUserService userService = new FileUserService();
-//        FileChannelService channelService = new FileChannelService();
-//        userService.setChannelService(channelService);
-//        channelService.setUserService(userService);
-//        MessageService messageService = new FileMessageService(userService, channelService);
+        JCFUserService userService = new JCFUserService();
+        JCFChannelService channelService = new JCFChannelService();
+        JCFMessageService messageService = new JCFMessageService(userService, channelService);
+        UserChannelManager userChannelManager = new UserChannelManager(userService, channelService);
+        userService.setUserChannelManager(userChannelManager);
+        channelService.setUserChannelManager(userChannelManager);
 
         try {
             // 등록
@@ -49,9 +38,9 @@ public class JavaApplication {
 
             System.out.printf("유저 및 채널 관계 설정\n\n채널 이름: %s, 유저 가입: %s, %s\n채널 이름: %s, 유저 가입: %s\n\n"
                     , channel1.getName(), user1.getName(), user2.getName(), channel2.getName(), user1.getName());
-            channelService.addUserToChannel(channel1.getId(), user1);
-            channelService.addUserToChannel(channel1.getId(), user2);
-            channelService.addUserToChannel(channel2.getId(), user1);
+            channelService.addUserToChannel(channel1.getId(), user1.getId());
+            channelService.addUserToChannel(channel1.getId(), user2.getId());
+            channelService.addUserToChannel(channel2.getId(), user1.getId());
 
 
             User foundUser1 = userService.findById(user1.getId())
