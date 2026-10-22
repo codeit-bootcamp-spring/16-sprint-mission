@@ -5,7 +5,7 @@ import java.io.Serializable;
 
 public class User extends BaseEntity implements Serializable {
 
-    private static final Long serialVersionUID = 1L;
+    private static final long serialVersionUID = 1L;
 
     private String username;
     private String password;
