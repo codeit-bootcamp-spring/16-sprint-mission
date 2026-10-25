@@ -46,6 +46,16 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
+    public List<User> findAllByChannelId(UUID channelId) {
+        return users.stream()
+                .filter(user ->
+                        user.getChannels().stream()
+                                .anyMatch(channel ->
+                                        channel.getId().equals(channelId)))
+                .toList();
+    }
+
+    @Override
     public void delete(User user) {
         users.removeIf(existingUser -> existingUser.getId().equals(user.getId()));
     }

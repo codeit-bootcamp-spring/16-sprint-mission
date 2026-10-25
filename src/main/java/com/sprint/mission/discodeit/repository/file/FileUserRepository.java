@@ -81,6 +81,16 @@ public class FileUserRepository implements UserRepository {
     }
 
     @Override
+    public List<User> findAllByChannelId(UUID channelId) {
+        return findAll().stream()
+                .filter(user ->
+                        user.getChannels().stream()
+                                .anyMatch(channel ->
+                                        channel.getId().equals(channelId)))
+                .toList();
+    }
+
+    @Override
     public void delete(User user) {
         Path filePath =
                 DIRECTORY.resolve(user.getId() + ".ser");

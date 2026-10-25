@@ -89,6 +89,22 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     @Override
+    public List<Message> findAllByUserId(UUID userId) {
+        return findAll().stream()
+                .filter(message ->
+                        message.getUser().getId().equals(userId))
+                .toList();
+    }
+
+    @Override
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return findAll().stream()
+                .filter(message ->
+                        message.getChannel().getId().equals(channelId))
+                .toList();
+    }
+
+    @Override
     public void delete(Message message) {
         Path filePath =
                 DIRECTORY.resolve(message.getId() + ".ser");
