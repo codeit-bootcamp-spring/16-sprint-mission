@@ -4,41 +4,40 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
-public class FileUserRepository implements UserRepository {
+public class FileUserRepository extends FileRepository<User> implements UserRepository {
+    private final String filePath = "./data/user.ser";
+
     public FileUserRepository() {
-        Path path = Paths.get("./data/user.ser");
-        if (Files.exists(path) && Files.isRegularFile(path)) {
-            System.out.println("저장된 데이터를 불러옵니다.");
+        if (this.checkIfFileExists(filePath)) {
+            System.out.printf("파일을 찾았습니다: %s, 저장된 데이터를 불러옵니다.\n".formatted(filePath));
             return;
         }
-        this.writeUserFile(new HashMap<>());
+        System.out.printf("기존 파일이 없습니다. 새 데이터를 저장합니다: %s\n".formatted(filePath));
+        this.writeFile(new HashMap<>(), filePath);
     }
 
     @Override
     public User save(User user) {
-        Map<UUID, User> users = this.readUserFile();
+        Map<UUID, User> users = this.readFile(filePath);
         User existingUser = users.putIfAbsent(user.getId(), user);
         if (existingUser != null) throw new IllegalStateException("이미 저장된 유저입니다.");
-        this.writeUserFile(users);
+        this.writeFile(users, filePath);
         return user;
     }
 
     @Override
     public User update(UUID id, User newUser) {
-        Map<UUID, User> users = this.readUserFile();
+        Map<UUID, User> users = this.readFile(filePath);
         User user = users.replace(id, newUser);
-        this.writeUserFile(users);
+        this.writeFile(users, filePath);
         return user;
     }
 
     @Override
     public Optional<User> findById(UUID id) {
-        Map<UUID, User> users = this.readUserFile();
+        Map<UUID, User> users = this.readFile(filePath);
         User user = users.get(id);
         if (user != null && !user.isDeleted()) return Optional.of(user);
         return Optional.empty();
@@ -46,36 +45,16 @@ public class FileUserRepository implements UserRepository {
 
     @Override
     public List<User> findAll() {
-        Map<UUID, User> users = this.readUserFile();
+        Map<UUID, User> users = this.readFile(filePath);
         return users.values().stream().filter(user -> !user.isDeleted()).toList();
     }
 
     @Override
     public void delete(UUID id) {
-        Map<UUID, User> users = this.readUserFile();
+        Map<UUID, User> users = this.readFile(filePath);
         User user = users.get(id);
         user.softDelete();
         this.update(id, user);
-    }
-
-    public Map<UUID, User> readUserFile() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./data/user.ser"))) {
-            @SuppressWarnings("unchecked")
-            Map<UUID, User> users = (Map<UUID, User>) ois.readObject();
-            return users;
-        } catch (IOException e) {
-            throw new UncheckedIOException("파일 입출력 도중 예외가 발생했습니다.", e);
-        } catch (ClassNotFoundException e) {
-            throw new NoClassDefFoundError("직렬화된 객체의 클래스를 찾을 수 없습니다.");
-        }
-    }
-
-    public void writeUserFile(Map<UUID, User> users) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("./data/user.ser"))) {
-            oos.writeObject(users);
-        } catch (IOException e) {
-            throw new UncheckedIOException("파일 입출력 도중 예외가 발생했습니다.", e);
-        }
     }
 }
 

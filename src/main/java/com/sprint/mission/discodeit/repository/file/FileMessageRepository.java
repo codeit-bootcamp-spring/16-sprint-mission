@@ -4,41 +4,40 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
 import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 
-public class FileMessageRepository implements MessageRepository {
+public class FileMessageRepository extends FileRepository<Message> implements MessageRepository {
+    private final String filePath = "./data/message.ser";
+
     public FileMessageRepository() {
-        Path path = Paths.get("./data/message.ser");
-        if (Files.exists(path) && Files.isRegularFile(path)) {
-            System.out.println("저장된 데이터를 불러옵니다.");
+        if (this.checkIfFileExists(filePath)) {
+            System.out.printf("파일을 찾았습니다: %s, 저장된 데이터를 불러옵니다.\n".formatted(filePath));
             return;
         }
-        this.writeMessageFile(new LinkedHashMap<>());
+        System.out.printf("기존 파일이 없습니다. 새 데이터를 저장합니다: %s\n".formatted(filePath));
+        this.writeFile(new LinkedHashMap<>(), filePath);
     }
 
     @Override
     public Message save(Message message) {
-        Map<UUID, Message> messages = this.readMessageFile();
+        Map<UUID, Message> messages = this.readFile(filePath);
         Message existingMessage = messages.putIfAbsent(message.getId(), message);
         if (existingMessage != null) throw new IllegalStateException("이미 저장된 메세지입니다.");
-        this.writeMessageFile(messages);
+        this.writeFile(messages, filePath);
         return message;
     }
 
     @Override
     public Message update(UUID id, Message newMessage) {
-        Map<UUID, Message> messages = this.readMessageFile();
+        Map<UUID, Message> messages = this.readFile(filePath);
         Message message = messages.replace(id, newMessage);
-        this.writeMessageFile(messages);
+        this.writeFile(messages, filePath);
         return message;
     }
 
     @Override
     public Optional<Message> findById(UUID id) {
-        Map<UUID, Message> messages = this.readMessageFile();
+        Map<UUID, Message> messages = this.readFile(filePath);
         Message message = messages.get(id);
         if (message != null && !message.isDeleted()) return Optional.of(message);
         return Optional.empty();
@@ -46,36 +45,16 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public List<Message> findAll() {
-        Map<UUID, Message> messages = this.readMessageFile();
+        Map<UUID, Message> messages = this.readFile(filePath);
         return messages.values().stream().filter(message -> !message.isDeleted()).toList();
     }
 
     @Override
     public void delete(UUID id) {
-        Map<UUID, Message> messages = this.readMessageFile();
+        Map<UUID, Message> messages = this.readFile(filePath);
         Message message = messages.get(id);
 
         message.softDelete();
         this.update(id, message);
-    }
-
-    public Map<UUID, Message> readMessageFile() {
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream("./data/message.ser"))) {
-            @SuppressWarnings("unchecked")
-            Map<UUID, Message> messages = (Map<UUID, Message>) ois.readObject();
-            return messages;
-        } catch (IOException e) {
-            throw new UncheckedIOException("파일 입출력 도중 예외가 발생했습니다.", e);
-        } catch (ClassNotFoundException e) {
-            throw new NoClassDefFoundError("직렬화된 객체의 클래스를 찾을 수 없습니다.");
-        }
-    }
-
-    public void writeMessageFile(Map<UUID, Message> messages) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream("./data/message.ser"))) {
-            oos.writeObject(messages);
-        } catch (IOException e) {
-            throw new UncheckedIOException("파일 입출력 도중 예외가 발생했습니다.", e);
-        }
     }
 }
