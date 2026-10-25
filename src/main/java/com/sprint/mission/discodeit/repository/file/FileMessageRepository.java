@@ -4,10 +4,18 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class FileMessageRepository implements MessageRepository {
     public FileMessageRepository() {
+        Path path = Paths.get("./data/message.ser");
+        if (Files.exists(path) && Files.isRegularFile(path)) {
+            System.out.println("저장된 데이터를 불러옵니다.");
+            return;
+        }
         this.writeMessageFile(new LinkedHashMap<>());
     }
 

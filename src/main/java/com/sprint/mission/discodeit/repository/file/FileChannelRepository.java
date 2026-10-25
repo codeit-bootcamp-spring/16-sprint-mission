@@ -4,10 +4,18 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class FileChannelRepository implements ChannelRepository {
     public FileChannelRepository() {
+        Path path = Paths.get("./data/channel.ser");
+        if (Files.exists(path) && Files.isRegularFile(path)) {
+            System.out.println("저장된 데이터를 불러옵니다.");
+            return;
+        }
         this.writeChannelFile(new HashMap<>());
     }
 

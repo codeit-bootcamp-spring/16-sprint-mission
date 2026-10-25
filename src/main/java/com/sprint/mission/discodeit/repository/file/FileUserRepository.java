@@ -4,10 +4,18 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 
 public class FileUserRepository implements UserRepository {
     public FileUserRepository() {
+        Path path = Paths.get("./data/user.ser");
+        if (Files.exists(path) && Files.isRegularFile(path)) {
+            System.out.println("저장된 데이터를 불러옵니다.");
+            return;
+        }
         this.writeUserFile(new HashMap<>());
     }
 
