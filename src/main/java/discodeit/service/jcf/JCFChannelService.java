@@ -7,6 +7,7 @@ import discodeit.service.ChannelService;
 import discodeit.service.UserService;
 
 import java.util.*;
+import java.util.function.Consumer;
 
 public class JCFChannelService implements ChannelService {
     private final ChannelRepository channelRepository;
@@ -73,5 +74,10 @@ public class JCFChannelService implements ChannelService {
         channelRepository.findById(userId).ifPresent(channel -> {
             channel.getUserList().forEach(u -> u.deleteChannel(userId));
         });
+    }
+
+    @Override
+    public void addDeleteListener(Consumer<UUID> consumer) {
+
     }
 }

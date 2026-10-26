@@ -1,5 +1,6 @@
 package discodeit.service;
 
+import discodeit.entity.Channel;
 import discodeit.entity.User;
 
 import java.util.List;
@@ -21,4 +22,6 @@ public interface UserService {
     public void addDeleteListener(Consumer<UUID> listener);
 
     public void removeChannelFromUsers(UUID channelId);
+
+    public void addChannelToUsers(Channel channel);
 }

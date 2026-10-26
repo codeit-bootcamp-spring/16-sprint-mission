@@ -24,9 +24,9 @@ public class JCFChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Optional<Channel> findById(UUID id) {
+    public Optional<Channel> findById(UUID channelId) {
         return Optional.of(data.stream()
-                .filter(c -> c.getId().equals(id))
+                .filter(c -> c.getId().equals(channelId))
                 .findFirst()
                 .orElseThrow(() -> new NoSuchElementException("해당 채널을 찾을 수 없습니다.")));
     }

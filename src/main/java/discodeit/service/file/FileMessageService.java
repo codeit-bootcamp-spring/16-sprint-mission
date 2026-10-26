@@ -22,6 +22,7 @@ public class FileMessageService implements MessageService {
         this.userService = userService;
         this.channelService = channelService;
         userService.addDeleteListener(this::deleteMessageByUserId);
+        channelService.addDeleteListener(this::deleteMessagesByChannelId);
     }
 
     @Override

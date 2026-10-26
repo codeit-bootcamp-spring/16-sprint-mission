@@ -2,6 +2,7 @@ package discodeit.service.file;
 
 import discodeit.entity.Channel;
 import discodeit.entity.User;
+import discodeit.repository.ChannelRepository;
 import discodeit.service.ChannelService;
 import discodeit.service.UserService;
 
@@ -9,48 +10,47 @@ import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
+import java.util.function.Consumer;
 
 public class FileChannelService implements ChannelService {
 
-    private static final String FILE_PATH = "channels.ser";
     private final UserService userService;
+    private final ChannelRepository channelRepository;
+    private final List<Consumer<UUID>> deleteListeners = new ArrayList<>();
 
-    public FileChannelService(UserService userService) {
+    public FileChannelService(UserService userService, ChannelRepository channelRepository) {
         this.userService = userService;
+        this.channelRepository = channelRepository;
         userService.addDeleteListener(this::deleteUserFromChannels);
     }
 
     @Override
     public Channel create(List<User> userList, String channelName) {
-        List<Channel> channels = load();
         List<User> users = userList.stream()
                 .map(u -> userService.find(u.getId())
                         .orElseThrow(() -> new NoSuchElementException("해당 유저가 존재하지 않습니다.")))
                         .toList();
         Channel newChannel = new Channel(channelName);
         users.forEach(newChannel::setUser);
-        channels.add(newChannel);
-
-        save(channels);
+        channelRepository.save(newChannel);
+        userService.addChannelToUsers(newChannel);
 
         return newChannel;
     }
 
     @Override
     public Optional<Channel> find(UUID channelId) {
-        return load().stream()
-                .filter(c -> c.getId().equals(channelId))
-                .findFirst();
+        return channelRepository.findById(channelId);
     }
 
     @Override
     public List<Channel> findAll() {
-        return load();
+        return channelRepository.findAll();
     }
 
     @Override
     public Channel update(UUID channelId, String newName) {
-        List<Channel> channels = load();
+        List<Channel> channels = channelRepository.findAll();
         Channel target = channels.stream()
                 .filter(c -> c.getId().equals(channelId))
                 .findFirst()
@@ -60,56 +60,34 @@ public class FileChannelService implements ChannelService {
         if(target.getId().equals(channelId)) {
             target.setChannelName(newName);
             target.setUpdatedAt(System.currentTimeMillis());
-            save(channels);
+            channelRepository.save(target);
         }
         return target;
     }
 
     @Override
     public void delete(UUID channelId) {
-        List<Channel> channels = load();
-
-        boolean isRemoved = channels.removeIf(
-                c -> c.getId().equals(channelId)
-        );
-
-        if(!isRemoved) {
-            throw new NoSuchElementException("삭제할 채널이 없습니다.");
-        }
-        ChannelReferenceCleaner.clean(channels, channelId);
-        save(channels);
+        find(channelId).orElseThrow(() -> new NoSuchElementException("삭제할 채널이 없습니다."));
+        deleteListeners.forEach(l -> l.accept(channelId));
+        userService.removeChannelFromUsers(channelId);
+        channelRepository.deleteById(channelId);
     }
 
     @Override
     public void deleteUserFromChannels(UUID userId) {
-        List<Channel> channels = load();
+        List<Channel> channels = channelRepository.findAll();
         userService.find(userId).orElseThrow(() ->
                 new NoSuchElementException("해당 사용자가 없습니다."));
 
-        channels.forEach(c -> c.getUserList()
-                .removeIf(u -> u.getId().equals(userId)));
-        save(channels);
-    }
-
-    private void save(List<Channel> channelList) {
-        try (FileOutputStream fos = new FileOutputStream(FILE_PATH)) {
-            ObjectOutputStream oos = new ObjectOutputStream(fos);
-            oos.writeObject(channelList);
-        }  catch (IOException e) {
-            e.printStackTrace();
+        for (Channel channel : channels) {
+            channel.deleteUser(userId);
+            channelRepository.save(channel);
         }
     }
 
-    private List<Channel> load() {
-        List<Channel> channelList = new ArrayList<>();
-        if (!Files.exists(Path.of(FILE_PATH))) {
-            return channelList;
-        }
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
-            channelList = (List<Channel>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return channelList;
+    @Override
+    public void addDeleteListener(Consumer<UUID> listener) {
+        deleteListeners.add(listener);
     }
+
 }

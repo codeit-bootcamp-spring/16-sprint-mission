@@ -1,6 +1,7 @@
 package discodeit.entity;
 
 import java.io.Serializable;
+import java.util.Objects;
 import java.util.UUID;
 
 public class Common implements Serializable {
@@ -38,5 +39,17 @@ public class Common implements Serializable {
         this.id = UUID.randomUUID();
         this.createdAt = createdAt;
         this.updatedAt = createdAt;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (o == null || getClass() != o.getClass()) return false;
+        Common common = (Common) o;
+        return Objects.equals(id, common.id);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hashCode(id);
     }
 }

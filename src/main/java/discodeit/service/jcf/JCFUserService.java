@@ -1,5 +1,6 @@
 package discodeit.service.jcf;
 
+import discodeit.entity.Channel;
 import discodeit.entity.User;
 import discodeit.repository.UserRepository;
 import discodeit.service.UserService;
@@ -64,6 +65,11 @@ public class JCFUserService implements UserService {
 
     @Override
     public void removeChannelFromUsers(UUID channelId) {
+
+    }
+
+    @Override
+    public void addChannelToUsers(Channel channel) {
 
     }
 }

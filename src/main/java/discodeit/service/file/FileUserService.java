@@ -2,6 +2,7 @@ package discodeit.service.file;
 
 import discodeit.entity.Channel;
 import discodeit.entity.User;
+import discodeit.repository.UserRepository;
 import discodeit.service.UserService;
 
 import java.io.*;
@@ -12,63 +13,48 @@ import java.util.function.Consumer;
 
 public class FileUserService implements UserService {
 
-    private static final String FILE_PATH = "users.ser";
+    private final UserRepository userRepository;
     private final List<Consumer<UUID>> deleteListeners = new ArrayList<>();
+
+    public FileUserService(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     @Override
     public User create(String name) {
-        try {
-            List<User> users = load();
-            User user = new User(name);
-            users.add(user);
-            save(users);
-            return user;
-        } catch (UncheckedIOException e) {
-            throw new IllegalStateException("유저 생성 실패: " + name, e);
-        }
+        User user = new User(name);
+        userRepository.save(user);
+        return user;
     }
 
     @Override
     public Optional<User> find(UUID userId) {
-        return load().stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst();
+        Optional<User> user = userRepository.findById(userId);
+        return user;
     }
 
     @Override
     public List<User> findAll() {
-        return load();
+        return userRepository.findAll();
     }
 
     @Override
     public User update(UUID userId, String newName) {
-        List<User> users = load();
-        User target = users.stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst()
-                .orElseThrow(() ->
-                        new NoSuchElementException("수정할 사용자를 찾을 수 없습니다."));
-
-        if (!target.getUserName().equals(newName)) {
-            target.setUserName(newName);
-            target.setUpdatedAt(System.currentTimeMillis());
-            save(users);
-        }
+        User target = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("해당 유저를 찾을 수 없습니다."));
+        target.setUserName(newName);
+        target.setUpdatedAt(System.currentTimeMillis());
+        userRepository.save(target);
         return target;
     }
 
     @Override
     public void delete(UUID userId) {
-        List<User> users = load();
-        User target = users.stream()
-                .filter(u -> u.getId().equals(userId))
-                .findFirst()
-                .orElseThrow(() ->
-                        new NoSuchElementException("제거하려는 사용자를 찾을 수 없습니다."));
+        User target = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("해당 유저를 찾을 수 없습니다."));
 
         deleteListeners.forEach(l -> l.accept(userId));
-        users.remove(target);
-        this.save(users);
+        userRepository.deleteById(userId);
     }
 
     @Override
@@ -78,40 +64,24 @@ public class FileUserService implements UserService {
 
     @Override
     public void removeChannelFromUsers(UUID channelId) {
-        List<User> users = load();
+        List<User> users = userRepository.findAll();
 
         for (User user : users) {
             user.deleteChannel(channelId);
+            userRepository.save(user);
         }
-        save(users);
     }
 
+    @Override
     public void addChannelToUsers(Channel channel) {
-        List<User> users = load();
+        List<User> users = channel.getUserList();
         for (User user : users) {
-            user.setChannel(channel);
-        }
-        save(users);
-    }
-
-    private void save(List<User> userList) {
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(FILE_PATH))) {
-            oos.writeObject(userList);
-        }  catch (IOException e) {
-            e.printStackTrace();
+            User lastest = userRepository.findById(user.getId()).orElseThrow(() ->
+                    new NoSuchElementException("찾으려는 유저가 존재하지 않습니다."));
+            lastest.setChannel(channel);
+            userRepository.save(lastest);
         }
     }
 
-    private List<User> load() {
-        List<User> userList = new ArrayList<>();
-        if (!Files.exists(Path.of(FILE_PATH))) {
-            return userList;
-        }
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(FILE_PATH))) {
-            userList = (List<User>) ois.readObject();
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
-        return userList;
-    }
+
 }

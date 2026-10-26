@@ -51,6 +51,6 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public void deleteByChannelId(UUID channelId) {
-
+        data.removeIf(m -> m.getChannel().getId().equals(channelId));
     }
 }

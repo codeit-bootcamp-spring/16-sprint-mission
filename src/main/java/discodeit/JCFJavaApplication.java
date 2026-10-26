@@ -3,18 +3,19 @@ package discodeit;
 import discodeit.entity.Channel;
 import discodeit.entity.Message;
 import discodeit.entity.User;
+import discodeit.repository.jcf.JCFChannelRepository;
+import discodeit.repository.jcf.JCFMessageRepository;
 import discodeit.repository.jcf.JCFUserRepository;
 import discodeit.service.ChannelService;
 import discodeit.service.MessageService;
 import discodeit.service.UserService;
-import discodeit.service.file.FileChannelService;
-import discodeit.service.file.FileMessageService;
-import discodeit.service.file.FileUserService;
 import discodeit.service.jcf.JCFChannelService;
 import discodeit.service.jcf.JCFMessageService;
 import discodeit.service.jcf.JCFUserService;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Optional;
 
 public class JCFJavaApplication {
     public static void main(String[] args)  {
@@ -49,7 +50,7 @@ public class JCFJavaApplication {
 
 
         // Channel CRUD
-        ChannelService channelService = new JCFChannelService(userService);
+        ChannelService channelService = new JCFChannelService(userService, new JCFChannelRepository());
         List<User> users = Arrays.asList(user1, user2, user3);
 
         System.out.println("Channel 관련 출력 시작");
@@ -76,7 +77,7 @@ public class JCFJavaApplication {
 
 
         // Message CRUD
-        MessageService messageService = new JCFMessageService(userService);
+        MessageService messageService = new JCFMessageService(userService, new JCFMessageRepository());
 
         System.out.println("Message 관련 출력 시작");
         // 메세지 저장
