@@ -100,23 +100,41 @@ public class JCFUserService implements UserService {
             throw new IllegalArgumentException("Username cannot be null or empty");
         }
 
+        /* 1. User 객체 업데이트 */
+
         User user = this.findById(id);
         user.updateUsername(username);
 
+        /* 2. Channel 객체의 User 객체들 업데이트 */
+        // Channel 객체에는 Set<User> users로 User 객체들이 저장됩니다.
         List<Channel> channelList = this.channelRepository.getChannels();
 
         channelList.stream()
+                // 각 Channel에 모든 User들 중에 업데이트의 대상이 되는 User가 있는 Channel만 선택
                 .filter(channel -> channel.getUsers().contains(user))
+                // 각 Channel에서 모든 User를 가져온 다음에, Userdml ID가 업데이트의 대상이 되는
+                // User의 ID와 같다면
+                // 이 User들의 이름을 업데이트합니다.
                 .forEach(channel -> {
                     channel.getUsers().stream()
                             .filter(u -> u.getId().equals(user.getId()))
                             .forEach(u -> u.updateUsername(username));
-
+                    // JCF 방식에서는 굳이 save()를 호출할 필요가 없지만
+                    // File 방식에서는 변경된 Channel객체들을 다시 직렬화해서 저장해야하기 때문에
+                    // save()를 호출해야합니다.
                     this.channelRepository.save(channel);
                 });
 
         List<Message> messageList = this.messageRepository.getMessages();
 
+        /**
+         * JCF 방식은 객체를 사용하기 때문에, User를 한번 업데이트하면
+         * User를 참조하고 있는 다른 곳에서 업데이트할 필요는없습니다.
+         * 하지만 File 방식은 데이터가 기록되는 것 이기 때문에
+         * User를 참조하는 모든곳을 바꿔줘야합니다.
+         */
+
+        /* 3. Message 객체에 User객체를 업데이트 */
         messageList.stream()
                 .filter(message -> message.getSender().equals(user))
                 .forEach(message -> {
