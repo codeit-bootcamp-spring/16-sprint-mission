@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.*;
 
+@Getter
 public class Channel extends BaseEntity {
     private UUID ownerId;
     private String name;
@@ -21,10 +24,6 @@ public class Channel extends BaseEntity {
         this.description = description;
         users.add(ownerId); // 소유자는 자동으로 가입한다.
     }
-
-    public UUID getOwnerId() { return ownerId; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
 
     public Set<UUID> getUsers() { return Collections.unmodifiableSet(users); }
     public List<UUID> getMessages() { return Collections.unmodifiableList(messages); }

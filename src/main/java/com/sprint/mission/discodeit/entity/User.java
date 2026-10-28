@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.*;
 
+@Getter
 public class User extends BaseEntity {
     private String username;
     private String email;
@@ -20,10 +23,6 @@ public class User extends BaseEntity {
         this.password = password;
 
     }
-
-    public String getUsername() { return username; }
-    public String getEmail() { return email; }
-    public String getPassword() { return password; }
 
     public Set<UUID> getChannels() { return Collections.unmodifiableSet(channels); }
     public List<UUID> getMessages() { return Collections.unmodifiableList(messages); }
