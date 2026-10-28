@@ -1,0 +1,118 @@
+package com.sprint.mission.discodeit.repository.file;
+
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+
+import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+public class FileMessageRepository implements MessageRepository {
+
+    private static final Path DIRECTORY =
+            Paths.get(
+                    System.getProperty("user.dir"),
+                    "data",
+                    "messages"
+            );
+
+    public FileMessageRepository() {
+        try {
+            Files.createDirectories(DIRECTORY);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Message load(Path filePath) {
+        try (
+                FileInputStream fis =
+                        new FileInputStream(filePath.toFile());
+                ObjectInputStream ois =
+                        new ObjectInputStream(fis)
+        ) {
+            return (Message) ois.readObject();
+
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public Message save(Message message) {
+        Path filePath =
+                DIRECTORY.resolve(message.getId() + ".ser");
+
+        try (
+                FileOutputStream fos =
+                        new FileOutputStream(filePath.toFile());
+                ObjectOutputStream oos =
+                        new ObjectOutputStream(fos)
+        ) {
+            oos.writeObject(message);
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return message;
+    }
+
+    @Override
+    public Optional<Message> findById(UUID id) {
+        Path filePath = DIRECTORY.resolve(id + ".ser");
+
+        if (!Files.exists(filePath)) {
+            return Optional.empty();
+        }
+
+        return Optional.of(load(filePath));
+    }
+
+    @Override
+    public List<Message> findAll() {
+        try (var paths = Files.list(DIRECTORY)) {
+            return paths
+                    .filter(Files::isRegularFile)
+                    .filter(path ->
+                            path.toString().endsWith(".ser"))
+                    .map(this::load)
+                    .toList();
+
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Message> findAllByUserId(UUID userId) {
+        return findAll().stream()
+                .filter(message ->
+                        message.getUser().getId().equals(userId))
+                .toList();
+    }
+
+    @Override
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return findAll().stream()
+                .filter(message ->
+                        message.getChannel().getId().equals(channelId))
+                .toList();
+    }
+
+    @Override
+    public void delete(Message message) {
+        Path filePath =
+                DIRECTORY.resolve(message.getId() + ".ser");
+
+        try {
+            Files.delete(filePath);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+}
