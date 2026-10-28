@@ -22,13 +22,13 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public Message create(Message message) {
-        userService.findById(message.getSenderId());
+        userService.findById(message.getAuthorId());
         Channel channel = channelService.findById(message.getChannelId());
-        if (!channel.hasUser(message.getSenderId())) {                      // 채널 멤버인지 검증 /
+        if (!channel.hasUser(message.getAuthorId())) {                      // 채널 멤버인지 검증 /
             throw new IllegalArgumentException("채널 멤버만 메시지를 작성할 수 있습니다.");
         }
         Message saved = messageRepository.save(message);
-        userService.addMessage(message.getSenderId(), message.getId());
+        userService.addMessage(message.getAuthorId(), message.getId());
         channelService.addMessage(message.getChannelId(), message.getId());
         return saved;
     }
@@ -67,14 +67,14 @@ public class BasicMessageService implements MessageService {
         Message message = findById(id);
         requireSender(message, requesterId, "메시지 삭제 권한이 없습니다.");
 
-        userService.removeMessage(message.getSenderId(), id);
+        userService.removeMessage(message.getAuthorId(), id);
         channelService.removeMessage(message.getChannelId(), id);
         messageRepository.deleteById(id);
 
     }
 
     private void requireSender(Message message, UUID requesterId, String errorMessage) {
-        if(!message.getSenderId().equals(requesterId)) {
+        if(!message.getAuthorId().equals(requesterId)) {
             throw new IllegalArgumentException(errorMessage);
         }
     }

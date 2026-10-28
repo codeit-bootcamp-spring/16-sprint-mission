@@ -7,7 +7,7 @@ import java.io.Serializable;
 import java.util.*;
 
 @Getter
-public class Channel extends BaseEntity {
+public class Channel extends BaseUpdatableEntity {
     private UUID ownerId;
     private String name;
     private String description;

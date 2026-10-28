@@ -7,23 +7,24 @@ import java.io.Serializable;
 import java.util.*;
 
 @Getter
-public class User extends BaseEntity {
+public class User extends BaseUpdatableEntity {
     private String username;
     private String email;
     private transient String password;
+    private UUID profileId;
     private final Set<UUID> channels = new HashSet<>();
     private final List<UUID> messages = new ArrayList<>();
 
     @Serial
     private static final long serialVersionUID = 1L;
 
-    public User(String username, String email, String password) {
+    public User(String username, String email, String password, UUID profileId) {
         super();
         validate(username, email, password);
         this.username = username;
         this.email = email;
         this.password = password;
-
+        this.profileId = profileId;
     }
 
     public Set<UUID> getChannels() { return Collections.unmodifiableSet(channels); }
