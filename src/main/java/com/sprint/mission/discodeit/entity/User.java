@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,6 +18,7 @@ public class User extends BaseEntity {
     private String email;
     private final List<UUID> myChannelIds;
     private final List<UUID> myMessageIds;
+    private UUID profileId;
 
     public User(String username, String password, String email) {
         super();
@@ -28,6 +28,7 @@ public class User extends BaseEntity {
             Validation.validateWhitespace(email, "email");
             Validation.validateEmailRegex(email);
         }
+
         this.username = username;
         this.password = password;
         this.email = email;
@@ -59,6 +60,12 @@ public class User extends BaseEntity {
         Validation.validateWhitespace(email, "email");
         Validation.validateEmailRegex(email);
         this.email = email;
+        super.update();
+    }
+
+    public void changeProfileId(UUID profileId) {
+        Validation.validateNull(profileId, "profileId");
+        this.profileId = profileId;
         super.update();
     }
 
@@ -96,6 +103,11 @@ public class User extends BaseEntity {
 
     public void deleteEmail() {
         this.email = null;
+        super.update();
+    }
+
+    public void deleteProfileId() {
+        this.profileId = null;
         super.update();
     }
 }

@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -23,6 +22,7 @@ public class Channel extends BaseEntity {
         super();
         Validation.validateBlank(channelName, "channelName");
         Validation.validateNull(creatorId, "creatorId");
+
         this.channelName = channelName;
         this.participantIds = new ArrayList<>();
         this.messageIds = new ArrayList<>();
