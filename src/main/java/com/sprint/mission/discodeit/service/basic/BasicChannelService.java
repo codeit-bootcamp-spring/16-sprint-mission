@@ -1,0 +1,99 @@
+package com.sprint.mission.discodeit.service.basic;
+
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.ChannelService;
+
+import java.util.*;
+
+public class BasicChannelService implements ChannelService {
+    private final ChannelRepository channelRepository;
+    private final UserRepository userRepository;
+
+    public BasicChannelService(ChannelRepository channelRepository, UserRepository userRepository) {
+        this.channelRepository = channelRepository;
+        this.userRepository = userRepository;
+    }
+
+    @Override
+    public Channel create(String name) {
+        Channel channel = new Channel(name);
+        return this.channelRepository.save(channel);
+    }
+
+    @Override
+    public Optional<Channel> findById(UUID id) {
+        return this.channelRepository.findById(id);
+    }
+
+    @Override
+    public List<Channel> findAll() {
+        return this.channelRepository.findAll();
+    }
+
+    @Override
+    public Channel update(UUID id, Channel newChannel) {
+        Channel channel = this.channelRepository.findById(id).orElseThrow(
+                () -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
+        // 갱신할 채널 정보의 상태가 활동 중이면 현재 채널도 검사
+        if (!newChannel.isDeleted()) {
+            channel.validateNotDeleted();
+        }
+        channel.update(newChannel);
+        return this.channelRepository.update(id, channel);
+    }
+
+    @Override
+    public void addUserToChannel(UUID channelId, UUID userId) {
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));
+        user.validateNotDeleted();
+
+        Channel channel = this.channelRepository.findById(channelId).orElseThrow(
+                () -> new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다."));
+        channel.validateNotDeleted();
+
+        channel.addUser(user.getId());
+        this.channelRepository.update(channelId, channel);
+
+        // 채널에 유저 추가 시 유저에도 채널 추가
+        user.addChannel(channel.getId());
+        this.userRepository.update(userId, user);
+    }
+
+    @Override
+    public void removeUserFromChannel(UUID channelId, UUID userId) {
+        // 유저가 존재하는지 확인
+        User user = this.userRepository.findById(userId).orElseThrow(
+                () -> new NoSuchElementException("채널에서 탈퇴시킬 유저가 존재하지 않습니다."));
+        user.validateNotDeleted();
+
+        Channel channel = this.channelRepository.findById(channelId).orElseThrow(
+                () -> new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다."));
+        channel.validateNotDeleted();
+
+        // 채널의 유저 탈퇴 시 유저에도 채널 지우기
+        user.removeChannel(channelId);
+        this.userRepository.update(userId, user);
+
+        channel.removeUser(userId);
+        this.channelRepository.update(channelId, channel);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        Channel channel = this.channelRepository.findById(id).orElseThrow(
+                () -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
+        channel.validateNotDeleted();
+
+        channel.getUsers().forEach(userId -> this.userRepository.findById(userId).ifPresent(user -> {
+            if (!user.isDeleted()) {
+                user.removeChannel(id);
+                this.userRepository.update(userId, user);
+            }
+        }));
+        this.channelRepository.delete(id);
+    }
+}

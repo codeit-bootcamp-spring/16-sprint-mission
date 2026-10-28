@@ -1,0 +1,58 @@
+package com.sprint.mission.discodeit.service.jcf;
+
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.UserService;
+
+import java.util.*;
+
+public class JCFUserService implements UserService {
+    private final Map<UUID, User> data;
+    private ChannelService channelService;
+
+    public JCFUserService() {
+        this.data = new HashMap<>();
+    }
+
+    @Override
+    public User create(String name) {
+        User user = new User(name);
+        this.data.put(user.getId(), user);
+        return user;
+    }
+
+    @Override
+    public User update(UUID id, User newUser) {
+        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
+        user.validateNotDeleted();
+        user.update(newUser);
+        this.data.put(id, user);
+        return user;
+    }
+
+    @Override
+    public Optional<User> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
+    }
+
+    @Override
+    public List<User> findAll() {
+        return this.data.values().stream().toList();
+    }
+
+    @Override
+    public void delete(UUID id) {
+        User user = this.findById(id).orElseThrow(
+                () -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+        user.validateNotDeleted();
+
+        // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
+        Set<UUID> channels = new HashSet<>(user.getChannels());
+        channels.forEach(channelId -> this.channelService.removeUserFromChannel(channelId, id));
+        user.softDelete();
+    }
+
+    public void setChannelService(ChannelService channelService) {
+        this.channelService = channelService;
+    }
+}
