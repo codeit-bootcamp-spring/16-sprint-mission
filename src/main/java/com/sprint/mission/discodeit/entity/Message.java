@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.Objects;
 import java.util.UUID;
@@ -12,6 +13,7 @@ public class Message extends BaseEntity {
     private final UUID channelId; // 채널ID를 속성으로 삼아야 채널 검증 가능
     private String content;
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public Message(UUID senderId, UUID channelId, String content) {
