@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.MessageType;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
 import java.io.IOException;
@@ -8,9 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Stream;
 
 public class FileMessageRepository implements MessageRepository {
@@ -44,28 +43,29 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     @Override
-    public Message findById(UUID messageId) {
+    public Optional<Message> findById(UUID messageId) {
         Path file = fileFor(messageId);
 
         if (Files.notExists(file)) {
-            return null;
+            return Optional.empty();
         }
 
-        return readMessage(file);
+        return Optional.of(readMessage(file));
     }
 
     @Override
     public List<Message> findAll() {
-        List<Message> messages = new ArrayList<>();
+        List<Message> allMessages = new ArrayList<>();
 
         try (Stream<Path> files = Files.list(messageDirectory)) {
             files.filter(file -> file.getFileName().toString().endsWith(".ser"))
-                    .forEach(file -> messages.add(readMessage(file)));
+                    .forEach(file -> allMessages.add(readMessage(file)));
         } catch (IOException e) {
             throw new RuntimeException("메시지 파일 목록을 읽는 데 실패했습니다.", e);
         }
 
-        return messages;
+        allMessages.sort(Comparator.comparing(Message::getCreatedAt));
+        return allMessages;
     }
 
     @Override
@@ -92,6 +92,7 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public List<Message> findByUserId(UUID userId) {
         return findAll().stream()
+                .filter(message -> message.getType() == MessageType.USER)
                 .filter(message -> message.getSenderId().equals(userId))
                 .toList();
     }
@@ -106,8 +107,9 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public List<Message> findByUserIdAndChannelId(UUID userId, UUID channelId) {
         return findAll().stream()
-                .filter(message -> message.getSenderId().equals(userId)
-                        && message.getChannelId().equals(channelId))
+                .filter(message -> message.getType() == MessageType.USER)
+                .filter(message -> message.getSenderId().equals(userId))
+                .filter(message -> message.getChannelId().equals(channelId))
                 .toList();
     }
 }

@@ -41,7 +41,7 @@ public class BasicUserService implements UserService {
         if (user == null) {
             throw new IllegalArgumentException("유저가 null입니다.");
         }
-        if (userRepository.findById(user.getId()) != null) {
+        if (userRepository.findById(user.getId()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 사용자입니다.");
         }
         validateDuplicateEmail(user.getEmail());
@@ -50,11 +50,8 @@ public class BasicUserService implements UserService {
 
     @Override
     public User getUserById(UUID userId) {
-        User user = userRepository.findById(userId);
-        if (user == null) {
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
-        }
-        return user;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 
     @Override
@@ -97,11 +94,12 @@ public class BasicUserService implements UserService {
         validatePassword(user.getPassword(), password);
 
         for (Message message : messageRepository.findByUserId(id)) {
-            Channel channel = channelRepository.findById(message.getChannelId());
-            if (channel != null) {
-                channel.removeMessageId(message.getId());
-                channelRepository.save(channel);
-            }
+            channelRepository.findById(message.getChannelId())
+                    .ifPresent(channel -> {
+                        channel.removeMessageId(message.getId());
+                        channelRepository.save(channel);
+                    });
+
             user.removeMessageId(message.getId());
             messageRepository.deleteById(message.getId());
         }
@@ -122,22 +120,24 @@ public class BasicUserService implements UserService {
 
     private void deleteChannelData(Channel channel) {
         for (Message message : messageRepository.findByChannelId(channel.getId())) {
-            User sender = userRepository.findById(message.getSenderId());
-            if (sender != null) {
-                sender.removeMessageId(message.getId());
-                userRepository.save(sender);
-            }
+            userRepository.findById(message.getSenderId())
+                    .ifPresent(sender -> {
+                        sender.removeMessageId(message.getId());
+                        userRepository.save(sender);
+                    });
+
             channel.removeMessageId(message.getId());
             messageRepository.deleteById(message.getId());
         }
 
         for (UUID participantId : channel.getParticipantIds()) {
             channel.leaveChannel(participantId);
-            User participant = userRepository.findById(participantId);
-            if (participant != null) {
-                participant.removeChannelId(channel.getId());
-                userRepository.save(participant);
-            }
+
+            userRepository.findById(participantId)
+                    .ifPresent(participant -> {
+                        participant.removeChannelId(channel.getId());
+                        userRepository.save(participant);
+                    });
         }
         channelRepository.deleteById(channel.getId());
     }

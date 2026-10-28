@@ -11,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
@@ -21,27 +22,18 @@ public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
 
     private User requireUser(UUID id) {
-        User user = userRepository.findById(id);
-        if (user == null) {
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
-        }
-        return user;
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 
     private Channel requireChannel(UUID id) {
-        Channel channel = channelRepository.findById(id);
-        if (channel == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다.");
-        }
-        return channel;
+        return channelRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
     }
 
     private Message requireMessage(UUID id) {
-        Message message = messageRepository.findById(id);
-        if (message == null) {
-            throw new IllegalArgumentException("존재하지 않는 메시지입니다.");
-        }
-        return message;
+        return messageRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메시지입니다."));
     }
 
     private void validateParticipant(UUID userId, Channel channel, String action) {
@@ -61,7 +53,8 @@ public class BasicMessageService implements MessageService {
         if (message == null) {
             throw new IllegalArgumentException("메시지가 null입니다.");
         }
-        if (messageRepository.findById(message.getId()) != null) {
+
+        if (messageRepository.findById(message.getId()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 메시지입니다.");
         }
 
@@ -118,7 +111,7 @@ public class BasicMessageService implements MessageService {
         Channel channel = requireChannel(message.getChannelId());
         validateParticipant(userId, channel, "수정");
 
-        message.updateMessage(content);
+        message.updateContent(content);
         return messageRepository.save(message);
     }
 
@@ -148,30 +141,30 @@ public class BasicMessageService implements MessageService {
         Channel channel = requireChannel(channelId);
 
         for (Message message : messageRepository.findByChannelId(channelId)) {
-            User user = userRepository.findById(message.getSenderId());
-
-            if (user != null) {
-                removeMessage(message, user, channel);
-            }
-            else {
-                channel.removeMessageId(message.getId());
-                channelRepository.save(channel);
-                messageRepository.deleteById(message.getId());
-            }
+            userRepository.findById(message.getSenderId())
+                    .ifPresentOrElse(
+                            user -> removeMessage(message, user, channel),
+                            () -> {
+                                channel.removeMessageId(message.getId());
+                                channelRepository.save(channel);
+                                messageRepository.deleteById(message.getId());
+                            }
+                    );
         }
     }
 
     @Override
     public void deleteMessagesByUserId(UUID userId) {
         User user = requireUser(userId);
-        for (Message message : messageRepository.findByUserId(userId)) {
-            Channel channel = channelRepository.findById(message.getChannelId());
-            user.removeMessageId(message.getId());
-            if (channel != null) {
-                channel.removeMessageId(message.getId());
-                channelRepository.save(channel);
-            }
 
+        for (Message message : messageRepository.findByUserId(userId)) {
+            channelRepository.findById(message.getChannelId())
+                    .ifPresent(channel -> {
+                        channel.removeMessageId(message.getId());
+                        channelRepository.save(channel);
+                    });
+
+            user.removeMessageId(message.getId());
             userRepository.save(user);
             messageRepository.deleteById(message.getId());
         }

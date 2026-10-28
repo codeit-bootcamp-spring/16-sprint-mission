@@ -108,7 +108,7 @@ public class JCFMessageService implements MessageService {
         validateSender(message, userId, "수정");
         Channel channel = channelService.getChannelById(message.getChannelId());
         validateParticipant(userId, channel, "수정");
-        message.updateMessage(content);
+        message.updateContent(content);
         return message;
     }
 

@@ -3,24 +3,22 @@ package com.sprint.mission.discodeit.repository.jcf;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 public class JCFMessageRepository implements MessageRepository {
 
     private final Map<UUID, Message> messages = new LinkedHashMap<>();
 
     @Override
-    public Message findById(UUID messageId) {
-        return messages.get(messageId);
+    public Optional<Message> findById(UUID messageId) {
+        return Optional.ofNullable(messages.get(messageId));
     }
 
     @Override
     public List<Message> findAll() {
-        return new ArrayList<>(messages.values());
+        List<Message> allMessages = new ArrayList<>(messages.values());
+        allMessages.sort(Comparator.comparing(Message::getCreatedAt));
+        return allMessages;
     }
 
     @Override

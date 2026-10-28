@@ -182,7 +182,7 @@ public class FileMessageService implements MessageService {
         validateParticipant(userId, channel, "수정");
 
 
-        message.updateMessage(content);
+        message.updateContent(content);
         writeMessage(message);
         return message;
     }

@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.MessageType;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -35,31 +36,29 @@ public class BasicChannelService implements ChannelService {
         }
     }
 
-    private Channel requireChannel(UUID id) {
-        Channel channel = channelRepository.findById(id);
-        if (channel == null) {
-            throw new IllegalArgumentException("해당 채널이 존재하지 않습니다.");
-        }
-        return channel;
+    private User requireUser(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 
-    private User requireUser(UUID id) {
-        User user = userRepository.findById(id);
-        if (user == null) {
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
-        }
-        return user;
+    private Channel requireChannel(UUID id) {
+        return channelRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
     }
 
     private void postSystemMessage(UUID userId, UUID channelId, String content) {
-        Message message = new Message(content, userId, channelId);
-        User user = requireUser(userId);
+        requireUser(userId);
+
+        Message message = new Message(
+                content,
+                userId,
+                channelId,
+                MessageType.SYSTEM
+        );
         Channel channel = requireChannel(channelId);
 
-        user.addMessageId(message.getId());
         channel.addMessageId(message.getId());
 
-        userRepository.save(user);
         channelRepository.save(channel);
         messageRepository.save(message);
     }
@@ -70,7 +69,7 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("채널이 null입니다.");
         }
 
-        if (channelRepository.findById(channel.getId()) != null) {
+        if (channelRepository.findById(channel.getId()).isPresent()) {
             throw new IllegalArgumentException("이미 존재하는 채널입니다.");
         }
 
@@ -171,11 +170,8 @@ public class BasicChannelService implements ChannelService {
         List<User> participants = new ArrayList<>();
 
         for (UUID participantId : requireChannel(channelId).getParticipantIds()) {
-            User participant = userRepository.findById(participantId);
-
-            if (participant != null) {
-                participants.add(participant);
-            }
+            userRepository.findById(participantId)
+                    .ifPresent(participants::add);
         }
 
         return List.copyOf(participants);
@@ -199,11 +195,11 @@ public class BasicChannelService implements ChannelService {
         validateCreator(channel, userId, "삭제");
 
         for (Message message : messageRepository.findByChannelId(channelId)) {
-            User sender = userRepository.findById(message.getSenderId());
-            if (sender != null) {
-                sender.removeMessageId(message.getId());
-                userRepository.save(sender);
-            }
+            userRepository.findById(message.getSenderId())
+                    .ifPresent(sender -> {
+                        sender.removeMessageId(message.getId());
+                        userRepository.save(sender);
+                    });
 
             channel.removeMessageId(message.getId());
             messageRepository.deleteById(message.getId());
@@ -212,11 +208,11 @@ public class BasicChannelService implements ChannelService {
         for (UUID participantId : channel.getParticipantIds()) {
             channel.leaveChannel(participantId);
 
-            User participant = userRepository.findById(participantId);
-            if (participant != null) {
-                participant.removeChannelId(channelId);
-                userRepository.save(participant);
-            }
+            userRepository.findById(participantId)
+                    .ifPresent(participant -> {
+                        participant.removeChannelId(channelId);
+                        userRepository.save(participant);
+                    });
         }
 
         channelRepository.deleteById(channelId);

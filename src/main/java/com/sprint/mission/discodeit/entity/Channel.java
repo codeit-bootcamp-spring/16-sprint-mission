@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,8 @@ import java.util.UUID;
 
 @Getter
 public class Channel extends BaseEntity {
+
+    @Serial
     private static final long serialVersionUID = 2L;
 
     private String channelName;
