@@ -5,20 +5,18 @@ import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserWithdrawalService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.UUID;
 
+@Service
+@RequiredArgsConstructor
 public class BasicUserWithdrawalService implements UserWithdrawalService {
     private final UserService userService;
     private final ChannelService channelService;
     private final MessageService messageService;
-
-    public BasicUserWithdrawalService(UserService userService, ChannelService channelService, MessageService messageService) {
-        this.userService = userService;
-        this.channelService = channelService;
-        this.messageService = messageService;
-    }
 
     @Override
     public void withdraw(UUID userId)  {
