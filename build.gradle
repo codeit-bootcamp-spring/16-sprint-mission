@@ -1,0 +1,32 @@
+
+plugins {
+    id 'java'
+}
+
+group = 'com.sprint.mission'
+version = '1.0-SNAPSHOT'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src']
+            exclude 'com/sprint/mission/discodeit/test/**'
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src']
+            include 'com/sprint/mission/discodeit/test/**'
+        }
+    }
+}
+
+tasks.named('test') {
+    failOnNoDiscoveredTests = false
+}
