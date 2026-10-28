@@ -1,11 +1,14 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class User extends BaseEntity implements Serializable {
+@Getter
+public class User extends BaseEntity {
     private static final long serialVersionUID = 2L;
 
     private String username;
@@ -27,18 +30,6 @@ public class User extends BaseEntity implements Serializable {
         this.email = email;
         this.myChannelIds = new ArrayList<>();
         this.myMessageIds = new ArrayList<>();
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     public List<UUID> getMyChannelIds() {

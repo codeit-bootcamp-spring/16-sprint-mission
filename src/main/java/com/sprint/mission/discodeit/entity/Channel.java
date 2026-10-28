@@ -1,11 +1,14 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class Channel extends BaseEntity implements Serializable {
+@Getter
+public class Channel extends BaseEntity {
     private static final long serialVersionUID = 2L;
 
     private String channelName;
@@ -23,20 +26,12 @@ public class Channel extends BaseEntity implements Serializable {
         this.creatorId = creatorId;
     }
 
-    public String getChannelName() {
-        return channelName;
-    }
-
     public List<UUID> getParticipantIds() {
         return new ArrayList<>(participantIds);
     }
 
     public List<UUID> getMessageIds() {
         return new ArrayList<>(messageIds);
-    }
-
-    public UUID getCreatorId() {
-        return creatorId;
     }
 
     public void changeChannelName(String channelName) {
