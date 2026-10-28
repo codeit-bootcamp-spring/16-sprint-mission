@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -115,7 +116,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public void join(UUID channelId, UUID userId) {
+    public void addMember(UUID channelId, UUID userId) {
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
@@ -130,6 +131,22 @@ public class BasicChannelService implements ChannelService {
 
         channel.addMember(userId);
         save(channel);
+    }
+
+    @Override
+    public void join(UUID channelId, UUID userId) {
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+
+        User user = userService.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if (channel.hasMember(userId) || user.hasChannel(channelId)) {
+            throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
+        }
+
         userService.addChannel(userId, channelId);
     }
 
@@ -150,6 +167,7 @@ public class BasicChannelService implements ChannelService {
 
         channel.removeMember(userId);
         save(channel);
+
         userService.removeChannel(userId, channelId);
     }
 }

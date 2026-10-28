@@ -12,6 +12,17 @@ public class Message extends BaseEntity {
 
     public Message(String content, UUID authorId, UUID channelId) {
         super();
+
+        validateContent(content);
+
+        if (authorId == null) {
+            throw new IllegalArgumentException("작성자 ID는 필수입니다.");
+        }
+
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
+
         this.content = content;
         this.authorId = authorId;
         this.channelId = channelId;
@@ -30,26 +41,14 @@ public class Message extends BaseEntity {
     }
 
     public void update(String content) {
+        validateContent(content);
         this.content = content;
         updateUpdatedAt();
     }
 
-    @Override
-    public boolean equals(Object obj) {
-        if (this == obj) {
-            return true;
+    private void validateContent(String content) {
+        if (content == null || content.isBlank()) {
+            throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
-
-        if (obj == null || getClass() != obj.getClass()) {
-            return false;
-        }
-
-        Message message = (Message) obj;
-        return getId().equals(message.getId());
-    }
-
-    @Override
-    public int hashCode() {
-        return getId().hashCode();
     }
 }

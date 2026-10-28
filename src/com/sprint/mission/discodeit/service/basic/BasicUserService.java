@@ -7,7 +7,6 @@ import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,10 +31,11 @@ public class BasicUserService implements UserService {
 
     @Override
     public User create(User user) {
-        validateUser(user);
+        if (user == null) {
+            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
+        }
 
-        boolean emailExists = userRepository.findAll()
-                .stream()
+        boolean emailExists = userRepository.findAll().stream()
                 .anyMatch(existing ->
                         existing.getEmail().equals(user.getEmail()));
 
@@ -48,6 +48,10 @@ public class BasicUserService implements UserService {
 
     @Override
     public Optional<User> findById(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
         return userRepository.findById(id);
     }
 
@@ -63,15 +67,14 @@ public class BasicUserService implements UserService {
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("이름은 필수입니다.");
+            throw new IllegalArgumentException("사용자 이름은 필수입니다.");
         }
 
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("이메일은 필수입니다.");
         }
 
-        boolean emailExists = userRepository.findAll()
-                .stream()
+        boolean emailExists = userRepository.findAll().stream()
                 .anyMatch(existing ->
                         !existing.getId().equals(id)
                                 && existing.getEmail().equals(email));
@@ -85,7 +88,34 @@ public class BasicUserService implements UserService {
     }
 
     @Override
+    public void deleteById(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if (messageService != null) {
+            for (Message message : messageService.findAll()) {
+                if (message.getAuthorId().equals(id)) {
+                    messageService.delete(message.getId());
+                }
+            }
+        }
+
+        if (channelService != null) {
+            for (UUID channelId : user.getChannelIds()) {
+                channelService.leave(channelId, id);
+            }
+        }
+
+        userRepository.deleteById(id);
+    }
+
+    @Override
     public void addChannel(UUID userId, UUID channelId) {
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
         if (channelId == null) {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
@@ -94,6 +124,19 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        if (channelService == null) {
+            throw new IllegalStateException(
+                    "채널 서비스가 초기화되지 않았습니다.");
+        }
+
+        if (user.hasChannel(channelId)) {
+            throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
+        }
+
+        // 채널 쪽 참여자 목록을 먼저 갱신
+        channelService.addMember(channelId, userId);
+
+        // 사용자 쪽 채널 목록 갱신
         user.addChannel(channelId);
         save(user);
     }
@@ -108,50 +151,11 @@ public class BasicUserService implements UserService {
         save(user);
     }
 
-    private void validateUser(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
-        }
-
-        if (user.getName() == null || user.getName().isBlank()) {
-            throw new IllegalArgumentException("이름은 필수입니다.");
-        }
-
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new IllegalArgumentException("이메일은 필수입니다.");
-        }
-    }
-
     private User save(User user) {
         if (user == null) {
             throw new IllegalArgumentException("사용자 정보는 필수입니다.");
         }
 
         return userRepository.save(user);
-    }
-
-    @Override
-    public void deleteById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 해당 사용자가 작성한 메시지 삭제
-        if (messageService != null) {
-            for (Message message : new ArrayList<>(messageService.findAll())) {
-                if (message.getAuthorId().equals(id)) {
-                    messageService.delete(message.getId());
-                }
-            }
-        }
-
-        // 참여 중인 채널에서 사용자 관계 제거
-        if (channelService != null) {
-            for (UUID channelId : new ArrayList<>(user.getChannelIds())) {
-                channelService.leave(channelId, id);
-            }
-        }
-
-        userRepository.deleteById(id);
     }
 }

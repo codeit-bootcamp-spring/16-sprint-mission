@@ -14,8 +14,14 @@ public class FileMessageRepository implements MessageRepository {
         this.file = new File("data/messages.dat");
 
         File parent = file.getParentFile();
+
         if (parent != null && !parent.exists()) {
-            parent.mkdirs();
+            if (!parent.mkdirs() && !parent.isDirectory()) {
+                throw new IllegalStateException(
+                        "메시지 저장 폴더를 생성할 수 없습니다: "
+                                + parent.getAbsolutePath()
+                );
+            }
         }
     }
 
@@ -28,6 +34,7 @@ public class FileMessageRepository implements MessageRepository {
         Map<UUID, Message> data = readAllAsMap();
         data.put(message.getId(), message);
         writeAll(data);
+
         return message;
     }
 
@@ -55,23 +62,50 @@ public class FileMessageRepository implements MessageRepository {
 
     private Map<UUID, Message> readAllAsMap() {
         if (!file.exists() || file.length() == 0) {
-            return new HashMap<>();
+            return new LinkedHashMap<>();
         }
 
         try (ObjectInputStream in =
                      new ObjectInputStream(new FileInputStream(file))) {
-            return (Map<UUID, Message>) in.readObject();
+
+            Object savedData = in.readObject();
+
+            if (!(savedData instanceof Map<?, ?>)) {
+                throw new IllegalStateException(
+                        "메시지 파일의 데이터 형식이 올바르지 않습니다."
+                );
+            }
+
+            Map<?, ?> savedMap = (Map<?, ?>) savedData;
+            Map<UUID, Message> data = new LinkedHashMap<>();
+
+            for (Map.Entry<?, ?> entry : savedMap.entrySet()) {
+                if (entry.getKey() instanceof UUID
+                        && entry.getValue() instanceof Message) {
+                    data.put(
+                            (UUID) entry.getKey(),
+                            (Message) entry.getValue()
+                    );
+                }
+            }
+
+            return data;
+
         } catch (IOException | ClassNotFoundException e) {
-            throw new IllegalStateException("메시지 파일을 읽을 수 없습니다.", e);
+            throw new IllegalStateException(
+                    "메시지 파일을 읽을 수 없습니다.", e
+            );
         }
     }
 
     private void writeAll(Map<UUID, Message> data) {
         try (ObjectOutputStream out =
                      new ObjectOutputStream(new FileOutputStream(file))) {
-            out.writeObject(data);
+            out.writeObject(new LinkedHashMap<>(data));
         } catch (IOException e) {
-            throw new IllegalStateException("메시지 파일을 저장할 수 없습니다.", e);
+            throw new IllegalStateException(
+                    "메시지 파일을 저장할 수 없습니다.", e
+            );
         }
     }
 }

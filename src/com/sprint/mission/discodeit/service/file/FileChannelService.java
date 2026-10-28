@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -32,8 +33,7 @@ public class FileChannelService implements ChannelService {
     public Channel create(String name, String description) {
         validateChannel(name, description);
 
-        boolean nameExists = channelRepository.findAll()
-                .stream()
+        boolean nameExists = channelRepository.findAll().stream()
                 .anyMatch(channel -> channel.getName().equals(name));
 
         if (nameExists) {
@@ -61,8 +61,7 @@ public class FileChannelService implements ChannelService {
 
         validateChannel(name, description);
 
-        boolean nameExists = channelRepository.findAll()
-                .stream()
+        boolean nameExists = channelRepository.findAll().stream()
                 .anyMatch(existingChannel ->
                         !existingChannel.getId().equals(id)
                                 && existingChannel.getName().equals(name));
@@ -99,7 +98,6 @@ public class FileChannelService implements ChannelService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
-        // 해당 채널의 메시지 삭제
         if (messageService != null) {
             for (Message message : new ArrayList<>(messageService.findAll())) {
                 if (message.getChannelId().equals(id)) {
@@ -108,7 +106,6 @@ public class FileChannelService implements ChannelService {
             }
         }
 
-        // 참여 중인 사용자에게서 채널 관계 제거
         for (UUID userId : new ArrayList<>(channel.getMemberIds())) {
             userService.removeChannel(userId, id);
         }
@@ -117,7 +114,7 @@ public class FileChannelService implements ChannelService {
     }
 
     @Override
-    public void join(UUID channelId, UUID userId) {
+    public void addMember(UUID channelId, UUID userId) {
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
@@ -132,6 +129,21 @@ public class FileChannelService implements ChannelService {
 
         channel.addMember(userId);
         save(channel);
+    }
+
+    @Override
+    public void join(UUID channelId, UUID userId) {
+        Channel channel = channelRepository.findById(channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+
+        User user = userService.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if (channel.hasMember(userId) || user.hasChannel(channelId)) {
+            throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
+        }
 
         userService.addChannel(userId, channelId);
     }
