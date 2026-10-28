@@ -1,26 +1,14 @@
 package com.sprint.mission.discodeit.entity;
 
 
+import lombok.Getter;
 
-
+@Getter
 public class Message extends BaseEntity {
 ;
     private String comment;
     private User user;
     private Channel channel;
-
-    public User getUser() {
-        return this.user;
-    }
-
-    public String getComment() {
-
-        return this.comment;
-    }
-
-    public Channel getChannel() {
-        return this.channel;
-    }
 
     public Message(String comment, User user, Channel channel) {
 

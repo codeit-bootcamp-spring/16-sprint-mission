@@ -1,10 +1,13 @@
 package com.sprint.mission.discodeit.entity;
 
 
+import lombok.Getter;
+
 import java.util.ArrayList;
 import java.util.List;
 
 
+@Getter
 public class Channel extends BaseEntity{
 
     private String name;
@@ -20,20 +23,6 @@ public class Channel extends BaseEntity{
     private List<User> users;
     private List<Message> messages;
 
-
-    public String getName() {
-
-        return this.name;
-    }
-
-
-
-    public List<User> getUsers() {
-        return this.users;
-    }
-    public List<Message> getMessages() {
-        return this.messages;
-    }
 
 
     public void update(String name) {
