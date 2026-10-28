@@ -9,6 +9,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.Optional;
 
 public class JCFChannelRepository implements ChannelRepository {
 
@@ -20,14 +21,8 @@ public class JCFChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Channel getById(UUID id) {
-        Channel channel = data.get(id);
-
-        if (channel == null) {
-            throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
-        }
-
-        return channel;
+    public Optional<Channel> getById(UUID id) {
+        return Optional.ofNullable(data.get(id));
     }
 
     @Override
@@ -37,7 +32,10 @@ public class JCFChannelRepository implements ChannelRepository {
 
     @Override
     public void delete(UUID id) {
-        getById(id);
+        if (!data.containsKey(id)) {
+            throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
+        }
+
         data.remove(id);
     }
 }

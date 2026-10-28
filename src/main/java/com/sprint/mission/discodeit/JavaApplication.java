@@ -90,7 +90,7 @@ public class JavaApplication {
         Channel jcfChannel = new Channel("JCF 채널");
 
         jcfChannelRepository.save(jcfChannel);
-        System.out.println("JCF 채널 조회: " + jcfChannelRepository.getById(jcfChannel.getId()).getName());
+        System.out.println("JCF 채널 조회: " + jcfChannelRepository.getById(jcfChannel.getId()).orElseThrow().getName());
 
         jcfChannelRepository.delete(jcfChannel.getId());
         System.out.println("JCF 채널 삭제 후 수: " + jcfChannelRepository.getAll().size());
@@ -101,15 +101,14 @@ public class JavaApplication {
         fileChannelRepository.save(fileChannel);
 
         ChannelRepository newFileChannelRepository = new FileChannelRepository();
-        System.out.println("File 채널 조회: " + newFileChannelRepository.getById(fileChannel.getId()).getName());
+        System.out.println("File 채널 조회: " + newFileChannelRepository.getById(fileChannel.getId()).orElseThrow().getName());
 
         newFileChannelRepository.delete(fileChannel.getId());
 
-        try {
-            newFileChannelRepository.getById(fileChannel.getId());
-            System.out.println("File 채널 삭제 확인: 실패");
-        } catch (IllegalArgumentException e) {
+        if (newFileChannelRepository.getById(fileChannel.getId()).isEmpty()) {
             System.out.println("File 채널 삭제 확인: 성공");
+        } else {
+            System.out.println("File 채널 삭제 확인: 실패");
         }
 
         MessageRepository jcfMessageRepository = new JCFMessageRepository();
