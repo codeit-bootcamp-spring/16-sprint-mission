@@ -50,6 +50,10 @@ public class FileChannelService implements ChannelService {
 
     @Override
     public Channel add(Channel channel) {
+        if (getFile(channel.getId()).exists()) {
+            throw new IllegalArgumentException("이미 존재하는 채널입니다.");
+        }
+
         save(channel);
         return channel;
     }

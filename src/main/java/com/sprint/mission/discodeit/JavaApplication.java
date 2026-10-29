@@ -25,6 +25,10 @@ import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 
+import com.sprint.mission.discodeit.service.basic.BasicUserService;
+import com.sprint.mission.discodeit.service.basic.BasicChannelService;
+import com.sprint.mission.discodeit.service.basic.BasicMessageService;
+
 public class JavaApplication {
 
     public static void main(String[] args) {
@@ -90,7 +94,7 @@ public class JavaApplication {
         Channel jcfChannel = new Channel("JCF 채널");
 
         jcfChannelRepository.save(jcfChannel);
-        System.out.println("JCF 채널 조회: " + jcfChannelRepository.getById(jcfChannel.getId()).getName());
+        System.out.println("JCF 채널 조회: " + jcfChannelRepository.getById(jcfChannel.getId()).orElseThrow().getName());
 
         jcfChannelRepository.delete(jcfChannel.getId());
         System.out.println("JCF 채널 삭제 후 수: " + jcfChannelRepository.getAll().size());
@@ -101,15 +105,14 @@ public class JavaApplication {
         fileChannelRepository.save(fileChannel);
 
         ChannelRepository newFileChannelRepository = new FileChannelRepository();
-        System.out.println("File 채널 조회: " + newFileChannelRepository.getById(fileChannel.getId()).getName());
+        System.out.println("File 채널 조회: " + newFileChannelRepository.getById(fileChannel.getId()).orElseThrow().getName());
 
         newFileChannelRepository.delete(fileChannel.getId());
 
-        try {
-            newFileChannelRepository.getById(fileChannel.getId());
-            System.out.println("File 채널 삭제 확인: 실패");
-        } catch (IllegalArgumentException e) {
+        if (newFileChannelRepository.getById(fileChannel.getId()).isEmpty()) {
             System.out.println("File 채널 삭제 확인: 성공");
+        } else {
+            System.out.println("File 채널 삭제 확인: 실패");
         }
 
         MessageRepository jcfMessageRepository = new JCFMessageRepository();
@@ -137,5 +140,83 @@ public class JavaApplication {
         } catch (IllegalArgumentException e) {
             System.out.println("File 메시지 삭제 확인: 성공");
         }
+        UserRepository basicJcfUserRepository = new JCFUserRepository();
+        ChannelRepository basicJcfChannelRepository = new JCFChannelRepository();
+        MessageRepository basicJcfMessageRepository = new JCFMessageRepository();
+
+        UserService basicJcfUserService =
+                new BasicUserService(basicJcfUserRepository);
+
+        ChannelService basicJcfChannelService =
+                new BasicChannelService(basicJcfChannelRepository);
+
+        MessageService basicJcfMessageService =
+                new BasicMessageService(
+                        basicJcfMessageRepository,
+                        basicJcfUserRepository,
+                        basicJcfChannelRepository
+                );
+        User basicJcfUser =
+                basicJcfUserService.add(new User("JCF 사용자"));
+
+        Channel basicJcfChannel =
+                basicJcfChannelService.add(new Channel("JCF 채널"));
+
+        Message basicJcfMessage = basicJcfMessageService.add(
+                new Message(
+                        "안녕하세요!",
+                        basicJcfUser.getId(),
+                        basicJcfChannel.getId()
+                )
+        );
+
+        System.out.println("JCF 사용자: "
+                + basicJcfUserService.getById(basicJcfUser.getId()).getUsername());
+
+        System.out.println("JCF 채널: "
+                + basicJcfChannelService.getById(basicJcfChannel.getId()).getName());
+
+        System.out.println("JCF 메시지: "
+                + basicJcfMessageService.getById(basicJcfMessage.getId()).getContent());
+
+        UserRepository basicFileUserRepository = new FileUserRepository();
+        ChannelRepository basicFileChannelRepository = new FileChannelRepository();
+        MessageRepository basicFileMessageRepository = new FileMessageRepository();
+
+        UserService basicFileUserService =
+                new BasicUserService(basicFileUserRepository);
+
+        ChannelService basicFileChannelService =
+                new BasicChannelService(basicFileChannelRepository);
+
+        MessageService basicFileMessageService =
+                new BasicMessageService(
+                        basicFileMessageRepository,
+                        basicFileUserRepository,
+                        basicFileChannelRepository
+                );
+
+        User basicFileUser =
+                basicFileUserService.add(new User("File 사용자"));
+
+        Channel basicFileChannel =
+                basicFileChannelService.add(new Channel("File 채널"));
+
+        Message basicFileMessage = basicFileMessageService.add(
+                new Message(
+                        "File 메시지 테스트",
+                        basicFileUser.getId(),
+                        basicFileChannel.getId()
+                )
+        );
+
+        System.out.println("File 사용자: "
+                + basicFileUserService.getById(basicFileUser.getId()).getUsername());
+
+        System.out.println("File 채널: "
+                + basicFileChannelService.getById(basicFileChannel.getId()).getName());
+
+        System.out.println("File 메시지: "
+                + basicFileMessageService.getById(basicFileMessage.getId()).getContent());
     }
 }

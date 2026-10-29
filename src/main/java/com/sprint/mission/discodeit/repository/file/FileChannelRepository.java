@@ -13,6 +13,8 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.Optional;
+import java.util.Comparator;
 
 public class FileChannelRepository implements ChannelRepository {
 
@@ -50,14 +52,14 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Channel getById(UUID id) {
+    public Optional<Channel> getById(UUID id) {
         File file = getFile(id);
 
         if (!file.exists()) {
-            throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
+            return Optional.empty();
         }
 
-        return load(file);
+        return Optional.of(load(file));
     }
 
     @Override
@@ -74,6 +76,11 @@ public class FileChannelRepository implements ChannelRepository {
                 channels.add(load(file));
             }
         }
+
+        channels.sort(
+                Comparator.comparing(Channel::getCreatedAt)
+                        .thenComparing(Channel::getId)
+        );
 
         return channels;
     }
