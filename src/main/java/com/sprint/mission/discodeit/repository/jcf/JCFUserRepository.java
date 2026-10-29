@@ -25,6 +25,23 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return data.containsKey(id);
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return data.values().stream().
+                anyMatch(u -> u.getUsername().equals(username));
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        return data.values().stream().
+                anyMatch(u -> u.getEmail().equals(email));
+    }
+
+    @Override
     public void deleteById(UUID id) {
         data.remove(id);
     }

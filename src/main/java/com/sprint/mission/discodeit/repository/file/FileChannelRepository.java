@@ -36,6 +36,11 @@ public class FileChannelRepository implements ChannelRepository  {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return false;
+    }
+
+    @Override
     public void deleteById(UUID id) {
         Map<UUID, Channel> data = load();
         data.remove(id);

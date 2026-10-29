@@ -36,6 +36,11 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return false;
+    }
+
+    @Override
     public void deleteById(UUID id) {
         Map<UUID, Message> data = load();
         data.remove(id);

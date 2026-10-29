@@ -40,6 +40,11 @@ public class User extends BaseUpdatableEntity {
         touch();
     }
 
+    public void update (UUID profileId) {
+        this.profileId = profileId;
+        touch();
+    }
+
     public void addChannel(UUID channelId) {
         if (!channels.add(channelId)) {
             throw new IllegalArgumentException("이미 가입된 채널입니다.");
