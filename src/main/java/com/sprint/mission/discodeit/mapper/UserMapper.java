@@ -5,11 +5,14 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Component;
 
+@Component
 @RequiredArgsConstructor
 public class UserMapper {
     private final UserStatusRepository userStatusRepository;
-    public static UserDto toDto(User user) {
+
+    public UserDto toDto(User user) {
         boolean online = userStatusRepository.findByUserId(user.getId())
                 .map(UserStatus::isOnline)
                 .orElse(false);

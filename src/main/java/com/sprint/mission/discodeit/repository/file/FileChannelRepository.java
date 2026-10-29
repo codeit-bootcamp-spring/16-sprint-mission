@@ -37,7 +37,14 @@ public class FileChannelRepository implements ChannelRepository  {
 
     @Override
     public boolean existsById(UUID id) {
-        return false;
+        return load().values().stream()
+                .anyMatch(c -> c.getId().equals(id));
+    }
+
+    @Override
+    public boolean existsName(String name) {
+        return load().values().stream()
+                .anyMatch(c -> c.getName().equals(name));
     }
 
     @Override

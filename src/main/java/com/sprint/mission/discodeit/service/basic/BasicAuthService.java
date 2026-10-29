@@ -18,6 +18,7 @@ import java.time.Instant;
 public class BasicAuthService implements AuthService {
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
+    private final UserMapper userMapper;
 
     @Override
     public UserDto login(UserLoginRequest request) {
@@ -30,6 +31,6 @@ public class BasicAuthService implements AuthService {
         status.updateLastContactAt(Instant.now());
         userStatusRepository.save(status);
 
-        return UserMapper.toDto(user);
+        return userMapper.toDto(user);
     }
 }

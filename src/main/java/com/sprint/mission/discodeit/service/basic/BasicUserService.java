@@ -25,6 +25,7 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final UserMapper userMapper;
 
     @Override
     public UserDto create(UserCreateRequest request, Optional<BinaryContentRequest> profileRequest) {
@@ -42,21 +43,21 @@ public class BasicUserService implements UserService {
         userRepository.save(user);
 
         userStatusRepository.save(new UserStatus(user.getId(), Instant.now()));
-        return UserMapper.toDto(user);
+        return userMapper.toDto(user);
     }
 
     @Override
     public UserDto findById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        return UserMapper.toDto(user);
+        return userMapper.toDto(user);
     }
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll()
                 .stream()
-                .map(UserMapper::toDto)
+                .map(userMapper::toDto)
                 .toList();
     }
 
@@ -64,7 +65,7 @@ public class BasicUserService implements UserService {
     public List<UserDto> findAllByChannelId(UUID channelId) {
         return userRepository.findAll().stream()
                 .filter(user -> user.hasChannel(channelId))
-                .map(UserMapper::toDto)
+                .map(userMapper::toDto)
                 .toList();
     }
 
@@ -82,7 +83,7 @@ public class BasicUserService implements UserService {
             profileId = profile.getId();
             user.update(profileId);
         }
-        return UserMapper.toDto(user);
+        return userMapper.toDto(user);
     }
 
     @Override
