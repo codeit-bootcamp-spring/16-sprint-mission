@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 
 import java.time.Instant;
 import java.util.List;
@@ -41,21 +42,21 @@ public class BasicUserService implements UserService {
         userRepository.save(user);
 
         userStatusRepository.save(new UserStatus(user.getId(), Instant.now()));
-        return toDto(user);
+        return UserMapper.toDto(user);
     }
 
     @Override
     public UserDto findById(UUID id) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        return toDto(user);
+        return UserMapper.toDto(user);
     }
 
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll()
                 .stream()
-                .map(this::toDto)
+                .map(UserMapper::toDto)
                 .toList();
     }
 
@@ -63,7 +64,7 @@ public class BasicUserService implements UserService {
     public List<UserDto> findAllByChannelId(UUID channelId) {
         return userRepository.findAll().stream()
                 .filter(user -> user.hasChannel(channelId))
-                .map(this::toDto)
+                .map(UserMapper::toDto)
                 .toList();
     }
 
@@ -81,7 +82,7 @@ public class BasicUserService implements UserService {
             profileId = profile.getId();
             user.update(profileId);
         }
-        return toDto(user);
+        return UserMapper.toDto(user);
     }
 
     @Override
@@ -123,21 +124,5 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
         user.removeMessage(messageId);
         userRepository.save(user);
-    }
-
-    private UserDto toDto(User user) {
-        boolean online = userStatusRepository.findByUserId(user.getId())
-                .map(UserStatus::isOnline)
-                .orElse(false);
-
-        return new UserDto(
-                user.getId(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getProfileId(),
-                online
-        );
     }
 }
