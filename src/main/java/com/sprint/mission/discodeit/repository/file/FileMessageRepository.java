@@ -47,6 +47,20 @@ public class FileMessageRepository implements MessageRepository {
         writeToFile(data);
     }
 
+    @Override
+    public void deleteAllByUserId(UUID userId) {
+        Map<UUID, Message> data = load();
+        data.values().removeIf(message -> message.getAuthorId().equals(userId));
+        writeToFile(data);
+    }
+
+    @Override
+    public void deleteAllByChannelId(UUID channelId) {
+        Map<UUID, Message> data = load();
+        data.values().removeIf(message -> message.getChannelId().equals(channelId));
+        writeToFile(data);
+    }
+
     private void writeToFile(Map<UUID, Message> data) {
         try {
             Files.createDirectories(PATH.getParent());

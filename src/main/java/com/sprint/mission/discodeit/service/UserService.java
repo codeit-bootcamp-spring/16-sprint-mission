@@ -16,9 +16,4 @@ public interface UserService {
     List<UserDto> findAllByChannelId(UUID channelId);
     UserDto update(UUID id, UserCreateRequest request, Optional<BinaryContentRequest> profileRequest);
     void delete(UUID id);
-
-    void addChannel(UUID id, UUID channelId);
-    void removeChannel(UUID id, UUID channelId);
-    void addMessage(UUID id, UUID messageId);
-    void removeMessage(UUID id, UUID messageId);
 }

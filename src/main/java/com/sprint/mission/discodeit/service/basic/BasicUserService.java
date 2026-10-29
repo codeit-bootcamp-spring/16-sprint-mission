@@ -94,36 +94,4 @@ public class BasicUserService implements UserService {
         userStatusRepository.deleteByUserId(user.getId());
         binaryContentRepository.deleteById(user.getProfileId());
     }
-
-    @Override
-    public void addChannel(UUID id, UUID channelId) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        user.addChannel(channelId);
-        userRepository.save(user);
-    }
-
-    @Override
-    public void removeChannel(UUID id, UUID channelId) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        user.removeChannel(channelId);
-        userRepository.save(user);
-    }
-
-    @Override
-    public void addMessage(UUID id, UUID messageId) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        user.addMessage(messageId);
-        userRepository.save(user);
-    }
-
-    @Override
-    public void removeMessage(UUID id, UUID messageId) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-        user.removeMessage(messageId);
-        userRepository.save(user);
-    }
 }
