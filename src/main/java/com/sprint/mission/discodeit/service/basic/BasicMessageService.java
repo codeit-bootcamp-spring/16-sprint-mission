@@ -1,172 +1,154 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
+import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
+import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.MessageType;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 @RequiredArgsConstructor
+@Service
 public class BasicMessageService implements MessageService {
 
-    private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
-
-    private User requireUser(UUID id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
-    }
-
-    private Channel requireChannel(UUID id) {
-        return channelRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
-    }
-
-    private Message requireMessage(UUID id) {
-        return messageRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메시지입니다."));
-    }
-
-    private void validateParticipant(UUID userId, Channel channel, String action) {
-        if (!channel.getParticipantIds().contains(userId)) {
-            throw new IllegalArgumentException("채널에 참여한 유저만 메시지를 " + action + "할 수 있습니다.");
-        }
-    }
-
-    private void validateSender(Message message, UUID userId, String action) {
-        if (!message.getSenderId().equals(userId)) {
-            throw new IllegalArgumentException("본인이 작성한 메시지만 " + action + "할 수 있습니다.");
-        }
-    }
+    private final ChannelRepository channelRepository;
+    private final UserRepository userRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public Message createMessage(Message message) {
-        if (message == null) {
-            throw new IllegalArgumentException("메시지가 null입니다.");
+    public MessageResponseDto createMessage(MessageCreateRequestDto dto) {
+
+        if (dto.getContent() == null || dto.getContent().isBlank()) {
+            throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
 
-        if (messageRepository.findById(message.getId()).isPresent()) {
-            throw new IllegalArgumentException("이미 존재하는 메시지입니다.");
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 사용자입니다."));
+
+        Channel channel = channelRepository.findById(dto.getChannelId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 채널입니다."));
+
+        // 첨부 파일 확인
+        List<UUID> attachmentIds = dto.getAttachmentIds() == null
+                ? List.of()
+                : dto.getAttachmentIds();
+
+        for (UUID attachmentId : attachmentIds) {
+            binaryContentRepository.findById(attachmentId)
+                    .orElseThrow(() ->
+                            new IllegalArgumentException("존재하지 않는 첨부 파일입니다."));
         }
 
-        User user = requireUser(message.getSenderId());
-        Channel channel = requireChannel(message.getChannelId());
-        validateParticipant(user.getId(), channel, "작성");
+        Message message = new Message(
+                dto.getContent(),
+                user.getId(),
+                channel.getId(),
+                MessageType.USER,
+                attachmentIds
+        );
 
-        user.addMessageId(message.getId());
-        channel.addMessageId(message.getId());
+        Message savedMessage = messageRepository.save(message);
+
+        user.addMessageId(savedMessage.getId());
+        channel.addMessageId(savedMessage.getId());
 
         userRepository.save(user);
         channelRepository.save(channel);
-        return messageRepository.save(message);
+
+        return toResponseDto(savedMessage);
     }
 
     @Override
-    public Message getMessageById(UUID messageId) {
-        return requireMessage(messageId);
+    public MessageResponseDto findMessage(UUID messageId) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+
+        return toResponseDto(message);
     }
 
     @Override
-    public List<Message> getAllMessages() {
-        return messageRepository.findAll();
+    public List<MessageResponseDto> findAllMessagesByChannelId(UUID channelId) {
+        channelRepository.findById(channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 채널입니다."));
+
+        return messageRepository.findByChannelId(channelId)
+                .stream()
+                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .map(this::toResponseDto)
+                .toList();
     }
 
     @Override
-    public List<Message> getMessagesByUserId(UUID userId) {
-        requireUser(userId);
-        return messageRepository.findByUserId(userId).stream()
-                .sorted(Comparator.comparing(Message::getCreatedAt).reversed()).toList();
+    public MessageResponseDto updateMessage(
+            UUID messageId,
+            MessageUpdateRequestDto dto
+    ) {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+
+        message.updateContent(dto.getContent());
+
+        Message updatedMessage = messageRepository.save(message);
+
+        return toResponseDto(updatedMessage);
     }
 
     @Override
-    public List<Message> getMessagesByChannelId(UUID channelId) {
-        requireChannel(channelId);
-        return messageRepository.findByChannelId(channelId).stream()
-                .sorted(Comparator.comparing(Message::getCreatedAt)).toList();
-    }
+    public void deleteMessage(UUID messageId) {
 
-    @Override
-    public List<Message> getMessagesByUserAndChannel(UUID userId, UUID channelId) {
-        requireUser(userId);
-        requireChannel(channelId);
-        return messageRepository.findByUserIdAndChannelId(userId, channelId).stream()
-                .sorted(Comparator.comparing(Message::getCreatedAt)).toList();
-    }
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
 
-    @Override
-    public Message updateMessage(UUID messageId, UUID userId, String content) {
-        Message message = requireMessage(messageId);
-        validateSender(message, userId, "수정");
+        User user = userRepository.findById(message.getSenderId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("메시지 작성자를 찾을 수 없습니다."));
 
-        requireUser(message.getSenderId());
-        Channel channel = requireChannel(message.getChannelId());
-        validateParticipant(userId, channel, "수정");
+        Channel channel = channelRepository.findById(message.getChannelId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("메시지가 속한 채널을 찾을 수 없습니다."));
 
-        message.updateContent(content);
-        return messageRepository.save(message);
-    }
-
-    @Override
-    public void deleteMessage(UUID messageId, UUID userId) {
-        Message message = requireMessage(messageId);
-        validateSender(message, userId, "삭제");
-
-        User user = requireUser(message.getSenderId());
-        Channel channel = requireChannel(message.getChannelId());
-        validateParticipant(userId, channel, "삭제");
-
-        removeMessage(message, user, channel);
-    }
-
-    private void removeMessage(Message message, User user, Channel channel) {
-        user.removeMessageId(message.getId());
-        channel.removeMessageId(message.getId());
+        user.removeMessageId(messageId);
+        channel.removeMessageId(messageId);
 
         userRepository.save(user);
         channelRepository.save(channel);
-        messageRepository.deleteById(message.getId());
+
+        for (UUID attachmentId : message.getAttachmentIds()) {
+            binaryContentRepository.deleteById(attachmentId);
+        }
+
+        messageRepository.deleteById(messageId);
     }
 
-    @Override
-    public void deleteMessagesByChannelId(UUID channelId) {
-        Channel channel = requireChannel(channelId);
-
-        for (Message message : messageRepository.findByChannelId(channelId)) {
-            userRepository.findById(message.getSenderId())
-                    .ifPresentOrElse(
-                            user -> removeMessage(message, user, channel),
-                            () -> {
-                                channel.removeMessageId(message.getId());
-                                channelRepository.save(channel);
-                                messageRepository.deleteById(message.getId());
-                            }
-                    );
-        }
-    }
-
-    @Override
-    public void deleteMessagesByUserId(UUID userId) {
-        User user = requireUser(userId);
-
-        for (Message message : messageRepository.findByUserId(userId)) {
-            channelRepository.findById(message.getChannelId())
-                    .ifPresent(channel -> {
-                        channel.removeMessageId(message.getId());
-                        channelRepository.save(channel);
-                    });
-
-            user.removeMessageId(message.getId());
-            userRepository.save(user);
-            messageRepository.deleteById(message.getId());
-        }
+    private MessageResponseDto toResponseDto(Message message) {
+        return MessageResponseDto.builder()
+                .id(message.getId())
+                .type(message.getType())
+                .content(message.getContent())
+                .senderId(message.getSenderId())
+                .channelId(message.getChannelId())
+                .attachmentIds(message.getAttachmentIds())
+                .createdAt(message.getCreatedAt())
+                .updatedAt(message.getUpdatedAt())
+                .build();
     }
 }

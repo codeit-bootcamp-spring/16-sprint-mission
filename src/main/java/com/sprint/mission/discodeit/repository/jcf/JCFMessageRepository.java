@@ -8,7 +8,7 @@ import java.util.*;
 
 public class JCFMessageRepository implements MessageRepository {
 
-    private final Map<UUID, Message> messages = new LinkedHashMap<>();
+    private final Map<UUID, Message> messages = new HashMap<>();
 
     @Override
     public Optional<Message> findById(UUID messageId) {
