@@ -33,14 +33,14 @@ public class BasicUserService implements UserService {
         if (userRepository.existsByEmail(request.email())) throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         if (userRepository.existsByUsername(request.username())) throw new IllegalArgumentException("이미 존재하는 이름입니다.");
 
-        UUID profileId = null;
-        if (profileRequest.isPresent()) {
-            BinaryContentCreateRequest p = profileRequest.get();
-            BinaryContent profile = new BinaryContent(p.fileName(), p.contentType(), p.bytes());
-            binaryContentRepository.save(profile);
-            profileId = profile.getId();
-        }
-        User user = new User(request.username(), request.email(), request.password(), profileId);
+        User user = new User(request.username(), request.email(), request.password(), null);
+
+        profileRequest.ifPresent(p -> {
+            BinaryContent profile = binaryContentRepository.save(
+                    new BinaryContent(p.fileName(), p.contentType(), p.bytes()));
+            user.updateProfileId(profile.getId());
+        });
+
         userRepository.save(user);
 
         userStatusRepository.save(new UserStatus(user.getId(), Instant.now()));
@@ -73,26 +73,34 @@ public class BasicUserService implements UserService {
     public UserDto update(UUID id, UserUpdateRequest request, Optional<BinaryContentCreateRequest> profileRequest) {
         User user = getUserOrThrow(id);
 
-        if (request.newUsername() != null && !request.newUsername().equals(user.getUsername())
-                && userRepository.existsByUsername(request.newUsername())) {
+        String username = request.newUsername() != null ? request.newUsername() : user.getUsername();
+        String email = request.newEmail() != null ? request.newEmail() : user.getEmail();
+        String password = request.newPassword() != null ? request.newPassword() : user.getPassword();
+
+        if (!username.equals(user.getUsername())
+                && userRepository.existsByUsername(username)) {
             throw new IllegalArgumentException("이미 존재하는 이름입니다.");
         }
 
-        if (request.newEmail() != null && !request.newEmail().equals(user.getEmail())
-                && userRepository.existsByEmail(request.newEmail())) {
+        if (!email.equals(user.getEmail())
+                && userRepository.existsByEmail(email)) {
             throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         }
 
+        user.update(username, email, password);
+
+        UUID oldProfileId = user.getProfileId();
         profileRequest.ifPresent(p -> {
-            UUID oldProfileId = user.getProfileId();
             BinaryContent newProfile = binaryContentRepository.save(
                     new BinaryContent(p.fileName(), p.contentType(), p.bytes()));
             user.updateProfileId(newProfile.getId());
-            if (oldProfileId != null) binaryContentRepository.deleteById(oldProfileId);
         });
 
-        user.update(request.newUsername(), request.newEmail(), request.newPassword());
         userRepository.save(user);
+
+        if (profileRequest.isPresent() && oldProfileId != null) {
+            binaryContentRepository.deleteById(oldProfileId);
+        }
 
         return userMapper.toDto(user);
     }
