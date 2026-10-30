@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.dto.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
@@ -18,11 +20,11 @@ public class JCFUserService implements UserService {
     }
 
     @Override
-    public User create(String name, String password, String email) {
-        if(data.stream().anyMatch(user -> user.getEmail().equals(email)))
+    public User create(UserCreateRequest request, BinaryContentRequest profile) {
+        if(data.stream().anyMatch(user -> user.getEmail().equals(request.email())))
             throw new IllegalArgumentException("사용 중인 이메일");
 
-        User user = new User(name, password, email);
+        User user = new User(request.name(), request.password(),request.email());
 
         data.add(user);
         return user;

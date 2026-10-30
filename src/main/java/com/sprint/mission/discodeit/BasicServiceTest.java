@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit;
 
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
@@ -47,7 +48,7 @@ public class BasicServiceTest {
         String testId = UUID.randomUUID().toString();
 
         //User 생성 조회 수정
-        User user = userService.create("테스트유저","1234",testId+"@example.com");
+        User user = userService.create(new UserCreateRequest("테스트유저","1234",testId+"@example.com"),null);
         System.out.println(userService.findById(user.getId()).getName());
 
         userService.update(user.getId(),"수정유저","5678",user.getEmail());

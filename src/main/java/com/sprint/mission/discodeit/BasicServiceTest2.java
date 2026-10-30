@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit;
 
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
@@ -28,8 +29,8 @@ public class BasicServiceTest2 {
 
 
 
-        User user = userService.create("관계테스트","1234",testId+"@example.com");
-        User user2 = userService.create("참여자2","1234",testId+"-2@example.com");
+        User user = userService.create(new UserCreateRequest("관계테스트","1234",testId+"@example.com"),null);
+        User user2 = userService.create(new UserCreateRequest("참여자2","1234",testId+"-2@example.com"),null);
 
         Channel channel = channelService.create("관계채널-"+testId);
         Channel channel2 = channelService.create("관계채널2-"+testId);

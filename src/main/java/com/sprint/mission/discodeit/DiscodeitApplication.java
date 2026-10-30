@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit;
 
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
@@ -26,8 +27,8 @@ public class DiscodeitApplication {
 		//User 테스트
 		System.out.println("===== User 테스트 =====");
 
-		User user = userService.create("김신중","1234",testId+"@example.com");
-		User user2 = userService.create("김길똥","4852",testId+"-2@example.com");
+		User user = userService.create(new UserCreateRequest("김신중","1234",testId+"@example.com"), null);
+		User user2 = userService.create(new UserCreateRequest("김길똥","4852",testId+"-2@example.com"), null);
 
 		User findUser = userService.findById(user.getId());
 		System.out.println(findUser.getName());
@@ -184,7 +185,7 @@ public class DiscodeitApplication {
 		//사용자 삭제 후 채널의 참여자 목록 확인
 		System.out.println("===== 관계 삭제 테스트 =====");
 
-		User userT = userService.create("테스트 삭제","1557",testId+"-delete@example.com");
+		User userT = userService.create(new UserCreateRequest("테스트 삭제","1557",testId+"-delete@example.com"),null);
 		Channel channelT = channelService.create("테스트 삭제-"+testId);
 
 		channelService.join(channelT.getId(),userT.getId());
@@ -202,12 +203,12 @@ public class DiscodeitApplication {
 		System.out.println("===== 이메일 중복 테스트 =====");
 
 		try{
-			userService.create("김예외","4885",user2.getEmail());
+			userService.create(new UserCreateRequest("김예외","4885",user2.getEmail()),null);
 		}catch (IllegalArgumentException e){
 			System.out.println(e.getMessage());
 		}
 
-		User userE = userService.create("김예외","4885",testId+"-exception@example.com");
+		User userE = userService.create(new UserCreateRequest("김예외","4885",testId+"-exception@example.com"),null);
 
 		try{
 			userService.update(userE.getId(),"김창호","4885",user2.getEmail());

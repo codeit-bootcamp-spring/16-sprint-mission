@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.service.file;
 
+import com.sprint.mission.discodeit.dto.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
@@ -77,17 +79,17 @@ public class FileUserService implements UserService {
     }
 
     @Override
-    public User create(String name, String password, String email) {
+    public User create(UserCreateRequest request, BinaryContentRequest profile) {
         BasicEntityService entities = new BasicEntityService(
                 new FileUserRepository(), new FileChannelRepository(), new FileMessageRepository());
 
         List<User> users = entities.getUsers();
 
-        if(users.stream().anyMatch(u -> u.getEmail().equals(email))){
+        if(users.stream().anyMatch(u -> u.getEmail().equals(request.email()))){
             throw new IllegalArgumentException("사용 중인 이메일");
         }
 
-        User user = new User(name, password, email);
+        User user = new User(request.name(), request.password(),request.email());
         users.add(user);
         entities.saveAll();
         return user;

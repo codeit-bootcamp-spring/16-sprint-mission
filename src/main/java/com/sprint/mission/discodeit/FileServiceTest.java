@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit;
 
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
@@ -87,8 +88,7 @@ public class FileServiceTest {
         User user = userService.findAll().stream()
                 .filter(u -> u.getEmail().equals("message-test@example.com"))
                 .findFirst()
-                .orElseGet(() -> userService.create(
-                        "메시지테스트", "1234", "message-test@example.com"));
+                .orElseGet(() -> userService.create(new UserCreateRequest("메시지테스트", "1234", "message-test@example.com"),null));
 
         Channel channel = channelService.findAll().stream()
                 .filter(c -> c.getName().equals("파일 메시지 테스트 채널"))
