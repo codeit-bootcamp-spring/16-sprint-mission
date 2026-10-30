@@ -3,15 +3,20 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.storage.FileObjectStore;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
 public class FileChannelRepository implements ChannelRepository {
+
     private final FileObjectStore<Channel> store;
 
     public FileChannelRepository(Path directory) {
-        this.store = new FileObjectStore<>(directory.resolve("channels"), Channel.class);
+        this.store = new FileObjectStore<>(
+                directory.resolve("channels"),
+                Channel.class
+        );
     }
 
     @Override

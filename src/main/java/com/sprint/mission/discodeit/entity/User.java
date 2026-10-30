@@ -1,37 +1,27 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.UUID;
 
+@Getter
 public class User extends BaseEntity {
+
     private String username;
     private String email;
     private String password;
+    private UUID profileId;
 
-    private final Set<UUID> channelIds;
-    private final Set<UUID> messageIds;
+    private final Set<UUID> channelIds = new LinkedHashSet<>();
+    private final Set<UUID> messageIds = new LinkedHashSet<>();
 
     public User(String username, String email, String password) {
-        super();
         this.username = username;
         this.email = email;
         this.password = password;
-        this.channelIds = new LinkedHashSet<>();
-        this.messageIds = new LinkedHashSet<>();
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getEmail() {
-        return email;
-    }
-
-    public String getPassword() {
-        return password;
     }
 
     public Set<UUID> getChannelIds() {
@@ -46,6 +36,11 @@ public class User extends BaseEntity {
         this.username = username;
         this.email = email;
         this.password = password;
+        updateTimestamp();
+    }
+
+    public void changeProfile(UUID profileId) {
+        this.profileId = profileId;
         updateTimestamp();
     }
 

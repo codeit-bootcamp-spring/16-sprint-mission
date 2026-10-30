@@ -3,15 +3,20 @@ package com.sprint.mission.discodeit.repository.file;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.storage.FileObjectStore;
+
 import java.nio.file.Path;
 import java.util.List;
 import java.util.UUID;
 
 public class FileMessageRepository implements MessageRepository {
+
     private final FileObjectStore<Message> store;
 
     public FileMessageRepository(Path directory) {
-        this.store = new FileObjectStore<>(directory.resolve("messages"), Message.class);
+        this.store = new FileObjectStore<>(
+                directory.resolve("messages"),
+                Message.class
+        );
     }
 
     @Override
