@@ -28,7 +28,7 @@ public class BasicAuthService implements AuthService {
 
         UserStatus status = userStatusRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자 상태 정보가 존재하지 않습니다."));
-        status.updateLastContactAt(Instant.now());
+        status.updateLsatActiveAt(Instant.now());
         userStatusRepository.save(status);
 
         return userMapper.toDto(user);

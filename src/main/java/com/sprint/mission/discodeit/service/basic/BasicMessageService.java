@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.MessageDto;
@@ -31,7 +31,7 @@ public class BasicMessageService implements MessageService {
     private final MessageMapper messageMapper;
 
     @Override
-    public MessageDto create(MessageCreateRequest request, List<BinaryContentRequest> attachmentRequests) {
+    public MessageDto create(MessageCreateRequest request, List<BinaryContentCreateRequest> attachmentRequests) {
         Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
         User author = userRepository.findById(request.authorId())

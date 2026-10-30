@@ -1,8 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
 
+import lombok.Getter;
+
 import java.io.Serial;
 
+@Getter
 public class BinaryContent extends BaseEntity {
     private final String fileName;
     private final String contentType;

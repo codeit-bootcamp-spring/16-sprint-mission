@@ -23,7 +23,7 @@ public class UserStatus extends BaseUpdatableEntity {
         this.lastActiveAt = lastActiveAt;
     }
 
-    public void updateLastContactAt(Instant lastActiveAt) {
+    public void updateLsatActiveAt(Instant lastActiveAt) {
         this.lastActiveAt = lastActiveAt;
         touch();
     }

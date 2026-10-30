@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
@@ -29,13 +29,13 @@ public class BasicUserService implements UserService {
     private final UserMapper userMapper;
 
     @Override
-    public UserDto create(UserCreateRequest request, Optional<BinaryContentRequest> profileRequest) {
+    public UserDto create(UserCreateRequest request, Optional<BinaryContentCreateRequest> profileRequest) {
         if (userRepository.existsByEmail(request.email())) throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
         if (userRepository.existsByUsername(request.username())) throw new IllegalArgumentException("이미 존재하는 이름입니다.");
 
         UUID profileId = null;
         if (profileRequest.isPresent()) {
-            BinaryContentRequest p = profileRequest.get();
+            BinaryContentCreateRequest p = profileRequest.get();
             BinaryContent profile = new BinaryContent(p.fileName(), p.contentType(), p.bytes());
             binaryContentRepository.save(profile);
             profileId = profile.getId();
@@ -70,7 +70,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserDto update(UUID id, UserUpdateRequest request, Optional<BinaryContentRequest> profileRequest) {
+    public UserDto update(UUID id, UserUpdateRequest request, Optional<BinaryContentCreateRequest> profileRequest) {
         User user = getUserOrThrow(id);
 
         if (request.newUsername() != null && !request.newUsername().equals(user.getUsername())
