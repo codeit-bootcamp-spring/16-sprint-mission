@@ -5,16 +5,21 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
 import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
+import com.sprint.mission.discodeit.repository.file.FileReadStatusRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
+import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.List;
@@ -27,12 +32,16 @@ public class FileUserService implements UserService {
     private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
+    private final ChannelRepository channelRepository;
 
     public FileUserService() {
         this.userRepository = new FileUserRepository();
         this.messageRepository = new FileMessageRepository();
         this.binaryContentRepository = new FileBinaryContentRepository();
         this.userStatusRepository = new FileUserStatusRepository();
+        this.readStatusRepository = new FileReadStatusRepository();
+        this.channelRepository = new FileChannelRepository();
     }
 
     @Override
@@ -44,7 +53,6 @@ public class FileUserService implements UserService {
         validateRequired(request.username(), "사용자 이름");
         validateRequired(request.email(), "이메일");
         validateRequired(request.password(), "비밀번호");
-
         validateUnique(request.username(), request.email(), null);
 
         User user = new User(
@@ -172,9 +180,9 @@ public class FileUserService implements UserService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        // 작성한 메시지와 첨부파일 삭제
         for (Message message : messageRepository.findAll()) {
             if (id.equals(message.getAuthorId())) {
-
                 for (UUID attachmentId : message.getAttachmentIds()) {
                     binaryContentRepository.deleteById(attachmentId);
                 }
@@ -183,45 +191,64 @@ public class FileUserService implements UserService {
             }
         }
 
+        // 사용자의 읽음 상태 삭제
+        for (ReadStatus readStatus : readStatusRepository.findAllByUserId(id)) {
+            readStatusRepository.deleteById(readStatus.getId());
+        }
+
+        // 프로필 이미지 삭제
         if (user.getProfileImageId() != null) {
             binaryContentRepository.deleteById(user.getProfileImageId());
         }
 
+        // 사용자 상태 삭제
         userStatusRepository.findByUserId(id)
                 .ifPresent(status ->
                         userStatusRepository.deleteById(status.getId()));
 
+        // 사용자 삭제
         userRepository.deleteById(id);
     }
 
     @Override
     public void addChannel(UUID userId, UUID channelId) {
-        User user = userRepository.findById(userId)
+        if (userId == null || channelId == null) {
+            throw new IllegalArgumentException("사용자 ID와 채널 ID는 필수입니다.");
+        }
+
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        if (user.hasChannel(channelId)) {
+        channelRepository.findById(channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+
+        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
 
-        user.addChannel(channelId);
-        userRepository.save(user);
+        readStatusRepository.save(new ReadStatus(userId, channelId));
     }
 
     @Override
     public void removeChannel(UUID userId, UUID channelId) {
-        User user = userRepository.findById(userId)
+        if (userId == null || channelId == null) {
+            throw new IllegalArgumentException("사용자 ID와 채널 ID는 필수입니다.");
+        }
+
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        if (!user.hasChannel(channelId)) {
-            throw new IllegalArgumentException(
-                    "참여하지 않은 채널에서는 나갈 수 없습니다."
-            );
-        }
+        ReadStatus readStatus = readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "참여하지 않은 채널에서는 나갈 수 없습니다."
+                        ));
 
-        user.removeChannel(channelId);
-        userRepository.save(user);
+        readStatusRepository.deleteById(readStatus.getId());
     }
 
     private UserDto toDto(User user) {

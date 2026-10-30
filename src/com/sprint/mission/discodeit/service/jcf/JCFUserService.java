@@ -5,15 +5,20 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
-import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFReadStatusRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
@@ -27,12 +32,16 @@ public class JCFUserService implements UserService {
     private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final ChannelRepository channelRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     public JCFUserService() {
         this.userRepository = new JCFUserRepository();
         this.messageRepository = new JCFMessageRepository();
         this.binaryContentRepository = new FileBinaryContentRepository();
         this.userStatusRepository = new FileUserStatusRepository();
+        this.channelRepository = new JCFChannelRepository();
+        this.readStatusRepository = new JCFReadStatusRepository();
     }
 
     @Override
@@ -170,13 +179,16 @@ public class JCFUserService implements UserService {
 
         for (Message message : messageRepository.findAll()) {
             if (id.equals(message.getAuthorId())) {
-
                 for (UUID attachmentId : message.getAttachmentIds()) {
                     binaryContentRepository.deleteById(attachmentId);
                 }
 
                 messageRepository.deleteById(message.getId());
             }
+        }
+
+        for (ReadStatus readStatus : readStatusRepository.findAllByUserId(id)) {
+            readStatusRepository.deleteById(readStatus.getId());
         }
 
         if (user.getProfileImageId() != null) {
@@ -192,32 +204,44 @@ public class JCFUserService implements UserService {
 
     @Override
     public void addChannel(UUID userId, UUID channelId) {
-        User user = userRepository.findById(userId)
+        if (userId == null || channelId == null) {
+            throw new IllegalArgumentException("사용자 ID와 채널 ID는 필수입니다.");
+        }
+
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        if (user.hasChannel(channelId)) {
+        channelRepository.findById(channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+
+        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId)
+                .isPresent()) {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
 
-        user.addChannel(channelId);
-        userRepository.save(user);
+        readStatusRepository.save(new ReadStatus(userId, channelId));
     }
 
     @Override
     public void removeChannel(UUID userId, UUID channelId) {
-        User user = userRepository.findById(userId)
+        if (userId == null || channelId == null) {
+            throw new IllegalArgumentException("사용자 ID와 채널 ID는 필수입니다.");
+        }
+
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        if (!user.hasChannel(channelId)) {
-            throw new IllegalArgumentException(
-                    "참여하지 않은 채널에서는 나갈 수 없습니다."
-            );
-        }
+        ReadStatus readStatus = readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "참여하지 않은 채널에서는 나갈 수 없습니다."
+                        ));
 
-        user.removeChannel(channelId);
-        userRepository.save(user);
+        readStatusRepository.deleteById(readStatus.getId());
     }
 
     private UserDto toDto(User user) {

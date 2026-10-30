@@ -1,15 +1,16 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import lombok.RequiredArgsConstructor;
@@ -27,7 +28,7 @@ public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
-    private final BinaryContentRepository binaryContentRepository;
+    private final BinaryContentService binaryContentService;
 
     @Override
     public Message create(MessageCreateRequest request) {
@@ -43,14 +44,10 @@ public class BasicMessageService implements MessageService {
         Objects.requireNonNull(request.channelId(), "채널 ID는 필수입니다.");
 
         User author = userRepository.findById(request.authorId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
-                );
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         Channel channel = channelRepository.findById(request.channelId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다.")
-                );
+                .orElseThrow(() -> new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
         Message message = new Message(
                 request.content(),
@@ -58,20 +55,17 @@ public class BasicMessageService implements MessageService {
                 channel.getId()
         );
 
-        List<UUID> attachmentIds = request.attachmentIds() == null
-                ? List.of()
-                : request.attachmentIds();
+        List<BinaryContentCreateRequest> attachments =
+                request.attachments() == null
+                        ? List.of()
+                        : request.attachments();
 
-        if (attachmentIds.stream().anyMatch(Objects::isNull)) {
-            throw new IllegalArgumentException("첨부파일 ID는 null일 수 없습니다.");
+        if (attachments.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("첨부파일 생성 정보는 null일 수 없습니다.");
         }
 
-        for (UUID attachmentId : attachmentIds) {
-            BinaryContent attachment = binaryContentRepository.findById(attachmentId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("첨부파일을 찾을 수 없습니다.")
-                    );
-
+        for (BinaryContentCreateRequest attachmentRequest : attachments) {
+            BinaryContent attachment = binaryContentService.create(attachmentRequest);
             message.addAttachment(attachment.getId());
         }
 
@@ -81,14 +75,12 @@ public class BasicMessageService implements MessageService {
     @Override
     public Optional<Message> findById(UUID id) {
         Objects.requireNonNull(id, "메시지 ID는 필수입니다.");
-
         return messageRepository.findById(id);
     }
 
     @Override
     public List<Message> findAllByChannelId(UUID channelId) {
         Objects.requireNonNull(channelId, "채널 ID는 필수입니다.");
-
         return messageRepository.findAllByChannelId(channelId);
     }
 
@@ -105,9 +97,7 @@ public class BasicMessageService implements MessageService {
         }
 
         Message message = messageRepository.findById(request.id())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("메시지를 찾을 수 없습니다.")
-                );
+                .orElseThrow(() -> new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
         message.update(request.content());
 
@@ -119,12 +109,10 @@ public class BasicMessageService implements MessageService {
         Objects.requireNonNull(id, "메시지 ID는 필수입니다.");
 
         Message message = messageRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("메시지를 찾을 수 없습니다.")
-                );
+                .orElseThrow(() -> new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
         for (UUID attachmentId : message.getAttachmentIds()) {
-            binaryContentRepository.deleteById(attachmentId);
+            binaryContentService.deleteById(attachmentId);
         }
 
         messageRepository.deleteById(id);

@@ -1,35 +1,38 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.BinaryContentService;
+import com.sprint.mission.discodeit.service.MessageService;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
-public class JCFMessageService implements com.sprint.mission.discodeit.service.MessageService {
+public class JCFMessageService implements MessageService {
 
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
-    private final BinaryContentRepository binaryContentRepository;
+    private final BinaryContentService binaryContentService;
 
     public JCFMessageService(
             MessageRepository messageRepository,
             UserRepository userRepository,
             ChannelRepository channelRepository,
-            BinaryContentRepository binaryContentRepository
+            BinaryContentService binaryContentService
     ) {
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
-        this.binaryContentRepository = binaryContentRepository;
+        this.binaryContentService = binaryContentService;
     }
 
     @Override
@@ -41,6 +44,9 @@ public class JCFMessageService implements com.sprint.mission.discodeit.service.M
         if (request.content() == null || request.content().isBlank()) {
             throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
+
+        Objects.requireNonNull(request.authorId(), "작성자 ID는 필수입니다.");
+        Objects.requireNonNull(request.channelId(), "채널 ID는 필수입니다.");
 
         UUID authorId = request.authorId();
         UUID channelId = request.channelId();
@@ -59,15 +65,17 @@ public class JCFMessageService implements com.sprint.mission.discodeit.service.M
                 channelId
         );
 
-        List<UUID> attachmentIds = request.attachmentIds() == null
-                ? List.of()
-                : request.attachmentIds();
+        List<BinaryContentCreateRequest> attachments =
+                request.attachments() == null
+                        ? List.of()
+                        : request.attachments();
 
-        for (UUID attachmentId : attachmentIds) {
-            BinaryContent attachment = binaryContentRepository.findById(attachmentId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("첨부파일을 찾을 수 없습니다."));
+        if (attachments.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("첨부파일 생성 정보는 null일 수 없습니다.");
+        }
 
+        for (BinaryContentCreateRequest attachmentRequest : attachments) {
+            BinaryContent attachment = binaryContentService.create(attachmentRequest);
             message.addAttachment(attachment.getId());
         }
 
@@ -76,11 +84,13 @@ public class JCFMessageService implements com.sprint.mission.discodeit.service.M
 
     @Override
     public Optional<Message> findById(UUID id) {
+        Objects.requireNonNull(id, "메시지 ID는 필수입니다.");
         return messageRepository.findById(id);
     }
 
     @Override
     public List<Message> findAllByChannelId(UUID channelId) {
+        Objects.requireNonNull(channelId, "채널 ID는 필수입니다.");
         return messageRepository.findAllByChannelId(channelId);
     }
 
@@ -88,6 +98,12 @@ public class JCFMessageService implements com.sprint.mission.discodeit.service.M
     public Message update(MessageUpdateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("메시지 수정 정보는 필수입니다.");
+        }
+
+        Objects.requireNonNull(request.id(), "메시지 ID는 필수입니다.");
+
+        if (request.content() == null || request.content().isBlank()) {
+            throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
 
         Message message = messageRepository.findById(request.id())
@@ -101,12 +117,14 @@ public class JCFMessageService implements com.sprint.mission.discodeit.service.M
 
     @Override
     public void delete(UUID id) {
+        Objects.requireNonNull(id, "메시지 ID는 필수입니다.");
+
         Message message = messageRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
         for (UUID attachmentId : message.getAttachmentIds()) {
-            binaryContentRepository.deleteById(attachmentId);
+            binaryContentService.deleteById(attachmentId);
         }
 
         messageRepository.deleteById(id);

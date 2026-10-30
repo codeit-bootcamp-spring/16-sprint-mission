@@ -59,6 +59,32 @@ tasks.register('runAuthServiceTest', JavaExec) {
     classpath = sourceSets.main.runtimeClasspath
     mainClass = 'com.sprint.mission.discodeit.AuthServiceTest'
 }
+tasks.register('runUserServiceTest', JavaExec) {
+    group = 'application'
+    description = 'UserServiceTest 실행'
+
+    dependsOn tasks.named('classes')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.sprint.mission.discodeit.test.UserServiceTest'
+}
+
+tasks.register('runChannelServiceTest', JavaExec) {
+    group = 'application'
+    description = 'ChannelServiceTest 실행'
+
+    dependsOn tasks.named('classes')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.sprint.mission.discodeit.test.ChannelServiceTest'
+}
+
+tasks.register('runMessageServiceTest', JavaExec) {
+    group = 'application'
+    description = 'MessageServiceTest 실행'
+
+    dependsOn tasks.named('classes')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.sprint.mission.discodeit.test.MessageServiceTest'
+}
 
 tasks.withType(JavaCompile).configureEach {
     options.compilerArgs += ['-Xlint:unchecked']

@@ -8,7 +8,6 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -19,7 +18,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -55,8 +53,7 @@ public class BasicChannelService implements ChannelService {
                 ChannelType.PUBLIC
         );
 
-        Channel saved = channelRepository.save(channel);
-        return toDto(saved);
+        return toDto(channelRepository.save(channel));
     }
 
     @Override
@@ -77,33 +74,19 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("중복된 참여자가 있습니다.");
         }
 
-        List<User> participants = new ArrayList<>();
-
         for (UUID participantId : participantIds) {
-            User user = userRepository.findById(participantId)
+            userRepository.findById(participantId)
                     .orElseThrow(() ->
                             new IllegalArgumentException("존재하지 않는 사용자입니다.")
                     );
-
-            participants.add(user);
         }
 
         Channel channel = new Channel(null, null, ChannelType.PRIVATE);
-
-        for (User participant : participants) {
-            channel.addMember(participant.getId());
-        }
-
         Channel savedChannel = channelRepository.save(channel);
 
-        for (User participant : participants) {
-            // 사용자에게도 채널 참여 정보 추가
-            participant.addChannel(savedChannel.getId());
-            userRepository.save(participant);
-
-            // 참여자의 읽음 상태 생성
+        for (UUID participantId : participantIds) {
             readStatusRepository.save(
-                    new ReadStatus(participant.getId(), savedChannel.getId())
+                    new ReadStatus(participantId, savedChannel.getId())
             );
         }
 
@@ -138,7 +121,9 @@ public class BasicChannelService implements ChannelService {
         return channelRepository.findAll().stream()
                 .filter(channel ->
                         channel.getType() == ChannelType.PUBLIC
-                                || channel.hasMember(userId)
+                                || readStatusRepository
+                                .findByUserIdAndChannelId(userId, channel.getId())
+                                .isPresent()
                 )
                 .map(this::toDto)
                 .toList();
@@ -170,15 +155,14 @@ public class BasicChannelService implements ChannelService {
 
         channel.update(request.name(), request.description());
 
-        Channel saved = channelRepository.save(channel);
-        return toDto(saved);
+        return toDto(channelRepository.save(channel));
     }
 
     @Override
     public void delete(UUID id) {
         Objects.requireNonNull(id, "채널 ID는 필수입니다.");
 
-        Channel channel = channelRepository.findById(id)
+        channelRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
@@ -188,13 +172,10 @@ public class BasicChannelService implements ChannelService {
                 .toList();
 
         for (Message message : messagesToDelete) {
-
-            // 메시지에 연결된 첨부파일 삭제
             for (UUID attachmentId : message.getAttachmentIds()) {
                 binaryContentRepository.deleteById(attachmentId);
             }
 
-            // 메시지 삭제
             messageRepository.deleteById(message.getId());
         }
 
@@ -205,13 +186,6 @@ public class BasicChannelService implements ChannelService {
 
         for (ReadStatus status : readStatusesToDelete) {
             readStatusRepository.deleteById(status.getId());
-        }
-
-        for (UUID memberId : new ArrayList<>(channel.getMemberIds())) {
-            userRepository.findById(memberId).ifPresent(user -> {
-                user.removeChannel(id);
-                userRepository.save(user);
-            });
         }
 
         channelRepository.deleteById(id);
@@ -227,24 +201,21 @@ public class BasicChannelService implements ChannelService {
                         new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
 
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
 
-        if (channel.hasMember(userId)) {
+        if (channel.getType() == ChannelType.PUBLIC) {
+            return;
+        }
+
+        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId)
+                .isPresent()) {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
 
-        channel.addMember(userId);
-        user.addChannel(channelId);
-
-        channelRepository.save(channel);
-        userRepository.save(user);
-
-        if (channel.getType() == ChannelType.PRIVATE) {
-            readStatusRepository.save(new ReadStatus(userId, channelId));
-        }
+        readStatusRepository.save(new ReadStatus(userId, channelId));
     }
 
     @Override
@@ -257,25 +228,22 @@ public class BasicChannelService implements ChannelService {
                         new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
 
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
 
-        if (!channel.hasMember(userId)) {
-            throw new IllegalArgumentException("참여 중인 채널이 아닙니다.");
+        if (channel.getType() == ChannelType.PUBLIC) {
+            return;
         }
 
-        channel.removeMember(userId);
-        user.removeChannel(channelId);
-
-        channelRepository.save(channel);
-        userRepository.save(user);
-
-        readStatusRepository.findByUserIdAndChannelId(userId, channelId)
-                .ifPresent(status ->
-                        readStatusRepository.deleteById(status.getId())
+        ReadStatus readStatus = readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("참여 중인 채널이 아닙니다.")
                 );
+
+        readStatusRepository.deleteById(readStatus.getId());
     }
 
     private ChannelDto toDto(Channel channel) {
@@ -290,7 +258,12 @@ public class BasicChannelService implements ChannelService {
 
         List<UUID> participantIds =
                 channel.getType() == ChannelType.PRIVATE
-                        ? new ArrayList<>(channel.getMemberIds())
+                        ? readStatusRepository.findAll().stream()
+                        .filter(status ->
+                                channel.getId().equals(status.getChannelId())
+                        )
+                        .map(ReadStatus::getUserId)
+                        .toList()
                         : List.of();
 
         return new ChannelDto(

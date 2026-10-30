@@ -8,11 +8,12 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFReadStatusRepository;
@@ -20,7 +21,6 @@ import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -32,12 +32,14 @@ public class JCFChannelService implements ChannelService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     public JCFChannelService() {
         this.channelRepository = new JCFChannelRepository();
         this.userRepository = new JCFUserRepository();
         this.messageRepository = new JCFMessageRepository();
         this.readStatusRepository = new JCFReadStatusRepository();
+        this.binaryContentRepository = new FileBinaryContentRepository();
     }
 
     @Override
@@ -81,27 +83,19 @@ public class JCFChannelService implements ChannelService {
             throw new IllegalArgumentException("중복된 참여자가 있습니다.");
         }
 
-        List<User> participants = new ArrayList<>();
-
         for (UUID participantId : participantIds) {
-            User user = userRepository.findById(participantId)
+            userRepository.findById(participantId)
                     .orElseThrow(() ->
                             new IllegalArgumentException("존재하지 않는 사용자입니다.")
                     );
-            participants.add(user);
         }
 
         Channel channel = new Channel(null, null, ChannelType.PRIVATE);
-
-        for (User participant : participants) {
-            channel.addMember(participant.getId());
-        }
-
         Channel saved = channelRepository.save(channel);
 
-        for (User participant : participants) {
+        for (UUID participantId : participantIds) {
             readStatusRepository.save(
-                    new ReadStatus(participant.getId(), saved.getId())
+                    new ReadStatus(participantId, saved.getId())
             );
         }
 
@@ -111,7 +105,9 @@ public class JCFChannelService implements ChannelService {
     @Override
     public Optional<ChannelDto> findById(UUID id) {
         Objects.requireNonNull(id, "채널 ID는 필수입니다.");
-        return channelRepository.findById(id).map(this::toDto);
+
+        return channelRepository.findById(id)
+                .map(this::toDto);
     }
 
     @Override
@@ -134,7 +130,9 @@ public class JCFChannelService implements ChannelService {
         return channelRepository.findAll().stream()
                 .filter(channel ->
                         channel.getType() == ChannelType.PUBLIC
-                                || channel.hasMember(userId)
+                                || readStatusRepository
+                                .findByUserIdAndChannelId(userId, channel.getId())
+                                .isPresent()
                 )
                 .map(this::toDto)
                 .toList();
@@ -165,6 +163,7 @@ public class JCFChannelService implements ChannelService {
         }
 
         channel.update(request.name(), request.description());
+
         return toDto(channelRepository.save(channel));
     }
 
@@ -172,32 +171,29 @@ public class JCFChannelService implements ChannelService {
     public void delete(UUID id) {
         Objects.requireNonNull(id, "채널 ID는 필수입니다.");
 
-        Channel channel = channelRepository.findById(id)
+        channelRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
 
         List<Message> messages = messageRepository.findAll().stream()
-                .filter(message -> message.getChannelId().equals(id))
+                .filter(message -> id.equals(message.getChannelId()))
                 .toList();
 
         for (Message message : messages) {
+            for (UUID attachmentId : message.getAttachmentIds()) {
+                binaryContentRepository.deleteById(attachmentId);
+            }
+
             messageRepository.deleteById(message.getId());
         }
 
         List<ReadStatus> statuses = readStatusRepository.findAll().stream()
-                .filter(status -> status.getChannelId().equals(id))
+                .filter(status -> id.equals(status.getChannelId()))
                 .toList();
 
         for (ReadStatus status : statuses) {
             readStatusRepository.deleteById(status.getId());
-        }
-
-        for (UUID memberId : new ArrayList<>(channel.getMemberIds())) {
-            userRepository.findById(memberId).ifPresent(user -> {
-                user.removeChannel(id);
-                userRepository.save(user);
-            });
         }
 
         channelRepository.deleteById(id);
@@ -213,24 +209,21 @@ public class JCFChannelService implements ChannelService {
                         new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
 
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
 
-        if (channel.hasMember(userId)) {
+        if (channel.getType() == ChannelType.PUBLIC) {
+            return;
+        }
+
+        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId)
+                .isPresent()) {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
 
-        channel.addMember(userId);
-        user.addChannel(channelId);
-
-        channelRepository.save(channel);
-        userRepository.save(user);
-
-        if (channel.getType() == ChannelType.PRIVATE) {
-            readStatusRepository.save(new ReadStatus(userId, channelId));
-        }
+        readStatusRepository.save(new ReadStatus(userId, channelId));
     }
 
     @Override
@@ -243,31 +236,28 @@ public class JCFChannelService implements ChannelService {
                         new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
 
-        User user = userRepository.findById(userId)
+        userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 사용자입니다.")
                 );
 
-        if (!channel.hasMember(userId)) {
-            throw new IllegalArgumentException("참여 중인 채널이 아닙니다.");
+        if (channel.getType() == ChannelType.PUBLIC) {
+            return;
         }
 
-        channel.removeMember(userId);
-        user.removeChannel(channelId);
-
-        channelRepository.save(channel);
-        userRepository.save(user);
-
-        readStatusRepository.findByUserIdAndChannelId(userId, channelId)
-                .ifPresent(status ->
-                        readStatusRepository.deleteById(status.getId())
+        ReadStatus status = readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("참여 중인 채널이 아닙니다.")
                 );
+
+        readStatusRepository.deleteById(status.getId());
     }
 
     private ChannelDto toDto(Channel channel) {
         Instant lastMessageAt = messageRepository.findAll().stream()
                 .filter(message ->
-                        message.getChannelId().equals(channel.getId())
+                        channel.getId().equals(message.getChannelId())
                 )
                 .map(Message::getCreatedAt)
                 .filter(Objects::nonNull)
@@ -276,7 +266,12 @@ public class JCFChannelService implements ChannelService {
 
         List<UUID> participantIds =
                 channel.getType() == ChannelType.PRIVATE
-                        ? new ArrayList<>(channel.getMemberIds())
+                        ? readStatusRepository.findAll().stream()
+                        .filter(status ->
+                                channel.getId().equals(status.getChannelId())
+                        )
+                        .map(ReadStatus::getUserId)
+                        .toList()
                         : List.of();
 
         return new ChannelDto(
