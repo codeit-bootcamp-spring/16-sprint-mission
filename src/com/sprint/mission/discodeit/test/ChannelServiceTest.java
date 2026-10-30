@@ -1,60 +1,95 @@
 package com.sprint.mission.discodeit.test;
 
-import com.sprint.mission.discodeit.ServiceFactory;
-import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.DiscodeitApplication;
+import com.sprint.mission.discodeit.dto.ChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.ChannelDto;
+import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 
+import org.springframework.boot.SpringApplication;
+import org.springframework.context.ConfigurableApplicationContext;
+
+import java.util.UUID;
+
 public class ChannelServiceTest {
+
     public static void main(String[] args) {
-        ChannelService channelService =
-                ServiceFactory.channelService();
+        ConfigurableApplicationContext context =
+                SpringApplication.run(DiscodeitApplication.class, args);
 
-        Channel channel = channelService.create(
-                "테스트 채널",
-                "채널 테스트용 설명"
-        );
-        Channel foundChannel = channelService.findById(channel.getId())
-                .orElseThrow(() -> new IllegalArgumentException("채널을 찾을 수 없습니다."));
+        try {
+            ChannelService channelService =
+                    context.getBean(ChannelService.class);
 
-        if (foundChannel != null
-                &&"테스트 채널".equals(foundChannel.getName())) {
-            System.out.println("채널 등록 테스트: 통과");
-        }else {
-            throw new AssertionError("채널 등록 테스트 실패");
-        }
+            String testId = UUID.randomUUID().toString().substring(0, 8);
+            String channelName = "테스트 채널 " + testId;
+            String description = "채널 테스트용 설명 " + testId;
 
-        boolean channelFound = channelService.findAll().stream()
-                .anyMatch(item ->
-                        item.getId().equals(channel.getId())
-                                && "테스트 채널".equals(item.getName())
-                                && "채널 테스트용 설명".equals(item.getDescription()));
+            // 채널 등록
+            ChannelDto channel = channelService.createPublic(
+                    new ChannelCreateRequest(channelName, description)
+            );
 
-        if (channelFound) {
-            System.out.println("채널 조회 테스트: 통과");
-        } else {
-            throw new AssertionError("채널 조회 테스트 실패");
-        }
+            ChannelDto foundChannel = channelService.findById(channel.id())
+                    .orElseThrow(() ->
+                            new AssertionError("채널을 찾을 수 없습니다."));
 
-        channelService.update(channel.getId(), "수정된 채널", "수정된 설명");
+            if (channelName.equals(foundChannel.name())) {
+                System.out.println("채널 등록 테스트: 통과");
+            } else {
+                throw new AssertionError("채널 등록 테스트 실패");
+            }
 
-        Channel updatedChannel = channelService.findById(channel.getId())
-                .orElseThrow(() -> new IllegalArgumentException("채널을 찾을 수 없습니다."));
+            // 채널 조회
+            boolean channelFound = channelService.findAll().stream()
+                    .anyMatch(item ->
+                            item.id().equals(channel.id())
+                                    && channelName.equals(item.name())
+                                    && description.equals(item.description()));
 
-        if (updatedChannel != null
-                && "수정된 채널".equals(updatedChannel.getName())
-                && "수정된 설명".equals(updatedChannel.getDescription())) {
-            System.out.println("채널 수정 테스트: 통과");
-        } else {
-            throw new AssertionError("채널 수정 테스트 실패");
-        }
+            if (channelFound) {
+                System.out.println("채널 조회 테스트: 통과");
+            } else {
+                throw new AssertionError("채널 조회 테스트 실패");
+            }
 
+            // 채널 수정
+            String updatedName = "수정된 채널 " + testId;
+            String updatedDescription = "수정된 설명 " + testId;
 
-        channelService.delete(channel.getId());
+            channelService.update(
+                    new ChannelUpdateRequest(
+                            channel.id(),
+                            updatedName,
+                            updatedDescription
+                    )
+            );
 
-        if (channelService.findById(channel.getId()).isEmpty()) {
-            System.out.println("채널 삭제 테스트: 통과");
-        }else {
-            throw new AssertionError("채널 삭제 테스트 실패");
+            ChannelDto updatedChannel =
+                    channelService.findById(channel.id())
+                            .orElseThrow(() ->
+                                    new AssertionError(
+                                            "수정된 채널을 찾을 수 없습니다."
+                                    ));
+
+            if (updatedName.equals(updatedChannel.name())
+                    && updatedDescription.equals(updatedChannel.description())) {
+                System.out.println("채널 수정 테스트: 통과");
+            } else {
+                throw new AssertionError("채널 수정 테스트 실패");
+            }
+
+            // 채널 삭제
+            channelService.delete(channel.id());
+
+            if (channelService.findById(channel.id()).isEmpty()) {
+                System.out.println("채널 삭제 테스트: 통과");
+            } else {
+                throw new AssertionError("채널 삭제 테스트 실패");
+            }
+
+        } finally {
+            context.close();
         }
     }
 }

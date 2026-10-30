@@ -1,101 +1,217 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Service
+@RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
     private final UserRepository userRepository;
-    private MessageService messageService;
-    private ChannelService channelService;
-
-    public BasicUserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    public void setMessageService(MessageService messageService) {
-        this.messageService = messageService;
-    }
-
-    public void setChannelService(ChannelService channelService) {
-        this.channelService = channelService;
-    }
+    private final MessageRepository messageRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final UserStatusRepository userStatusRepository;
+    private final ChannelRepository channelRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public User create(User user) {
-        validateUser(user);
-
-        boolean emailExists = userRepository.findAll()
-                .stream()
-                .anyMatch(existing ->
-                        existing.getEmail().equals(user.getEmail()));
-
-        if (emailExists) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+    public UserDto create(UserCreateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
         }
 
-        return save(user);
+        validateRequired(request.username(), "사용자 이름");
+        validateRequired(request.email(), "이메일");
+        validateRequired(request.password(), "비밀번호");
+
+        validateUnique(request.username(), request.email(), null);
+
+        User user = new User(
+                request.username(),
+                request.email(),
+                request.password()
+        );
+
+        boolean hasImage = validateImageFields(
+                request.profileImageName(),
+                request.profileImageContentType(),
+                request.profileImageSize(),
+                request.profileImageData()
+        );
+
+        if (hasImage) {
+            BinaryContent image = new BinaryContent(
+                    request.profileImageName(),
+                    request.profileImageContentType(),
+                    request.profileImageSize(),
+                    request.profileImageData()
+            );
+
+            binaryContentRepository.save(image);
+            user.updateProfileImage(image.getId());
+        }
+
+        userRepository.save(user);
+        userStatusRepository.save(new UserStatus(user.getId()));
+
+        return toDto(user);
     }
 
     @Override
-    public Optional<User> findById(UUID id) {
-        return userRepository.findById(id);
+    public Optional<UserDto> findById(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
+        return userRepository.findById(id).map(this::toDto);
     }
 
     @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public List<UserDto> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
-    public User update(UUID id, String name, String email) {
+    public UserDto update(UserUpdateRequest request) {
+        if (request == null || request.id() == null) {
+            throw new IllegalArgumentException("수정할 사용자 정보는 필수입니다.");
+        }
+
+        User user = userRepository.findById(request.id())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        validateRequired(request.username(), "사용자 이름");
+        validateRequired(request.email(), "이메일");
+
+        String password = request.password() == null
+                ? user.getPassword()
+                : request.password();
+
+        validateRequired(password, "비밀번호");
+        validateUnique(request.username(), request.email(), request.id());
+
+        boolean hasImage = validateImageFields(
+                request.profileImageName(),
+                request.profileImageContentType(),
+                request.profileImageSize(),
+                request.profileImageData()
+        );
+
+        if (hasImage) {
+            UUID oldImageId = user.getProfileImageId();
+
+            BinaryContent newImage = new BinaryContent(
+                    request.profileImageName(),
+                    request.profileImageContentType(),
+                    request.profileImageSize(),
+                    request.profileImageData()
+            );
+
+            binaryContentRepository.save(newImage);
+            user.updateProfileImage(newImage.getId());
+
+            if (oldImageId != null) {
+                binaryContentRepository.deleteById(oldImageId);
+            }
+        }
+
+        user.update(
+                request.username(),
+                request.email(),
+                password,
+                user.getProfileImageId()
+        );
+
+        userRepository.save(user);
+
+        return toDto(user);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("이름은 필수입니다.");
+        // 1. 사용자가 작성한 메시지와 첨부파일 삭제
+        for (Message message : messageRepository.findAll()) {
+            if (id.equals(message.getAuthorId())) {
+
+                for (UUID attachmentId : message.getAttachmentIds()) {
+                    binaryContentRepository.deleteById(attachmentId);
+                }
+
+                messageRepository.deleteById(message.getId());
+            }
         }
 
-        if (email == null || email.isBlank()) {
-            throw new IllegalArgumentException("이메일은 필수입니다.");
+        // 2. 참여 중인 채널에서 사용자 정보 제거
+        for (UUID channelId : user.getChannelIds()) {
+            channelRepository.findById(channelId).ifPresent(channel -> {
+                channel.removeMember(id);
+                channelRepository.save(channel);
+            });
         }
 
-        boolean emailExists = userRepository.findAll()
-                .stream()
-                .anyMatch(existing ->
-                        !existing.getId().equals(id)
-                                && existing.getEmail().equals(email));
-
-        if (emailExists) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        // 3. 사용자의 읽음 상태 삭제
+        for (var readStatus : readStatusRepository.findAllByUserId(id)) {
+            readStatusRepository.deleteById(readStatus.getId());
         }
 
-        user.update(name, email);
-        return save(user);
+        // 4. 프로필 이미지 삭제
+        UUID profileImageId = user.getProfileImageId();
+
+        if (profileImageId != null) {
+            binaryContentRepository.deleteById(profileImageId);
+        }
+
+        // 5. 사용자 상태 삭제
+        userStatusRepository.findByUserId(id)
+                .ifPresent(status ->
+                        userStatusRepository.deleteById(status.getId()));
+
+        // 6. 사용자 삭제
+        userRepository.deleteById(id);
     }
 
     @Override
     public void addChannel(UUID userId, UUID channelId) {
-        if (channelId == null) {
-            throw new IllegalArgumentException("채널 ID는 필수입니다.");
-        }
-
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        if (user.hasChannel(channelId)) {
+            throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
+        }
+
         user.addChannel(channelId);
-        save(user);
+        userRepository.save(user);
     }
 
     @Override
@@ -104,54 +220,93 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
+        if (!user.hasChannel(channelId)) {
+            throw new IllegalArgumentException(
+                    "참여하지 않은 채널에서는 나갈 수 없습니다."
+            );
+        }
+
         user.removeChannel(channelId);
-        save(user);
+        userRepository.save(user);
     }
 
-    private void validateUser(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
+    private UserDto toDto(User user) {
+        boolean online = userStatusRepository.findByUserId(user.getId())
+                .map(UserStatus::isOnline)
+                .orElse(false);
+
+        return new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getProfileImageId(),
+                online
+        );
+    }
+
+    private void validateUnique(
+            String username,
+            String email,
+            UUID excludedUserId
+    ) {
+        boolean usernameExists = userRepository.findAll()
+                .stream()
+                .anyMatch(existing ->
+                        !existing.getId().equals(excludedUserId)
+                                && existing.getUsername().equals(username));
+
+        if (usernameExists) {
+            throw new IllegalArgumentException(
+                    "이미 사용 중인 사용자 이름입니다."
+            );
         }
 
-        if (user.getName() == null || user.getName().isBlank()) {
-            throw new IllegalArgumentException("이름은 필수입니다.");
-        }
+        boolean emailExists = userRepository.findAll()
+                .stream()
+                .anyMatch(existing ->
+                        !existing.getId().equals(excludedUserId)
+                                && existing.getEmail().equals(email));
 
-        if (user.getEmail() == null || user.getEmail().isBlank()) {
-            throw new IllegalArgumentException("이메일은 필수입니다.");
+        if (emailExists) {
+            throw new IllegalArgumentException(
+                    "이미 사용 중인 이메일입니다."
+            );
         }
     }
 
-    private User save(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("사용자 정보는 필수입니다.");
+    private boolean validateImageFields(
+            String name,
+            String contentType,
+            Long size,
+            byte[] data
+    ) {
+        boolean allAbsent = name == null
+                && contentType == null
+                && size == null
+                && data == null;
+
+        if (allAbsent) {
+            return false;
         }
 
-        return userRepository.save(user);
+        if (name == null || name.isBlank()
+                || contentType == null || contentType.isBlank()
+                || size == null || size < 0
+                || data == null
+                || size != data.length) {
+            throw new IllegalArgumentException(
+                    "프로필 이미지 정보가 올바르지 않습니다."
+            );
+        }
+
+        return true;
     }
 
-    @Override
-    public void deleteById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
-
-        // 해당 사용자가 작성한 메시지 삭제
-        if (messageService != null) {
-            for (Message message : new ArrayList<>(messageService.findAll())) {
-                if (message.getAuthorId().equals(id)) {
-                    messageService.delete(message.getId());
-                }
-            }
+    private void validateRequired(String value, String fieldName) {
+        if (value == null || value.isBlank()) {
+            throw new IllegalArgumentException(
+                    fieldName + "은(는) 필수입니다."
+            );
         }
-
-        // 참여 중인 채널에서 사용자 관계 제거
-        if (channelService != null) {
-            for (UUID channelId : new ArrayList<>(user.getChannelIds())) {
-                channelService.leave(channelId, id);
-            }
-        }
-
-        userRepository.deleteById(id);
     }
 }

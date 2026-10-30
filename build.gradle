@@ -1,6 +1,7 @@
-
 plugins {
     id 'java'
+    id 'org.springframework.boot' version '4.1.2'
+    id 'io.spring.dependency-management' version '1.1.7'
 }
 
 group = 'com.sprint.mission'
@@ -12,13 +13,17 @@ java {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
 sourceSets {
     main {
         java {
             srcDirs = ['src']
-            exclude 'com/sprint/mission/discodeit/test/**'
         }
     }
+
     test {
         java {
             srcDirs = ['src']
@@ -27,6 +32,34 @@ sourceSets {
     }
 }
 
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+
+    compileOnly 'org.projectlombok:lombok'
+    annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
 tasks.named('test') {
+    useJUnitPlatform()
     failOnNoDiscoveredTests = false
+}
+
+springBoot {
+    mainClass = 'com.sprint.mission.discodeit.DiscodeitApplication'
+}
+
+tasks.register('runAuthServiceTest', JavaExec) {
+    group = 'application'
+    description = 'AuthServiceTest 실행'
+
+    dependsOn tasks.named('classes')
+    classpath = sourceSets.main.runtimeClasspath
+    mainClass = 'com.sprint.mission.discodeit.AuthServiceTest'
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xlint:unchecked']
 }
