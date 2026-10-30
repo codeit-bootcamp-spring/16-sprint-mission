@@ -1,6 +1,7 @@
 
 package com.sprint.mission.discodeit.dto.user;
 
+import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequestDto;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
@@ -22,4 +23,6 @@ public class UserCreateRequestDto {
 
     @Email(message = "올바른 이메일 형식이 아닙니다.")
     private String email;
+
+    private BinaryContentCreateRequestDto profileRequest;
 }

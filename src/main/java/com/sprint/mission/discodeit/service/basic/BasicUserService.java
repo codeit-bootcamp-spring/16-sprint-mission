@@ -35,18 +35,8 @@ public class BasicUserService implements UserService {
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
 
-    // 프로필 이미지가 없는 회원 생성
     @Override
     public UserResponseDto createUser(UserCreateRequestDto dto) {
-        return createUser(dto, null);
-    }
-
-    // 프로필 이미지가 있는 회원 생성
-    @Override
-    public UserResponseDto createUser(
-            UserCreateRequestDto dto,
-            byte[] profileImage
-    ) {
         validateUsernameDuplicate(dto.getUsername(), null);
         validateEmailDuplicate(dto.getEmail(), null);
 
@@ -56,8 +46,10 @@ public class BasicUserService implements UserService {
                 dto.getEmail()
         );
 
-        if (profileImage != null) {
-            BinaryContent binaryContent = new BinaryContent(profileImage);
+        if (dto.getProfileRequest() != null) {
+            BinaryContent binaryContent =
+                    new BinaryContent(dto.getProfileRequest().getData());
+
             BinaryContent savedContent =
                     binaryContentRepository.save(binaryContent);
 
@@ -95,15 +87,6 @@ public class BasicUserService implements UserService {
             UUID userId,
             UserUpdateRequestDto dto
     ) {
-        return updateUser(userId, dto, null);
-    }
-
-    @Override
-    public UserResponseDto updateUser(
-            UUID userId,
-            UserUpdateRequestDto dto,
-            byte[] profileImage
-    ) {
         User user = findUserEntity(userId);
 
         if (dto.getUsername() != null) {
@@ -120,10 +103,12 @@ public class BasicUserService implements UserService {
             user.changeEmail(dto.getEmail());
         }
 
-        if (profileImage != null) {
+        if (dto.getProfileRequest() != null) {
             UUID oldProfileId = user.getProfileId();
 
-            BinaryContent newContent = new BinaryContent(profileImage);
+            BinaryContent newContent =
+                    new BinaryContent(dto.getProfileRequest().getData());
+
             BinaryContent savedContent =
                     binaryContentRepository.save(newContent);
 
