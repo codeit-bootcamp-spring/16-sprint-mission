@@ -136,7 +136,7 @@ public class BasicUserService implements UserService {
         UserStatus userStatus = userStatusRepository.findAll().stream().filter(s->s.getUserId().equals(id)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("접속 상태를 찾을 수 없음"));
         userStatusRepository.deleteById(userStatus.getId());
-        
+
     users.remove(user);
         entities.saveAll();
     }

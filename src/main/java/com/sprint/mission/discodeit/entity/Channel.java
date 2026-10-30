@@ -11,11 +11,15 @@ import java.util.List;
 public class Channel extends BaseEntity{
 
     private String name;
+    private ChannelType type;
+    private String description;
 
 
-    public Channel(String name) {
+    public Channel(ChannelType type,String name, String description) {
 
         this.name = name;
+        this.type = type;
+        this.description = description;
 
         this.users = new ArrayList<>();
         this.messages = new ArrayList<>();
@@ -25,8 +29,9 @@ public class Channel extends BaseEntity{
 
 
 
-    public void update(String name) {
+    public void update(String name,String description) {
         this.name = name;
+        this.description = description;
         updateTime();
     }
 
