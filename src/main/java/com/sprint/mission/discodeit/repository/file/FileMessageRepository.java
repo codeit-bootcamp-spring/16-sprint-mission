@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 
+@Repository
 public class FileMessageRepository implements MessageRepository {
     private static final Path PATH = Paths.get("data", "messages.ser");
 
@@ -34,9 +36,42 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     @Override
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return load().values().stream()
+                .filter(message -> message.getChannelId().equals(channelId))
+                .toList();
+    }
+
+    @Override
+    public List<Message> findAllByUserId(UUID userId) {
+        return load().values().stream()
+                .filter(message -> message.getAuthorId().equals(userId))
+                .toList();
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        return load().containsKey(id);
+    }
+
+    @Override
     public void deleteById(UUID id) {
         Map<UUID, Message> data = load();
         data.remove(id);
+        writeToFile(data);
+    }
+
+    @Override
+    public void deleteAllByUserId(UUID userId) {
+        Map<UUID, Message> data = load();
+        data.values().removeIf(message -> message.getAuthorId().equals(userId));
+        writeToFile(data);
+    }
+
+    @Override
+    public void deleteAllByChannelId(UUID channelId) {
+        Map<UUID, Message> data = load();
+        data.values().removeIf(message -> message.getChannelId().equals(channelId));
         writeToFile(data);
     }
 

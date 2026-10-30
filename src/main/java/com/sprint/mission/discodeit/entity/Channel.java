@@ -1,30 +1,32 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.io.Serializable;
+import lombok.Getter;
+
+import java.io.Serial;
 import java.util.*;
 
-public class Channel extends BaseEntity {
+@Getter
+public class Channel extends BaseUpdatableEntity {
     private UUID ownerId;
+    private ChannelType type;
     private String name;
     private String description;
     private final Set<UUID> users = new HashSet<>();
     private final List<UUID> messages = new ArrayList<>();
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
-    public Channel(UUID ownerId, String name, String description) {
+    public Channel(UUID ownerId, ChannelType type, String name, String description) {
         super();
         this.ownerId = Objects.requireNonNull(ownerId, "소유자는 필수입니다.");
 
         validateName(name);
+        this.type = type;
         this.name = name;
         this.description = description;
         users.add(ownerId); // 소유자는 자동으로 가입한다.
     }
-
-    public UUID getOwnerId() { return ownerId; }
-    public String getName() { return name; }
-    public String getDescription() { return description; }
 
     public Set<UUID> getUsers() { return Collections.unmodifiableSet(users); }
     public List<UUID> getMessages() { return Collections.unmodifiableList(messages); }

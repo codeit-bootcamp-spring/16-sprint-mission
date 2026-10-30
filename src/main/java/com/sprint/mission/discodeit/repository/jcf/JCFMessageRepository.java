@@ -25,6 +25,11 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     @Override
+    public boolean existsById(UUID id) {
+        return false;
+    }
+
+    @Override
     public void deleteById(UUID id) {
         data.remove(id);
     }
