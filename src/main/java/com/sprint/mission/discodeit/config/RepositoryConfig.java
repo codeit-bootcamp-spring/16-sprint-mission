@@ -15,21 +15,21 @@ public class RepositoryConfig {
 
     @Bean
     @ConditionalOnProperty(
-            prefix = "discodeit.repository", name = "type", havingValue = "jcf")
+            prefix = "discodeit.repository", name = "type", havingValue = "jcf", matchIfMissing = true)
     public UserRepository jcfUserRepository() {
         return new JCFUserRepository();
     }
 
     @Bean
     @ConditionalOnProperty(
-            prefix = "discodeit.repository", name = "type", havingValue = "jcf")
+            prefix = "discodeit.repository", name = "type", havingValue = "jcf", matchIfMissing = true)
     public ChannelRepository jcfChannelRepository() {
         return new JCFChannelRepository();
     }
 
     @Bean
     @ConditionalOnProperty(
-            prefix = "discodeit.repository", name = "type", havingValue = "jcf")
+            prefix = "discodeit.repository", name = "type", havingValue = "jcf", matchIfMissing = true)
     public MessageRepository jcfMessageRepository() {
         return new JCFMessageRepository();
     }
@@ -37,21 +37,21 @@ public class RepositoryConfig {
 
     @Bean
     @ConditionalOnProperty(
-            prefix = "discodeit.repository", name = "type", havingValue = "jcf")
+            prefix = "discodeit.repository", name = "type", havingValue = "jcf", matchIfMissing = true)
     public BinaryContentRepository jcfBinaryContentRepository() {
         return new JCFBinaryContentRepository();
     }
 
     @Bean
     @ConditionalOnProperty(
-            prefix = "discodeit.repository", name = "type", havingValue = "jcf")
+            prefix = "discodeit.repository", name = "type", havingValue = "jcf", matchIfMissing = true)
     public ReadStatusRepository jcfReadStatusRepository() {
         return new JCFReadStatusRepository();
     }
 
     @Bean
     @ConditionalOnProperty(
-            prefix = "discodeit.repository", name = "type", havingValue = "jcf")
+            prefix = "discodeit.repository", name = "type", havingValue = "jcf", matchIfMissing = true)
     public UserStatusRepository jcfUserStatusRepository() {
         return new JCFUserStatusRepository();
     }

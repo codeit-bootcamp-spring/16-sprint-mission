@@ -1,12 +1,10 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.MessageType;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -15,6 +13,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
@@ -30,7 +29,14 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public MessageResponseDto createMessage(MessageCreateRequestDto dto) {
+        return createMessage(dto, null);
+    }
 
+    @Override
+    public MessageResponseDto createMessage(
+            MessageCreateRequestDto dto,
+            List<BinaryContentCreateRequestDto> attachments
+    ) {
         if (dto.getContent() == null || dto.getContent().isBlank()) {
             throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
@@ -44,14 +50,26 @@ public class BasicMessageService implements MessageService {
                         new IllegalArgumentException("존재하지 않는 채널입니다."));
 
         // 첨부 파일 확인
-        List<UUID> attachmentIds = dto.getAttachmentIds() == null
-                ? List.of()
-                : dto.getAttachmentIds();
+        List<UUID> attachmentIds = new ArrayList<>(
+                dto.getAttachmentIds() == null
+                        ? List.of()
+                        : dto.getAttachmentIds()
+        );
 
         for (UUID attachmentId : attachmentIds) {
             binaryContentRepository.findById(attachmentId)
                     .orElseThrow(() ->
                             new IllegalArgumentException("존재하지 않는 첨부 파일입니다."));
+        }
+
+        if (attachments != null) {
+            for (BinaryContentCreateRequestDto attachment : attachments) {
+                BinaryContent saved = binaryContentRepository.save(
+                        new BinaryContent(attachment.getData())
+                );
+
+                attachmentIds.add(saved.getId());
+            }
         }
 
         Message message = new Message(

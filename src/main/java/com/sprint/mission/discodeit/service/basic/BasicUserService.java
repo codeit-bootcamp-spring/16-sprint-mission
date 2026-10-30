@@ -31,7 +31,6 @@ public class BasicUserService implements UserService {
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
 
-    // 연관 데이터 처리를 위해 추가 (요구사항이랑 다름...)
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
@@ -43,6 +42,7 @@ public class BasicUserService implements UserService {
     }
 
     // 프로필 이미지가 있는 회원 생성
+    @Override
     public UserResponseDto createUser(
             UserCreateRequestDto dto,
             byte[] profileImage
@@ -98,6 +98,7 @@ public class BasicUserService implements UserService {
         return updateUser(userId, dto, null);
     }
 
+    @Override
     public UserResponseDto updateUser(
             UUID userId,
             UserUpdateRequestDto dto,
@@ -132,6 +133,13 @@ public class BasicUserService implements UserService {
                 binaryContentRepository.deleteById(oldProfileId);
             }
         }
+
+        UserStatus userStatus = userStatusRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자 상태를 찾을 수 없습니다."));
+
+        userStatus.updateLastActiveAt();
+        userStatusRepository.save(userStatus);
 
         User savedUser = userRepository.save(user);
 
