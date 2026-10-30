@@ -7,9 +7,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ReadStatusRepository {
+
     Optional<ReadStatus> findById(UUID readStatusId);
-    Optional<ReadStatus> findByUserIdAndChannelId(UUID userId, UUID channelId);
+
     List<ReadStatus> findAll();
+
     ReadStatus save(ReadStatus readStatus);
+
     void deleteById(UUID readStatusId);
+
+    Optional<ReadStatus> findByUserIdAndChannelId(UUID userId, UUID channelId);
+
+    List<ReadStatus> findByUserId(UUID userId);
+
+    List<ReadStatus> findByChannelId(UUID channelId);
 }

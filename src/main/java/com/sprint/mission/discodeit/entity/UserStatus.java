@@ -20,6 +20,7 @@ public class UserStatus extends BaseEntity {
 
     public UserStatus(UUID userId) {
         super();
+
         Validation.validateNull(userId, "userId");
 
         this.userId = userId;

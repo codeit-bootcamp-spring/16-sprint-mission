@@ -22,6 +22,7 @@ public class User extends BaseEntity {
 
     public User(String username, String password, String email) {
         super();
+
         Validation.validateWhitespace(username, "username");
         Validation.validateWhitespace(password, "password");
         if (email != null) {

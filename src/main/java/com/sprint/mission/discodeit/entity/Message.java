@@ -43,6 +43,7 @@ public class Message extends BaseEntity {
             List<UUID> attachmentIds
     ) {
         super();
+
         Validation.validateBlank(content, "content");
         Validation.validateNull(senderId, "senderId");
         Validation.validateNull(channelId, "channelId");

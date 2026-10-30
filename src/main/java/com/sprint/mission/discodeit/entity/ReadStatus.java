@@ -18,6 +18,7 @@ public class ReadStatus extends BaseEntity {
 
     public ReadStatus(UUID userId, UUID channelId) {
         super();
+
         Validation.validateNull(userId, "userId");
         Validation.validateNull(channelId, "channelId");
 
