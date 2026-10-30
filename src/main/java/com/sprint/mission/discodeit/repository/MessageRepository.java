@@ -9,12 +9,16 @@ import java.util.UUID;
 public interface MessageRepository {
     // 생성 + 수정
     Message save(Message message);
+
     // 단건 조회
     Optional<Message> findByMessageId(UUID id);
+
     // 전체 조회
     List<Message> findAll();
+
     // 삭제
-    boolean existsByMessageId(UUID id);
-    // 존재 여부 검사
     void deleteByMessageId(UUID id);
+
+    // 존재 여부 검사
+    boolean existsByMessageId(UUID id);
 }

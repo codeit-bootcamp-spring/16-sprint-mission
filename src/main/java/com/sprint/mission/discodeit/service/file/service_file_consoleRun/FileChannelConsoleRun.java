@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service_file_consoleRun;
+package com.sprint.mission.discodeit.service.file.service_file_consoleRun;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;

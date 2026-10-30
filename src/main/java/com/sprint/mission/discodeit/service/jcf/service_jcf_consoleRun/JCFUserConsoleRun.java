@@ -1,20 +1,26 @@
-package com.sprint.mission.discodeit.service_file_consoleRun;
+package com.sprint.mission.discodeit.service.jcf.service_jcf_consoleRun;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.jcf.JCFUserService;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
-/* File*Service */
-// - "저장 방식": .ser 파일에 직렬화 보관, "비즈니스 방식": 기본적으로 같은 로직, "저장 로직": 파일 읽기-쓰기 코드 추가
+/* JCF*Service */
+// - "저장 방식": ArrayList 에 보관, "비즈니스 방식": (중복 확인, ID로 조회, 입력 수정, 삭제), "저장 로직": 메모리 목록만 변경
 
-public class FileUserConsoleRun {
+public class JCFUserConsoleRun {
 
-    /* 1. 파일 유저 서비스 구현체를 매개변수로 생성한다. (상위 타입으로) */
-    public static void fileUserInformation(UserService userService){
+    /*
+     * 유저 CRUD 테스트를 위해 구현한 메서드입니다.
+     */
+    public static void printUserInformation(){
 
         System.out.println("####### 유저 CRUD 테스트 #######\n");
+        /* 1. 유저 서비스 구현체를 생성한다. (상위 타입으로) */
+        UserService userService = new JCFUserService();
+
         /* 2. User 객체를 생성하고 유저 이름을 등록한다. */
         User user1 = new User("최명하");
         User user2 = new User("이강한");

@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import org.springframework.stereotype.Repository;
+
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
@@ -9,12 +11,13 @@ import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.IntStream;
 
+@Repository
 public class FileMessageRepository implements MessageRepository {
     // 메시지 데이터 파일이 저장될 경로를 지정한다.
     private static final Path FILE_PATH = Paths.get("data", "messageRepository.ser");
@@ -71,21 +74,32 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public Message save(Message message) {
+        // 변경 전 메시지 목록을 보관한다.
+        List<Message> prevData = new ArrayList<>(data);
+        try {
+            // 기존 메시지 목록에서 같은 ID를 가진 메시지를 찾는다.
+            for (int i = 0; i < data.size(); i++) {
+                if (data.get(i).getId().equals(message.getId())) {
+                    // 같은 ID를 가진 메시지를 새 메시지 객체로 교체한다.
+                    data.set(i, message);
 
-        // 같은 ID를 가진 메시지가 존재하면 수정한다.
-        if (existsByMessageId(message.getId())){
-            int index = IntStream.range(0, data.size())
-                    .filter(i -> data.get(i).getId().equals(message.getId()))
-                    .findFirst()
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("수정할 메시지를 찾을 수 없습니다"));
-            data.set(index, message); // 기존 메시지를 새 메시지 내용으로 수정한다. (수정)
-        } else {
-            data.add(message); // 새로운 메시지를 목록에 추가한다. (생성)
+                    // 수정된 메시지 목록을 파일에 저장한다.
+                    saveData();
+                    return message;
+                }
+            }
+            // 같은 ID를 가진 메시지가 없으면 새 메시지를 추가한다.
+            data.add(message);
+
+            // 추가된 메시지 목록을 파일에 저장한다.
+            saveData();
+            return message;
+
+        } catch (RuntimeException rtException){
+            // 저장에 실패하면 메모리의 목록을 이전 상태로 복구한다.
+            data = prevData;
+            throw rtException;
         }
-        // 생성 또는 수정된 메시지 목록을 파일에 저장한다.
-        saveData();
-        return message;
     }
 
     @Override

@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service_jcf_consoleRun;
+package com.sprint.mission.discodeit.service.jcf.service_jcf_consoleRun;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
@@ -48,7 +48,7 @@ public class JCFMessageConsoleRun {
         // 채널에 참여하지 않은 "최명함" 의 메시지 생성을 시도한다.
         try {
             // 메시지 내용, 작성자 ID, 채널 ID를 전달해 메시지를 생성한다.
-            Message rejectMessage = new Message(beforeJoinContent, planner.getId(), channelV1.getId());
+            Message rejectMessage = new Message(beforeJoinContent, planner.getId(), channelV1.getId(), null);
 
             messageService.createMessage(rejectMessage);
             System.out.println("검사 실패 : 메시지가 생성되었습니다.");
@@ -77,9 +77,9 @@ public class JCFMessageConsoleRun {
         System.out.println();
 
         /* 2. Message 객체를 생성하고 메시지 내용을 등록한다. */
-        Message message1 = new Message("안녕하세요", planner.getId(), channelV1.getId());
-        Message message2 = new Message("반갑습니다", planner.getId(), channelV1.getId());
-        Message message3 = new Message("오늘 회의 안내입니다", planner.getId(), channelV1.getId());
+        Message message1 = new Message("안녕하세요", planner.getId(), channelV1.getId(), null);
+        Message message2 = new Message("반갑습니다", planner.getId(), channelV1.getId(), null);
+        Message message3 = new Message("오늘 회의 안내입니다", planner.getId(), channelV1.getId(), null);
         messageService.createMessage(message1);
         messageService.createMessage(message2);
         messageService.createMessage(message3);
@@ -115,7 +115,7 @@ public class JCFMessageConsoleRun {
         // 퇴장한 "최명하"의 메시지 생성을 시도한다.
         try {
             // 메시지 내용, 작성자 ID, 채널 ID를 전달해 메시지를 생성한다.
-            Message rejectedMessage = new Message(afterLeaveContent, planner.getId(), channelV1.getId());
+            Message rejectedMessage = new Message(afterLeaveContent, planner.getId(), channelV1.getId(), null);
 
             messageService.createMessage(rejectedMessage);
             System.out.println("검사 실패 : 퇴장한 \"" + planner.getName() + "\"유저의 메시지가 생성되었습니다.");

@@ -1,16 +1,22 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 // Message 클래스는 BaseEntity 클래스로부터 상속한다.
+@Getter // Lombok을 통해 모든 필드의 Getter 메서드를 자동 생성한다.
 public class Message extends BaseEntity {
     // 메시지의 필드 선언.
     private String content;
     private final UUID plannerId;
     private final UUID channelId;
+    private List<UUID> attachmentIds; // 첨부파일의 BinaryContent 식별자 목록
 
-    // Message 객체를 생성할 때 메시지 내용을 전달받는다.
-    public Message(String content, UUID plannerId, UUID channelId) {
+    public Message(String content, UUID plannerId,
+                   UUID channelId, List<UUID> attachmentIds) {
         super(); // 부모 클래스 생성자에서 ID와 생성·수정 시각을 초기화한다.
 
         // 메시지 내용을 적을 때 null값 이거나 공백일때 예외 처리하는 검사입니다.
@@ -28,19 +34,11 @@ public class Message extends BaseEntity {
         this.content = content;
         this.plannerId = plannerId;
         this.channelId = channelId;
-    }
 
-    public UUID getPlannerId() {
-        return plannerId;
-    }
-
-    public UUID getChannelId() {
-        return channelId;
-    }
-
-    // 저장된 메시지 내용을 반환하는 Getter 메서드입니다.
-    public String getContent() {
-        return content;
+        // 첨부파일 식별자 목록을 복사하여 저장한다.
+        this.attachmentIds = attachmentIds == null
+                ? new ArrayList<>()
+                : new ArrayList<>(attachmentIds);
     }
 
     // 전달받은 메시지 내용으로 현재 객체의 내용을 변경한다.

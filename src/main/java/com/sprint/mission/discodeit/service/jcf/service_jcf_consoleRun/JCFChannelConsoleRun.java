@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service_jcf_consoleRun;
+package com.sprint.mission.discodeit.service.jcf.service_jcf_consoleRun;
 
 import com.sprint.mission.discodeit.entity.Channel;
 

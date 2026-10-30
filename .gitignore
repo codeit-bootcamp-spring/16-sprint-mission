@@ -5,6 +5,7 @@ build/
 !**/src/test/**/build/
 .kotlin
 testbytest.rtf
+.gitattributes
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
@@ -17,7 +18,6 @@ testbytest.rtf
 out/
 !**/src/main/**/out/
 !**/src/test/**/out/
-.DS_Store
 .idea
 
 ### Eclipse ###
