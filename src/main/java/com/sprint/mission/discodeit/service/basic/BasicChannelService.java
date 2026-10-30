@@ -35,7 +35,9 @@ public class BasicChannelService implements ChannelService {
                 .toList();
 
         Channel channel = new Channel(request.ownerId(), ChannelType.PRIVATE, null, null);
-        memberIds.forEach(channel::addUser);
+        memberIds.stream()
+                .filter(id -> !id.equals(request.ownerId()))
+                .forEach(channel::addUser);
         channelRepository.save(channel);
 
         for (User member : members) {
@@ -56,7 +58,6 @@ public class BasicChannelService implements ChannelService {
         owner.addChannel(channel.getId());
         channelRepository.save(channel);
 
-        channel.addUser(owner.getId());
         userRepository.save(owner);
 
         return channelMapper.toDto(channel);

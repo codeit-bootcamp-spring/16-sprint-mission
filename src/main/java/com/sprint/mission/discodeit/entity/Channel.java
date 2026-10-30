@@ -21,7 +21,8 @@ public class Channel extends BaseUpdatableEntity {
         super();
         this.ownerId = Objects.requireNonNull(ownerId, "소유자는 필수입니다.");
 
-        validateName(name);
+        if (type == ChannelType.PUBLIC)
+            validateName(name);
         this.type = type;
         this.name = name;
         this.description = description;
