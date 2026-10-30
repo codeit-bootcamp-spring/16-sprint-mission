@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
@@ -48,8 +49,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserDto findById(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        User user = getUserOrThrow(id);
         return userMapper.toDto(user);
     }
 
@@ -70,28 +70,46 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserDto update(UUID id, UserCreateRequest request, Optional<BinaryContentRequest> profileRequest) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+    public UserDto update(UUID id, UserUpdateRequest request, Optional<BinaryContentRequest> profileRequest) {
+        User user = getUserOrThrow(id);
 
-        user.update(request.username(), request.email(), request.password());
-        UUID profileId = null;
-        if (profileRequest.isPresent()) {
-            BinaryContentRequest p = profileRequest.get();
-            BinaryContent profile = new BinaryContent(p.fileName(), p.contentType(), p.bytes());
-            binaryContentRepository.save(profile);
-            profileId = profile.getId();
-            user.update(profileId);
+        if (request.newUsername() != null && !request.newUsername().equals(user.getUsername())
+                && userRepository.existsByUsername(request.newUsername())) {
+            throw new IllegalArgumentException("이미 존재하는 이름입니다.");
         }
+
+        if (request.newEmail() != null && !request.newEmail().equals(user.getEmail())
+                && userRepository.existsByEmail(request.newEmail())) {
+            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+        }
+
+        profileRequest.ifPresent(p -> {
+            UUID oldProfileId = user.getProfileId();
+            BinaryContent newProfile = binaryContentRepository.save(
+                    new BinaryContent(p.fileName(), p.contentType(), p.bytes()));
+            user.updateProfileId(newProfile.getId());
+            if (oldProfileId != null) binaryContentRepository.deleteById(oldProfileId);
+        });
+
+        user.update(request.newUsername(), request.newEmail(), request.newPassword());
+        userRepository.save(user);
+
         return userMapper.toDto(user);
     }
 
     @Override
     public void delete(UUID id) {
-        User user = userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+        User user = getUserOrThrow(id);
+
+        if (user.getProfileId() != null) {
+            binaryContentRepository.deleteById(user.getProfileId());
+        }
+        userStatusRepository.deleteByUserId(id);
         userRepository.deleteById(id);
-        userStatusRepository.deleteByUserId(user.getId());
-        binaryContentRepository.deleteById(user.getProfileId());
+    }
+
+    private User getUserOrThrow(UUID id) {
+        return userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 }

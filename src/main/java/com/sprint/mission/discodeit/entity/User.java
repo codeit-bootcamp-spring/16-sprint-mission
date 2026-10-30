@@ -39,7 +39,7 @@ public class User extends BaseUpdatableEntity {
         touch();
     }
 
-    public void update (UUID profileId) {
+    public void updateProfileId (UUID profileId) {
         this.profileId = profileId;
         touch();
     }

@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.MessageDto;
-import com.sprint.mission.discodeit.entity.Message;
 
 import java.util.List;
 import java.util.UUID;
