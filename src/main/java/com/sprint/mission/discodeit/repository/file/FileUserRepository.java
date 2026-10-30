@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -36,15 +37,15 @@ public class FileUserRepository implements UserRepository {
     }
 
     @Override
-    public User findById(UUID userId) {
+    public Optional<User> findById(UUID userId) {
         Path file = fileFor(userId);
 
         if (Files.notExists(file)) {
-            return null;
+            return Optional.empty();
         }
 
         try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
-            return (User) in.readObject();
+            return Optional.ofNullable((User) in.readObject());
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("사용자 파일을 읽는 데 실패했습니다.", e);
         }
@@ -52,16 +53,16 @@ public class FileUserRepository implements UserRepository {
 
     @Override
     public List<User> findAll() {
-        List<User> users = new ArrayList<>();
+        List<User> allUsers = new ArrayList<>();
 
         try (Stream<Path> files = Files.list(userDirectory)) {
             files.filter(path -> path.getFileName().toString().endsWith(".ser"))
-                    .forEach(file -> users.add(readUser(file)));
+                    .forEach(file -> allUsers.add(readUser(file)));
         } catch (IOException e) {
             throw new RuntimeException("사용자 파일 목록을 읽는 데 실패했습니다.", e);
         }
 
-        return users;
+        return allUsers;
     }
 
     private User readUser(Path file) {
