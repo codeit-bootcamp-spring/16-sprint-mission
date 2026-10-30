@@ -8,7 +8,6 @@ import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -18,7 +17,6 @@ import java.util.*;
 @Service
 @RequiredArgsConstructor
 public class BasicChannelService implements ChannelService {
-    private final UserService userService;
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final ReadStatusRepository readStatusRepository;
@@ -167,7 +165,7 @@ public class BasicChannelService implements ChannelService {
 
         if (!channel.hasUser(newOwnerId))
             throw new IllegalArgumentException("채널 멤버에게만 소유권을 양도할 수 있습니다.");
-        
+
         channel.transferOwnership(newOwnerId);
         channelRepository.save(channel);
     }

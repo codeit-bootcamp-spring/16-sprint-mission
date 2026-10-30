@@ -1,11 +1,19 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.MessageDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -16,65 +24,100 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class BasicMessageService implements MessageService {
-    private final UserService userService;
-    private final ChannelService channelService;
+    private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final MessageMapper messageMapper;
 
     @Override
-    public Message create(Message message) {
-        userService.findById(message.getAuthorId());
-        Channel channel = channelService.findById(message.getChannelId());
-        if (!channel.hasUser(message.getAuthorId())) {                      // 채널 멤버인지 검증 /
+    public MessageDto create(MessageCreateRequest request, List<BinaryContentRequest> attachmentRequests) {
+        Channel channel = channelRepository.findById(request.channelId())
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
+        User author = userRepository.findById(request.authorId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+        if (!channel.hasUser(request.authorId())) {
             throw new IllegalArgumentException("채널 멤버만 메시지를 작성할 수 있습니다.");
         }
-        Message saved = messageRepository.save(message);
-        userService.addMessage(message.getAuthorId(), message.getId());
-        channelService.addMessage(message.getChannelId(), message.getId());
-        return saved;
+
+        List<UUID> attachmentIds = attachmentRequests.stream()
+                .map(a -> binaryContentRepository.save(
+                        new BinaryContent(a.fileName(), a.contentType(), a.bytes())))
+                .map(BinaryContent::getId)
+                .toList();
+
+        Message message = messageRepository.save(
+                new Message(request.authorId(), request.channelId(), request.content(), attachmentIds));
+
+        author.addMessage(message.getId());
+        userRepository.save(author);
+
+        channel.addMessage(message.getId());
+        channelRepository.save(channel);
+
+        return messageMapper.toDto(message);
     }
 
     @Override
-    public Message findById(UUID id) {
-        return messageRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메시지입니다."));
+    public MessageDto findById(UUID id) {
+        Message message = getMessageOrThrow(id);
+        return messageMapper.toDto(message);
     }
 
     @Override
-    public List<Message> findAll() {
+    public List<MessageDto> findAll() {
         return messageRepository.findAll().stream()
                 .sorted(Comparator.comparing(Message::getCreatedAt))
+                .map(messageMapper::toDto)
                 .toList();
     }
 
     @Override
-    public List<Message> findAllByChannelId(UUID channelId) {
-        return messageRepository.findAll().stream()
-                .filter(message -> message.getChannelId().equals(channelId))
+    public List<MessageDto> findAllByChannelId(UUID channelId) {
+        return messageRepository.findAllByChannelId(channelId).stream()
                 .sorted(Comparator.comparing(Message::getCreatedAt))
+                .map(messageMapper::toDto)
                 .toList();
     }
 
     @Override
-    public Message update(UUID id, UUID requesterId, String content) {
-        Message message = findById(id);
-        requireSender(message, requesterId, "메시지 수정 권한이 없습니다.");
-        message.update(content);
-        return messageRepository.save(message);
+    public MessageDto update(UUID id, MessageUpdateRequest request) {
+        Message message = getMessageOrThrow(id);
+
+        requireSender(message, request.requesterId(), "메시지 수정 권한이 없습니다.");
+        message.update(request.newContent());
+        messageRepository.save(message);
+
+        return messageMapper.toDto(message);
     }
 
     @Override
     public void delete(UUID id, UUID requesterId) {
-        Message message = findById(id);
+        Message message = getMessageOrThrow(id);
         requireSender(message, requesterId, "메시지 삭제 권한이 없습니다.");
 
-        userService.removeMessage(message.getAuthorId(), id);
-        channelService.removeMessage(message.getChannelId(), id);
-        messageRepository.deleteById(id);
+        message.getAttachmentIds().forEach(binaryContentRepository::deleteById);
 
+        userRepository.findById(message.getAuthorId()).ifPresent(author -> {
+            author.removeMessage(message.getId());
+            userRepository.save(author);
+        });
+
+        channelRepository.findById(message.getChannelId()).ifPresent(channel -> {
+            channel.removeMessage(message.getId());
+            channelRepository.save(channel);
+        });
+
+        messageRepository.deleteById(id);
+    }
+
+    private Message getMessageOrThrow(UUID id) {
+        return messageRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메시지입니다."));
     }
 
     private void requireSender(Message message, UUID requesterId, String errorMessage) {
-        if(!message.getAuthorId().equals(requesterId)) {
+        if (!message.getAuthorId().equals(requesterId)) {
             throw new IllegalArgumentException(errorMessage);
         }
     }

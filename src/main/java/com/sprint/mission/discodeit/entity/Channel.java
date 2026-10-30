@@ -3,7 +3,6 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.io.Serial;
-import java.io.Serializable;
 import java.util.*;
 
 @Getter

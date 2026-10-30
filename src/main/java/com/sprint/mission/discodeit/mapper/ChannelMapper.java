@@ -22,7 +22,7 @@ public class ChannelMapper {
     private final MessageRepository messageRepository;
 
     public ChannelDto toDto(Channel channel) {
-        Instant lastMessageAt = messageRepository.findAllByChannelId(channel.getId())
+        Instant lastMessageAt = messageRepository.findAllByChannelId(channel.getId()).stream()
                 .map(Message::getCreatedAt)
                 .max(Comparator.naturalOrder())
                 .orElse(null);
