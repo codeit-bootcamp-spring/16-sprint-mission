@@ -1,10 +1,8 @@
 package com.sprint.mission.discodeit.service.jcf;
 
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.HashMap;
@@ -12,7 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-public class JCFMessageService implements MessageService {
+public class JCFMessageService {
 
     private final Map<UUID, Message> data;
     private final UserService userService;
@@ -27,8 +25,6 @@ public class JCFMessageService implements MessageService {
         this.channelService = channelService;
     }
 
-    // Create
-    @Override
     public void create(Message message) {
         if (message == null) {
             throw new IllegalArgumentException("Message cannot be null.");
@@ -38,15 +34,12 @@ public class JCFMessageService implements MessageService {
             throw new IllegalArgumentException("이미 등록된 ID입니다: " + message.getId());
         }
 
-        // User, Channel 조회
-        User user = userService.findById(message.getUserId());
-        Channel channel = channelService.findById(message.getChannelId());
+        userService.findById(message.getAuthorId());
+        channelService.findById(message.getChannelId());
 
         data.put(message.getId(), message);
     }
 
-    // Read
-    @Override
     public Message findById(UUID id) {
         Message message = data.get(id);
 
@@ -59,13 +52,10 @@ public class JCFMessageService implements MessageService {
         return message;
     }
 
-    @Override
     public List<Message> findAll() {
         return List.copyOf(data.values());
     }
 
-    // Update
-    @Override
     public void update(UUID id, String content) {
         Message existingMessage = data.get(id);
 
@@ -78,8 +68,6 @@ public class JCFMessageService implements MessageService {
         existingMessage.update(content);
     }
 
-    // Delete
-    @Override
     public void delete(UUID id) {
         Message removedMessage = data.remove(id);
 

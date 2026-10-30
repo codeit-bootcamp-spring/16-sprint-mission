@@ -1,0 +1,8 @@
+spring:
+  application:
+    name: discodeit
+
+discodeit:
+  repository:
+    type: file
+    file-directory: '${DISCODEIT_REPOSITORY_FILE_DIRECTORY:.discodeit}'

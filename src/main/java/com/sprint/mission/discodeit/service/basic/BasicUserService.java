@@ -1,76 +1,172 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
+
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+
+import java.time.Instant;
 
 import java.util.List;
 import java.util.UUID;
 
 /** 사용자 업무 규칙을 처리하며, 실제 저장 방법은 UserRepository 구현체에 맡깁니다. */
+@Service
+@RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
     private final UserRepository userRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final UserStatusRepository userStatusRepository;
 
-    /** 생성자 주입: 실행하는 쪽에서 JCF 또는 File 저장소를 선택해 전달합니다. */
-    public BasicUserService(UserRepository userRepository) {
-        if (userRepository == null) {
-            throw new IllegalArgumentException("UserRepository cannot be null.");
-        }
-        this.userRepository = userRepository;
-    }
 
     @Override
-    public void create(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("User cannot be null.");
-        }
-        if (userRepository.existsById(user.getId())) {
-            throw new IllegalArgumentException("이미 등록된 ID입니다: " + user.getId());
+    public UserDto create(UserCreateRequest request) {
+        List<User> users = userRepository.findAll();
+
+        boolean usernameExists = users.stream()
+                .anyMatch(user ->
+                        user.getUsername().equalsIgnoreCase(request.username())
+                );
+        if (usernameExists) {
+            throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
         }
 
-        validateEmail(user.getEmail());
-        if (isEmailDuplicate(user.getEmail(), null)) {
-            throw new IllegalArgumentException("Email is already in use: " + user.getEmail());
+        boolean emailExists = users.stream()
+                .anyMatch(user ->
+                        user.getEmail().equalsIgnoreCase(request.email())
+                );
+        if (emailExists) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
-        // 모든 업무 규칙을 통과한 뒤에만 Repository에 저장을 요청합니다.
+        UUID profileId = null;
+        BinaryContentCreateRequest profileRequest = request.profileImage();
+
+        if (profileRequest != null) {
+            BinaryContent profile = new BinaryContent(
+                    profileRequest.fileName(),
+                    profileRequest.contentType(),
+                    profileRequest.data()
+            );
+            binaryContentRepository.save(profile);
+            profileId = profile.getId();
+        }
+
+        User user = new User(
+                request.username(),
+                request.email(),
+                request.password(),
+                profileId
+        );
         userRepository.save(user);
+
+        UserStatus userStatus = new UserStatus(user.getId(), Instant.now());
+        userStatusRepository.save(userStatus);
+
+        return toDto(user);
+    }
+
+    private UserDto toDto(User user) {
+        boolean online = userStatusRepository.findByUserId(user.getId())
+                .map(UserStatus::isOnline)
+                .orElse(false);
+
+        return new UserDto(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getProfileId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                online
+        );
     }
 
     @Override
-    public User findById(UUID id) {
-        return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Not Found user id: " + id));
+    public UserDto findById(UUID id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        return toDto(user);
+    }
+
+
+    @Override
+    public List<UserDto> findAll() {
+        return userRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
+    public UserDto update(UserUpdateRequest request) {
+        User user = userRepository.findById(request.userId())
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
-    @Override
-    public void update(UUID id, User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("User cannot be null.");
+        List<User> users = userRepository.findAll();
+
+        boolean usernameExists = users.stream()
+                .anyMatch(other -> !other.getId().equals(user.getId())
+                        && other.getUsername().equalsIgnoreCase(request.username()));
+        if (usernameExists) {
+            throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
         }
 
-        User existingUser = findById(id);
-        validateEmail(user.getEmail());
-        if (isEmailDuplicate(user.getEmail(), id)) {
-            throw new IllegalArgumentException("Email is already in use: " + user.getEmail());
+        boolean emailExists = users.stream()
+                .anyMatch(other -> !other.getId().equals(user.getId())
+                        && other.getEmail().equalsIgnoreCase(request.email()));
+        if (emailExists) {
+            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
 
-        existingUser.update(user.getUsername(), user.getEmail(), user.getPassword());
-        // 수정된 객체를 같은 ID로 저장합니다. 저장소가 Map 교체 또는 파일 덮어쓰기를 수행합니다.
-        userRepository.save(existingUser);
+        UUID profileId = user.getProfileId();
+        UUID oldProfileId = profileId;
+        BinaryContentCreateRequest profileRequest = request.profileImage();
+
+        if (profileRequest != null) {
+            BinaryContent profile = new BinaryContent(
+                    profileRequest.fileName(),
+                    profileRequest.contentType(),
+                    profileRequest.data()
+            );
+            binaryContentRepository.save(profile);
+            profileId = profile.getId();
+        }
+
+        user.update(request.username(), request.email(), request.password(), profileId);
+        userRepository.save(user);
+
+        if (profileRequest != null && oldProfileId != null) {
+            binaryContentRepository.deleteById(oldProfileId);
+        }
+
+        return toDto(user);
     }
 
     @Override
     public void delete(UUID id) {
-        if (!userRepository.deleteById(id)) {
-            throw new IllegalArgumentException("Not Found User: " + id);
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        if (user.getProfileId() != null) {
+            binaryContentRepository.deleteById(user.getProfileId());
         }
+
+        userStatusRepository.findByUserId(id)
+                .ifPresent(userStatus -> userStatusRepository.deleteById(userStatus.getId()));
+
+        userRepository.deleteById(id);
     }
 
     private boolean isEmailDuplicate(String email, UUID excludedUserId) {
