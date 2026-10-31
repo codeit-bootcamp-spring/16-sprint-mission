@@ -1,9 +1,11 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.dto.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.ChannelDto;
+import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -30,32 +32,39 @@ public class JavaApplication implements CommandLineRunner {
     }
 
     // 사용자 생성
-    User setupUser() {
-        User user = userService.create(
+    UserDto setupUser() {
+        UserCreateRequest request = new UserCreateRequest(
                 "woody",
                 "woody@codeit.com",
-                "woody1234"
+                "woody1234",
+                null,
+                null,
+                null
         );
-        return user;
+
+        return userService.create(request);
     }
 
-    // 채널 생성
-    Channel setupChannel() {
-        Channel channel = channelService.create(
-                ChannelType.PUBLIC,
+    // 공개 채널 생성
+    ChannelDto setupChannel() {
+        PublicChannelCreateRequest request = new PublicChannelCreateRequest(
                 "공지",
                 "공지 채널입니다."
         );
-        return channel;
+
+        return channelService.createPublic(request);
     }
 
     // 메시지 생성 테스트
-    void messageCreateTest(Channel channel, User author) {
-        Message message = messageService.create(
-                "안녕하세요.",
+    void messageCreateTest(ChannelDto channel, UserDto author) {
+        MessageCreateRequest request = new MessageCreateRequest(
                 channel.getId(),
-                author.getId()
+                author.getId(),
+                "안녕하세요.",
+                null
         );
+
+        MessageDto message = messageService.create(request);
 
         System.out.println("메시지 생성: " + message.getId());
     }
@@ -63,8 +72,8 @@ public class JavaApplication implements CommandLineRunner {
     // Spring이 시작된 후 실행되는 메서드
     @Override
     public void run(String... args) {
-        User user = setupUser();
-        Channel channel = setupChannel();
+        UserDto user = setupUser();
+        ChannelDto channel = setupChannel();
 
         messageCreateTest(channel, user);
     }
@@ -73,4 +82,3 @@ public class JavaApplication implements CommandLineRunner {
         SpringApplication.run(JavaApplication.class, args);
     }
 }
-

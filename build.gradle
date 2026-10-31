@@ -26,3 +26,7 @@ dependencies {
 test {
     useJUnitPlatform()
 }
+
+springBoot {
+    mainClass = 'com.sprint.mission.discodeit.JavaApplication'
+}

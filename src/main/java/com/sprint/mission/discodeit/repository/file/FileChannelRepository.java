@@ -1,3 +1,4 @@
+
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Repository
 public class FileChannelRepository implements ChannelRepository {
+
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
@@ -55,21 +57,20 @@ public class FileChannelRepository implements ChannelRepository {
 
     @Override
     public Optional<Channel> findById(UUID id) {
-        Channel channelNullable = null;
         Path path = resolvePath(id);
 
-        if (Files.exists(path)) {
-            try (
-                    FileInputStream fis = new FileInputStream(path.toFile());
-                    ObjectInputStream ois = new ObjectInputStream(fis)
-            ) {
-                channelNullable = (Channel) ois.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+        if (!Files.exists(path)) {
+            return Optional.empty();
         }
 
-        return Optional.ofNullable(channelNullable);
+        try (
+                FileInputStream fis = new FileInputStream(path.toFile());
+                ObjectInputStream ois = new ObjectInputStream(fis)
+        ) {
+            return Optional.of((Channel) ois.readObject());
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -95,18 +96,16 @@ public class FileChannelRepository implements ChannelRepository {
 
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     @Override
     public void deleteById(UUID id) {
-        Path path = resolvePath(id);
-
         try {
-            Files.delete(path);
+            Files.delete(resolvePath(id));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 }
+

@@ -1,3 +1,4 @@
+
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -14,6 +15,7 @@ import java.util.UUID;
 
 @Repository
 public class FileMessageRepository implements MessageRepository {
+
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
@@ -55,21 +57,20 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public Optional<Message> findById(UUID id) {
-        Message messageNullable = null;
         Path path = resolvePath(id);
 
-        if (Files.exists(path)) {
-            try (
-                    FileInputStream fis = new FileInputStream(path.toFile());
-                    ObjectInputStream ois = new ObjectInputStream(fis)
-            ) {
-                messageNullable = (Message) ois.readObject();
-            } catch (IOException | ClassNotFoundException e) {
-                throw new RuntimeException(e);
-            }
+        if (!Files.exists(path)) {
+            return Optional.empty();
         }
 
-        return Optional.ofNullable(messageNullable);
+        try (
+                FileInputStream fis = new FileInputStream(path.toFile());
+                ObjectInputStream ois = new ObjectInputStream(fis)
+        ) {
+            return Optional.of((Message) ois.readObject());
+        } catch (IOException | ClassNotFoundException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
@@ -93,20 +94,26 @@ public class FileMessageRepository implements MessageRepository {
         }
     }
 
+    // 특정 채널의 메시지 조회
+    @Override
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return findAll().stream()
+                .filter(message -> message.getChannelId().equals(channelId))
+                .toList();
+    }
+
     @Override
     public boolean existsById(UUID id) {
-        Path path = resolvePath(id);
-        return Files.exists(path);
+        return Files.exists(resolvePath(id));
     }
 
     @Override
     public void deleteById(UUID id) {
-        Path path = resolvePath(id);
-
         try {
-            Files.delete(path);
+            Files.delete(resolvePath(id));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
     }
 }
+

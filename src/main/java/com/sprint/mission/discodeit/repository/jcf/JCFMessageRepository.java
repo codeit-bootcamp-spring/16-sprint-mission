@@ -1,3 +1,4 @@
+
 package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -6,6 +7,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import java.util.*;
 
 public class JCFMessageRepository implements MessageRepository {
+
     private final Map<UUID, Message> data;
 
     public JCFMessageRepository() {
@@ -28,6 +30,14 @@ public class JCFMessageRepository implements MessageRepository {
         return this.data.values().stream().toList();
     }
 
+    // 특정 채널의 메시지 조회
+    @Override
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return this.data.values().stream()
+                .filter(message -> message.getChannelId().equals(channelId))
+                .toList();
+    }
+
     @Override
     public boolean existsById(UUID id) {
         return this.data.containsKey(id);
@@ -38,3 +48,4 @@ public class JCFMessageRepository implements MessageRepository {
         this.data.remove(id);
     }
 }
+
