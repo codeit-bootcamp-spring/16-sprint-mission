@@ -11,13 +11,10 @@ import java.util.UUID;
 @Getter
 public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
-
     private final UUID id;
     private final Instant createdAt;
     private Instant updatedAt;
-    //
     private String content;
-    //
     private final UUID channelId;
     private final UUID authorId;
     // 참조 변수에 할당 된 final은 참조 변수의 재할당을 금지하는 것이지, 참조 하고 있는 객체의 변경을 막는 것은 아닙니다.

@@ -8,7 +8,7 @@ import java.util.UUID;
 
 @Getter
 public final class BinaryContent implements Serializable { // BinarayContetn는 불변 객체를 생성함으로 클래스 앞에 final을 붙입니다.
-
+    private static final long serialVersionUID = 1L;
     private final UUID id;
     private final Instant createdAt;
     private final String fileName;
