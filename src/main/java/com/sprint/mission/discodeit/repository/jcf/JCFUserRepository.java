@@ -14,6 +14,7 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
+
         // 유저 ID를 키로 사용하여 저장하거나 수정한다.
         data.put(user.getId(), user);
 
@@ -35,12 +36,6 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
-    public boolean existsByUserId(UUID id) {
-        // 해당 유저의 ID가 존재하는지 확인한다.
-        return data.containsKey(id);
-    }
-
-    @Override
     public void deleteByUserId(UUID id) {
         // ID가 일치하는 유저를 삭제한다. (삭제)
         User removed = data.remove(id);
@@ -49,5 +44,18 @@ public class JCFUserRepository implements UserRepository {
         if(removed == null){
             throw new IllegalArgumentException("삭제할 유저를 찾을 수 없습니다.");
         }
+    }
+
+    @Override
+    public Optional<User> findByUsername(String username) {
+        return data.values().stream()
+                .filter(user -> user.getUsername().equals(username))
+                .findFirst();
+    }
+
+    @Override
+    public boolean existsByUserId(UUID id) {
+        // 해당 유저의 ID가 존재하는지 확인한다.
+        return data.containsKey(id);
     }
 }

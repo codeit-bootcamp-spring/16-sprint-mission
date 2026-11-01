@@ -11,11 +11,11 @@ import java.util.UUID;
 public class Message extends BaseEntity {
     // 메시지의 필드 선언.
     private String content;
-    private final UUID plannerId;
+    private final UUID userId;
     private final UUID channelId;
     private List<UUID> attachmentIds; // 첨부파일의 BinaryContent 식별자 목록
 
-    public Message(String content, UUID plannerId,
+    public Message(String content, UUID userId,
                    UUID channelId, List<UUID> attachmentIds) {
         super(); // 부모 클래스 생성자에서 ID와 생성·수정 시각을 초기화한다.
 
@@ -23,7 +23,7 @@ public class Message extends BaseEntity {
         if (content == null || content.isBlank()){
             throw new IllegalArgumentException("메시지 내용을 적어주세요.");
         }
-        if (plannerId == null){
+        if (userId == null){
             throw new IllegalArgumentException("작성자 ID는 필수입니다.");
         }
         if (channelId == null){
@@ -32,7 +32,7 @@ public class Message extends BaseEntity {
 
         // 검사가 끝나면 전달받은 메시지 내용을 필드에 저장한다.
         this.content = content;
-        this.plannerId = plannerId;
+        this.userId = userId;
         this.channelId = channelId;
 
         // 첨부파일 식별자 목록을 복사하여 저장한다.

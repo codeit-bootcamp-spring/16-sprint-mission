@@ -7,6 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserRepository {
+
     // 생성 + 수정
     User save(User user);
 
@@ -18,6 +19,9 @@ public interface UserRepository {
 
     // 삭제
     void deleteByUserId(UUID id);
+
+    // username으로 유저 단건 조회
+    Optional<User> findByUsername(String username);
 
     // 존재 여부 검사
     boolean existsByUserId(UUID id);

@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface ChannelRepository {
+
     // 생성 + 수정
     Channel save(Channel channel);
 

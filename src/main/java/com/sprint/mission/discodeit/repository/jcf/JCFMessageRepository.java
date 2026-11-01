@@ -35,6 +35,13 @@ public class JCFMessageRepository implements MessageRepository{
     }
 
     @Override
+    public List<Message> findAllByChannelId(UUID channelId) {
+        return data.values().stream()
+                .filter(message -> message.getChannelId().equals(channelId))
+                .toList();
+    }
+
+    @Override
     public boolean existsByMessageId(UUID id) {
         // 해당 메시지의 ID가 존재하는지 확인한다. (존재 여부)
         return data.containsKey(id);
@@ -49,5 +56,11 @@ public class JCFMessageRepository implements MessageRepository{
         if(removed == null){
             throw new IllegalArgumentException("삭제할 메시지를 찾을 수 없습니다.");
         }
+    }
+
+    @Override
+    public void deleteByChannelId(UUID channelId) {
+        data.values().removeIf(
+                message -> message.getChannelId().equals(channelId));
     }
 }
