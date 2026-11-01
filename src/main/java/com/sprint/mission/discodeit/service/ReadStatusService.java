@@ -6,13 +6,9 @@ import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import lombok.Locked;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 public class ReadStatusService {
@@ -41,7 +37,7 @@ public class ReadStatusService {
         }
 
         ReadStatus readStatus = new ReadStatus(readStatusRequestDto.userId(), readStatusRequestDto.channelId());
-        readStatusRepository.save(readStatus);
+        readStatusRepository.save(readStatus.getChannelId(), readStatus.getUserId());
         return new ReadStatusResponseDto(readStatus.getId(), readStatus.getChannelId(), readStatus.getUserId());
     }
 
@@ -60,7 +56,15 @@ public class ReadStatusService {
         return readStatusResponseDtos;
     }
 
-    public ReadStatusResponseDto update(ReadStatusRequestDto readStatusRequestDto) {
-        return null;
+    public ReadStatusResponseDto update(UUID readStatusId, ReadStatusRequestDto readStatusRequestDto) {
+        ReadStatus readStatus = readStatusRepository.find(readStatusId).orElseThrow(() -> new NoSuchElementException("ReadStatus can not found"));
+        readStatusRepository.save(readStatusRequestDto.channelId(), readStatusRequestDto.userId());
+
+        return new ReadStatusResponseDto(readStatus.getId(), readStatus.getChannelId(), readStatus.getUserId());
+    }
+
+    public void delete(UUID readStatusId) {
+        ReadStatus readStatus = readStatusRepository.find(readStatusId).orElseThrow(() -> new NoSuchElementException("ReadStatus can not found"));
+        readStatusRepository.deleteById(readStatusId);
     }
 }

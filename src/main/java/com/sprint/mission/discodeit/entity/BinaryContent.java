@@ -15,9 +15,9 @@ public class BinaryContent {
     private String contentType;
 
 
-    public BinaryContent(UUID id, Instant createdAt, String fileName, byte[] data, String contentType) {
-        this.id = id;
-        this.createdAt = createdAt;
+    public BinaryContent(String fileName, byte[] data, String contentType) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
         this.fileName = fileName;
         this.data = data;
         this.contentType = contentType;
