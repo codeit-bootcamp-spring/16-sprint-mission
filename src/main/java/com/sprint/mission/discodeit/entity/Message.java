@@ -8,6 +8,7 @@ import java.util.UUID;
 
 @Getter
 public class Message implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     private UUID id;
@@ -22,6 +23,7 @@ public class Message implements Serializable {
     public Message(String content, UUID channelId, UUID authorId) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
+        this.updatedAt = this.createdAt;
 
         this.content = content;
         this.channelId = channelId;

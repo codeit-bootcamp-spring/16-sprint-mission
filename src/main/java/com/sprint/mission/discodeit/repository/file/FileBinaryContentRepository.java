@@ -130,4 +130,3 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
         }
     }
 }
-

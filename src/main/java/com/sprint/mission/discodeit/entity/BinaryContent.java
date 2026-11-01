@@ -8,17 +8,18 @@ import java.util.UUID;
 
 @Getter
 public class BinaryContent implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
-    private UUID id;
-    private Instant createdAt;
+    private final UUID id;
+    private final Instant createdAt;
 
-    private String fileName;
-    private String contentType;
-    private byte[] data;
+    private final String fileName;
+    private final String contentType;
+    private final byte[] data;
 
-    private UUID userId;
-    private UUID messageId;
+    private final UUID userId;
+    private final UUID messageId;
 
     public BinaryContent(
             String fileName,
@@ -32,8 +33,12 @@ public class BinaryContent implements Serializable {
 
         this.fileName = fileName;
         this.contentType = contentType;
-        this.data = data;
+        this.data = data.clone();
         this.userId = userId;
         this.messageId = messageId;
+    }
+
+    public byte[] getData() {
+        return data.clone();
     }
 }

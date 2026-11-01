@@ -9,6 +9,7 @@ import java.util.UUID;
 
 @Getter
 public class UserStatus implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     private UUID id;
@@ -21,6 +22,7 @@ public class UserStatus implements Serializable {
     public UserStatus(UUID userId) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
+        this.updatedAt = this.createdAt;
 
         this.userId = userId;
         this.lastActiveAt = Instant.now();

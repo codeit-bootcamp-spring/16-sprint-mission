@@ -8,6 +8,7 @@ import java.util.UUID;
 
 @Getter
 public class User implements Serializable {
+
     private static final long serialVersionUID = 1L;
 
     private UUID id;
@@ -21,6 +22,7 @@ public class User implements Serializable {
     public User(String username, String email, String password) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
+        this.updatedAt = this.createdAt;
 
         this.username = username;
         this.email = email;

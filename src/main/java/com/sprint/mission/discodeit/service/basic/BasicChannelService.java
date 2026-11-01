@@ -111,6 +111,13 @@ public class BasicChannelService implements ChannelService {
                         "Channel with id " + request.getChannelId() + " not found"
                 ));
 
+        // PRIVATE 채널은 수정할 수 없음
+        if (channel.getType() == ChannelType.PRIVATE) {
+            throw new IllegalArgumentException(
+                    "Private channel cannot be updated"
+            );
+        }
+
         channel.update(
                 request.getName(),
                 request.getDescription()

@@ -18,4 +18,3 @@ public interface ChannelRepository {
 
     void deleteById(UUID id);
 }
-

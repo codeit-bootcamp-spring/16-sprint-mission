@@ -33,6 +33,7 @@ public class Channel implements Serializable {
     private Channel(ChannelType type, String name, String description) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
+        this.updatedAt = this.createdAt;
 
         this.type = type;
         this.name = name;
@@ -62,4 +63,3 @@ public class Channel implements Serializable {
         }
     }
 }
-

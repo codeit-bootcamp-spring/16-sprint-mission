@@ -32,7 +32,6 @@ public class BasicBinaryContentService implements BinaryContentService {
             );
         }
 
-        // messageId가 전달된 경우 메시지 존재 여부 확인
         if (request.getMessageId() != null
                 && messageRepository.findById(request.getMessageId()).isEmpty()) {
             throw new NoSuchElementException(
@@ -69,6 +68,14 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public List<BinaryContentDto> findAll() {
         return binaryContentRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    // 여러 ID로 파일 조회
+    @Override
+    public List<BinaryContentDto> findAllByIdIn(List<UUID> ids) {
+        return binaryContentRepository.findAllByIdIn(ids).stream()
                 .map(this::toDto)
                 .toList();
     }
@@ -126,4 +133,3 @@ public class BasicBinaryContentService implements BinaryContentService {
         );
     }
 }
-

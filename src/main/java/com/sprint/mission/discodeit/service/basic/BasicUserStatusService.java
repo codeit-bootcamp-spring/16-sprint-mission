@@ -91,6 +91,24 @@ public class BasicUserStatusService implements UserStatusService {
         return toDto(userStatus);
     }
 
+    // 특정 사용자의 상태 수정
+    @Override
+    public UserStatusDto updateByUserId(
+            UUID userId,
+            UserStatusUpdateRequest request
+    ) {
+        UserStatus userStatus = userStatusRepository.findByUserId(userId)
+                .orElseThrow(() -> new NoSuchElementException(
+                        "UserStatus not found for user " + userId
+                ));
+
+        userStatus.update(request.getLastActiveAt());
+
+        userStatusRepository.save(userStatus);
+
+        return toDto(userStatus);
+    }
+
     // 사용자 상태 삭제
     @Override
     public void delete(UUID userStatusId) {
