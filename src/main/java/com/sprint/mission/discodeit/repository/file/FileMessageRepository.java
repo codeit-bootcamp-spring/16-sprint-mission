@@ -44,13 +44,11 @@ public class FileMessageRepository extends FileRepository<Message> implements Me
     @Override
     public Optional<Message> findLastMessageOfChannel(UUID channelId) {
         Map<UUID, Message> messages = this.readFile(resolvedPath);
-        List<Message> availableMessages = messages.values()
+        return messages.values()
                 .stream()
                 .filter(message -> message.getChannelId().equals(channelId))
                 .filter(message -> !message.isDeleted())
-                .toList();
-        if (availableMessages.isEmpty()) return Optional.empty();
-        return Optional.of(availableMessages.get(availableMessages.size() - 1));
+                .max(Comparator.comparing(Message::getCreatedAt));
     }
 
     @Override

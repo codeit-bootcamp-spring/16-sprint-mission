@@ -39,13 +39,11 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public Optional<Message> findLastMessageOfChannel(UUID channelId) {
-        List<Message> availableMessages = this.data.values()
+        return this.data.values()
                 .stream()
                 .filter(message -> message.getChannelId().equals(channelId))
                 .filter(message -> !message.isDeleted())
-                .toList();
-        if (availableMessages.isEmpty()) return Optional.empty();
-        return Optional.of(availableMessages.get(availableMessages.size() - 1));
+                .max(Comparator.comparing(Message::getCreatedAt));
     }
 
     @Override
