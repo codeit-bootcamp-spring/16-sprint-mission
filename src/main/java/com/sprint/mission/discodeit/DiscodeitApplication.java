@@ -2,10 +2,12 @@ package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.dto.request.*;
 import com.sprint.mission.discodeit.dto.response.*;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -22,14 +24,21 @@ import java.util.UUID;
 
 @SpringBootApplication
 public class DiscodeitApplication {
+	private static Path dataDir;
+	private static boolean fileMode;
 
 	private static final List<String> DATA_FILES = List.of(
 			"users.ser", "channels.ser", "messages.ser",
 			"userStatuses.ser", "readStatuses.ser", "binaryContents.ser");
 
 	public static void main(String[] args) {
-		cleanData();
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
+
+		Environment env = context.getEnvironment();
+		fileMode = "file".equals(env.getProperty("discodeit.repository.type", "jcf"));
+		dataDir = Paths.get(env.getProperty("discodeit.repository.file-directory", "data"));
+		System.out.println("Repository 구현체: " + context.getBean(UserRepository.class).getClass().getSimpleName());
+		cleanData();
 
 		// 서비스 초기화: new 대신 IoC Container에서 Bean 조회 (인터페이스 타입으로)
 		UserService userService = context.getBean(UserService.class);
@@ -277,16 +286,16 @@ public class DiscodeitApplication {
 	private static void cleanData() {
 		try {
 			for (String fileName : DATA_FILES) {
-				Files.deleteIfExists(Paths.get("data", fileName));
+				Files.deleteIfExists(dataDir.resolve(fileName));
 			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
-	@SuppressWarnings("unchecked")
 	private static void printFile(String fileName) {
-		Path path = Paths.get("data", fileName);
+		if (!fileMode) return;
+		Path path = dataDir.resolve(fileName);
 		if (!Files.exists(path)) {
 			System.out.println("[" + fileName + "] 파일 없음");
 			return;
