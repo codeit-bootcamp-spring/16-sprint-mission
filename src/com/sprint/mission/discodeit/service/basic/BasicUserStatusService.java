@@ -1,12 +1,14 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.UserStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.userstatus.UserStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.response.userstatus.UserStatusDto;
+import com.sprint.mission.discodeit.dto.request.userstatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +24,7 @@ public class BasicUserStatusService implements UserStatusService {
     private final UserRepository userRepository;
 
     @Override
-    public UserStatus create(UserStatusCreateRequest request) {
+    public UserStatusDto create(UserStatusCreateRequest request) {
         if (request == null || request.userId() == null) {
             throw new IllegalArgumentException("사용자 접속 상태 생성 정보는 필수입니다.");
         }
@@ -41,21 +43,26 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus userStatus = new UserStatus(user.getId());
 
-        return userStatusRepository.save(userStatus);
+        UserStatus savedUserStatus = userStatusRepository.save(userStatus);
+        return toDto(savedUserStatus);
     }
 
     @Override
-    public Optional<UserStatus> findById(UUID id) {
-        return userStatusRepository.findById(id);
+    public Optional<UserStatusDto> findById(UUID id) {
+        return userStatusRepository.findById(id)
+                .map(this::toDto);
     }
 
     @Override
-    public List<UserStatus> findAll() {
-        return userStatusRepository.findAll();
+    public List<UserStatusDto> findAll() {
+        return userStatusRepository.findAll()
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
-    public UserStatus update(UserStatusUpdateRequest request) {
+    public UserStatusDto update(UserStatusUpdateRequest request) {
         if (request == null || request.id() == null) {
             throw new IllegalArgumentException("사용자 접속 상태 수정 정보는 필수입니다.");
         }
@@ -67,11 +74,12 @@ public class BasicUserStatusService implements UserStatusService {
 
         userStatus.updateLastActiveAt(request.lastActiveAt());
 
-        return userStatusRepository.save(userStatus);
+        UserStatus savedUserStatus = userStatusRepository.save(userStatus);
+        return toDto(savedUserStatus);
     }
 
     @Override
-    public UserStatus updateByUserId(
+    public UserStatusDto updateByUserId(
             UUID userId,
             UserStatusUpdateRequest request
     ) {
@@ -110,5 +118,16 @@ public class BasicUserStatusService implements UserStatusService {
                 );
 
         userStatusRepository.deleteById(id);
+    }
+
+    private UserStatusDto toDto(UserStatus userStatus) {
+        return new UserStatusDto(
+                userStatus.getId(),
+                userStatus.getCreatedAt(),
+                userStatus.getUpdatedAt(),
+                userStatus.getUserId(),
+                userStatus.getLastActiveAt(),
+                userStatus.isOnline()
+        );
     }
 }

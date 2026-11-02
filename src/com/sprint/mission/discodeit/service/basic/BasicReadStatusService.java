@@ -1,7 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.response.readstatus.ReadStatusDto;
+import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -27,7 +28,7 @@ public class BasicReadStatusService implements ReadStatusService {
     private final ChannelRepository channelRepository;
 
     @Override
-    public ReadStatus create(ReadStatusCreateRequest request) {
+    public ReadStatusDto create(ReadStatusCreateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("읽음 상태 생성 정보는 필수입니다.");
         }
@@ -62,25 +63,30 @@ public class BasicReadStatusService implements ReadStatusService {
                 channel.getId()
         );
 
-        return readStatusRepository.save(readStatus);
+        ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
+        return toDto(savedReadStatus);
     }
 
     @Override
-    public Optional<ReadStatus> findById(UUID id) {
+    public Optional<ReadStatusDto> findById(UUID id) {
         Objects.requireNonNull(id, "읽음 상태 ID는 필수입니다.");
 
-        return readStatusRepository.findById(id);
+        return readStatusRepository.findById(id)
+                .map(this::toDto);
     }
 
     @Override
-    public List<ReadStatus> findAllByUserId(UUID userId) {
+    public List<ReadStatusDto> findAllByUserId(UUID userId) {
         Objects.requireNonNull(userId, "사용자 ID는 필수입니다.");
 
-        return readStatusRepository.findAllByUserId(userId);
+        return readStatusRepository.findAllByUserId(userId)
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
-    public ReadStatus update(ReadStatusUpdateRequest request) {
+    public ReadStatusDto update(ReadStatusUpdateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("읽음 상태 수정 정보는 필수입니다.");
         }
@@ -98,7 +104,8 @@ public class BasicReadStatusService implements ReadStatusService {
 
         readStatus.updateLastReadAt(request.lastReadAt());
 
-        return readStatusRepository.save(readStatus);
+        ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
+        return toDto(savedReadStatus);
     }
 
     @Override
@@ -111,5 +118,16 @@ public class BasicReadStatusService implements ReadStatusService {
                 );
 
         readStatusRepository.deleteById(id);
+    }
+
+    private ReadStatusDto toDto(ReadStatus readStatus) {
+        return new ReadStatusDto(
+                readStatus.getId(),
+                readStatus.getCreatedAt(),
+                readStatus.getUpdatedAt(),
+                readStatus.getUserId(),
+                readStatus.getChannelId(),
+                readStatus.getLastReadAt()
+        );
     }
 }

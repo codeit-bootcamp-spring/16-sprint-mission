@@ -1,15 +1,15 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.dto.ChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
-import com.sprint.mission.discodeit.dto.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.PrivateChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.UserUpdateRequest;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.dto.request.channel.ChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
+import com.sprint.mission.discodeit.dto.request.channel.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.response.message.MessageDto;
+import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.response.user.UserDto;
+import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -239,7 +239,7 @@ public class JavaApplication {
                 )
         );
 
-        Message message = messageService.create(
+        MessageDto message = messageService.create(
                 new MessageCreateRequest(
                         "첫 번째 메시지",
                         user.id(),
@@ -251,28 +251,28 @@ public class JavaApplication {
         System.out.println("메시지 등록 완료");
 
         System.out.println("메시지 조회: "
-                + messageService.findById(message.getId())
-                .orElseThrow().getContent());
+                + messageService.findById(message.id())
+                .orElseThrow().content());
 
         System.out.println("채널별 메시지 목록");
-        for (Message item : messageService.findAllByChannelId(channel.id())) {
-            System.out.println(item.getContent());
+        for (MessageDto item : messageService.findAllByChannelId(channel.id())) {
+            System.out.println(item.content());
         }
 
         messageService.update(
                 new MessageUpdateRequest(
-                        message.getId(),
+                        message.id(),
                         "수정된 메시지"
                 )
         );
 
         System.out.println("수정 후 메시지: "
-                + messageService.findById(message.getId())
-                .orElseThrow().getContent());
+                + messageService.findById(message.id())
+                .orElseThrow().content());
 
-        messageService.delete(message.getId());
+        messageService.delete(message.id());
 
-        if (messageService.findById(message.getId()).isEmpty()) {
+        if (messageService.findById(message.id()).isEmpty()) {
             System.out.println("메시지 삭제 테스트 성공");
         } else {
             throw new AssertionError("메시지 삭제 테스트 실패");

@@ -1,18 +1,18 @@
 package com.sprint.mission.discodeit.test;
 
 import com.sprint.mission.discodeit.DiscodeitApplication;
-import com.sprint.mission.discodeit.dto.ChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
-import com.sprint.mission.discodeit.dto.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.PrivateChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.request.channel.ChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
+import com.sprint.mission.discodeit.dto.request.channel.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.response.message.MessageDto;
+import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.response.user.UserDto;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -87,7 +87,7 @@ public class ChannelServiceTest {
             );
 
             // 채널 삭제 테스트용 메시지 생성
-            var message = messageService.create(
+            MessageDto message = messageService.create(
                     new MessageCreateRequest(
                             "채널 삭제 테스트 메시지",
                             userA.id(),
@@ -98,7 +98,7 @@ public class ChannelServiceTest {
 
             // 메시지가 정상적으로 생성됐는지 확인
             check(
-                    messageService.findById(message.getId()).isPresent(),
+                    messageService.findById(message.id()).isPresent(),
                     "채널 삭제 테스트용 메시지 생성"
             );
 
@@ -121,7 +121,7 @@ public class ChannelServiceTest {
 
             // 메시지 삭제 여부 확인
             check(
-                    messageService.findById(message.getId()).isEmpty(),
+                    messageService.findById(message.id()).isEmpty(),
                     "채널 삭제 시 메시지 삭제"
             );
 

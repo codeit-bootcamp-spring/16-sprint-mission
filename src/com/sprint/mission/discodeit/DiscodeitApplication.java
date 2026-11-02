@@ -1,24 +1,24 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.ChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
-import com.sprint.mission.discodeit.dto.LoginRequest;
-import com.sprint.mission.discodeit.dto.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.PrivateChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.ReadStatusUpdateRequest;
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.UserStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.dto.UserUpdateRequest;
-import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.dto.request.binarycontent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
+import com.sprint.mission.discodeit.dto.request.channel.ChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
+import com.sprint.mission.discodeit.dto.request.channel.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.auth.LoginRequest;
+import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.response.message.MessageDto;
+import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.response.readstatus.ReadStatusDto;
+import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.response.user.UserDto;
+import com.sprint.mission.discodeit.dto.request.userstatus.UserStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.response.userstatus.UserStatusDto;
+import com.sprint.mission.discodeit.dto.request.userstatus.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.AuthService;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -366,7 +366,7 @@ public class DiscodeitApplication {
                 )
         );
 
-        Message created = messageService.create(
+        MessageDto created = messageService.create(
                 new MessageCreateRequest(
                         "테스트 메시지 " + testId,
                         user.id(),
@@ -377,32 +377,32 @@ public class DiscodeitApplication {
 
         System.out.println("메시지 등록 완료");
 
-        Message found = messageService.findById(created.getId())
+        MessageDto found = messageService.findById(created.id())
                 .orElseThrow(() -> new AssertionError("메시지 조회 실패"));
 
-        if (!found.getId().equals(created.getId())) {
+        if (!found.id().equals(created.id())) {
             throw new AssertionError("메시지 조회 테스트 실패");
         }
         System.out.println("메시지 조회 테스트 성공");
 
         messageService.update(
                 new MessageUpdateRequest(
-                        created.getId(),
+                        created.id(),
                         "수정된 메시지 " + testId
                 )
         );
 
-        Message updated = messageService.findById(created.getId())
+        MessageDto updated = messageService.findById(created.id())
                 .orElseThrow(() -> new AssertionError("수정 메시지 조회 실패"));
 
-        if (!updated.getContent().equals("수정된 메시지 " + testId)) {
+        if (!updated.content().equals("수정된 메시지 " + testId)) {
             throw new AssertionError("메시지 수정 테스트 실패");
         }
         System.out.println("메시지 수정 테스트 성공");
 
-        messageService.delete(created.getId());
+        messageService.delete(created.id());
 
-        if (messageService.findById(created.getId()).isPresent()) {
+        if (messageService.findById(created.id()).isPresent()) {
             throw new AssertionError("메시지 삭제 테스트 실패");
         }
         System.out.println("메시지 삭제 테스트 성공");
@@ -431,25 +431,25 @@ public class DiscodeitApplication {
                 )
         );
 
-        ReadStatus created = readStatusService.create(
+        ReadStatusDto created = readStatusService.create(
                 new ReadStatusCreateRequest(user.id(), channel.id())
         );
 
         System.out.println("읽음 상태 등록 완료");
 
-        ReadStatus found = readStatusService.findById(created.getId())
+        ReadStatusDto found = readStatusService.findById(created.id())
                 .orElseThrow(() -> new AssertionError("읽음 상태 조회 실패"));
 
-        if (!found.getId().equals(created.getId())) {
+        if (!found.id().equals(created.id())) {
             throw new AssertionError("읽음 상태 조회 테스트 실패");
         }
         System.out.println("읽음 상태 조회 테스트 성공");
 
-        List<ReadStatus> userReadStatuses =
+        List<ReadStatusDto> userReadStatuses =
                 readStatusService.findAllByUserId(user.id());
 
         if (userReadStatuses.stream()
-                .noneMatch(status -> status.getId().equals(created.getId()))) {
+                .noneMatch(status -> status.id().equals(created.id()))) {
             throw new AssertionError("사용자별 읽음 상태 조회 실패");
         }
         System.out.println("사용자별 읽음 상태 조회 테스트 성공");
@@ -466,20 +466,20 @@ public class DiscodeitApplication {
         Instant updatedTime = Instant.parse("2025-01-01T00:00:00Z");
 
         readStatusService.update(
-                new ReadStatusUpdateRequest(created.getId(), updatedTime)
+                new ReadStatusUpdateRequest(created.id(), updatedTime)
         );
 
-        ReadStatus updated = readStatusService.findById(created.getId())
+        ReadStatusDto updated = readStatusService.findById(created.id())
                 .orElseThrow(() -> new AssertionError("수정된 읽음 상태 조회 실패"));
 
-        if (!updated.getLastReadAt().equals(updatedTime)) {
+        if (!updated.lastReadAt().equals(updatedTime)) {
             throw new AssertionError("읽음 상태 수정 테스트 실패");
         }
         System.out.println("읽음 상태 수정 테스트 성공");
 
-        readStatusService.delete(created.getId());
+        readStatusService.delete(created.id());
 
-        if (readStatusService.findById(created.getId()).isPresent()) {
+        if (readStatusService.findById(created.id()).isPresent()) {
             throw new AssertionError("읽음 상태 삭제 테스트 실패");
         }
         System.out.println("읽음 상태 삭제 테스트 성공");
@@ -500,8 +500,8 @@ public class DiscodeitApplication {
                 )
         );
 
-        UserStatus created = userStatusService.findAll().stream()
-                .filter(status -> status.getUserId().equals(user.id()))
+        UserStatusDto created = userStatusService.findAll().stream()
+                .filter(status -> status.userId().equals(user.id()))
                 .findFirst()
                 .orElseThrow(() ->
                         new AssertionError("사용자 접속 상태 자동 생성 실패")
@@ -509,12 +509,12 @@ public class DiscodeitApplication {
 
         System.out.println("사용자 접속 상태 자동 생성 성공");
 
-        UserStatus found = userStatusService.findById(created.getId())
+        UserStatusDto found = userStatusService.findById(created.id())
                 .orElseThrow(() ->
                         new AssertionError("사용자 접속 상태 조회 실패")
                 );
 
-        if (!found.getId().equals(created.getId())) {
+        if (!found.id().equals(created.id())) {
             throw new AssertionError("사용자 접속 상태 조회 테스트 실패");
         }
         System.out.println("사용자 접속 상태 조회 테스트 성공");
@@ -529,15 +529,15 @@ public class DiscodeitApplication {
         Instant updatedTime = Instant.parse("2025-01-01T00:00:00Z");
 
         userStatusService.update(
-                new UserStatusUpdateRequest(created.getId(), updatedTime)
+                new UserStatusUpdateRequest(created.id(), updatedTime)
         );
 
-        UserStatus updated = userStatusService.findById(created.getId())
+        UserStatusDto updated = userStatusService.findById(created.id())
                 .orElseThrow(() ->
                         new AssertionError("수정된 사용자 접속 상태 조회 실패")
                 );
 
-        if (!updated.getLastActiveAt().equals(updatedTime)) {
+        if (!updated.lastActiveAt().equals(updatedTime)) {
             throw new AssertionError("사용자 접속 상태 수정 테스트 실패");
         }
         System.out.println("사용자 접속 상태 수정 테스트 성공");
@@ -547,24 +547,24 @@ public class DiscodeitApplication {
         userStatusService.updateByUserId(
                 user.id(),
                 new UserStatusUpdateRequest(
-                        created.getId(),
+                        created.id(),
                         updatedTimeByUserId
                 )
         );
 
-        UserStatus updatedByUserId = userStatusService.findById(created.getId())
+        UserStatusDto updatedByUserId = userStatusService.findById(created.id())
                 .orElseThrow(() ->
                         new AssertionError("사용자 ID 기준 수정 후 조회 실패")
                 );
 
-        if (!updatedByUserId.getLastActiveAt().equals(updatedTimeByUserId)) {
+        if (!updatedByUserId.lastActiveAt().equals(updatedTimeByUserId)) {
             throw new AssertionError("사용자 ID 기준 수정 테스트 실패");
         }
         System.out.println("사용자 ID 기준 수정 테스트 성공");
 
-        userStatusService.delete(created.getId());
+        userStatusService.delete(created.id());
 
-        if (userStatusService.findById(created.getId()).isPresent()) {
+        if (userStatusService.findById(created.id()).isPresent()) {
             throw new AssertionError("사용자 접속 상태 삭제 테스트 실패");
         }
         System.out.println("사용자 접속 상태 삭제 테스트 성공");
@@ -585,33 +585,33 @@ public class DiscodeitApplication {
                         imageData
                 );
 
-        BinaryContent created =
+        BinaryContentDto created =
                 binaryContentService.create(createRequest);
 
-        System.out.println("첨부파일 생성: " + created.getFileName());
+        System.out.println("첨부파일 생성: " + created.fileName());
 
-        BinaryContent found = binaryContentService.findById(created.getId())
+        BinaryContentDto found = binaryContentService.findById(created.id())
                 .orElseThrow(() ->
                         new AssertionError("첨부파일 조회 실패")
                 );
 
-        if (!found.getId().equals(created.getId())) {
+        if (!found.id().equals(created.id())) {
             throw new AssertionError("첨부파일 조회 테스트 실패");
         }
         System.out.println("첨부파일 조회 테스트 성공");
 
-        List<BinaryContent> contents =
-                binaryContentService.findAllByIdIn(List.of(created.getId()));
+        List<BinaryContentDto> contents =
+                binaryContentService.findAllByIdIn(List.of(created.id()));
 
         if (contents.size() != 1
-                || !contents.get(0).getId().equals(created.getId())) {
+                || !contents.get(0).id().equals(created.id())) {
             throw new AssertionError("첨부파일 목록 조회 테스트 실패");
         }
         System.out.println("첨부파일 목록 조회 테스트 성공");
 
-        binaryContentService.deleteById(created.getId());
+        binaryContentService.deleteById(created.id());
 
-        boolean deleted = binaryContentService.findById(created.getId()).isEmpty();
+        boolean deleted = binaryContentService.findById(created.id()).isEmpty();
 
         if (!deleted) {
             throw new AssertionError("첨부파일 삭제 테스트 실패");

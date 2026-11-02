@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.binarycontent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
@@ -21,7 +22,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     // 첨부파일 생성
     @Override
-    public BinaryContent create(BinaryContentCreateRequest request) {
+    public BinaryContentDto create(BinaryContentCreateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("첨부파일 생성 정보는 필수입니다.");
         }
@@ -47,27 +48,32 @@ public class BasicBinaryContentService implements BinaryContentService {
                 request.data()
         );
 
-        return binaryContentRepository.save(binaryContent);
+        BinaryContent savedContent = binaryContentRepository.save(binaryContent);
+        return toDto(savedContent);
     }
 
     // ID로 첨부파일 조회
     @Override
-    public Optional<BinaryContent> findById(UUID id) {
+    public Optional<BinaryContentDto> findById(UUID id) {
         Objects.requireNonNull(id, "첨부파일 ID는 필수입니다.");
 
-        return binaryContentRepository.findById(id);
+        return binaryContentRepository.findById(id)
+                .map(this::toDto);
     }
 
     // 여러 ID로 첨부파일 조회
     @Override
-    public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
+    public List<BinaryContentDto> findAllByIdIn(List<UUID> ids) {
         Objects.requireNonNull(ids, "첨부파일 ID 목록은 필수입니다.");
 
         if (ids.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("첨부파일 ID는 null일 수 없습니다.");
         }
 
-        return binaryContentRepository.findAllByIdIn(ids);
+        return binaryContentRepository.findAllByIdIn(ids)
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     // ID로 첨부파일 삭제
@@ -81,5 +87,15 @@ public class BasicBinaryContentService implements BinaryContentService {
                 );
 
         binaryContentRepository.deleteById(id);
+    }
+
+    private BinaryContentDto toDto(BinaryContent binaryContent) {
+        return new BinaryContentDto(
+                binaryContent.getId(),
+                binaryContent.getCreatedAt(),
+                binaryContent.getFileName(),
+                binaryContent.getContentType(),
+                binaryContent.getSize()
+        );
     }
 }

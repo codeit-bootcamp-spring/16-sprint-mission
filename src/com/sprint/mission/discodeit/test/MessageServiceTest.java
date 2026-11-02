@@ -1,19 +1,18 @@
 package com.sprint.mission.discodeit.test;
 
 import com.sprint.mission.discodeit.DiscodeitApplication;
-import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.ChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.dto.request.binarycontent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.channel.ChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
+import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.response.message.MessageDto;
+import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.user.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.response.user.UserDto;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
@@ -62,7 +61,7 @@ public class MessageServiceTest {
 
             channelId = channel.id();
 
-            // 기존 메시지 CRUD 테스트
+            // 메시지 CRUD 테스트
             testCreate(messageService, userId, channelId);
             testFindAllByChannelId(messageService, userId, channelId);
             testUpdate(messageService, userId, channelId);
@@ -96,7 +95,7 @@ public class MessageServiceTest {
             UUID authorId,
             UUID channelId
     ) {
-        Message message = messageService.create(
+        MessageDto message = messageService.create(
                 new MessageCreateRequest(
                         "테스트 메시지",
                         authorId,
@@ -109,7 +108,7 @@ public class MessageServiceTest {
             throw new AssertionError("메시지 생성에 실패했습니다.");
         }
 
-        if (!"테스트 메시지".equals(message.getContent())) {
+        if (!"테스트 메시지".equals(message.content())) {
             throw new AssertionError("메시지 내용이 일치하지 않습니다.");
         }
 
@@ -122,7 +121,7 @@ public class MessageServiceTest {
             UUID authorId,
             UUID channelId
     ) {
-        Message message = messageService.create(
+        MessageDto message = messageService.create(
                 new MessageCreateRequest(
                         "채널 조회 테스트",
                         authorId,
@@ -131,11 +130,11 @@ public class MessageServiceTest {
                 )
         );
 
-        List<Message> messages =
+        List<MessageDto> messages =
                 messageService.findAllByChannelId(channelId);
 
         boolean messageFound = messages.stream()
-                .anyMatch(item -> item.getId().equals(message.getId()));
+                .anyMatch(item -> item.id().equals(message.id()));
 
         if (!messageFound) {
             throw new AssertionError("해당 채널의 메시지를 찾지 못했습니다.");
@@ -150,7 +149,7 @@ public class MessageServiceTest {
             UUID authorId,
             UUID channelId
     ) {
-        Message message = messageService.create(
+        MessageDto message = messageService.create(
                 new MessageCreateRequest(
                         "수정 전 메시지",
                         authorId,
@@ -159,14 +158,14 @@ public class MessageServiceTest {
                 )
         );
 
-        Message updatedMessage = messageService.update(
+        MessageDto updatedMessage = messageService.update(
                 new MessageUpdateRequest(
-                        message.getId(),
+                        message.id(),
                         "수정된 메시지"
                 )
         );
 
-        if (!"수정된 메시지".equals(updatedMessage.getContent())) {
+        if (!"수정된 메시지".equals(updatedMessage.content())) {
             throw new AssertionError("메시지 수정에 실패했습니다.");
         }
 
@@ -179,7 +178,7 @@ public class MessageServiceTest {
             UUID authorId,
             UUID channelId
     ) {
-        Message message = messageService.create(
+        MessageDto message = messageService.create(
                 new MessageCreateRequest(
                         "삭제 테스트 메시지",
                         authorId,
@@ -188,9 +187,9 @@ public class MessageServiceTest {
                 )
         );
 
-        messageService.delete(message.getId());
+        messageService.delete(message.id());
 
-        if (messageService.findById(message.getId()).isPresent()) {
+        if (messageService.findById(message.id()).isPresent()) {
             throw new AssertionError("메시지 삭제에 실패했습니다.");
         }
 
@@ -227,7 +226,7 @@ public class MessageServiceTest {
                 );
 
         // 메시지 생성과 동시에 첨부파일 2개 업로드
-        Message message = messageService.create(
+        MessageDto message = messageService.create(
                 new MessageCreateRequest(
                         "첨부파일 동시 업로드 테스트",
                         authorId,
@@ -241,7 +240,7 @@ public class MessageServiceTest {
         }
 
         // 메시지에 첨부파일 2개가 연결됐는지 확인
-        List<UUID> attachmentIds = message.getAttachmentIds();
+        List<UUID> attachmentIds = message.attachmentIds();
 
         if (attachmentIds.size() != 2) {
             throw new AssertionError(
@@ -264,7 +263,7 @@ public class MessageServiceTest {
         System.out.println("첨부파일 저장 여부 확인: 통과");
 
         // 메시지 삭제
-        UUID messageId = message.getId();
+        UUID messageId = message.id();
 
         messageService.delete(messageId);
 

@@ -1,9 +1,10 @@
 package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
-import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.dto.request.binarycontent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
+import com.sprint.mission.discodeit.dto.request.message.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.response.message.MessageDto;
+import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -36,7 +37,7 @@ public class FileMessageService implements MessageService {
     }
 
     @Override
-    public Message create(MessageCreateRequest request) {
+    public MessageDto create(MessageCreateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("메시지 생성 정보는 필수입니다.");
         }
@@ -75,27 +76,34 @@ public class FileMessageService implements MessageService {
         }
 
         for (BinaryContentCreateRequest attachmentRequest : attachments) {
-            BinaryContent attachment = binaryContentService.create(attachmentRequest);
-            message.addAttachment(attachment.getId());
+            BinaryContentDto attachment = binaryContentService.create(attachmentRequest);
+            message.addAttachment(attachment.id());
         }
 
-        return messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
+        return toDto(savedMessage);
     }
 
     @Override
-    public Optional<Message> findById(UUID id) {
+    public Optional<MessageDto> findById(UUID id) {
         Objects.requireNonNull(id, "메시지 ID는 필수입니다.");
-        return messageRepository.findById(id);
+
+        return messageRepository.findById(id)
+                .map(this::toDto);
     }
 
     @Override
-    public List<Message> findAllByChannelId(UUID channelId) {
+    public List<MessageDto> findAllByChannelId(UUID channelId) {
         Objects.requireNonNull(channelId, "채널 ID는 필수입니다.");
-        return messageRepository.findAllByChannelId(channelId);
+
+        return messageRepository.findAllByChannelId(channelId)
+                .stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
-    public Message update(MessageUpdateRequest request) {
+    public MessageDto update(MessageUpdateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("메시지 수정 정보는 필수입니다.");
         }
@@ -112,7 +120,8 @@ public class FileMessageService implements MessageService {
 
         message.update(request.content());
 
-        return messageRepository.save(message);
+        Message savedMessage = messageRepository.save(message);
+        return toDto(savedMessage);
     }
 
     @Override
@@ -128,5 +137,17 @@ public class FileMessageService implements MessageService {
         }
 
         messageRepository.deleteById(id);
+    }
+
+    private MessageDto toDto(Message message) {
+        return new MessageDto(
+                message.getId(),
+                message.getCreatedAt(),
+                message.getUpdatedAt(),
+                message.getContent(),
+                message.getAuthorId(),
+                message.getChannelId(),
+                message.getAttachmentIds()
+        );
     }
 }
