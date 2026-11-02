@@ -5,7 +5,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -16,12 +18,14 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 
 // 실제 file-data-map 폴더에 저장하므로, 테스트가 만든 파일은 끝날 때 지운다
 class FileUserStatusRepositoryTest {
+    @TempDir
+    Path tempDir;
     private FileUserStatusRepository repository;
     private final List<UUID> savedIds = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
-        repository = new FileUserStatusRepository();
+        repository = new FileUserStatusRepository(tempDir.toString());
     }
 
     @AfterEach

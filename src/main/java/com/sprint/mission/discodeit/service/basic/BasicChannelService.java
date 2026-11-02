@@ -78,27 +78,20 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public List<FindChannelResponse> findAllByUserId(UUID userId) {
-        List<FindChannelResponse> result = new ArrayList<>();
-        List<ReadStatus> statuses = readStatusRepository.findAll();
-        List<Channel> channels = channelRepository.findAll();
-
         // PUBLIC channel부터 추가
-        for (Channel channel : channels) {
-            if (channel.getType() == ChannelType.PUBLIC) {
-                result.add(FindChannelResponse.from(channel, getLastMessageAt(channel.getId()), null));
-            }
-        }
+        List<FindChannelResponse> result = new ArrayList<>(channelRepository.findAll().stream()
+                .filter(channel -> channel.getType() == ChannelType.PUBLIC)
+                .map(channel -> FindChannelResponse.from(channel, getLastMessageAt(channel.getId()), null))
+                .toList());
 
         // PRIVATE channel 추가
-        for (ReadStatus status : statuses) {
-            Channel channel = channelRepository.findById(status.getChannelId())
-                    .orElseThrow(() -> new NoSuchElementException("해당 id의 채널을 찾을 수 없음"));
-            if (channel.getType() == ChannelType.PRIVATE && userId.equals(status.getUserId())) {
-                FindChannelResponse from =
-                        FindChannelResponse.from(channel, getLastMessageAt(channel.getId()), getParticipantIds(channel.getId()));
-                result.add(from);
-            }
-        }
+        readStatusRepository.findAll().stream()
+                .filter(status -> userId.equals(status.getUserId()))
+                .map(status -> channelRepository.findById(status.getChannelId())
+                        .orElseThrow(() -> new NoSuchElementException("해당 id의 채널은 존재하지 않음")))
+                .filter(channel -> channel.getType() == ChannelType.PRIVATE)
+                .map(channel -> FindChannelResponse.from(channel, getLastMessageAt(channel.getId()), getParticipantIds(channel.getId())))
+                .forEach(result::add);
 
         return result;
     }
@@ -139,37 +132,18 @@ public class BasicChannelService implements ChannelService {
     }
 
     private List<UUID> getParticipantIds(UUID channelId) {
-        List<UUID> participantIds = new ArrayList<>();
-        List<ReadStatus> statuses = readStatusRepository.findAll();
-        for (ReadStatus status : statuses) {
-            if (channelId.equals(status.getChannelId())) {
-                participantIds.add(status.getUserId());
-            }
-        }
-        return participantIds;
+        return readStatusRepository.findAll().stream()
+                .filter(status -> channelId.equals(status.getChannelId()))
+                .map(ReadStatus::getUserId)
+                .toList();
     }
 
     // 채널의 가장 최근 메시지 시간, 메시지가 없으면 null
     private Instant getLastMessageAt(UUID channelId) {
-        List<Message> messages = messageRepository.findAll();
-        List<Message> channelMessages = new ArrayList<>();
-        for (Message message : messages) {
-            if (channelId.equals(message.getChannelId())) {
-                channelMessages.add(message);
-            }
-        }
-
-        if (channelMessages.isEmpty()) {
-            return null;
-        }
-
-        Message lastMessage = channelMessages.get(0);
-        for (Message channelMessage : channelMessages) {
-            if (channelMessage.getCreatedAt().isAfter(lastMessage.getCreatedAt())) {
-                lastMessage = channelMessage;
-            }
-        }
-
-        return lastMessage.getCreatedAt();
+        return messageRepository.findAll().stream()
+                .filter(message -> channelId.equals(message.getChannelId()))
+                .map(Message::getCreatedAt)
+                .max(Instant::compareTo)
+                .orElse(null);
     }
 }

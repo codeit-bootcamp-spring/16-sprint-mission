@@ -85,9 +85,13 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public void delete(UUID statusId) {
-        if (!userStatusRepository.existsById(statusId)) {
-            throw new NoSuchElementException("해당 id의 user status는 존재하지 않음");
+        UserStatus userStatus = userStatusRepository.findById(statusId)
+                .orElseThrow(() -> new NoSuchElementException("해당 id의 user status는 존재하지 않음"));
+
+        if (userRepository.existsById(userStatus.getUserId())) {
+            throw new IllegalStateException("해당 user status에 매핑된 User가 존재하므로 삭제할 수 없음");
         }
+
         userStatusRepository.deleteById(statusId);
     }
 }

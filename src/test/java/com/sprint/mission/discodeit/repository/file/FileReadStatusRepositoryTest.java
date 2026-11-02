@@ -1,39 +1,33 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.ReadStatus;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Path;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-// 실제 file-data-map 폴더에 저장하므로, 테스트가 만든 파일은 끝날 때 지운다
+// 테스트마다 JUnit이 만들어 주는 임시 폴더에 저장하므로, 실제 저장 폴더를 건드리지 않는다
 class FileReadStatusRepositoryTest {
+    @TempDir
+    Path tempDir;
+
     private FileReadStatusRepository repository;
-    private final List<UUID> savedIds = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
-        repository = new FileReadStatusRepository();
-    }
-
-    @AfterEach
-    void tearDown() {
-        savedIds.forEach(repository::deleteById);
+        repository = new FileReadStatusRepository(tempDir.toString());
     }
 
     private ReadStatus saveReadStatus() {
-        ReadStatus readStatus = repository.save(new ReadStatus(UUID.randomUUID(), UUID.randomUUID()));
-        savedIds.add(readStatus.getId());
-        return readStatus;
+        return repository.save(new ReadStatus(UUID.randomUUID(), UUID.randomUUID()));
     }
 
     @Test

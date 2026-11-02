@@ -14,12 +14,10 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Collector;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -39,15 +37,14 @@ public class BasicMessageService implements MessageService {
             throw new NoSuchElementException("해당 id의 유저가 없음");
         }
 
-        List<UUID> attachmentIds = new ArrayList<>();
-        if (request.files() != null) {
-            attachmentIds = request.files()
-                    .stream()
-                    .map(this::createBinaryContent)
-                    .map(binaryContentRepository::save)
-                    .map(BinaryContent::getId)
-                    .collect(Collectors.toCollection(ArrayList::new));
-        }
+        // 첨부파일이 없으면 빈 리스트
+        List<UUID> attachmentIds = Optional.ofNullable(request.files())
+                .orElse(List.of())
+                .stream()
+                .map(this::createBinaryContent)
+                .map(binaryContentRepository::save)
+                .map(BinaryContent::getId)
+                .toList();
 
         Message message = new Message(request.content(), request.channelId(),
                 request.authorId(), attachmentIds);
@@ -59,7 +56,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageResponse find(UUID messageId) {
         Message message = messageRepository.findById(messageId)
-                .orElseThrow(() -> new NoSuchElementException("Message with id " + messageId + " not found"));
+                .orElseThrow(() -> new NoSuchElementException("해당 id의 메시지를 찾을 수 없음"));
 
         return MessageResponse.from(message);
     }
@@ -73,7 +70,7 @@ public class BasicMessageService implements MessageService {
         return messageRepository.findAll().stream()
                 .filter(message -> channelId.equals(message.getChannelId()))
                 .map(MessageResponse::from)
-                .collect(Collectors.toCollection(ArrayList::new));
+                .toList();
     }
 
     @Override
@@ -96,12 +93,7 @@ public class BasicMessageService implements MessageService {
     }
 
     private BinaryContent createBinaryContent(BinaryContentRequest request) {
-        String filename = request.filename();
-        Long size = request.size();
-        String contentType = request.contentType();
-        byte[] bytes = request.bytes();
-
-        BinaryContent binaryContent = new BinaryContent(filename, size, contentType, bytes);
-        return binaryContent;
+        return new BinaryContent(request.filename(),
+                request.size(), request.contentType(), request.bytes());
     }
 }

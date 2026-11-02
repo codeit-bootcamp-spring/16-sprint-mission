@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.request.CreateUserStatusRequest;
 import com.sprint.mission.discodeit.dto.request.UpdateUserStatusRequest;
 import com.sprint.mission.discodeit.dto.response.UserStatusResponse;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFUserRepository;
@@ -200,13 +201,23 @@ class BasicUserStatusServiceTest {
     @DisplayName("delete")
     class Delete {
         @Test
-        @DisplayName("id로 UserStatus를 삭제한다")
+        @DisplayName("매핑된 User가 없는 UserStatus는 삭제한다")
         void success() {
+            UserStatus orphan = userStatusRepository.save(new UserStatus(UUID.randomUUID()));
+
+            userStatusService.delete(orphan.getId());
+
+            assertThat(userStatusRepository.existsById(orphan.getId())).isFalse();
+        }
+
+        @Test
+        @DisplayName("매핑된 User가 존재하면 예외가 발생하고 UserStatus는 남는다")
+        void userExists() {
             UserStatusResponse created = userStatusService.create(new CreateUserStatusRequest(saveUser().getId()));
 
-            userStatusService.delete(created.statusId());
-
-            assertThat(userStatusRepository.existsById(created.statusId())).isFalse();
+            assertThatThrownBy(() -> userStatusService.delete(created.statusId()))
+                    .isInstanceOf(IllegalStateException.class);
+            assertThat(userStatusRepository.existsById(created.statusId())).isTrue();
         }
 
         @Test

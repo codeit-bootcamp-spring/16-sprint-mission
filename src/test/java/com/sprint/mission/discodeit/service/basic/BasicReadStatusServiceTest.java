@@ -183,7 +183,7 @@ class BasicReadStatusServiceTest {
             Instant future = Instant.now().plusSeconds(600);
 
             assertThatThrownBy(() -> readStatusService.update(new UpdateReadStatusRequest(created.id(), future)))
-                    .isInstanceOf(IllegalStateException.class);
+                    .isInstanceOf(IllegalArgumentException.class);
         }
 
         @Test

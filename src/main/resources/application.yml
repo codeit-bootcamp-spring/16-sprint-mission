@@ -1,0 +1,9 @@
+spring:
+  application:
+    name: 16-sprint-mission3
+
+discodeit:
+  repository:
+    type: jcf #jcf | file
+    file-directory: .discodeit
+

@@ -79,7 +79,7 @@ public class BasicReadStatusService implements ReadStatusService {
                 .orElseThrow(() -> new NoSuchElementException("해당 id의 read status는 존재하지 않음"));
 
         if (request.lastReadAt().isAfter(Instant.now())) {
-            throw new IllegalStateException("최근 읽은 시간이 현재보다 이후일 수 없음");
+            throw new IllegalArgumentException("최근 읽은 시간이 현재보다 이후일 수 없음");
         }
 
         readStatus.update(request.lastReadAt());

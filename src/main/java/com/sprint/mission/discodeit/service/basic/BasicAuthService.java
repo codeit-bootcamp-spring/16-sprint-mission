@@ -25,7 +25,7 @@ public class BasicAuthService implements AuthService {
         List<User> userList = userRepository.findAll();
         for (User user : userList) {
             if (dto.username().equals(user.getUsername()) && dto.password().equals(user.getPassword())) {
-                return createUserResponseDto(user);
+                return UserResponse.from(user, getUserStatus(user));
             }
         }
         throw new IllegalArgumentException("유저명 또는 패스워드가 잘못됨");
@@ -35,10 +35,5 @@ public class BasicAuthService implements AuthService {
         UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NoSuchElementException("해당 id(" + user.getId() + ")의 유저 상태를 찾을 수 없음"));
         return userStatus;
-    }
-
-    private UserResponse createUserResponseDto(User user) {
-        UserStatus userStatus = getUserStatus(user);
-        return new UserResponse(user.getId(), user.getUsername(), user.getEmail(), userStatus.isOnline());
     }
 }

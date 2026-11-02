@@ -1,39 +1,41 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.nio.file.Path;
 import java.util.Optional;
 import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatCode;
 
-// 실제 file-data-map 폴더에 저장하므로, 테스트가 만든 파일은 끝날 때 지운다
+// 테스트마다 JUnit이 만들어 주는 임시 폴더에 저장하므로, 실제 저장 폴더를 건드리지 않는다
 class FileBinaryContentRepositoryTest {
+    @TempDir
+    Path tempDir;
+
     private FileBinaryContentRepository repository;
-    private final List<UUID> savedIds = new ArrayList<>();
 
     @BeforeEach
     void setUp() {
-        repository = new FileBinaryContentRepository();
-    }
-
-    @AfterEach
-    void tearDown() {
-        savedIds.forEach(repository::deleteById);
+        repository = new FileBinaryContentRepository(tempDir.toString());
     }
 
     private BinaryContent saveBinaryContent() {
         byte[] bytes = {1, 2, 3};
-        BinaryContent binaryContent = repository.save(new BinaryContent("profile.png", (long) bytes.length, "image/png", bytes));
-        savedIds.add(binaryContent.getId());
-        return binaryContent;
+        return repository.save(new BinaryContent("profile.png", (long) bytes.length, "image/png", bytes));
+    }
+
+    @Test
+    @DisplayName("설정한 디렉토리 아래 엔티티 이름 폴더에 파일이 저장된다")
+    void savesUnderConfiguredDirectory() {
+        BinaryContent saved = saveBinaryContent();
+
+        assertThat(tempDir.resolve("BinaryContent").resolve(saved.getId() + ".ser")).exists();
     }
 
     @Test
