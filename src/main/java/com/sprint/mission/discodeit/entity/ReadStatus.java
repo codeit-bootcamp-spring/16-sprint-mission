@@ -7,6 +7,8 @@ import java.util.UUID;
 
 @Getter
 public class ReadStatus extends BaseEntity{
+
+    private static final long serialVersionUID = 1L;
     private UUID userId;
     private UUID channelId;
     private Instant lastReadAt;

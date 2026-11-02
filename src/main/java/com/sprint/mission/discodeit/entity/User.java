@@ -12,10 +12,13 @@ import java.util.UUID;
 @Getter
 public class User extends BaseEntity{
 
+    private static final long serialVersionUID = 1L;
+
     private String name;
     private String password;
     private String email;
     private UUID profileId;
+
 
 
     public User(String name, String password, String email) {

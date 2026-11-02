@@ -8,8 +8,10 @@ import java.io.Serializable;
 
 @Getter
 public class BaseEntity implements Serializable {
-    private UUID id;
-    private Instant createdAt;
+    private static final long serialVersionUID = 1L;
+
+    private final UUID id;
+    private final Instant createdAt;
     private Instant updatedAt;
 
     public BaseEntity(){

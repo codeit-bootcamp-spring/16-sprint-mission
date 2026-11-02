@@ -9,6 +9,8 @@ import java.util.UUID;
 @Getter
 public class Message extends BaseEntity {
 
+    private static final long serialVersionUID = 1L;
+
     private String comment;
     private UUID authorId;
     private UUID channelId;
@@ -19,7 +21,11 @@ public class Message extends BaseEntity {
         this.comment = comment;
         this.authorId = authorId;
         this.channelId = channelId;
-        this.attachmentIds = attachmentIds;
+        this.attachmentIds = List.copyOf(attachmentIds);
+    }
+
+    public List<UUID> getAttachmentIds() {
+        return List.copyOf(attachmentIds);
     }
 
     public void update(String comment) {

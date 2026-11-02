@@ -7,6 +7,9 @@ import java.util.UUID;
 
 @Getter
 public class UserStatus extends BaseEntity{
+
+        private static final long serialVersionUID = 1L;
+
         private UUID userId;
         private Instant lastActiveAt;
 
