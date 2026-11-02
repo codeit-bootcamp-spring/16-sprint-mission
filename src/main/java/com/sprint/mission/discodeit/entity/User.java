@@ -19,6 +19,9 @@ public class User implements Serializable {
     private String email;
     private String password;
 
+    // 프로필 이미지의 BinaryContent ID
+    private UUID profileId;
+
     public User(String username, String email, String password) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
@@ -50,5 +53,11 @@ public class User implements Serializable {
         if (anyValueUpdated) {
             this.updatedAt = Instant.now();
         }
+    }
+
+    // 프로필 이미지 변경
+    public void replaceProfile(UUID profileId) {
+        this.profileId = profileId;
+        this.updatedAt = Instant.now();
     }
 }

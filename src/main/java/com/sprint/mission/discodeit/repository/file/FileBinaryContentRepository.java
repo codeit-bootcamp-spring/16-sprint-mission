@@ -103,20 +103,6 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     }
 
     @Override
-    public Optional<BinaryContent> findByUserId(UUID userId) {
-        return findAll().stream()
-                .filter(content -> userId.equals(content.getUserId()))
-                .findFirst();
-    }
-
-    @Override
-    public List<BinaryContent> findAllByMessageId(UUID messageId) {
-        return findAll().stream()
-                .filter(content -> messageId.equals(content.getMessageId()))
-                .toList();
-    }
-
-    @Override
     public boolean existsById(UUID id) {
         return Files.exists(resolvePath(id));
     }

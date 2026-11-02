@@ -39,21 +39,6 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
     }
 
     @Override
-    public Optional<BinaryContent> findByUserId(UUID userId) {
-        return data.values().stream()
-                .filter(content -> userId.equals(content.getUserId()))
-                .findFirst();
-    }
-
-    // 특정 메시지에 연결된 첨부 파일 조회
-    @Override
-    public List<BinaryContent> findAllByMessageId(UUID messageId) {
-        return data.values().stream()
-                .filter(content -> messageId.equals(content.getMessageId()))
-                .toList();
-    }
-
-    @Override
     public boolean existsById(UUID id) {
         return data.containsKey(id);
     }

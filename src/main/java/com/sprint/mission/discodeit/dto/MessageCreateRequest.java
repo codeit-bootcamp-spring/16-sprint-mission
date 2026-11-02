@@ -7,20 +7,23 @@ import java.util.UUID;
 
 @Getter
 public class MessageCreateRequest {
+
     private final UUID channelId;
     private final UUID authorId;
     private final String content;
-    private final List<UUID> attachmentIds;
+    private final List<BinaryContentCreateRequest> attachments;
 
     public MessageCreateRequest(
             UUID channelId,
             UUID authorId,
             String content,
-            List<UUID> attachmentIds
+            List<BinaryContentCreateRequest> attachments
     ) {
         this.channelId = channelId;
         this.authorId = authorId;
         this.content = content;
-        this.attachmentIds = attachmentIds;
+        this.attachments = attachments == null
+                ? List.of()
+                : List.copyOf(attachments);
     }
 }

@@ -25,6 +25,7 @@ public class BasicUserService implements UserService {
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
+    // 사용자 생성
     @Override
     public UserDto create(UserCreateRequest request) {
 
@@ -44,24 +45,29 @@ public class BasicUserService implements UserService {
 
         userRepository.save(user);
 
+        // 사용자 상태 생성
         UserStatus userStatus = new UserStatus(user.getId());
         userStatusRepository.save(userStatus);
 
+        // 프로필 이미지가 전달된 경우 생성
         if (request.getProfileData() != null) {
             BinaryContent profile = new BinaryContent(
                     request.getProfileFileName(),
                     request.getProfileContentType(),
-                    request.getProfileData(),
-                    user.getId(),
-                    null
+                    request.getProfileData()
             );
 
             binaryContentRepository.save(profile);
+
+            // 생성한 프로필 이미지 ID를 User에 연결
+            user.replaceProfile(profile.getId());
+            userRepository.save(user);
         }
 
         return toDto(user);
     }
 
+    // 사용자 단건 조회
     @Override
     public UserDto find(UUID userId) {
         User user = userRepository.findById(userId)
@@ -71,6 +77,7 @@ public class BasicUserService implements UserService {
         return toDto(user);
     }
 
+    // 전체 사용자 조회
     @Override
     public List<UserDto> findAll() {
         return userRepository.findAll().stream()
@@ -78,6 +85,7 @@ public class BasicUserService implements UserService {
                 .toList();
     }
 
+    // 사용자 정보 수정
     @Override
     public UserDto update(UserUpdateRequest request) {
 
@@ -85,6 +93,7 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() ->
                         new NoSuchElementException("User not found: " + request.getUserId()));
 
+        // 사용자 이름 중복 확인
         if (request.getUsername() != null) {
             userRepository.findByUsername(request.getUsername())
                     .filter(existing -> !existing.getId().equals(user.getId()))
@@ -93,6 +102,7 @@ public class BasicUserService implements UserService {
                     });
         }
 
+        // 이메일 중복 확인
         if (request.getEmail() != null) {
             userRepository.findByEmail(request.getEmail())
                     .filter(existing -> !existing.getId().equals(user.getId()))
@@ -107,46 +117,63 @@ public class BasicUserService implements UserService {
                 request.getPassword()
         );
 
-        userRepository.save(user);
-
+        // 프로필 이미지 교체
         if (request.getProfileData() != null) {
 
-            binaryContentRepository.findByUserId(user.getId())
-                    .ifPresent(profile ->
-                            binaryContentRepository.deleteById(profile.getId()));
+            // 기존 프로필 ID 저장
+            UUID oldProfileId = user.getProfileId();
 
+            // 새 프로필 이미지 생성
             BinaryContent newProfile = new BinaryContent(
                     request.getProfileFileName(),
                     request.getProfileContentType(),
-                    request.getProfileData(),
-                    user.getId(),
-                    null
+                    request.getProfileData()
             );
 
             binaryContentRepository.save(newProfile);
+
+            // User가 새 프로필 ID를 참조하도록 변경
+            user.replaceProfile(newProfile.getId());
+
+            // 사용자 정보 저장
+            userRepository.save(user);
+
+            // 기존 프로필만 삭제
+            if (oldProfileId != null) {
+                binaryContentRepository.deleteById(oldProfileId);
+            }
+        } else {
+            userRepository.save(user);
         }
 
         return toDto(user);
     }
 
+    // 사용자 삭제
     @Override
     public void delete(UUID userId) {
 
-        userRepository.findById(userId)
+        User user = userRepository.findById(userId)
                 .orElseThrow(() ->
                         new NoSuchElementException("User not found: " + userId));
 
-        binaryContentRepository.findByUserId(userId)
-                .ifPresent(profile ->
-                        binaryContentRepository.deleteById(profile.getId()));
+        // 해당 사용자의 프로필 이미지만 삭제
+        UUID profileId = user.getProfileId();
 
+        if (profileId != null) {
+            binaryContentRepository.deleteById(profileId);
+        }
+
+        // 사용자 상태 삭제
         userStatusRepository.findByUserId(userId)
                 .ifPresent(status ->
                         userStatusRepository.deleteById(status.getId()));
 
+        // 사용자 삭제
         userRepository.deleteById(userId);
     }
 
+    // Entity를 DTO로 변환
     private UserDto toDto(User user) {
 
         boolean online = userStatusRepository.findByUserId(user.getId())

@@ -20,12 +20,6 @@ public interface BinaryContentRepository {
     // 여러 ID로 파일 조회
     List<BinaryContent> findAllByIdIn(List<UUID> ids);
 
-    // 사용자 ID로 프로필 이미지 찾기
-    Optional<BinaryContent> findByUserId(UUID userId);
-
-    // 메시지 ID로 첨부 파일 찾기
-    List<BinaryContent> findAllByMessageId(UUID messageId);
-
     // ID로 파일 존재 여부 확인
     boolean existsById(UUID id);
 

@@ -18,15 +18,10 @@ public class BinaryContent implements Serializable {
     private final String contentType;
     private final byte[] data;
 
-    private final UUID userId;
-    private final UUID messageId;
-
     public BinaryContent(
             String fileName,
             String contentType,
-            byte[] data,
-            UUID userId,
-            UUID messageId
+            byte[] data
     ) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
@@ -34,10 +29,9 @@ public class BinaryContent implements Serializable {
         this.fileName = fileName;
         this.contentType = contentType;
         this.data = data.clone();
-        this.userId = userId;
-        this.messageId = messageId;
     }
 
+    // 데이터가 외부에서 변경되지 않도록 복사해서 반환
     public byte[] getData() {
         return data.clone();
     }

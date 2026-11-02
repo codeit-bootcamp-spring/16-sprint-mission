@@ -16,9 +16,5 @@ public interface BinaryContentService {
 
     List<BinaryContentDto> findAllByIdIn(List<UUID> ids);
 
-    List<BinaryContentDto> findAllByUserId(UUID userId);
-
-    List<BinaryContentDto> findAllByMessageId(UUID messageId);
-
     void delete(UUID binaryContentId);
 }

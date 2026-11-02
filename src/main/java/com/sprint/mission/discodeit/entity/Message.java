@@ -4,6 +4,7 @@ import lombok.Getter;
 
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -19,6 +20,9 @@ public class Message implements Serializable {
 
     private UUID channelId;
     private UUID authorId;
+
+    // 메시지에 첨부된 파일들의 BinaryContent ID 목록
+    private List<UUID> attachmentIds = List.of();
 
     public Message(String content, UUID channelId, UUID authorId) {
         this.id = UUID.randomUUID();
@@ -41,5 +45,11 @@ public class Message implements Serializable {
         if (anyValueUpdated) {
             this.updatedAt = Instant.now();
         }
+    }
+
+    // 메시지 첨부파일 목록 변경
+    public void replaceAttachments(List<UUID> attachmentIds) {
+        this.attachmentIds = List.copyOf(attachmentIds);
+        this.updatedAt = Instant.now();
     }
 }

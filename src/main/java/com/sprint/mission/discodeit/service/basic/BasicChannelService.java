@@ -46,25 +46,36 @@ public class BasicChannelService implements ChannelService {
     // 비공개 채널 생성
     @Override
     public ChannelDto createPrivate(PrivateChannelCreateRequest request) {
+
+        // 참여자 ID 중복 제거
+        List<UUID> participantIds = request.getUserIds() == null
+                ? List.of()
+                : request.getUserIds().stream()
+                .distinct()
+                .toList();
+
+        // 모든 참여자가 존재하는지 먼저 검증
+        for (UUID userId : participantIds) {
+            if (!userRepository.existsById(userId)) {
+                throw new NoSuchElementException(
+                        "User with id " + userId + " not found"
+                );
+            }
+        }
+
+        // 검증이 모두 끝난 후 채널 생성 및 저장
         Channel channel = new Channel();
         channelRepository.save(channel);
 
-        // 참여할 사용자들을 확인하고 ReadStatus 생성
-        request.getUserIds().stream()
-                .distinct()
-                .forEach(userId -> {
-                    userRepository.findById(userId)
-                            .orElseThrow(() -> new NoSuchElementException(
-                                    "User with id " + userId + " not found"
-                            ));
+        // 참여자별 ReadStatus 생성
+        for (UUID userId : participantIds) {
+            ReadStatus readStatus = new ReadStatus(
+                    userId,
+                    channel.getId()
+            );
 
-                    ReadStatus readStatus = new ReadStatus(
-                            userId,
-                            channel.getId()
-                    );
-
-                    readStatusRepository.save(readStatus);
-                });
+            readStatusRepository.save(readStatus);
+        }
 
         return toDto(channel);
     }

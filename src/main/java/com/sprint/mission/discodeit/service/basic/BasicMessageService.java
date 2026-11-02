@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
@@ -13,6 +14,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -30,14 +32,12 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageDto create(MessageCreateRequest request) {
 
-        // 채널 존재 여부 확인
         if (!channelRepository.existsById(request.getChannelId())) {
             throw new NoSuchElementException(
                     "Channel not found with id " + request.getChannelId()
             );
         }
 
-        // 작성자 존재 여부 확인
         if (!userRepository.existsById(request.getAuthorId())) {
             throw new NoSuchElementException(
                     "Author not found with id " + request.getAuthorId()
@@ -50,16 +50,25 @@ public class BasicMessageService implements MessageService {
                 request.getAuthorId()
         );
 
-        messageRepository.save(message);
+        // 첨부파일 생성 및 저장
+        List<UUID> attachmentIds = new ArrayList<>();
 
-        // 첨부 파일 연결
-        if (request.getAttachmentIds() != null) {
-            attachFiles(
-                    request.getAttachmentIds(),
-                    request.getAuthorId(),
-                    message.getId()
-            );
+        if (request.getAttachments() != null) {
+            for (BinaryContentCreateRequest attachmentRequest : request.getAttachments()) {
+                BinaryContent attachment = new BinaryContent(
+                        attachmentRequest.getFileName(),
+                        attachmentRequest.getContentType(),
+                        attachmentRequest.getData()
+                );
+
+                binaryContentRepository.save(attachment);
+                attachmentIds.add(attachment.getId());
+            }
         }
+
+        // 메시지에 첨부파일 ID 연결
+        message.replaceAttachments(attachmentIds);
+        messageRepository.save(message);
 
         return toDto(message);
     }
@@ -109,33 +118,30 @@ public class BasicMessageService implements MessageService {
 
         message.update(request.getContent());
 
-        // attachmentIds가 null이 아니면 첨부 파일 교체
+        // attachmentIds가 null이 아니면 첨부파일 교체
         if (request.getAttachmentIds() != null) {
 
-            List<BinaryContent> newAttachments =
-                    binaryContentRepository.findAllByIdIn(
-                            request.getAttachmentIds()
-                    );
+            List<UUID> newAttachmentIds = request.getAttachmentIds()
+                    .stream()
+                    .distinct()
+                    .toList();
 
-            if (newAttachments.size() != request.getAttachmentIds().stream()
-                    .distinct().count()) {
+            List<BinaryContent> newAttachments =
+                    binaryContentRepository.findAllByIdIn(newAttachmentIds);
+
+            if (newAttachments.size() != newAttachmentIds.size()) {
                 throw new NoSuchElementException(
                         "One or more attachments not found"
                 );
             }
 
-            // 기존 첨부 파일 삭제
-            binaryContentRepository.findAllByMessageId(message.getId())
-                    .forEach(content ->
-                            binaryContentRepository.deleteById(content.getId())
-                    );
+            // 기존 첨부파일 삭제
+            for (UUID oldAttachmentId : message.getAttachmentIds()) {
+                binaryContentRepository.deleteById(oldAttachmentId);
+            }
 
-            // 새로운 첨부 파일 연결
-            attachFiles(
-                    request.getAttachmentIds(),
-                    message.getAuthorId(),
-                    message.getId()
-            );
+            // 새로운 첨부파일 ID 연결
+            message.replaceAttachments(newAttachmentIds);
         }
 
         messageRepository.save(message);
@@ -152,59 +158,16 @@ public class BasicMessageService implements MessageService {
                         "Message with id " + messageId + " not found"
                 ));
 
-        // 연결된 첨부 파일 삭제
-        binaryContentRepository.findAllByMessageId(messageId)
-                .forEach(content ->
-                        binaryContentRepository.deleteById(content.getId())
-                );
+        // 연결된 첨부파일만 삭제
+        for (UUID attachmentId : message.getAttachmentIds()) {
+            binaryContentRepository.deleteById(attachmentId);
+        }
 
-        // 메시지 삭제
         messageRepository.deleteById(messageId);
-    }
-
-    // 첨부 파일을 메시지에 연결
-    private void attachFiles(
-            List<UUID> attachmentIds,
-            UUID userId,
-            UUID messageId
-    ) {
-        List<BinaryContent> attachments =
-                binaryContentRepository.findAllByIdIn(attachmentIds);
-
-        if (attachments.size() != attachmentIds.stream().distinct().count()) {
-            throw new NoSuchElementException(
-                    "One or more attachments not found"
-            );
-        }
-
-        for (BinaryContent attachment : attachments) {
-
-            if (!userId.equals(attachment.getUserId())) {
-                throw new IllegalArgumentException(
-                        "You cannot use another user's attachment"
-                );
-            }
-
-            BinaryContent linkedContent = new BinaryContent(
-                    attachment.getFileName(),
-                    attachment.getContentType(),
-                    attachment.getData(),
-                    userId,
-                    messageId
-            );
-
-            binaryContentRepository.save(linkedContent);
-        }
     }
 
     // Message를 MessageDto로 변환
     private MessageDto toDto(Message message) {
-
-        List<UUID> attachmentIds =
-                binaryContentRepository.findAllByMessageId(message.getId())
-                        .stream()
-                        .map(BinaryContent::getId)
-                        .toList();
 
         return new MessageDto(
                 message.getId(),
@@ -213,7 +176,7 @@ public class BasicMessageService implements MessageService {
                 message.getContent(),
                 message.getChannelId(),
                 message.getAuthorId(),
-                attachmentIds
+                message.getAttachmentIds()
         );
     }
 }
