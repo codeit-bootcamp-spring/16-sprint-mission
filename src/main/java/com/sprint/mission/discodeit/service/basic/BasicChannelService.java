@@ -13,6 +13,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -116,12 +117,21 @@ public class BasicChannelService implements ChannelService {
 
         readStatusRepository.deleteAllByChannelId(id);
 
-        for (UUID userId : channel.getUsers()) {
+        Map<UUID, List<UUID>> messageIdsByAuthor = messages.stream()
+                .collect(Collectors.groupingBy(
+                        Message::getAuthorId,
+                        Collectors.mapping(Message::getId, Collectors.toList())));
+
+        Set<UUID> affectedUserIds = new HashSet<>(channel.getUsers());
+        affectedUserIds.addAll(messageIdsByAuthor.keySet());
+
+        for (UUID userId : affectedUserIds) {
             userRepository.findById(userId).ifPresent(user -> {
-                user.removeChannel(id);
-                messages.stream()
-                        .filter(m -> m.getAuthorId().equals(userId))
-                        .forEach(m -> user.removeMessage(m.getId()));
+                if (user.hasChannel(id)) {
+                    user.removeChannel(id);
+                }
+                messageIdsByAuthor.getOrDefault(userId, List.of())
+                        .forEach(user::removeMessage);
                 userRepository.save(user);
             });
         }
