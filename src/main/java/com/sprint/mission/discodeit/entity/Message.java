@@ -21,13 +21,14 @@ public class Message implements Serializable {
     private UUID authorId;
     List<UUID> attachmentIds;
 
-    public Message(String content, UUID channelId, UUID authorId) {
+    public Message(String content, UUID channelId, UUID authorId, List<UUID> attachmentIds) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         //
         this.content = content;
         this.channelId = channelId;
         this.authorId = authorId;
+        this.attachmentIds = List.copyOf(attachmentIds);
     }
 
     public void update(String newContent) {

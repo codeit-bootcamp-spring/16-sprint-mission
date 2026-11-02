@@ -1,7 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.BinaryContentRequestDto;
 import com.sprint.mission.discodeit.dto.UserRequestDto;
 import com.sprint.mission.discodeit.dto.UserResponseDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -19,7 +21,7 @@ import java.util.UUID;
 public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
-    private BinaryContentRepository binaryContentRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     public BasicUserService(UserRepository userRepository, UserStatusRepository userStatusRepository, BinaryContentRepository binaryContentRepository) {
         this.userRepository = userRepository;
@@ -27,58 +29,74 @@ public class BasicUserService implements UserService {
         this.binaryContentRepository = binaryContentRepository;
     }
 
+    private UUID saveProfile(BinaryContentRequestDto profile) {
+        if (profile == null) {
+            return null;
+        }
+        BinaryContent binaryContent
+                = new BinaryContent(profile.fileName(), profile.data(), profile.contentType());
+        return binaryContentRepository.save(binaryContent).getId();
+    }
+
+    private UserResponseDto toDto(User user, UserStatus userStatus) {
+        return new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
+    }
+
     @Override
     public UserResponseDto create(UserRequestDto userRequestDto) {
-        if (userRepository.findByUsername(userRequestDto.username()).isPresent() |
+        if (userRepository.findByUsername(userRequestDto.username()).isPresent() ||
                 userRepository.findByEmail(userRequestDto.email()).isPresent()) {
             throw new RuntimeException("User already exists");
         }
 
-        User user = new User(userRequestDto.username(), userRequestDto.email(), userRequestDto.password(), userRequestDto.profileId());
+        UUID profileId = saveProfile(userRequestDto.profile());
+
+        User user = new User(userRequestDto.username(), userRequestDto.email(), userRequestDto.password(), profileId);
         userRepository.save(user);
         UserStatus userStatus = userStatusRepository.save(new UserStatus(user.getId()));
-        UserResponseDto responseDto =
-                new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
-        return responseDto;
+
+        return toDto(user, userStatus);
     }
 
     @Override
     public UserResponseDto find(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
-        UserStatus userStatus = userStatusRepository.save(new UserStatus(user.getId()));
-        UserResponseDto responseDto =
-                new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
-        return responseDto;
+        UserStatus userStatus = userStatusRepository.findByUserId(userId)
+                .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
+
+        return toDto(user, userStatus);
     }
 
     @Override
     public List<UserResponseDto> findAll() {
-        List<User> users = userRepository.findAll();
-        List<UserResponseDto> responseDtos = new ArrayList<>();
-        for (User user : users) {
-            UserStatus userStatus = userStatusRepository.save(new UserStatus(user.getId()));
-            UserResponseDto responseDto =
-                    new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
-            responseDtos.add(responseDto);
-        }
-        return responseDtos;
+        return userRepository.findAll().stream()
+                .map(user -> {
+                    UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
+                            .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
+                    return toDto(user, userStatus);
+                })
+                .toList();
     }
 
     @Override
     public UserResponseDto update(UUID userId, UserRequestDto userRequestDto) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
-//        user.update(newUsername, newEmail, newPassword);
-//        return userRepository.save(user);
         User  user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
-        UserStatus userStatus = userStatusRepository.save(new UserStatus(user.getId()));
-        user.update(userRequestDto.username(), userRequestDto.email(), userRequestDto.password());
+        UserStatus userStatus = userStatusRepository.findByUserId(userId)
+                .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
+
+
+        UUID oldProfileId = user.getProfileId();
+        UUID newProfileId = saveProfile(userRequestDto.profile());
+        user.update(userRequestDto.username(), userRequestDto.email(), userRequestDto.password(), newProfileId);
         userRepository.save(user);
-        UserResponseDto userResponseDto =
-                new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
-        return userResponseDto;
+
+        if (newProfileId != null && oldProfileId != null) {
+            binaryContentRepository.deleteById(oldProfileId);
+        }
+
+        return toDto(user, userStatus);
     }
 
     @Override
@@ -104,10 +122,9 @@ public class BasicUserService implements UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-        UserStatus userStatus = userStatusRepository.save(new UserStatus(user.getId()));
-        UserResponseDto responseDto =
-                new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
-        return responseDto;
+        UserStatus userStatus = userStatusRepository.findByUserId(user.getId());
+
+        return toDto(user, userStatus);
     }
 
     @Override
@@ -115,9 +132,9 @@ public class BasicUserService implements UserService {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-        UserStatus userStatus = userStatusRepository.save(new UserStatus(user.getId()));
-        UserResponseDto responseDto =
-                new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
-        return responseDto;
+        UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
+
+        return toDto(user, userStatus);
     }
 }

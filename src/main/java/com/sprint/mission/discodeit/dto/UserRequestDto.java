@@ -6,5 +6,5 @@ public record UserRequestDto(
         String username,
         String email,
         String password,
-        UUID profileId
+        BinaryContentRequestDto profile
 ) {}

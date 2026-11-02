@@ -45,14 +45,13 @@ public class BasicMessageService implements MessageService {
         if (messageRequestDto.attachments() != null) {
             for (BinaryContentRequestDto attachment : messageRequestDto.attachments()) {
                 BinaryContent binaryContent = new BinaryContent(
-                        UUID.randomUUID(), Instant.now(),
                         attachment.fileName(), attachment.data(), attachment.contentType());
                 binaryContentRepository.save(binaryContent);
                 attachmentIds.add(binaryContent.getId());
             }
         }
 
-        Message message = new Message(content, channelId, authorId);
+        Message message = new Message(content, channelId, authorId, attachmentIds);
         messageRepository.save(message);
 
         return new MessageResponseDto
