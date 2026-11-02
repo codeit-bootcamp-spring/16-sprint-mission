@@ -17,7 +17,7 @@ public class ReadStatus extends BaseEntity implements Updatable {
         this.updatedAt = this.getCreatedAt();
         this.userId = userId;
         this.channelId = channelId;
-        this.lastReadTime = Instant.now();
+        this.lastReadTime = this.getCreatedAt();
     }
 
     public void update(Instant newLastReadTime) {

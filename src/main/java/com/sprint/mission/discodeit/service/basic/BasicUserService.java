@@ -5,10 +5,7 @@ import com.sprint.mission.discodeit.dto.User.*;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,6 +19,7 @@ public class BasicUserService implements UserService {
     private final ChannelRepository channelRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     @Override
     public UserCreateResponse create(UserCreateRequest createRequest,
@@ -139,6 +137,10 @@ public class BasicUserService implements UserService {
         UserStatus userStatus = this.userStatusRepository.findByUserId(id)
                 .orElseThrow(() -> new NoSuchElementException("삭제할 유저의 접속 기록이 존재하지 않습니다."));
         this.userStatusRepository.delete(userStatus.getId());
+
+        this.readStatusRepository.findAllByUserId(id).forEach(readStatus -> {
+            this.readStatusRepository.delete(readStatus.getId());
+        });
 
         this.userRepository.delete(id);
     }
