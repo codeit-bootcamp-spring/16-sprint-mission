@@ -29,6 +29,8 @@ public class DiscodeitApplication {
 		ReadStatusService readStatusService = context.getBean(ReadStatusService.class);
 		AuthService authService = context.getBean(AuthService.class);
 
+		System.out.println(context.getBean(com.sprint.mission.discodeit.repository.UserRepository.class).getClass().getSimpleName());
+
 		String testId = UUID.randomUUID().toString();
 
 		//User 테스트

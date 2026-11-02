@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -11,12 +13,17 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
-
+@ConditionalOnProperty(
+        name = "discodeit.repository.type",
+        havingValue = "file"
+)
 @Repository
 public class FileUserRepository implements UserRepository {
-    private final Path filePath = Path.of("data","users.ser");
+    private final Path filePath;
+    public FileUserRepository(
+            @Value("${discodeit.repository.file-directory}") String directory) {
+        this.filePath = Path.of(directory,"users.ser");
 
-    public FileUserRepository() {
         try{
             Files.createDirectories(filePath.getParent());
         }catch (IOException e){
