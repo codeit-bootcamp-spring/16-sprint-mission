@@ -26,6 +26,11 @@ public abstract class BaseEntity implements Serializable {
     public void softDelete() {
         this.status = EntityStatus.DELETED;
         this.deletedAt = Instant.now();
+
+        // 수정 가능한 엔티티는 삭제 시 수정 시각 갱신
+        if (this instanceof Updatable) {
+            ((Updatable) this).update();
+        }
     }
 
     public boolean isDeleted() {
