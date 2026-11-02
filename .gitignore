@@ -35,3 +35,8 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Discodeit 저장 데이터 ###
+data/
+.discodeit/
+*ser
