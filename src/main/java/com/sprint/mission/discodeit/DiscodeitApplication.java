@@ -12,11 +12,9 @@ import com.sprint.mission.discodeit.repository.file.FileUserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.UserWithdrawalService;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
-import com.sprint.mission.discodeit.service.basic.BasicUserWithdrawalService;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -44,7 +42,6 @@ public class DiscodeitApplication {
 		UserService userService = context.getBean(BasicUserService.class);
 		ChannelService channelService = context.getBean(BasicChannelService.class);
 		MessageService messageService = context.getBean(BasicMessageService.class);
-		UserWithdrawalService withdrawalService = context.getBean(BasicUserWithdrawalService.class);
 
 		// 의존 방향: User <- Channel <- Message <- UserWithdrawal (아래 서비스부터 생성)
 
