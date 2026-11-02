@@ -14,8 +14,8 @@ import java.util.UUID;
 public class FileStore<T> {
     private final Path path;
 
-    public FileStore(String fileName) {
-        this.path = Paths.get("data", fileName);
+    public FileStore(String directory, String fileName) {
+        this.path = Paths.get(directory, fileName);
     }
 
     public void write(Map<UUID, T> data) {
