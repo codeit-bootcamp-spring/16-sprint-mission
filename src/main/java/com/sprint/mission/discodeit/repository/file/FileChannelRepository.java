@@ -72,14 +72,6 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Optional<Channel> findByName(String name) {
-        return findAll().stream()
-                .filter(channel ->
-                        channel.getName().equals(name))
-                .findFirst();
-    }
-
-    @Override
     public List<Channel> findAll() {
         try (var paths = Files.list(DIRECTORY)) {
 
@@ -93,16 +85,6 @@ public class FileChannelRepository implements ChannelRepository {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public List<Channel> findAllByUserId(UUID userId) {
-        return findAll().stream()
-                .filter(channel ->
-                        channel.getUsers().stream()
-                                .anyMatch(user ->
-                                        user.getId().equals(userId)))
-                .toList();
     }
 
     @Override

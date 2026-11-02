@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.user.UserCreateDto;
 import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.dto.user.UserUpdateDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.*;
@@ -25,6 +26,8 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final MessageRepository messageRepository;
+    private final ReadStatusRepository readStatusRepository;
     private final CommonValidator validator;
 
     @Override
@@ -250,14 +253,31 @@ public class BasicUserService implements UserService {
                         )
                 );
 
+        // 유저가 작성한 메세지 삭제
+        List<Message> messages = messageRepository.findAllByUserId(id);
+
+        for (Message message : messages) {
+            // 메세지 속 첨부파일 삭제
+            for (UUID attachmentId : message.getAttachmentIds()) {
+                binaryContentRepository.findById(attachmentId)
+                        .ifPresent(binaryContentRepository::delete);
+            }
+
+            messageRepository.delete(message);
+        }
+
+        readStatusRepository.findAllByUserId(id) // ReadStatus 삭제
+                .forEach(readStatusRepository::delete);
+
+        userStatusRepository.findByUserId(id) // UserStatus 삭제
+                .ifPresent(userStatusRepository::delete);
+
         if (user.getProfileId() != null) { // binary 삭제
             binaryContentRepository
                     .findById(user.getProfileId())
                     .ifPresent(binaryContentRepository::delete);
         }
 
-        userStatusRepository.findByUserId(id) // status 삭제
-                .ifPresent(userStatusRepository::delete);
 
         userRepository.delete(user); // user 삭제
     }
