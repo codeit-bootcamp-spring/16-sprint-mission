@@ -5,10 +5,7 @@ import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.PrivateChannelRequest;
 import com.sprint.mission.discodeit.dto.PublicChannelRequest;
 import com.sprint.mission.discodeit.entity.*;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.ReadStatusRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -25,6 +22,7 @@ public class BasicChannelService implements ChannelService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
 
     @Override
@@ -133,8 +131,12 @@ public class BasicChannelService implements ChannelService {
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
         for(Message message : messageRepository.findAll()){
-            if(message.getChannelId().equals(id))
+            if(message.getChannelId().equals(id)) {
+                //채널삭제할때 메시지랑 첨부파일도 삭제하게함
+                for(UUID attachmentId : message.getAttachmentIds())
+                    binaryContentRepository.deleteById(attachmentId);
                 messageRepository.deleteById(message.getId());
+            }
         }
         for(ReadStatus readStatus : readStatusRepository.findAll()){
             if(readStatus.getChannelId().equals(id)){

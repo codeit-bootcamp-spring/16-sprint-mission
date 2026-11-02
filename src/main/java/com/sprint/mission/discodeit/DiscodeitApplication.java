@@ -1,16 +1,15 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.util.List;
 import java.util.UUID;
 
 @SpringBootApplication
@@ -21,244 +20,143 @@ public class DiscodeitApplication {
 		UserService userService = context.getBean(UserService.class);
 		ChannelService channelService = context.getBean(ChannelService.class);
 		MessageService messageService = context.getBean(MessageService.class);
+		BinaryContentService binaryContentService = context.getBean(BinaryContentService.class);
+		ReadStatusService readStatusService = context.getBean(ReadStatusService.class);
+		AuthService authService = context.getBean(AuthService.class);
 
 		String testId = UUID.randomUUID().toString();
 
 		//User 테스트
 		System.out.println("===== User 테스트 =====");
 
-		User user = userService.create(new UserCreateRequest("김신중","1234",testId+"@example.com"), null);
-		User user2 = userService.create(new UserCreateRequest("김길똥","4852",testId+"-2@example.com"), null);
+		BinaryContentRequest profile = new BinaryContentRequest(
+				"profile.png","image/png",new byte[]{1,2,3});
 
-		User findUser = userService.findById(user.getId());
-		System.out.println(findUser.getName());
+		User user = userService.create(
+				new UserCreateRequest("테스트-"+testId,"1234",testId+"@example.com"),profile);
 
-		for(User allUser : userService.findAll()){
-			System.out.println(allUser.getName());
-		}
-		System.out.println(userService.findAll().size());
+		System.out.println(userService.findById(user.getId()));
+		System.out.println(binaryContentService.findById(user.getProfileId()).getFileName());
 
-		userService.update(user.getId(),"김무열","4885",testId+"-updated@example.com");
+		userService.update(
+				new UserUpdateRequest(user.getId(),"수정-"+testId,"5678",testId+"@example.com"),null);
 
-		User updateUser = userService.findById(user.getId());
-		System.out.println(updateUser.getName());
-
-		userService.delete(user.getId());
-
-		try{
-			userService.update(user.getId(),"김무열","4885",testId+"@example.com");
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			userService.delete(user.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			userService.findById(user.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-		System.out.println(userService.findAll().size());
+		//로그인 테스트
+		System.out.println("----로그인-------");
+		System.out.println(authService.login(new LoginRequest("수정-"+testId,"5678")));
 
 		//Channel 테스트
 		System.out.println("===== Channel 테스트 =====");
 
-		Channel channel = channelService.create("대화채널-"+testId);
-		Channel channel2 = channelService.create("수다채널-"+testId);
+		Channel publicChannel = channelService.createPublic(
+				new PublicChannelRequest("공개-"+testId,"공개 채널입니다"));
 
-		Channel findChannel = channelService.findById(channel.getId());
-		System.out.println(findChannel.getName());
-		System.out.println(channelService.findAll().size());
+		Channel privateChannel = channelService.createPrivate(
+				new PrivateChannelRequest(List.of(user.getId())));
 
-		channelService.update(channel.getId(),"잡담채널-"+testId);
+		channelService.update(
+				new ChannelUpdateRequest(publicChannel.getId(),"수정채널-"+testId,"수정한 설명"));
 
-		Channel updateChannel = channelService.findById(channel.getId());
-		System.out.println(updateChannel.getName());
-
-		for(Channel allChannel : channelService.findAll()){
-			System.out.println(allChannel.getName());
-		}
-
-		channelService.delete(channel.getId());
-
-		try{
-			channelService.update(channel.getId(),"뒷담채널-"+testId);
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			channelService.delete(channel.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			channelService.findById(channel.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-		System.out.println(channelService.findAll().size());
-
-		//참여 테스트
-		System.out.println("===== 참여 테스트 =====");
-
-		channelService.join(channel2.getId(),user2.getId());
-
-		try{
-			channelService.join(channel2.getId(),user2.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		System.out.println(channelService.findById(channel2.getId()).getUsers().size());
-		System.out.println(userService.findById(user2.getId()).getChannels().size());
+		System.out.println(channelService.findAllByUserId(user.getId()));
+		System.out.println(readStatusService.findAllByUserId(user.getId()));
 
 		//Message 테스트
 		System.out.println("===== Message 테스트 =====");
 
-		Message message = messageService.create("안녕하세요",user2.getId(),channel2.getId());
-		Message message2 = messageService.create("반갑습니다",user2.getId(),channel2.getId());
+		BinaryContentRequest attachment = new BinaryContentRequest(
+				"test.txt","text/plain",new byte[]{4,5,6});
 
-		Message findMessage = messageService.findById(message.getId());
-		System.out.println(findMessage.getComment());
+		Message message = messageService.create(
+				new MessageCreateRequest("안녕하세요",user.getId(),privateChannel.getId()),
+				List.of(attachment));
 
-		for(Message allMessage : messageService.findAll()){
-			System.out.println(allMessage.getComment());
-		}
-		System.out.println(messageService.findAll().size());
+		messageService.update(new MessageUpdateRequest(message.getId(),"수정된 메시지"));
 
-		messageService.update(message.getId(),"수정된 메시지입니다");
+		System.out.println(messageService.findById(message.getId()).getComment());
+		System.out.println(messageService.findAllByChannelId(privateChannel.getId()).size());
 
-		Message updateMessage = messageService.findById(message.getId());
-		System.out.println(updateMessage.getComment());
+		//첨부파일이랑 최근 메시지 시간 확인
+		System.out.println("----첨부파일-------");
+		System.out.println(binaryContentService.findAllByIdIn(message.getAttachmentIds()).size());
+		System.out.println(channelService.findById(privateChannel.getId()));
 
-		messageService.delete(message.getId());
-
-		try{
-			messageService.update(message.getId(),"모르는 메시지입니다");
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			messageService.delete(message.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			messageService.findById(message.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-		System.out.println(messageService.findAll().size());
-
-		//존재하지 않는 사용자·채널로 메시지 생성
-		System.out.println("===== 메시지 생성 실패 테스트 =====");
-
-		try{
-			messageService.create("반갑습니다",user.getId(),channel.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			messageService.create("안녕하세요",user.getId(),channel2.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		try{
-			messageService.create("잘부탁드립니다",user2.getId(),channel.getId());
-		}catch (IllegalArgumentException e){
-			System.out.println(e.getMessage());
-		}
-
-		System.out.println(channelService.findById(channel2.getId()).getMessages().size());
-		System.out.println(userService.findById(user2.getId()).getMessages().size());
-
-		//사용자 삭제 후 채널의 참여자 목록 확인
+		//채널 지우면 메시지랑 첨부파일 조회상태도 지워지는지
 		System.out.println("===== 관계 삭제 테스트 =====");
 
-		User userT = userService.create(new UserCreateRequest("테스트 삭제","1557",testId+"-delete@example.com"),null);
-		Channel channelT = channelService.create("테스트 삭제-"+testId);
+		channelService.delete(privateChannel.getId());
 
-		channelService.join(channelT.getId(),userT.getId());
-		userService.delete(userT.getId());
+		System.out.println(messageService.findAllByChannelId(privateChannel.getId()).size());
+		System.out.println(binaryContentService.findAllByIdIn(message.getAttachmentIds()).size());
+		System.out.println(readStatusService.findAllByUserId(user.getId()).size());
 
+		//예외 테스트
+		System.out.println("////////////////////////////////////");
+
+		//이름 중복 테스트
 		try{
-			userService.findById(userT.getId());
+			userService.create(
+					new UserCreateRequest("수정-"+testId,"1234",testId+"-other@example.com"),null);
+			System.out.println("이름 중복인데 생성됨");
 		}catch (IllegalArgumentException e){
 			System.out.println(e.getMessage());
 		}
-
-		System.out.println(channelService.findById(channelT.getId()).getUsers().size());
 
 		//이메일 중복 테스트
-		System.out.println("===== 이메일 중복 테스트 =====");
-
 		try{
-			userService.create(new UserCreateRequest("김예외","4885",user2.getEmail()),null);
+			userService.create(
+					new UserCreateRequest("다른이름-"+testId,"1234",testId+"@example.com"),null);
+			System.out.println("이메일 중복인데 생성됨");
 		}catch (IllegalArgumentException e){
 			System.out.println(e.getMessage());
 		}
 
-		User userE = userService.create(new UserCreateRequest("김예외","4885",testId+"-exception@example.com"),null);
+		System.out.println("==============================");
 
+		//비밀번호 틀리게 로그인
 		try{
-			userService.update(userE.getId(),"김창호","4885",user2.getEmail());
+			authService.login(new LoginRequest("수정-"+testId,"틀린비밀번호"));
+			System.out.println("비밀번호 틀렸는데 로그인됨");
 		}catch (IllegalArgumentException e){
 			System.out.println(e.getMessage());
 		}
-
-		User savedUserE = userService.findById(userE.getId());
-		System.out.println(savedUserE.getName()+" / "+savedUserE.getEmail());
-
-		//자신의 이메일을 그대로 사용하는 수정은 성공
-		userService.update(userE.getId(),savedUserE.getName(),savedUserE.getPassword(),savedUserE.getEmail());
-		System.out.println(userService.findById(userE.getId()).getEmail());
 
 		//채널명 중복 테스트
-		System.out.println("===== 채널명 중복 테스트 =====");
-
 		try{
-			channelService.create(channel2.getName());
+			channelService.createPublic(
+					new PublicChannelRequest("수정채널-"+testId,"중복 테스트"));
+			System.out.println("채널명 중복인데 생성됨");
 		}catch (IllegalArgumentException e){
 			System.out.println(e.getMessage());
 		}
 
-		Channel channelE = channelService.create("노가리 채널-"+testId);
+		System.out.println("==============================");
 
+		Channel testChannel = channelService.createPrivate(
+				new PrivateChannelRequest(List.of(user.getId())));
+
+		//PRIVATE 수정 테스트
 		try{
-			channelService.update(channelE.getId(),channel2.getName());
+			channelService.update(
+					new ChannelUpdateRequest(testChannel.getId(),"수정 시도","수정 시도"));
+			System.out.println("PRIVATE인데 수정됨");
 		}catch (IllegalArgumentException e){
 			System.out.println(e.getMessage());
 		}
 
-		System.out.println(channelService.findById(channelE.getId()).getName());
+		//조회상태 중복 테스트
+		try{
+			readStatusService.create(new ReadStatusCreateRequest(
+					user.getId(),testChannel.getId(),java.time.Instant.now()));
+			System.out.println("조회상태 중복인데 생성됨");
+		}catch (IllegalArgumentException e){
+			System.out.println(e.getMessage());
+		}
 
-		//자신의 채널명을 그대로 사용하는 수정은 성공
-		channelService.update(channelE.getId(),channelE.getName());
-		System.out.println(channelService.findById(channelE.getId()).getName());
+		//테스트하고 남은거 삭제
+		channelService.delete(testChannel.getId());
+		channelService.delete(publicChannel.getId());
+		userService.delete(user.getId());
 
-		//채널 삭제 후 사용자의 참여채널 목록 확인
-		//메시지를 먼저 삭제해 테스트 데이터 정리
-		messageService.delete(message2.getId());
-		channelService.delete(channel2.getId());
-
-		System.out.println("삭제 후 참여채널 수: "+userService.findById(user2.getId()).getChannels().size());
-
-		//이번 실행에서 생성한 나머지 테스트 데이터 정리
-		channelService.delete(channelT.getId());
-		channelService.delete(channelE.getId());
-		userService.delete(user2.getId());
-		userService.delete(userE.getId());
-
-		System.out.println("===== Spring CRUD 테스트 완료 =====");
+		System.out.println("===== 테스트 끝 =====");
 	}
 }

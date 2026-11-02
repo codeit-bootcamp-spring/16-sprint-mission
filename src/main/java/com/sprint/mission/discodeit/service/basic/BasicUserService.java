@@ -29,7 +29,6 @@ public class BasicUserService implements UserService {
     public User create(UserCreateRequest request, BinaryContentRequest profile) {
         List<User> users = userRepository.findAll();
 
-
         if(users.stream().anyMatch(u->u.getName().equals(request.name()))) {
             throw new IllegalArgumentException("사용 중인 이름");
         }
