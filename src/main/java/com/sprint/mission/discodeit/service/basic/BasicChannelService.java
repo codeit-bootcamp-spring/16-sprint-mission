@@ -26,8 +26,9 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelDto createPrivate(PrivateChannelCreateRequest request) {
-        Set<UUID> memberIds = new LinkedHashSet<>(request.participantIds());
-        memberIds.add(request.ownerId());                       // owner도 참여자에 포함
+        List<UUID> participantIds = request.participantIds() != null ? request.participantIds() : List.of();
+        Set<UUID> memberIds = new LinkedHashSet<>(participantIds);
+        memberIds.add(request.ownerId());
 
         List<User> members = memberIds.stream()
                 .map(id -> userRepository.findById(id)

@@ -9,7 +9,7 @@ import java.util.*;
 public class User extends BaseUpdatableEntity {
     private String username;
     private String email;
-    private transient String password;
+    private String password;
     private UUID profileId;
     private final Set<UUID> channels = new HashSet<>();
     private final List<UUID> messages = new ArrayList<>();
@@ -71,9 +71,9 @@ public class User extends BaseUpdatableEntity {
     @Override
     public String toString() {
         return "User{" +
-                "id='" + username + '\'' +
+                "username='" + username + '\'' +
                 ", email='" + email + '\'' +
-                ", password='" + password + '\'' +
+                ", profileId=" + profileId +
                 ", channels=" + channels +
                 ", messages=" + messages +
                 '}';
