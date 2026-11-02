@@ -89,6 +89,13 @@ public class BasicUserService implements UserService {
         String newEmail = updateRequest.email();
         String newPassword = updateRequest.password();
 
+        this.userRepository.findByName(newName).ifPresent((existingUser) -> {
+            throw new IllegalArgumentException("이미 수정할 이름과 같은 이름의 유저가 존재합니다. 이름: %s".formatted(existingUser.getName()));
+        });
+        this.userRepository.findByEmail(newEmail).ifPresent((existingUser) -> {
+            throw new IllegalArgumentException("이미 수정할 이메일과 같은 이메일의 유저가 존재합니다. 이메일: %s".formatted(existingUser.getEmail()));
+        });
+
         user.update(newName, newEmail, newPassword);
 
         if (imageUpdateRequest != null) {
