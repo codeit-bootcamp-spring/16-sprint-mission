@@ -25,9 +25,8 @@ public class UserStatus implements Serializable {
         this.updatedAt = now;
     }
 
-    public void update(UUID userId) {
-        this.userId = userId;
-        this.updatedAt = Instant.now();
+    public void update(Instant lastActiveAt) {
+        this.updatedAt = lastActiveAt;
     }
 
     public boolean isOnline() {

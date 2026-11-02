@@ -36,7 +36,7 @@ public class BasicChannelService implements ChannelService {
                 new Channel(ChannelType.PRIVATE, null, null);
         channelRepository.save(channel);
         privateChannelRequestDto.userList().forEach(userId ->
-                readStatusRepository.save(channel.getId(), userId)
+                readStatusRepository.save(new ReadStatus(userId, channel.getId()))
         );
         return this.toDto(channel);
     }

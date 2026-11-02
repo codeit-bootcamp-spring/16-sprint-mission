@@ -7,7 +7,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface BinaryContentRepository {
-    public void deleteById(UUID id);
     public BinaryContent save(BinaryContent binaryContent);
+    public void deleteById(UUID id);
     public Optional<BinaryContent> findById(UUID id);
 }

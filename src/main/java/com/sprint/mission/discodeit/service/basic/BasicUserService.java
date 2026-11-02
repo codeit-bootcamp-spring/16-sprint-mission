@@ -122,7 +122,8 @@ public class BasicUserService implements UserService {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
-        UserStatus userStatus = userStatusRepository.findByUserId(user.getId());
+        UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
 
         return toDto(user, userStatus);
     }

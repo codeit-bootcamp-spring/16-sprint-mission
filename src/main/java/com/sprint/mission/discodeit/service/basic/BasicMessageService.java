@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.BinaryContentRequestDto;
 import com.sprint.mission.discodeit.dto.MessageRequestDto;
 import com.sprint.mission.discodeit.dto.MessageResponseDto;
+import com.sprint.mission.discodeit.dto.MessageUpdateDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -12,7 +13,6 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import org.springframework.stereotype.Service;
 
-import java.time.Instant;
 import java.util.*;
 
 @Service
@@ -27,6 +27,11 @@ public class BasicMessageService implements MessageService {
         this.channelRepository = channelRepository;
         this.userRepository = userRepository;
         this.binaryContentRepository = binaryContentRepository;
+    }
+
+    private MessageResponseDto toDto(Message message) {
+        return new MessageResponseDto
+                (message.getId(), message.getContent(), message.getChannelId(), message.getAuthorId(), message.getAttachmentIds());
     }
 
     @Override
@@ -54,36 +59,34 @@ public class BasicMessageService implements MessageService {
         Message message = new Message(content, channelId, authorId, attachmentIds);
         messageRepository.save(message);
 
-        return new MessageResponseDto
-                (message.getId(), message.getContent(), message.getChannelId(), message.getAuthorId(), message.getAttachmentIds());
+        return toDto(message);
     }
 
     @Override
     public MessageResponseDto find(UUID messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NoSuchElementException("Message with id " + messageId + " not found"));
-        return new MessageResponseDto(message.getId(), message.getContent(),message.getChannelId(), message.getAuthorId(), message.getAttachmentIds());
+        return toDto(message);
     }
 
     @Override
     public List<MessageResponseDto> findAllByChannelId(UUID channelId) {
         List<Message> messages = messageRepository.findAllByChannelId(channelId);
         List<MessageResponseDto> messageResponseDtos;
-        for (Message message : messages) {
-            messageResponseDtos.add(new MessageResponseDto(message.getId(), message.getContent(),message.getChannelId(), message.getAuthorId(), message.getAttachmentIds());)
-        }
-        return messageResponseDtos;
+
+        return messages.stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override
-    public MessageResponseDto update(UUID messageId, MessageRequestDto messageRequestDto) {
+    public MessageResponseDto update(UUID messageId, MessageUpdateDto messageUpdateDto) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NoSuchElementException("Message with id " + messageId + " not found"));
-        message.update(messageRequestDto.content());
+        message.update(messageUpdateDto.content());
         messageRepository.save(message);
 
-        return new MessageResponseDto
-                (message.getId(), message.getContent(), message.getChannelId(), message.getAuthorId(), message.getAttachmentIds());
+        return toDto(message);
     }
 
     @Override

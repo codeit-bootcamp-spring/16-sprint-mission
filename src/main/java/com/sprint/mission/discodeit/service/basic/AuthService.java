@@ -1,18 +1,23 @@
-package com.sprint.mission.discodeit.service;
+package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.LoginRequestDto;
 import com.sprint.mission.discodeit.dto.UserResponseDto;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import org.springframework.stereotype.Service;
 
 import java.util.NoSuchElementException;
 
+@Service
 public class AuthService {
-    private UserRepository userRepository;
+    private final UserRepository userRepository;
+    private final UserStatusRepository userStatusRepository;
 
-    public AuthService(UserRepository userRepository) {
+    public AuthService(UserRepository userRepository, UserStatusRepository userStatusRepository) {
         this.userRepository = userRepository;
+        this.userStatusRepository = userStatusRepository;
     }
 
     public UserResponseDto login(LoginRequestDto loginRequestDto) {
@@ -23,11 +28,9 @@ public class AuthService {
             throw new NoSuchElementException("Wrong password");
         }
 
-        userRepository.save(user);
-        UserStatus userStatus = new UserStatus(user.getId());
-        UserResponseDto userResponseDto =
-                new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
+        UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
 
-        return userResponseDto;
+        return new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
     }
 }
