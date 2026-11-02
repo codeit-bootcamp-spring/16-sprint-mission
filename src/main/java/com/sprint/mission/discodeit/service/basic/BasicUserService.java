@@ -156,6 +156,7 @@ public class BasicUserService implements UserService {
         }
 
         // 4. 기존 프로필 이미지 ID 유지
+        UUID oldProfileId = targetUser.getProfileId();
         UUID profileId = targetUser.getProfileId();
 
         // 5. 새 프로필 이미지가 전달된 경우 저장하고 ID 갱신
@@ -179,6 +180,11 @@ public class BasicUserService implements UserService {
 
         // 7. 수정된 사용자 정보 저장
         userRepository.save(updatedUser);
+
+        // 새 프로필로 교체된 경우 기존 프로필 이미지 삭제
+        if (request.profile() != null && oldProfileId != null) {
+            binaryContentRepository.deleteById(oldProfileId);
+        }
 
         // 8. 사용자 상태 조회 및 DTO 반환
         UserStatus userStatus = userStatusRepository.findByUserId(request.userId())

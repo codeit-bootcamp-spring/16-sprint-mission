@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.repository.file.otherFile;
 
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Primary;
 import org.springframework.stereotype.Repository;
 
@@ -16,18 +18,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
-@Primary
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileBinaryContentRepository implements BinaryContentRepository {
 
     // 바이너리 콘텐츠 데이터 파일이 저장될 경로
-    private static final Path FILE_PATH =
-            Paths.get("data", "binaryContentRepository.ser");
+    private final Path filePath;
 
     // 파일에서 읽어 온 바이너리 콘텐츠 목록
     private List<BinaryContent> data;
 
     // 데이터 디렉터리를 생성하고 파일에 저장된 바이너리 콘텐츠 목록을 초기화한다.
-    public FileBinaryContentRepository() {
+    public FileBinaryContentRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.filePath = Paths.get(fileDirectory, "binaryContentRepository.ser");
         createDataDirectory();
         this.data = loadData();
     }
@@ -35,7 +43,7 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     // 데이터 파일을 저장할 폴더가 없으면 생성한다.
     private void createDataDirectory() {
         try {
-            Files.createDirectories(FILE_PATH.getParent());
+            Files.createDirectories(filePath.getParent());
         } catch (IOException exception) {
             throw new RuntimeException("데이터 폴더를 만들 수 없습니다.", exception);
         }
@@ -44,12 +52,12 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     // 파일에서 바이너리 콘텐츠 목록을 불러온다.
     @SuppressWarnings("unchecked")
     private List<BinaryContent> loadData() {
-        if (Files.notExists(FILE_PATH)) {
+        if (Files.notExists(filePath)) {
             return new ArrayList<>();
         }
 
         try (ObjectInputStream inputStream =
-                     new ObjectInputStream(Files.newInputStream(FILE_PATH))) {
+                     new ObjectInputStream(Files.newInputStream(filePath))) {
 
             return (List<BinaryContent>) inputStream.readObject();
 
@@ -65,24 +73,24 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
         try {
             // 기존 파일을 보호하기 위해 같은 디렉터리에 임시 파일을 생성한다.
             tempFile = Files.createTempFile(
-                    FILE_PATH.getParent(), "binaryContentRepository-", ".tmp");
+                    filePath.getParent(), "binaryContentRepository-", ".tmp");
 
             try (ObjectOutputStream outputStream =
                          new ObjectOutputStream(Files.newOutputStream(tempFile))) {
 
                 outputStream.writeObject(dataToSave);
-
-                // 임시 파일에 데이터 저장을 완료한 후 기존 파일을 교체한다.
-                try {
-                    Files.move(tempFile, FILE_PATH,
-                            StandardCopyOption.REPLACE_EXISTING,
-                            StandardCopyOption.ATOMIC_MOVE);
-                } catch (AtomicMoveNotSupportedException exception) {
-                    // 원자적 이동을 지원하지 않으면 일반 파일 이동으로 대체한다.
-                    Files.move(tempFile, FILE_PATH,
-                            StandardCopyOption.REPLACE_EXISTING);
-                }
             }
+                // 임시 파일에 데이터 저장을 완료한 후 기존 파일을 교체한다.
+            try {
+                Files.move(tempFile, filePath,
+                        StandardCopyOption.REPLACE_EXISTING,
+                        StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException exception) {
+                // 원자적 이동을 지원하지 않으면 일반 파일 이동으로 대체한다.
+                Files.move(tempFile, filePath,
+                        StandardCopyOption.REPLACE_EXISTING);
+            }
+
 
         } catch (IOException exception) {
             throw new RuntimeException("바이너리 콘텐츠 데이터를 저장할 수 없습니다.", exception);

@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.entity.Message;
@@ -16,14 +18,22 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileMessageRepository implements MessageRepository {
     // 메시지 데이터 파일 경로
-    private static final Path FILE_PATH = Paths.get("data", "messageRepository.ser");
+    private final Path filePath;
 
     // 파일에서 불러온 메시지 목록
     private List<Message> data;
 
-    public FileMessageRepository() {
+    public FileMessageRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.filePath = Paths.get(fileDirectory,"messageRepository.ser");
         createDataDirectory();
         this.data = loadData();
     }
@@ -32,7 +42,7 @@ public class FileMessageRepository implements MessageRepository {
     private void createDataDirectory(){
         try {
             // 데이터 파일을 저장할 폴더가 없으면 생성한다.
-            Files.createDirectories(FILE_PATH.getParent());
+            Files.createDirectories(filePath.getParent());
         } catch (IOException ioException){
             throw new RuntimeException("데이터 폴더를 만들 수 없습니다.", ioException);
         }
@@ -49,13 +59,13 @@ public class FileMessageRepository implements MessageRepository {
     @SuppressWarnings("unchecked")
     private List<Message> loadData() {
         // 저장된 파일이 없으면 빈 메시지 목록을 반환한다.
-        if (Files.notExists(FILE_PATH)) {
+        if (Files.notExists(filePath)) {
             return new ArrayList<>();
         }
 
         // 파일에 저장된 객체를 읽는다. (역직렬화)
         try (ObjectInputStream inputStream =
-                     new ObjectInputStream(Files.newInputStream(FILE_PATH))) {
+                     new ObjectInputStream(Files.newInputStream(filePath))) {
 
             // 파일에 저장된 메시지 목록을 읽어 반환한다.
             return (List<Message>) inputStream.readObject();
@@ -71,7 +81,7 @@ public class FileMessageRepository implements MessageRepository {
         try {
             // 임시 파일 생성
             tempFile = Files.createTempFile(
-                    FILE_PATH.getParent(),
+                    filePath.getParent(),
                     "messageRepository-",
                     ".tmp"
             );
@@ -87,14 +97,14 @@ public class FileMessageRepository implements MessageRepository {
             try {
                 Files.move(
                         tempFile,
-                        FILE_PATH,
+                        filePath,
                         StandardCopyOption.REPLACE_EXISTING,
                         StandardCopyOption.ATOMIC_MOVE
                     );
                 } catch (AtomicMoveNotSupportedException amnsException) {
                     Files.move(
                         tempFile,
-                        FILE_PATH,
+                        filePath,
                         StandardCopyOption.REPLACE_EXISTING
                     );
                 }

@@ -39,14 +39,14 @@ public class ReFileChannelConsoleRun {
         System.out.println("####### 채널 File Service CRUD 테스트 #######\n");
 
         /* 1. Repository 초기화 */
-        ChannelRepository channelRepository = new FileChannelRepository();
-        UserRepository userRepository = new FileUserRepository();
-        MessageRepository messageRepository = new FileMessageRepository();
-        ReadStatusRepository readStatusRepository = new FileReadStatusRepository();
+        ChannelRepository channelRepository = new FileChannelRepository(".discodeit");
+        UserRepository userRepository = new FileUserRepository(".discodeit");
+        MessageRepository messageRepository = new FileMessageRepository(".discodeit");
+        ReadStatusRepository readStatusRepository = new FileReadStatusRepository(".discodeit");
 
         /* 1-1. UserService 초기화 */
-        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository();
-        UserStatusRepository userStatusRepository = new FileUserStatusRepository();
+        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository(".discodeit");
+        UserStatusRepository userStatusRepository = new FileUserStatusRepository(".discodeit");
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 

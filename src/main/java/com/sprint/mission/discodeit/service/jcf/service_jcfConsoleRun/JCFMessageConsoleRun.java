@@ -6,7 +6,9 @@ import com.sprint.mission.discodeit.dto.request.channelRequest.PublicChannelCrea
 import com.sprint.mission.discodeit.dto.request.messageRequest.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.messageRequest.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFChannelRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
@@ -42,10 +44,12 @@ public class JCFMessageConsoleRun {
         System.out.println("####### 메시지 CRUD 테스트 #######\n");
 
         /* 1. Repository 구현체를 생성한다. */
+        MessageRepository messageRepository = new JCFMessageRepository();
         UserRepository userRepository = new JCFUserRepository();
+        ChannelRepository channelRepository = new JCFChannelRepository();
+
         BinaryContentRepository binaryContentRepository = new JCFBinaryContentRepository();
         UserStatusRepository userStatusRepository = new JCFUserStatusRepository();
-        MessageRepository messageRepository = new JCFMessageRepository();
         ReadStatusRepository readStatusRepository = new JCFReadStatusRepository();
 
         /* 2. Repository를 주입하여 Service 구현체를 생성한다. */
@@ -55,7 +59,7 @@ public class JCFMessageConsoleRun {
         ChannelService channelService = new JCFChannelService(
                 userRepository, readStatusRepository, messageRepository);
 
-        MessageService messageService = new JCFMessageService(userService, channelService);
+        MessageService messageService = new JCFMessageService(userRepository, channelRepository);
 
         String uniqueId = UUID.randomUUID().toString();
 

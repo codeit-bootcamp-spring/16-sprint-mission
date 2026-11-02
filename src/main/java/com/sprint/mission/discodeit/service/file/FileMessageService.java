@@ -4,8 +4,12 @@ import com.sprint.mission.discodeit.dto.request.messageRequest.MessageCreateRequ
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.request.messageRequest.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -16,32 +20,37 @@ import java.util.stream.Collectors;
 
 public class FileMessageService implements MessageService {
 
-    // Repository 및 Service 의존성
+    // Repository 의존성
     private final MessageRepository messageRepository;
-    private final UserService userService;
-    private final ChannelService channelService;
+    private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
 
     // 생성자 의존성 주입
     public FileMessageService(MessageRepository messageRepository,
-                              UserService userService,
-                              ChannelService channelService) {
+                              UserRepository userRepository,
+                              ChannelRepository channelRepository) {
 
         this.messageRepository = messageRepository;
-        this.userService = userService;
-        this.channelService = channelService;
+        this.userRepository = userRepository;
+        this.channelRepository = channelRepository;
     }
 
     @Override
     public MessageDto createMessage(MessageCreateRequest request) {
 
         // 작성자와 채널이 실제로 존재하는지 확인한다.
-        UserDto planner = userService.readUser(request.userId());
-        channelService.readChannel(request.channelId());
+        User user = userRepository.findByUserId(request.userId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        Channel channel = channelRepository.findByChannelId(request.channelId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
         // 작성자의 채널 참여 여부 확인
-        if (!channelService.isMember(request.channelId(), request.userId())){
+        if (!channel.hasMember(request.userId())){
             throw new IllegalArgumentException
-                    ("'" + planner.username() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
+                    ("'" + user.getUsername() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
         }
 
         // 메시지 생성 및 저장

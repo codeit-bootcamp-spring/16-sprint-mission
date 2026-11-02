@@ -30,9 +30,9 @@ public class ReFileUserConsoleRun {
         System.out.println("####### 유저 File Service CRUD 테스트 #######\n");
 
         // 1. Repository와 Service 초기화
-        UserRepository userRepository = new FileUserRepository();
-        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository();
-        UserStatusRepository userStatusRepository = new FileUserStatusRepository();
+        UserRepository userRepository = new FileUserRepository(".discodeit");
+        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository(".discodeit");
+        UserStatusRepository userStatusRepository = new FileUserStatusRepository(".discodeit");
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 

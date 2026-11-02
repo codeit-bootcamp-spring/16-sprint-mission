@@ -2,10 +2,19 @@ package com.sprint.mission.discodeit.repository.jcf.otherJCF;
 
 import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
 import com.sprint.mission.discodeit.repository.otherRepository.ReadStatusRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 import java.util.stream.Collectors;
 
+@Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "jcf",
+        matchIfMissing = true
+)
 public class JCFReadStatusRepository implements ReadStatusRepository {
 
     // ReadStatus ID를 키로 사용하여 읽음 상태를 관리하는 Map

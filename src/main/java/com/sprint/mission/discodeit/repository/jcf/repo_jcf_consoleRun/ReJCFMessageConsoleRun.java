@@ -64,7 +64,7 @@ public class ReJCFMessageConsoleRun {
 
         MessageService messageService =
                 new BasicMessageService(
-                        binaryContentRepository, messageRepository, userService, channelService);
+                        binaryContentRepository, messageRepository, userRepository, channelRepository);
 
         // 2. 유저 및 채널 생성
         String uniqueId = UUID.randomUUID().toString();

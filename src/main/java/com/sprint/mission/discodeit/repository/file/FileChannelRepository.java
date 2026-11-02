@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.entity.Channel;
@@ -16,14 +18,22 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileChannelRepository implements ChannelRepository {
     // 채널 데이터 파일이 저장될 경로를 지정한다.
-    private static final Path FILE_PATH = Paths.get("data", "channelRepository.ser");
+    private final Path filePath;
 
     // 파일에서 읽어 온 채널 목록을 보관한다.
     private List<Channel> data;
 
-    public FileChannelRepository() {
+    public FileChannelRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.filePath = Paths.get(fileDirectory, "channelRepository.ser");
         createDataDirectory();
         this.data = loadData();
     }
@@ -31,7 +41,7 @@ public class FileChannelRepository implements ChannelRepository {
     // 데이터 저장 디렉터리 생성
     private void createDataDirectory(){
         try {
-            Files.createDirectories(FILE_PATH.getParent());
+            Files.createDirectories(filePath.getParent());
         } catch (IOException ioException){
             throw new RuntimeException("데이터 폴더를 만들 수 없습니다.", ioException);
         }
@@ -41,13 +51,13 @@ public class FileChannelRepository implements ChannelRepository {
     @SuppressWarnings("unchecked")
     private List<Channel> loadData() {
         // 저장된 파일이 없으면 빈 채널 목록을 반환한다.
-        if (Files.notExists(FILE_PATH)) {
+        if (Files.notExists(filePath)) {
             return new ArrayList<>();
         }
 
         // 파일에 저장된 객체를 읽는다. (역직렬화)
         try (ObjectInputStream inputStream =
-                     new ObjectInputStream(Files.newInputStream(FILE_PATH))) {
+                     new ObjectInputStream(Files.newInputStream(filePath))) {
 
             // 파일에 저장된 채널 목록을 읽어 반환한다.
             return (List<Channel>) inputStream.readObject();
@@ -63,7 +73,7 @@ public class FileChannelRepository implements ChannelRepository {
         try {
             // 임시 파일 생성
             tempFile = Files.createTempFile(
-                    FILE_PATH.getParent(),
+                    filePath.getParent(),
                     "channelRepository-",
                     ".tmp"
             );
@@ -78,14 +88,14 @@ public class FileChannelRepository implements ChannelRepository {
             try {
                 Files.move(
                         tempFile,
-                        FILE_PATH,
+                        filePath,
                         StandardCopyOption.REPLACE_EXISTING,
                         StandardCopyOption.ATOMIC_MOVE
                 );
             } catch (AtomicMoveNotSupportedException exception) {
                 Files.move(
                         tempFile,
-                        FILE_PATH,
+                        filePath,
                         StandardCopyOption.REPLACE_EXISTING
                 );
             }

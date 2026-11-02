@@ -2,11 +2,19 @@ package com.sprint.mission.discodeit.repository.jcf.otherJCF;
 
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "jcf",
+        matchIfMissing = true
+)
 public class JCFBinaryContentRepository implements BinaryContentRepository {
 
     // BinaryContent ID를 키로 사용하여 바이너리 콘텐츠를 관리하는 Map

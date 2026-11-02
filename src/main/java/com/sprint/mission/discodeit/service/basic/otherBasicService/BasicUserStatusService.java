@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.otherService.UserStatusService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -13,18 +14,11 @@ import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class BasicUserStatusService implements UserStatusService {
 
     private final UserStatusRepository userStatusRepository;
     private final UserRepository userRepository;
-
-    public BasicUserStatusService(
-            UserStatusRepository userStatusRepository,
-            UserRepository userRepository
-    ) {
-        this.userStatusRepository = userStatusRepository;
-        this.userRepository = userRepository;
-    }
 
     @Override
     public UserStatus create(UserStatusCreateRequest request) {

@@ -44,13 +44,13 @@ public class ReFileMessageConsoleRun {
         System.out.println("####### 메시지 File Repository 테스트 #######\n");
 
         /* 1. Repository 초기화 */
-        UserRepository userRepository = new FileUserRepository();
-        ChannelRepository channelRepository = new FileChannelRepository();
-        MessageRepository messageRepository = new FileMessageRepository();
-        ReadStatusRepository readStatusRepository = new FileReadStatusRepository();
+        UserRepository userRepository = new FileUserRepository(".discodeit");
+        ChannelRepository channelRepository = new FileChannelRepository(".discodeit");
+        MessageRepository messageRepository = new FileMessageRepository(".discodeit");
+        ReadStatusRepository readStatusRepository = new FileReadStatusRepository(".discodeit");
 
-        UserStatusRepository userStatusRepository = new FileUserStatusRepository();
-        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository();
+        UserStatusRepository userStatusRepository = new FileUserStatusRepository(".discodeit");
+        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository(".discodeit");
 
         PasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -62,7 +62,7 @@ public class ReFileMessageConsoleRun {
                 channelRepository, userRepository, messageRepository, readStatusRepository);
 
         MessageService messageService = new BasicMessageService(
-                binaryContentRepository, messageRepository, userService, channelService);
+                binaryContentRepository, messageRepository, userRepository, channelRepository);
 
         /* 2. 테스트용 유저 생성 */
         String uniqueId = UUID.randomUUID().toString();

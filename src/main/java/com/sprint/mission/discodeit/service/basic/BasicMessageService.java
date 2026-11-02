@@ -4,6 +4,10 @@ import com.sprint.mission.discodeit.dto.request.messageRequest.MessageCreateRequ
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.request.messageRequest.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,20 +27,24 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor // final 필드와 @NonNull 필드를 매개변수로 받는 생성자를 Lombok이 자동으로 생성하도록 한다.
 public class BasicMessageService implements MessageService {
 
-    // Repository 및 Service 의존성
+    // Repository 의존성
     private final BinaryContentRepository binaryContentRepository;
     private final MessageRepository messageRepository;
-    private final UserService userService;
-    private final ChannelService channelService;
+    private final UserRepository userRepository;
+    private final ChannelRepository channelRepository;
 
     @Override
     public MessageDto createMessage(MessageCreateRequest request) {
 
         // 작성자가 실제로 존재하는지 확인한다.
-        UserDto planner = userService.readUser(request.userId());
+        User user = userRepository.findByUserId(request.userId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
         // 메시지가 작성될 채널이 존재하는지 확인한다.
-        channelService.readChannel(request.channelId());
+        Channel channel = channelRepository.findByChannelId(request.channelId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("채널을 찾을 수 없습니다"));
 
         // 첨부파일이 전달된 경우 존재 여부를 확인한다.
         if (request.attachmentIds() != null) {
@@ -48,10 +56,9 @@ public class BasicMessageService implements MessageService {
         }
 
         // 작성자의 채널 참여 여부 확인
-        if (!channelService.isMember(
-                request.channelId(), request.userId())) {
+        if (!channel.hasMember(request.userId())) {
             throw new IllegalArgumentException(
-                    "'" + planner.username() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
+                    "'" + user.getUsername() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
         }
 
         // 메시지 생성 및 저장
@@ -121,6 +128,13 @@ public class BasicMessageService implements MessageService {
         // 메시지 작성자와 삭제 요청자가 일치하는지 확인
         if (!targetMessage.userId().equals(requesterId)) {
             throw new IllegalArgumentException("메시지 작성자만 삭제할 수 있습니다.");
+        }
+
+        // 메시지에 연결된 첨부파일 삭제
+        if (targetMessage.attachmentIds() != null) {
+            for (UUID attachmentId : targetMessage.attachmentIds()) {
+                binaryContentRepository.deleteById(attachmentId);
+            }
         }
 
         // 메시지 삭제

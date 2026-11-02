@@ -57,7 +57,7 @@ public class BasicServiceConsoleRun {
                 channelRepository, userRepository, messageRepository, readStatusRepository);
 
         MessageService messageService = new BasicMessageService(
-                binaryContentRepository, messageRepository, userService, channelService);
+                binaryContentRepository, messageRepository, userRepository, channelRepository);
 
         // 3. 유저를 생성하고 정보를 출력한다.
         UserDto user = setupUser(userService);

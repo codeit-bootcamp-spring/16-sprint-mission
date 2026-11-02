@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import com.sprint.mission.discodeit.entity.User;
@@ -17,15 +19,23 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileUserRepository implements UserRepository {
 
     // 유저 데이터 파일이 저장될 경로
-    private static final Path FILE_PATH = Paths.get("data", "userRepository.ser");
+    private final Path filePath;
 
     // 파일에서 읽어 온 유저 목록
     private List<User> data;
 
-    public FileUserRepository() {
+    public FileUserRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.filePath = Paths.get(fileDirectory, "userRepository.ser");
         createDataDirectory();
         this.data = loadData();
     }
@@ -34,7 +44,7 @@ public class FileUserRepository implements UserRepository {
     private void createDataDirectory() {
         try {
             // 데이터 파일을 저장할 폴더가 없으면 생성한다.
-            Files.createDirectories(FILE_PATH.getParent());
+            Files.createDirectories(filePath.getParent());
         } catch (IOException exception) {
             throw new RuntimeException("데이터 폴더를 만들 수 없습니다", exception);
         }
@@ -45,13 +55,13 @@ public class FileUserRepository implements UserRepository {
     private List<User> loadData(){
 
         // 파일이 없으면 빈 목록을 반환한다.
-        if (Files.notExists(FILE_PATH)){
+        if (Files.notExists(filePath)){
             return new ArrayList<>();
         }
 
         // 파일에 저장된 객체를 읽는다. (역직렬화)
         try (ObjectInputStream inputStream =
-                new ObjectInputStream(Files.newInputStream(FILE_PATH))){
+                new ObjectInputStream(Files.newInputStream(filePath))){
 
             // 파일에 저장된 유저 목록을 읽어 반환한다.
             return (List<User>) inputStream.readObject();
@@ -66,7 +76,7 @@ public class FileUserRepository implements UserRepository {
 
         try {
             // 기존 데이터 파일과 같은 디렉터리에 임시 파일을 생성한다.
-            tempFile = Files.createTempFile(FILE_PATH.getParent(),
+            tempFile = Files.createTempFile(filePath.getParent(),
                     "userRepository-", ".tmp");
 
             // 객체를 userRepository 파일에 저장한다. (직렬화)
@@ -79,14 +89,14 @@ public class FileUserRepository implements UserRepository {
                 // 임시 파일을 기존 데이터 파일과 원자적으로 교체
                 try {
                     Files.move(tempFile,
-                            FILE_PATH,
+                            filePath,
                             StandardCopyOption.REPLACE_EXISTING,
                             StandardCopyOption.ATOMIC_MOVE);
 
                 } catch (AtomicMoveNotSupportedException exception) {
                     // 원자적 이동을 지원하지 않으면 일반적인 파일 교체를 수행한다.
                     Files.move(tempFile,
-                            FILE_PATH,
+                            filePath,
                             StandardCopyOption.REPLACE_EXISTING);
                 }
             }

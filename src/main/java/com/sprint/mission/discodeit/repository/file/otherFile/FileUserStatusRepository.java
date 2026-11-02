@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.repository.file.otherFile;
 
 import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
 import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -15,17 +17,24 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileUserStatusRepository implements UserStatusRepository {
 
     // 유저 상태 데이터 파일이 저장될 경로
-    private static final Path FILE_PATH =
-            Paths.get("data", "userStatusRepository.ser");
+    private final Path filePath;
 
     // 파일에서 읽어 온 유저 상태 목록
     private List<UserStatus> data;
 
     // 데이터 디렉터리를 생성하고 파일에 저장된 유저 상태 목록을 초기화한다.
-    public FileUserStatusRepository() {
+    public FileUserStatusRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.filePath = Paths.get(fileDirectory, "userStatusRepository.ser");
         createDataDirectory();
         this.data = loadData();
     }
@@ -33,7 +42,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     // 데이터 파일을 저장할 폴더가 없으면 생성한다.
     private void createDataDirectory() {
         try {
-            Files.createDirectories(FILE_PATH.getParent());
+            Files.createDirectories(filePath.getParent());
         } catch (IOException exception) {
             throw new RuntimeException("데이터 폴더를 만들 수 없습니다.", exception);
         }
@@ -42,12 +51,12 @@ public class FileUserStatusRepository implements UserStatusRepository {
     // 파일에서 유저 상태 목록을 불러온다.
     @SuppressWarnings("unchecked")
     private List<UserStatus> loadData() {
-        if (Files.notExists(FILE_PATH)) {
+        if (Files.notExists(filePath)) {
             return new ArrayList<>();
         }
 
         try (ObjectInputStream inputStream =
-                     new ObjectInputStream(Files.newInputStream(FILE_PATH))) {
+                     new ObjectInputStream(Files.newInputStream(filePath))) {
 
             return (List<UserStatus>) inputStream.readObject();
 
@@ -63,7 +72,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
         try {
             // 기존 파일을 보호하기 위해 같은 디렉터리에 임시 파일을 생성한다.
             tempFile = Files.createTempFile(
-                    FILE_PATH.getParent(), "userStatusRepository-", ".tmp");
+                    filePath.getParent(), "userStatusRepository-", ".tmp");
 
             // 임시 파일에 유저 상태 목록을 직렬화한다.
             try (ObjectOutputStream outputStream =
@@ -74,12 +83,12 @@ public class FileUserStatusRepository implements UserStatusRepository {
 
             // 출력 스트림이 닫힌 후 임시 파일을 기존 데이터 파일로 교체한다.
             try {
-                Files.move(tempFile, FILE_PATH,
+                Files.move(tempFile, filePath,
                         StandardCopyOption.REPLACE_EXISTING,
                         StandardCopyOption.ATOMIC_MOVE);
             } catch (AtomicMoveNotSupportedException exception) {
                 // 원자적 이동을 지원하지 않으면 일반 파일 이동으로 대체한다.
-                Files.move(tempFile, FILE_PATH,
+                Files.move(tempFile, filePath,
                         StandardCopyOption.REPLACE_EXISTING);
             }
 

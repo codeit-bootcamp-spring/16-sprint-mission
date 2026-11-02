@@ -4,21 +4,17 @@ import com.sprint.mission.discodeit.dto.request.otherRequest.BinaryContentCreate
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.otherService.BinaryContentService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class BasicBinaryContentService implements BinaryContentService {
 
     private final BinaryContentRepository binaryContentRepository;
-
-    public BasicBinaryContentService(
-            BinaryContentRepository binaryContentRepository
-    ) {
-        this.binaryContentRepository = binaryContentRepository;
-    }
 
     @Override
     public BinaryContent create(BinaryContentCreateRequest request) {
@@ -26,9 +22,11 @@ public class BasicBinaryContentService implements BinaryContentService {
         BinaryContent binaryContent = new BinaryContent(
                 request.fileName(),
                 request.contentType(),
-                request.size()
+                request.size(),
+                request.bytes()
         );
 
+        // 생성한 바이너리 콘텐츠를 Repository에 저장한다.
         binaryContentRepository.save(binaryContent);
 
         return binaryContent;

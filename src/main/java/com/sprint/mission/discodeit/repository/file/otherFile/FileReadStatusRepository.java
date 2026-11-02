@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.repository.file.otherFile;
 
 import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
 import com.sprint.mission.discodeit.repository.otherRepository.ReadStatusRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.io.IOException;
@@ -16,17 +18,24 @@ import java.util.UUID;
 import java.util.function.Predicate;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileReadStatusRepository implements ReadStatusRepository {
 
     // 읽음 상태 데이터 파일이 저장될 경로
-    private static final Path FILE_PATH =
-            Paths.get("data", "readStatusRepository.ser");
+    private final Path filePath;
 
     // 파일에서 읽어 온 읽음 상태 목록
     private List<ReadStatus> data;
 
     // 데이터 디렉터리를 생성하고 파일에 저장된 읽음 상태 목록을 초기화한다.
-    public FileReadStatusRepository() {
+    public FileReadStatusRepository(
+            @Value("${discodeit.repository.file-directory:data}") String fileDirectory
+    ) {
+        this.filePath = Paths.get(fileDirectory, "readStatusRepository.ser");
         createDataDirectory();
         this.data = loadData();
     }
@@ -34,7 +43,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     // 데이터 파일을 저장할 폴더가 없으면 생성한다.
     private void createDataDirectory() {
         try {
-            Files.createDirectories(FILE_PATH.getParent());
+            Files.createDirectories(filePath.getParent());
         } catch (IOException ioException) {
             throw new RuntimeException(
                     "데이터 폴더를 만들 수 없습니다.", ioException);
@@ -45,12 +54,12 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     @SuppressWarnings("unchecked")
     private List<ReadStatus> loadData() {
 
-        if (Files.notExists(FILE_PATH)) {
+        if (Files.notExists(filePath)) {
             return new ArrayList<>();
         }
 
         try (ObjectInputStream inputStream =
-                     new ObjectInputStream(Files.newInputStream(FILE_PATH))) {
+                     new ObjectInputStream(Files.newInputStream(filePath))) {
 
             return (List<ReadStatus>) inputStream.readObject();
 
@@ -67,7 +76,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         try {
             // 기존 파일을 보호하기 위해 같은 디렉터리에 임시 파일을 생성한다.
             tempFile = Files.createTempFile(
-                    FILE_PATH.getParent(), "readStatusRepository-", ".tmp");
+                    filePath.getParent(), "readStatusRepository-", ".tmp");
 
             // 임시 파일에 읽음 상태 목록을 직렬화한다.
             try (ObjectOutputStream outputStream =
@@ -78,12 +87,12 @@ public class FileReadStatusRepository implements ReadStatusRepository {
 
             // 출력 스트림이 닫힌 후 임시 파일을 기존 데이터 파일로 교체한다.
             try {
-                Files.move(tempFile, FILE_PATH,
+                Files.move(tempFile, filePath,
                         StandardCopyOption.REPLACE_EXISTING,
                         StandardCopyOption.ATOMIC_MOVE);
             } catch (AtomicMoveNotSupportedException amnsException) {
                 // 원자적 이동을 지원하지 않으면 일반 파일 이동으로 대체한다.
-                Files.move(tempFile, FILE_PATH,
+                Files.move(tempFile, filePath,
                         StandardCopyOption.REPLACE_EXISTING);
             }
 
