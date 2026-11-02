@@ -21,16 +21,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
     private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
-    private final MessageRepository messageRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
 
 
     @Override
     public User create(UserCreateRequest request, BinaryContentRequest profile) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-        List<User> users = entities.getUsers();
+        List<User> users = userRepository.findAll();
 
 
         if(users.stream().anyMatch(u->u.getName().equals(request.name()))) {
@@ -43,7 +40,7 @@ public class BasicUserService implements UserService {
 
 
         User user = new User(request.name(),request.password(),request.email());
-        users.add(user);
+
 
         if(profile != null) {
             BinaryContent binaryContent = new BinaryContent(profile.fileName(),profile.contentType(), profile.bytes());
@@ -51,8 +48,7 @@ public class BasicUserService implements UserService {
             user.updateProfile(binaryContent.getId());
         }
 
-
-        entities.saveAll();
+        userRepository.save(user);
 
         UserStatus userStatus = new UserStatus(user.getId(),Instant.now());
         userStatusRepository.save(userStatus);
@@ -62,10 +58,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserDto findById(UUID id) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-
-
-        User user = entities.getUsers().stream().filter(u -> u.getId().equals(id)).findFirst().orElseThrow(() ->
+        User user = userRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
         UserStatus userStatus = userStatusRepository.findAll().stream().filter(s->s.getUserId().equals(id)).findFirst().orElseThrow(()->
             new IllegalArgumentException("접속 상태를 찾을 수 없음"));
@@ -74,11 +67,10 @@ public class BasicUserService implements UserService {
 
     @Override
     public List<UserDto> findAll() {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
         List<UserDto> userDtos = new ArrayList<>();
         List<UserStatus> userStatuses = userStatusRepository.findAll();;
 
-        for(User user : entities.getUsers()) {
+        for(User user : userRepository.findAll()) {
             UserStatus userStatus = userStatuses.stream().filter(s->s.getUserId().equals(user.getId())).findFirst()
                     .orElseThrow(()->new IllegalArgumentException("접속상태를 찾을 수 없음"));
             UserDto userDto = new UserDto(
@@ -86,13 +78,13 @@ public class BasicUserService implements UserService {
 
             userDtos.add(userDto);
         }
-        return userDtos;   //여기해야됨
+        return userDtos;   //내일여기서부터해야됨
     }
 
     @Override
     public User update(UserUpdateRequest request, BinaryContentRequest profile) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-        List<User> users = entities.getUsers();
+
+        List<User> users = userRepository.findAll();
 
         User user = users.stream().filter(u -> u.getId().equals(request.userId())).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
@@ -118,16 +110,13 @@ public class BasicUserService implements UserService {
             }
         }
 
-        entities.saveAll();
+        userRepository.save(user);
         return user;
     }
 
     @Override
     public void delete(UUID id) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-        List<User> users = entities.getUsers();
-
-        User user = users.stream().filter(u -> u.getId().equals(id)).findFirst().orElseThrow(() ->
+        User user = userRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
 
         if(user.getProfileId()!=null) {
@@ -137,7 +126,6 @@ public class BasicUserService implements UserService {
                 new IllegalArgumentException("접속 상태를 찾을 수 없음"));
         userStatusRepository.deleteById(userStatus.getId());
 
-    users.remove(user);
-        entities.saveAll();
+        userRepository.deleteById(id);
     }
 }

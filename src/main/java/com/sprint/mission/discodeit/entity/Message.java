@@ -3,30 +3,25 @@ package com.sprint.mission.discodeit.entity;
 
 import lombok.Getter;
 
+import java.util.UUID;
+
 @Getter
 public class Message extends BaseEntity {
-;
-    private String comment;
-    private User user;
-    private Channel channel;
 
-    public Message(String comment, User user, Channel channel) {
+    private String comment;
+    private UUID authorId;
+    private UUID channelId;
+
+    public Message(String comment,UUID authorId, UUID channelId) {
 
         this.comment = comment;
-        this.user = user;
-        this.channel = channel;
+        this.authorId = authorId;
+        this.channelId = channelId;
     }
 
     public void update(String comment) {
         this.comment = comment;
         updateTime();
-    }
-    public void updateUser(User user) {
-        this.user = user;
-    }
-
-    public void updateChannel(Channel channel) {
-        this.channel = channel;
     }
 
 }

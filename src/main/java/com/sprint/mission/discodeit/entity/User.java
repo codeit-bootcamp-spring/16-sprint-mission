@@ -24,8 +24,6 @@ public class User extends BaseEntity{
         this.password = password;
         this.email = email;
 
-        this.channels = new ArrayList<>();
-        this.messages = new ArrayList<>();
     }
 
     public void updateProfile(UUID profileId) {
@@ -33,8 +31,6 @@ public class User extends BaseEntity{
         updateTime();
     }
 
-    private List<Channel> channels;
-    private List<Message> messages;
 
     public void update(String name, String password, String email) {
         this.name = name;

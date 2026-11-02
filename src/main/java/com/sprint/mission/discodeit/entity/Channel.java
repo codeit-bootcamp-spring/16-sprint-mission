@@ -21,11 +21,9 @@ public class Channel extends BaseEntity{
         this.type = type;
         this.description = description;
 
-        this.users = new ArrayList<>();
-        this.messages = new ArrayList<>();
+
     }
-    private List<User> users;
-    private List<Message> messages;
+
 
 
 

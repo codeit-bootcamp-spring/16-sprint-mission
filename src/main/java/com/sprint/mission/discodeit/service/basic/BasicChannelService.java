@@ -4,10 +4,7 @@ import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.PrivateChannelRequest;
 import com.sprint.mission.discodeit.dto.PublicChannelRequest;
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -32,22 +29,19 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public Channel createPublic(PublicChannelRequest request) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-        List<Channel> channels = entities.getChannels();
+        List<Channel> channels = channelRepository.findAll();
 
         if(channels.stream().anyMatch(c -> c.getType() == ChannelType.PUBLIC&&c.getName().equals(request.name()))) {
             throw new IllegalArgumentException("사용 중인 채널명");
         }
 
         Channel channel = new Channel(ChannelType.PUBLIC,request.name(),request.description());
-        channels.add(channel);
-        entities.saveAll();
+        channelRepository.save(channel);
         return channel;
     }
 
     @Override
     public Channel createPrivate(PrivateChannelRequest request) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
 
         for(UUID userId : request.userIds()){
             userRepository.findById(userId).orElseThrow(() ->
@@ -55,8 +49,7 @@ public class BasicChannelService implements ChannelService {
         }
 
         Channel channel = new Channel(ChannelType.PRIVATE,null,null);
-        entities.getChannels().add(channel);
-        entities.saveAll();
+        channelRepository.save(channel);
 
         List<UUID> participantIds = new ArrayList<>();
 
@@ -73,13 +66,12 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelDto findById(UUID id) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
         List<UUID> userIds = new ArrayList<>();
-        Channel channel = entities.getChannels().stream().filter(c -> c.getId().equals(id)).findFirst().orElseThrow(() ->
+        Channel channel = channelRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
         // 요구사항 최근 메시지 시간정보 포함합니다 기능
-        Instant lastMessageAt = entities.getMessages().stream().filter(m ->
-                m.getChannel().getId().equals(channel.getId())).map(m->
+        Instant lastMessageAt = messageRepository.findAll().stream().filter(m ->
+                m.getChannelId().equals(channel.getId())).map(m->
                 m.getCreatedAt()).max(Instant::compareTo).orElse(null);
         // 요구사항 Priavte 채널인경우 참여한 정보 포함 기능
         if(channel.getType().equals(ChannelType.PRIVATE)){
@@ -95,11 +87,10 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
         List<ChannelDto> channelDtos = new ArrayList<>();
         List<ReadStatus> readStatuses = readStatusRepository.findAll();
 
-        for(Channel channel : entities.getChannels()){
+        for(Channel channel :channelRepository.findAll()){
             boolean joined = readStatuses.stream().anyMatch(s ->
                     s.getUserId().equals(userId)&&s.getChannelId().equals(channel.getId()));
 
@@ -114,19 +105,13 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public Channel update(ChannelUpdateRequest request) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-        List<Channel> channels = entities.getChannels();
-
-
+        List<Channel> channels = channelRepository.findAll();
 
         Channel channel = channels.stream().filter(c -> c.getId().equals(request.channelId())).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
-
-        //요구사항 PRIVATE 채널은 수정불가능 기능
         if(channel.getType().equals(ChannelType.PRIVATE)){
             throw new IllegalArgumentException("PRIVATE 채널은 수정불가");
         }
-
         if(channels.stream()
                 .filter(c -> c.getType() == ChannelType.PUBLIC)
                 .anyMatch(otherChannel -> !otherChannel.getId().equals(request.channelId())
@@ -136,38 +121,46 @@ public class BasicChannelService implements ChannelService {
 
 
         channel.update(request.name(),request.description());
-        entities.saveAll();
+        channelRepository.save(channel);
         return channel;
     }
 
     @Override
     public void delete(UUID id) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-        List<Channel> channels = entities.getChannels();
+        List<Channel> channels = channelRepository.findAll();
 
         Channel channel = channels.stream().filter(c -> c.getId().equals(id)).findFirst().orElseThrow(() ->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
-        channels.remove(channel);
-        entities.saveAll();
+        for(Message message : messageRepository.findAll()){
+            if(message.getChannelId().equals(id))
+                messageRepository.deleteById(message.getId());
+        }
+        for(ReadStatus readStatus : readStatusRepository.findAll()){
+            if(readStatus.getChannelId().equals(id)){
+                readStatusRepository.deleteById(readStatus.getId());
+            }
+        }
+
+        channelRepository.deleteById(id);
     }
 
     @Override
     public void join(UUID channelId, UUID userId) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
 
-        Channel channel = entities.getChannels().stream().filter(c -> c.getId().equals(channelId)).findFirst().orElseThrow(() ->
+        channelRepository.findById(channelId).orElseThrow(() ->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
-        User user = entities.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(() ->
-                new IllegalArgumentException("사용자를 찾을 수 없음"));
+        userRepository.findById(userId).orElseThrow(()->
+                new IllegalArgumentException("유저를 찾을 수 없음"));
 
-        if(channel.getUsers().stream().anyMatch(u -> u.getId().equals(userId))){
-            throw new IllegalArgumentException("이미 참여한 사용자입니다");
+        for(ReadStatus readStatus : readStatusRepository.findAll()){
+            if(readStatus.getChannelId().equals(channelId)&&readStatus.getUserId().equals(userId)){
+                throw new IllegalArgumentException("중복참여 불가");
+            }
         }
+        ReadStatus readStatus = new ReadStatus(userId,channelId, Instant.now());
 
-        channel.getUsers().add(user);
-        user.getChannels().add(channel);
-        entities.saveAll();
+        readStatusRepository.save(readStatus);
     }
 }
