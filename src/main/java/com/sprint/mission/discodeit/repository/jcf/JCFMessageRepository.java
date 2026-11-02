@@ -26,17 +26,21 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public List<Message> findAllByChannelId(UUID channelId) {
-        return List.of();
+        return data.values().stream()
+                .filter(m -> m.getChannelId().equals(channelId))
+                .toList();
     }
 
     @Override
     public List<Message> findAllByUserId(UUID userId) {
-        return List.of();
+        return data.values().stream()
+                .filter(m -> m.getAuthorId().equals(userId))
+                .toList();
     }
 
     @Override
     public boolean existsById(UUID id) {
-        return false;
+        return data.containsKey(id);
     }
 
     @Override
@@ -46,11 +50,11 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public void deleteAllByUserId(UUID userId) {
-
+        data.values().removeIf(m -> m.getAuthorId().equals(userId));
     }
 
     @Override
     public void deleteAllByChannelId(UUID channelId) {
-
+        data.values().removeIf(m -> m.getChannelId().equals(channelId));
     }
 }

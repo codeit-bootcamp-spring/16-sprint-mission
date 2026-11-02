@@ -51,7 +51,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatusDto update(UUID id, UserStatusUpdateRequest request) {
-        return applyUdpate(request, getUserStatusOrThrow(id));
+        return applyUpdate(request, getUserStatusOrThrow(id));
     }
 
     @Override
@@ -59,7 +59,7 @@ public class BasicUserStatusService implements UserStatusService {
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 접속 상태가 존재하지 않습니다."));
 
-        return applyUdpate(request, userStatus);
+        return applyUpdate(request, userStatus);
     }
 
     @Override
@@ -73,7 +73,7 @@ public class BasicUserStatusService implements UserStatusService {
                 .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 접속 상태입니다."));
     }
 
-    private UserStatusDto applyUdpate(UserStatusUpdateRequest request, UserStatus userStatus) {
+    private UserStatusDto applyUpdate(UserStatusUpdateRequest request, UserStatus userStatus) {
         Instant lastActiveAt = request.newLastActiveAt() != null ? request.newLastActiveAt() : Instant.now();
         userStatus.updateLastActiveAt(lastActiveAt);
 

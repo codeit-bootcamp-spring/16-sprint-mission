@@ -1,20 +1,9 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
-import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
-import com.sprint.mission.discodeit.repository.file.FileUserRepository;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.basic.BasicChannelService;
-import com.sprint.mission.discodeit.service.basic.BasicMessageService;
-import com.sprint.mission.discodeit.service.basic.BasicUserService;
+import com.sprint.mission.discodeit.dto.request.*;
+import com.sprint.mission.discodeit.dto.response.*;
+import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.service.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -25,252 +14,262 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @SpringBootApplication
 public class DiscodeitApplication {
 
+	private static final List<String> DATA_FILES = List.of(
+			"users.ser", "channels.ser", "messages.ser",
+			"userStatuses.ser", "readStatuses.ser", "binaryContents.ser");
+
 	public static void main(String[] args) {
 		cleanData();
 		ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
 
-		UserRepository userRepository = context.getBean(FileUserRepository.class);
-		ChannelRepository channelRepository = context.getBean(FileChannelRepository.class);
-		MessageRepository messageRepository = context.getBean(FileMessageRepository.class);
-
-		UserService userService = context.getBean(BasicUserService.class);
-		ChannelService channelService = context.getBean(BasicChannelService.class);
-		MessageService messageService = context.getBean(BasicMessageService.class);
-
-		// 의존 방향: User <- Channel <- Message <- UserWithdrawal (아래 서비스부터 생성)
+		// 서비스 초기화: new 대신 IoC Container에서 Bean 조회 (인터페이스 타입으로)
+		UserService userService = context.getBean(UserService.class);
+		AuthService authService = context.getBean(AuthService.class);
+		ChannelService channelService = context.getBean(ChannelService.class);
+		MessageService messageService = context.getBean(MessageService.class);
+		ReadStatusService readStatusService = context.getBean(ReadStatusService.class);
+		UserStatusService userStatusService = context.getBean(UserStatusService.class);
+		BinaryContentService binaryContentService = context.getBean(BinaryContentService.class);
 
 		// =========================
 		// 1. User 테스트
 		// =========================
-		System.out.println("===== User 테스트 =====");
+		System.out.println("===== 1. User 테스트 =====");
 
-		System.out.println("users.ser 생성 전: " + Files.exists(Paths.get("data", "users.ser")));
-		User user1 = userService.create(new User("user1", "user1@test.com", "password123"));
-		User user2 = userService.create(new User("user2", "user2@test.com", "password456"));
-		System.out.println("users.ser 생성 후: " + Files.exists(Paths.get("data", "users.ser")));
+		UserDto user1 = userService.create(
+				new UserCreateRequest("user1", "user1@test.com", "password123"),
+				Optional.of(image("profile1.png")));
+		UserDto user2 = userService.create(
+				new UserCreateRequest("user2", "user2@test.com", "password456"),
+				Optional.empty());
+		UserDto user3 = userService.create(
+				new UserCreateRequest("user3", "user3@test.com", "password789"),
+				Optional.empty());
 
-		System.out.println("생성된 사용자: " + user1.getUsername());
-		System.out.println("ID 조회: " + userService.findById(user1.getId()).getEmail());
+		System.out.println("생성된 사용자: " + user1.username() + ", " + user2.username() + ", " + user3.username());
 		System.out.println("전체 사용자 수: " + userService.findAll().size());
+		System.out.println("프로필 이미지 등록: " + (user1.profileId() != null));
+		System.out.println("프로필 없는 사용자 profileId: " + user2.profileId());
+		System.out.println("생성 직후 온라인 여부: " + user1.isOnline());
+		System.out.println("UserStatus 함께 생성: " + userStatusService.findAll().size() + "건");
 
-		// 본인 이메일을 유지하면서 수정
-		User updatedUser = userService.update(
-				user1.getId(), "updatedUser1", "user1@test.com", "password123");
-		System.out.println("사용자 수정: " + updatedUser.getUsername());
-		System.out.println("수정 후 조회: " + userService.findById(user1.getId()).getUsername());
-		expectFail("중복 이메일",
-				() -> userService.create(new User("user3", "user1@test.com", "password789")));
-		expectFail("짧은 비밀번호",
-				() -> userService.create(new User("user3", "user3@test.com", "123")));
+		expectFail("중복 username",
+				() -> userService.create(new UserCreateRequest("user1", "other@test.com", "password123"), Optional.empty()));
+		expectFail("중복 email",
+				() -> userService.create(new UserCreateRequest("other", "user1@test.com", "password123"), Optional.empty()));
 		expectFail("존재하지 않는 사용자 조회",
 				() -> userService.findById(UUID.randomUUID()));
+
+		// 이름만 수정 (나머지는 null → 기존 값 유지)
+		UserDto renamed = userService.update(user1.id(),
+				new UserUpdateRequest("updatedUser1", null, null), Optional.empty());
+		System.out.println("이름만 수정: " + renamed.username() + " / 이메일 유지: " + renamed.email());
+
+		// 프로필만 교체 (나머지 전부 null)
+		UUID oldProfileId = renamed.profileId();
+		UserDto reprofiled = userService.update(user1.id(),
+				new UserUpdateRequest(null, null, null), Optional.of(image("profile1-new.png")));
+		System.out.println("프로필만 교체: " + !reprofiled.profileId().equals(oldProfileId));
+		expectFail("교체 전 프로필 파일 조회",
+				() -> binaryContentService.findById(oldProfileId));
+
+		expectFail("다른 사용자와 같은 이름으로 수정",
+				() -> userService.update(user1.id(), new UserUpdateRequest("user2", null, null), Optional.empty()));
 
 		printFile("users.ser");
 
 		// =========================
-		// 2. Channel 테스트
+		// 2. Auth / UserStatus 테스트
 		// =========================
-		System.out.println("\n===== Channel 테스트 =====");
+		System.out.println("\n===== 2. Auth / UserStatus 테스트 =====");
 
-		System.out.println("channels.ser 생성 전: " + Files.exists(Paths.get("data", "channels.ser")));
-		Channel channel = channelService.create(
-				new Channel(user1.getId(), "general", "일반 채널"));
-		System.out.println("channels.ser 생성 후: " + Files.exists(Paths.get("data", "channels.ser")));
+		// 마지막 접속을 10분 전으로 돌려 오프라인 만들기
+		userStatusService.updateByUserId(user2.id(),
+				new UserStatusUpdateRequest(Instant.now().minus(Duration.ofMinutes(10))));
+		System.out.println("10분 전 접속 → 온라인 여부: " + userService.findById(user2.id()).isOnline());
 
-		System.out.println("생성된 채널: " + channel.getName());
-		System.out.println("채널 ID 조회: " + channelService.findById(channel.getId()).getId());
-		System.out.println("전체 채널 수: " + channelService.findAll().size());
-		System.out.println("소유자 자동 가입 (Channel.users): " + channelService.findById(channel.getId()).hasUser(user1.getId()));
-		System.out.println("소유자 자동 가입 (User.channels): " + userService.findById(user1.getId()).hasChannel(channel.getId()));
+		UserDto loginUser = authService.login(new UserLoginRequest("user2", "password456"));
+		System.out.println("로그인 성공: " + loginUser.username() + " / 로그인 후 온라인 여부: " + loginUser.isOnline());
+
+		expectFail("틀린 비밀번호로 로그인",
+				() -> authService.login(new UserLoginRequest("user2", "wrong-password")));
+		expectFail("존재하지 않는 사용자로 로그인",
+				() -> authService.login(new UserLoginRequest("nobody", "password456")));
+
+		expectFail("이미 UserStatus가 있는 사용자의 UserStatus 생성",
+				() -> userStatusService.create(new UserStatusCreateRequest(user1.id(), null)));
+		expectFail("존재하지 않는 사용자의 UserStatus 생성",
+				() -> userStatusService.create(new UserStatusCreateRequest(UUID.randomUUID(), null)));
+
+		printFile("userStatuses.ser");
+
+		// =========================
+		// 3. Channel 테스트
+		// =========================
+		System.out.println("\n===== 3. Channel 테스트 =====");
+
+		ChannelDto publicChannel = channelService.createPublic(
+				new PublicChannelCreateRequest(user1.id(), "general", "일반 채널"));
+		ChannelDto privateChannel = channelService.createPrivate(
+				new PrivateChannelCreateRequest(user1.id(), List.of(user2.id())));
+
+		System.out.println("PUBLIC 채널: " + publicChannel.name() + " / 타입: " + publicChannel.type());
+		System.out.println("PRIVATE 채널 이름: " + privateChannel.name() + " / 타입: " + privateChannel.type());
+		System.out.println("PRIVATE 참여자 수: " + privateChannel.participantIds().size());
+		System.out.println("PRIVATE 생성 시 ReadStatus 생성 (user2): "
+				+ readStatusService.findAllByUserId(user2.id()).size() + "건");
+
+		// findAllByUserId: PUBLIC 전체 + 참여한 PRIVATE
+		System.out.println("user2가 볼 수 있는 채널 수 (PUBLIC + 참여 PRIVATE): "
+				+ channelService.findAllByUserId(user2.id()).size());
+		System.out.println("user3가 볼 수 있는 채널 수 (PUBLIC만): "
+				+ channelService.findAllByUserId(user3.id()).size());
 
 		// 입장
-		channelService.join(channel.getId(), user2.getId());
-		System.out.println("입장 후 멤버 수: "
-				+ userService.findAllByChannelId(channel.getId()).size());
-		System.out.println("양쪽 기록 일치: "
-				+ (channelService.findById(channel.getId()).hasUser(user2.getId()) && userService.findById(user2.getId()).hasChannel(channel.getId())));
+		channelService.join(publicChannel.id(), user2.id());
+		System.out.println("PUBLIC 입장 후 멤버 수: " + userService.findAllByChannelId(publicChannel.id()).size());
+		expectFail("PRIVATE 채널 입장",
+				() -> channelService.join(privateChannel.id(), user3.id()));
 
-		expectFail("존재하지 않는 사용자의 입장",
-				() -> channelService.join(channel.getId(), UUID.randomUUID()));
-		expectFail("이미 가입한 사용자의 입장",
-				() -> channelService.join(channel.getId(), user2.getId()));
-		expectFail("일반 사용자의 채널 수정",
-				() -> channelService.update(channel.getId(), user2.getId(), "hacked", "x"));
-
-		// 소유자의 채널 수정
-		Channel updatedChannel = channelService.update(
-				channel.getId(), user1.getId(), "general-updated", "수정된 설명");
-		System.out.println("채널 수정: " + updatedChannel.getName() + " / " + updatedChannel.getDescription());
+		// 수정
+		ChannelDto updatedChannel = channelService.update(publicChannel.id(),
+				new ChannelUpdateRequest(user1.id(), "general-updated", "수정된 설명"));
+		System.out.println("PUBLIC 채널 수정: " + updatedChannel.name() + " / " + updatedChannel.description());
+		expectFail("PRIVATE 채널 수정",
+				() -> channelService.update(privateChannel.id(), new ChannelUpdateRequest(user1.id(), "x", "x")));
+		expectFail("소유자가 아닌 사용자의 채널 수정",
+				() -> channelService.update(publicChannel.id(), new ChannelUpdateRequest(user2.id(), "hacked", "x")));
 
 		printFile("channels.ser");
 
 		// =========================
-		// 3. Message 테스트
+		// 4. Message / BinaryContent 테스트
 		// =========================
-		System.out.println("\n===== Message 테스트 =====");
+		System.out.println("\n===== 4. Message / BinaryContent 테스트 =====");
 
-		System.out.println("messages.ser 생성 전: " + Files.exists(Paths.get("data", "messages.ser")));
-		Message message = messageService.create(
-				new Message(user1.getId(), channel.getId(), "안녕하세요!"));
-		System.out.println("messages.ser 생성 후: " + Files.exists(Paths.get("data", "messages.ser")));
+		MessageDto plainMessage = messageService.create(
+				new MessageCreateRequest(user1.id(), publicChannel.id(), "안녕하세요!"),
+				List.of());
+		MessageDto fileMessage = messageService.create(
+				new MessageCreateRequest(user2.id(), publicChannel.id(), "파일 2개 첨부합니다"),
+				List.of(image("a.png"), image("b.png")));
 
-		System.out.println("메시지 생성: " + message.getContent());
-		System.out.println("메시지 ID 조회: " + messageService.findById(message.getId()).getId());
-		System.out.println("전체 메시지 수: " + messageService.findAll().size());
-		System.out.println("채널별 메시지 수: "
-				+ messageService.findAllByChannelId(channel.getId()).size());
-		System.out.println("양쪽 기록 일치: "
-				+ (userService.findById(user1.getId()).getMessages().contains(message.getId())
-				&& channelService.findById(channel.getId()).getMessages().contains(message.getId())));
+		System.out.println("첨부파일 없는 메시지: " + plainMessage.attachmentIds().size() + "개");
+		System.out.println("첨부파일 있는 메시지: " + fileMessage.attachmentIds().size() + "개");
+		System.out.println("첨부파일 일괄 조회 (findAllByIdIn): "
+				+ binaryContentService.findAllByIdIn(fileMessage.attachmentIds()).size() + "개");
+		System.out.println("채널 메시지 수 (findAllByChannelId): "
+				+ messageService.findAllByChannelId(publicChannel.id()).size());
+		System.out.println("채널 최근 메시지 시간 포함: "
+				+ (channelService.findById(publicChannel.id()).lastMessageAt() != null));
 
-		// 채널 멤버가 아닌 사용자의 메시지 작성
-		User user3 = userService.create(new User("user3", "user3@test.com", "password789"));
 		expectFail("채널 멤버가 아닌 사용자의 메시지 작성",
-				() -> messageService.create(new Message(user3.getId(), channel.getId(), "몰래 작성")));
-
+				() -> messageService.create(new MessageCreateRequest(user3.id(), publicChannel.id(), "몰래 작성"), List.of()));
 		expectFail("존재하지 않는 채널에 메시지 작성",
-				() -> messageService.create(new Message(user1.getId(), UUID.randomUUID(), "없는 채널")));
+				() -> messageService.create(new MessageCreateRequest(user1.id(), UUID.randomUUID(), "없는 채널"), List.of()));
 
-		// 작성자의 수정
-		Message updatedMessage = messageService.update(
-				message.getId(), user1.getId(), "수정된 메시지입니다.");
-		System.out.println("수정된 메시지 내용: " + updatedMessage.getContent());
-
+		MessageDto updatedMessage = messageService.update(plainMessage.id(),
+				new MessageUpdateRequest(user1.id(), "수정된 메시지입니다."));
+		System.out.println("메시지 수정: " + updatedMessage.content());
 		expectFail("다른 사용자의 메시지 수정",
-				() -> messageService.update(message.getId(), user2.getId(), "권한 없는 수정"));
-		System.out.println("권한 없는 수정 후 내용 유지: "
-				+ messageService.findById(message.getId()).getContent());
+				() -> messageService.update(plainMessage.id(), new MessageUpdateRequest(user2.id(), "권한 없는 수정")));
+
+		// 메시지 삭제 시 첨부파일도 함께 삭제
+		List<UUID> attachmentIds = fileMessage.attachmentIds();
+		messageService.delete(fileMessage.id(), user2.id());
+		System.out.println("메시지 삭제 후 첨부파일 남은 개수: "
+				+ binaryContentService.findAllByIdIn(attachmentIds).size());
+		expectFail("삭제된 메시지 조회",
+				() -> messageService.findById(fileMessage.id()));
+
+		// BinaryContentService 단독 사용
+		BinaryContentDto standalone = binaryContentService.create(image("standalone.png"));
+		System.out.println("BinaryContent 단독 생성: " + standalone.fileName() + " (" + standalone.size() + " bytes)");
+		binaryContentService.delete(standalone.id());
+		expectFail("삭제된 BinaryContent 조회",
+				() -> binaryContentService.findById(standalone.id()));
 
 		printFile("messages.ser");
-
-		expectFail("다른 사용자의 메시지 삭제",
-				() -> messageService.delete(message.getId(), user2.getId()));
-
-		// 작성자의 삭제
-		messageService.delete(message.getId(), user1.getId());
-		System.out.println("삭제 후 메시지 수: " + messageService.findAll().size());
-		System.out.println("삭제 후 양쪽 기록 정리: "
-				+ (userService.findById(user1.getId()).getMessages().isEmpty() && channelService.findById(channel.getId()).getMessages().isEmpty()));
-		expectFail("삭제된 메시지 조회",
-				() -> messageService.findById(message.getId()));
-
+		printFile("binaryContents.ser");
 
 		// =========================
-		// 4. 소유권 / 퇴장 테스트
+		// 5. ReadStatus 테스트
 		// =========================
-		System.out.println("\n===== 소유권 / 퇴장 테스트 =====");
+		System.out.println("\n===== 5. ReadStatus 테스트 =====");
 
-		expectFail("소유자가 아닌 사용자의 소유권 양도",
-				() -> channelService.transferOwnership(channel.getId(), user2.getId(), user2.getId()));
-		expectFail("채널 멤버가 아닌 사용자에게 양도",
-				() -> channelService.transferOwnership(channel.getId(), user1.getId(), user3.getId()));
+		ReadStatusDto readStatus = readStatusService.create(
+				new ReadStatusCreateRequest(user2.id(), publicChannel.id(), null));
+		System.out.println("ReadStatus 생성: lastReadAt 자동 채움 = " + (readStatus.lastReadAt() != null));
 
-		channelService.transferOwnership(channel.getId(), user1.getId(), user2.getId());
-		System.out.println("소유권 양도 결과: " + channelService.findById(channel.getId()).isOwner(user2.getId()));
+		expectFail("같은 사용자·채널 ReadStatus 중복 생성",
+				() -> readStatusService.create(new ReadStatusCreateRequest(user2.id(), publicChannel.id(), null)));
+		expectFail("존재하지 않는 채널의 ReadStatus 생성",
+				() -> readStatusService.create(new ReadStatusCreateRequest(user2.id(), UUID.randomUUID(), null)));
 
-		expectFail("새 소유자의 퇴장",
-				() -> channelService.leave(channel.getId(), user2.getId()));
-		System.out.println("소유자 퇴장 거부 후에도 멤버인가: " + channelService.findById(channel.getId()).hasUser(user2.getId()));
+		Instant readAt = Instant.now().plusSeconds(60);
+		ReadStatusDto updatedReadStatus = readStatusService.update(readStatus.id(), new ReadStatusUpdateRequest(readAt));
+		System.out.println("ReadStatus 수정: " + updatedReadStatus.lastReadAt().equals(readAt));
 
-		channelService.leave(channel.getId(), user1.getId());
-		System.out.println("기존 소유자 퇴장 후 멤버 수: "
-				+ userService.findAllByChannelId(channel.getId()).size());
-		System.out.println("퇴장 후 양쪽 기록 정리: "
-				+ (!channelService.findById(channel.getId()).hasUser(user1.getId()) && !userService.findById(user1.getId()).hasChannel(channel.getId())));
+		readStatusService.delete(readStatus.id());
+		expectFail("삭제된 ReadStatus 조회",
+				() -> readStatusService.findById(readStatus.id()));
 
-		expectFail("이미 퇴장한 사용자의 퇴장",
-				() -> channelService.leave(channel.getId(), user1.getId()));
+		printFile("readStatuses.ser");
 
 		// =========================
-		// 5. 삭제 테스트 (관계가 남아 있으면 삭제 거부)
+		// 6. 삭제 연쇄 테스트
 		// =========================
-		System.out.println("\n===== 삭제 테스트 =====");
+		System.out.println("\n===== 6. 삭제 연쇄 테스트 =====");
 
-		Message message2 = messageService.create(
-				new Message(user2.getId(), channel.getId(), "삭제 테스트용 메시지"));
-
-		expectFail("참여 중인 채널이 있는 사용자 삭제",
-				() -> userService.delete(user2.getId()));
-		expectFail("메시지가 남아 있는 채널 삭제",
-				() -> channelService.delete(channel.getId(), user2.getId()));
+		// 채널 삭제 → 메시지, ReadStatus 함께 삭제
+		messageService.create(new MessageCreateRequest(user1.id(), privateChannel.id(), "DM 메시지"), List.of());
+		channelService.delete(privateChannel.id(), user1.id());
+		System.out.println("PRIVATE 채널 삭제 후 메시지 수: "
+				+ messageService.findAllByChannelId(privateChannel.id()).size());
+		System.out.println("PRIVATE 채널 삭제 후 user2의 ReadStatus 수: "
+				+ readStatusService.findAllByUserId(user2.id()).size());
 		expectFail("소유자가 아닌 사용자의 채널 삭제",
-				() -> channelService.delete(channel.getId(), user1.getId()));
+				() -> channelService.delete(publicChannel.id(), user2.id()));
 
-		// 올바른 삭제 순서: 메시지 -> 채널 -> 사용자
-		messageService.delete(message2.getId(), user2.getId());
-		System.out.println("삭제 후 메시지 수: " + messageService.findAll().size());
-
-		channelService.delete(channel.getId(), user2.getId());
-		System.out.println("삭제 후 채널 수: " + channelService.findAll().size());
-		System.out.println("채널 삭제 후 user2의 채널 목록 정리: " + userService.findById(user2.getId()).getChannels().isEmpty());
-
-		// 관계가 없는 사용자는 바로 삭제 가능
-		userService.delete(user1.getId());
-		System.out.println("삭제 후 사용자 수: " + userService.findAll().size());
+		// 사용자 삭제 → 프로필, UserStatus 함께 삭제
+		UUID user3ProfileTarget = userService.update(user3.id(),
+				new UserUpdateRequest(null, null, null), Optional.of(image("profile3.png"))).profileId();
+		int statusCountBefore = userStatusService.findAll().size();
+		userService.delete(user3.id());
+		System.out.println("사용자 삭제 후 UserStatus 감소: " + (userStatusService.findAll().size() == statusCountBefore - 1));
+		expectFail("삭제된 사용자의 프로필 조회",
+				() -> binaryContentService.findById(user3ProfileTarget));
 		expectFail("삭제된 사용자 조회",
-				() -> userService.findById(user1.getId()));
+				() -> userService.findById(user3.id()));
 
-		// =========================
-		// 6. 탈퇴 테스트 (UserWithdrawalService)
-		// =========================
-		System.out.println("\n===== 탈퇴 테스트 =====");
-
-		Channel withdrawChannel = channelService.create(
-				new Channel(user2.getId(), "withdraw-test", "탈퇴 테스트 채널"));
-		channelService.join(withdrawChannel.getId(), user3.getId());
-
-		Message user3Message = messageService.create(
-				new Message(user3.getId(), withdrawChannel.getId(), "탈퇴할 사용자의 메시지"));
-		Message user2Message = messageService.create(
-				new Message(user2.getId(), withdrawChannel.getId(), "채널 소유자의 메시지"));
-
-		System.out.println("탈퇴 전 채널 멤버 수: "
-				+ userService.findAllByChannelId(withdrawChannel.getId()).size());
-		System.out.println("탈퇴 전 채널 메시지 수: " + channelService.findById(withdrawChannel.getId()).getMessages().size());
-
-		// 소유한 채널이 있으면 거부되고, 아무것도 바뀌지 않아야 함
-		expectFail("소유한 채널이 있는 사용자 탈퇴",
-				() -> withdrawalService.withdraw(user2.getId()));
-		System.out.println("탈퇴 거부 후 메시지 유지: " + (messageService.findAll().size() == 2));
-		System.out.println("탈퇴 거부 후 채널 멤버 유지: " + channelService.findById(withdrawChannel.getId()).hasUser(user2.getId()));
-
-		// 소유한 채널이 없는 사용자는 탈퇴 가능
-		withdrawalService.withdraw(user3.getId());
-		System.out.println("탈퇴 후 사용자 삭제: "
-				+ userService.findAll().stream().noneMatch(u -> u.getId().equals(user3.getId())));
-		System.out.println("탈퇴 후 채널 멤버 정리: " + !channelService.findById(withdrawChannel.getId()).hasUser(user3.getId()));
-		System.out.println("탈퇴 후 채널 메시지 정리: "
-				+ (channelService.findById(withdrawChannel.getId()).getMessages().size() == 1
-				&& !channelService.findById(withdrawChannel.getId()).getMessages().contains(user3Message.getId())));
-		System.out.println("탈퇴 후 전체 메시지 수: " + messageService.findAll().size());
-
-		expectFail("이미 탈퇴한 사용자의 재탈퇴",
-				() -> withdrawalService.withdraw(user3.getId()));
-
-		// 정리: 메시지 -> 채널 -> 사용자
-		messageService.delete(user2Message.getId(), user2.getId());
-		channelService.delete(withdrawChannel.getId(), user2.getId());
-		userService.delete(user2.getId());
-		System.out.println("최종 사용자 수: " + userService.findAll().size());
-		System.out.println("최종 채널 수: " + channelService.findAll().size());
-		System.out.println("최종 메시지 수: " + messageService.findAll().size());
+		System.out.println("\n최종 사용자 수: " + userService.findAll().size());
+		System.out.println("최종 user1이 볼 수 있는 채널 수: " + channelService.findAllByUserId(user1.id()).size());
 
 		System.out.println("\n===== 테스트 종료 =====");
+	}
 
+	// 테스트용 이미지 파일 데이터
+	private static BinaryContentCreateRequest image(String fileName) {
+		return new BinaryContentCreateRequest(fileName, "image/png", new byte[]{1, 2, 3, 4});
 	}
 
 	// 예외가 발생해야 정상인 상황을 검증하는 헬퍼
+	// IllegalArgumentException, IllegalStateException 모두 잡기 위해 RuntimeException으로 받음
 	private static void expectFail(String label, Runnable action) {
 		try {
 			action.run();
 			System.out.println("실패: " + label + "이(가) 허용됨");
-		} catch (IllegalArgumentException e) {
+		} catch (RuntimeException e) {
 			System.out.println(label + " 예외 확인: " + e.getMessage());
 		}
 	}
@@ -278,23 +277,27 @@ public class DiscodeitApplication {
 	// data/ 디렉터리의 내부 파일들 미리 지우기
 	private static void cleanData() {
 		try {
-			Files.deleteIfExists(Paths.get("data", "users.ser"));
-			Files.deleteIfExists(Paths.get("data", "channels.ser"));
-			Files.deleteIfExists(Paths.get("data", "messages.ser"));
+			for (String fileName : DATA_FILES) {
+				Files.deleteIfExists(Paths.get("data", fileName));
+			}
 		} catch (IOException e) {
 			throw new UncheckedIOException(e);
 		}
 	}
 
+	@SuppressWarnings("unchecked")
 	private static void printFile(String fileName) {
 		Path path = Paths.get("data", fileName);
+		if (!Files.exists(path)) {
+			System.out.println("[" + fileName + "] 파일 없음");
+			return;
+		}
 		try (ObjectInputStream ois = new ObjectInputStream(Files.newInputStream(path))) {
 			Map<UUID, ?> data = (Map<UUID, ?>) ois.readObject();
-			System.out.println("[" + fileName + "] " + data.size() + "건" + "  : 파일에 저장된 객체");
+			System.out.println("[" + fileName + "] " + data.size() + "건  : 파일에 저장된 객체");
 			data.values().forEach(value -> System.out.println("  " + value));
 		} catch (IOException | ClassNotFoundException e) {
 			throw new RuntimeException(e);
 		}
 	}
-
 }

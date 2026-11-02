@@ -19,7 +19,7 @@ public class BinaryContent extends BaseEntity {
         super();
         this.fileName = fileName;
         this.contentType = contentType;
-        this.bytes = bytes;
+        this.bytes = bytes.clone();
         this.size = bytes.length;
     }
 
