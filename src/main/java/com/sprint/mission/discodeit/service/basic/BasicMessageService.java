@@ -3,20 +3,19 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.request.messageRequest.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.request.messageRequest.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
+
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.List;
 import java.util.Objects;
@@ -46,19 +45,31 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다"));
 
-        // 첨부파일이 전달된 경우 존재 여부를 확인한다.
-        if (request.attachmentIds() != null) {
-            for (UUID attachmentId : request.attachmentIds()) {
-                binaryContentRepository.findById(attachmentId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException("첨부파일을 찾을 수 없습니다."));
-            }
-        }
-
         // 작성자의 채널 참여 여부 확인
         if (!channel.hasMember(request.userId())) {
             throw new IllegalArgumentException(
                     "'" + user.getUsername() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
+        }
+
+        // 첨부파일 DTO를 Entity로 변환하고 저장한다.
+        List<UUID> attachmentIds = null;
+
+        // 첨부파일이 전달된 경우 존재 여부를 확인한다.
+        if (request.attachments() != null) {
+            attachmentIds = request.attachments().stream()
+                    .map(attachment -> {
+                        BinaryContent binaryContent = new BinaryContent(
+                                attachment.fileName(),
+                                attachment.contentType(),
+                                attachment.size(),
+                                attachment.bytes()
+                        );
+
+                        binaryContentRepository.save(binaryContent);
+
+                        return binaryContent.getId();
+                    })
+                    .toList();
         }
 
         // 메시지 생성 및 저장
@@ -66,7 +77,7 @@ public class BasicMessageService implements MessageService {
                 request.content(),
                 request.userId(),
                 request.channelId(),
-                request.attachmentIds()
+                attachmentIds
         );
 
         // Repository에 메시지 저장을 요청한다.
@@ -92,6 +103,13 @@ public class BasicMessageService implements MessageService {
         return messageRepository.findAll().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MessageDto> findAllByChannelId(UUID channelId) {
+        return messageRepository.findAllByChannelId(channelId).stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override

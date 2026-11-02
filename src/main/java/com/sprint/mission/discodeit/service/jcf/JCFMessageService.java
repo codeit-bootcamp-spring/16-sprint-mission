@@ -8,8 +8,10 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -25,13 +27,16 @@ public class JCFMessageService implements MessageService {
     private final List<Message> data;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     // 의존성 주입 및 데이터 저장소 초기화
     public JCFMessageService(UserRepository userRepository,
-                             ChannelRepository channelRepository) {
+                             ChannelRepository channelRepository,
+                             BinaryContentRepository binaryContentRepository) {
         this.data = new ArrayList<>();
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
+        this.binaryContentRepository = binaryContentRepository;
     }
 
     @Override
@@ -52,12 +57,32 @@ public class JCFMessageService implements MessageService {
                     ("\'" + user.getUsername() + "\' (이)가 해당 채널에 참여 중이 아닙니다.");
         }
 
+        // 첨부파일 DTO를 Entity로 변환하고 저장한다.
+        List<UUID> attachmentIds = null;
+
+        if (request.attachments() != null) {
+            attachmentIds = request.attachments().stream()
+                    .map(attachment -> {
+                        BinaryContent binaryContent = new BinaryContent(
+                                attachment.fileName(),
+                                attachment.contentType(),
+                                attachment.size(),
+                                attachment.bytes()
+                        );
+
+                        binaryContentRepository.save(binaryContent);
+
+                        return binaryContent.getId();
+                    })
+                    .toList();
+        }
+
         // 메시지 생성 및 저장
         Message message = new Message(
                 request.content(),
                 request.userId(),
                 request.channelId(),
-                request.attachmentIds()
+                attachmentIds
         );
 
         data.add(message);      // 메시지를 목록에 추가한다.
@@ -84,6 +109,14 @@ public class JCFMessageService implements MessageService {
         return data.stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MessageDto> findAllByChannelId(UUID channelId) {
+        return data.stream()
+                .filter(message -> message.getChannelId().equals(channelId))
+                .map(this::toDto)
+                .toList();
     }
 
     @Override

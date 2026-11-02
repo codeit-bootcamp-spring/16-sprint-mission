@@ -59,7 +59,8 @@ public class JCFMessageConsoleRun {
         ChannelService channelService = new JCFChannelService(
                 userRepository, readStatusRepository, messageRepository);
 
-        MessageService messageService = new JCFMessageService(userRepository, channelRepository);
+        MessageService messageService = new JCFMessageService(
+                userRepository, channelRepository, binaryContentRepository);
 
         String uniqueId = UUID.randomUUID().toString();
 

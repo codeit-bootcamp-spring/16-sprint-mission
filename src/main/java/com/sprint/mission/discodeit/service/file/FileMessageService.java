@@ -7,9 +7,11 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -24,12 +26,15 @@ public class FileMessageService implements MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     // 생성자 의존성 주입
-    public FileMessageService(MessageRepository messageRepository,
+    public FileMessageService(BinaryContentRepository binaryContentRepository,
+                              MessageRepository messageRepository,
                               UserRepository userRepository,
                               ChannelRepository channelRepository) {
 
+        this.binaryContentRepository = binaryContentRepository;
         this.messageRepository = messageRepository;
         this.userRepository = userRepository;
         this.channelRepository = channelRepository;
@@ -53,12 +58,33 @@ public class FileMessageService implements MessageService {
                     ("'" + user.getUsername() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
         }
 
+        // 첨부파일 DTO를 Entity로 변환하고 저장한다.
+        List<UUID> attachmentIds = null;
+
+        // 첨부파일이 전달된 경우 Entity로 변환하고 저장한다.
+        if (request.attachments() != null) {
+            attachmentIds = request.attachments().stream()
+                    .map(attachment -> {
+                        BinaryContent binaryContent = new BinaryContent(
+                                attachment.fileName(),
+                                attachment.contentType(),
+                                attachment.size(),
+                                attachment.bytes()
+                        );
+
+                        binaryContentRepository.save(binaryContent);
+
+                        return binaryContent.getId();
+                    })
+                    .toList();
+        }
+
         // 메시지 생성 및 저장
         Message message = new Message(
                 request.content(),
                 request.userId(),
                 request.channelId(),
-                request.attachmentIds()
+                attachmentIds
         );
 
         // Repository에 메시지 저장을 요청한 후 DTO로 변환해 반환한다.
@@ -84,6 +110,13 @@ public class FileMessageService implements MessageService {
         return messageRepository.findAll().stream()
                 .map(this::toDto)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<MessageDto> findAllByChannelId(UUID channelId) {
+        return messageRepository.findAllByChannelId(channelId).stream()
+                .map(this::toDto)
+                .toList();
     }
 
     @Override

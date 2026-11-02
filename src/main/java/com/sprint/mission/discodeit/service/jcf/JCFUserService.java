@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.jcf;
 
+import com.sprint.mission.discodeit.dto.request.otherRequest.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
@@ -55,9 +56,17 @@ public class JCFUserService implements UserService {
         }
 
         // 프로필 이미지가 전달된 경우 저장
-        BinaryContent profile = request.profile();
+        // 프로필 이미지 DTO를 Entity로 변환하고 저장한다.
+        BinaryContentCreateRequest profileRequest = request.profile();
+        BinaryContent profile = null;
 
-        if (profile != null) {
+        if (profileRequest != null) {
+            profile = new BinaryContent(
+                    profileRequest.fileName(),
+                    profileRequest.contentType(),
+                    profileRequest.size(),
+                    profileRequest.bytes()
+            );
             binaryContentRepository.save(profile);
         }
 
@@ -151,14 +160,21 @@ public class JCFUserService implements UserService {
             }
         }
 
-        // 새 프로필 이미지가 전달된 경우 저장 및 ID 갱신
-        BinaryContent profile = request.profile();
+        // 새 프로필 이미지 DTO를 Entity로 변환하고 저장한다.
+        BinaryContentCreateRequest profileRequest = request.profile();
 
         UUID profileId = targetUser.getProfileId();
 
-        if (profile != null) {
-            binaryContentRepository.save(profile);
-            profileId = profile.getId();
+        if (profileRequest != null) {
+            BinaryContent newProfile = new BinaryContent(
+                    profileRequest.fileName(),
+                    profileRequest.contentType(),
+                    profileRequest.size(),
+                    profileRequest.bytes()
+            );
+
+            binaryContentRepository.save(newProfile);
+            profileId = newProfile.getId();
         }
 
         // 전달되지 않은 수정 항목은 기존 값 유지

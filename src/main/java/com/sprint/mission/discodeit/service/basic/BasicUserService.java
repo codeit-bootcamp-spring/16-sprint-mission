@@ -1,21 +1,22 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
+import com.sprint.mission.discodeit.dto.request.otherRequest.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
 import com.sprint.mission.discodeit.dto.request.userRequest.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.UserDto;
 
+import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
 import com.sprint.mission.discodeit.entity.User;
-
-import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
-import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
+
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.stereotype.Service;
+import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
 import java.util.List;
@@ -56,9 +57,17 @@ public class BasicUserService implements UserService {
         }
 
         // 3. 프로필 이미지가 전달된 경우 저장
-        BinaryContent profile = request.profile();
+        BinaryContentCreateRequest profileRequest = request.profile();
+        BinaryContent profile = null;
 
-        if (profile != null) {
+        if (profileRequest != null) {
+            profile = new BinaryContent(
+                    profileRequest.fileName(),
+                    profileRequest.contentType(),
+                    profileRequest.size(),
+                    profileRequest.bytes()
+            );
+
             binaryContentRepository.save(profile);
         }
 
@@ -162,7 +171,14 @@ public class BasicUserService implements UserService {
         // 5. 새 프로필 이미지가 전달된 경우 저장하고 ID 갱신
         if (request.profile() != null) {
 
-            BinaryContent newProfile = request.profile();
+            BinaryContentCreateRequest profileRequest = request.profile();
+
+            BinaryContent newProfile = new BinaryContent(
+                    profileRequest.fileName(),
+                    profileRequest.contentType(),
+                    profileRequest.size(),
+                    profileRequest.bytes()
+            );
 
             binaryContentRepository.save(newProfile);
 
