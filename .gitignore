@@ -6,6 +6,7 @@ build/
 !**/src/test/**/build/
 gradle.properties
 data
+.discodeit
 
 ### STS ###
 .apt_generated

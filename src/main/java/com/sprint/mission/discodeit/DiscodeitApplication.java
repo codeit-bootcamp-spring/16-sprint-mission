@@ -263,12 +263,12 @@ public class DiscodeitApplication {
 
     public static void clearDataFiles() {
         List<String> fileList = List.of(
-                "./data/binary_content.ser",
-                "./data/channel.ser",
-                "./data/mesage.ser",
-                "./data/read_status.ser",
-                "./data/user.ser",
-                "./data/user_status.ser"
+                ".discodeit/binary_content.ser",
+                ".discodeit/channel.ser",
+                ".discodeit/message.ser",
+                ".discodeit/read_status.ser",
+                ".discodeit/user.ser",
+                ".discodeit/user_status.ser"
         );
 
         fileList.forEach(filePath -> {
