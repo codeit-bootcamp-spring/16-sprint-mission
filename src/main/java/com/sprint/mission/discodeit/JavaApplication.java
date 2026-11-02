@@ -9,18 +9,16 @@ import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
-import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 @SpringBootApplication
-public class JavaApplication implements CommandLineRunner {
+public class JavaApplication {
 
     private final UserService userService;
     private final ChannelService channelService;
     private final MessageService messageService;
 
-    // 생성자를 통해 Spring이 서비스 객체를 자동으로 전달
     public JavaApplication(
             UserService userService,
             ChannelService channelService,
@@ -67,15 +65,6 @@ public class JavaApplication implements CommandLineRunner {
         MessageDto message = messageService.create(request);
 
         System.out.println("메시지 생성: " + message.getId());
-    }
-
-    // Spring이 시작된 후 실행되는 메서드
-    @Override
-    public void run(String... args) {
-        UserDto user = setupUser();
-        ChannelDto channel = setupChannel();
-
-        messageCreateTest(channel, user);
     }
 
     public static void main(String[] args) {

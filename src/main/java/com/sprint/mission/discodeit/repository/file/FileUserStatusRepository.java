@@ -2,7 +2,8 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
-
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -12,15 +13,22 @@ import java.nio.file.Paths;
 import java.util.*;
 
 @Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileUserStatusRepository implements UserStatusRepository {
 
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
-    public FileUserStatusRepository() {
+    public FileUserStatusRepository(
+            @Value("${discodeit.repository.file-directory:.discodeit}") String fileDirectory
+    ) {
         this.DIRECTORY = Paths.get(
                 System.getProperty("user.dir"),
-                "file-data-map",
+                fileDirectory,
                 UserStatus.class.getSimpleName()
         );
 
@@ -40,7 +48,9 @@ public class FileUserStatusRepository implements UserStatusRepository {
     @Override
     public UserStatus save(UserStatus userStatus) {
         try (
-                FileOutputStream fos = new FileOutputStream(resolvePath(userStatus.getId()).toFile());
+                FileOutputStream fos = new FileOutputStream(
+                        resolvePath(userStatus.getId()).toFile()
+                );
                 ObjectOutputStream oos = new ObjectOutputStream(fos)
         ) {
             oos.writeObject(userStatus);

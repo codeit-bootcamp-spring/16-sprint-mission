@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.MessageDto;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;
@@ -65,6 +66,22 @@ public class DiscodeitApplication {
         UserService userService = context.getBean(UserService.class);
         ChannelService channelService = context.getBean(ChannelService.class);
         MessageService messageService = context.getBean(MessageService.class);
+
+        // 현재 등록된 Repository 확인
+        UserRepository userRepository = context.getBean(UserRepository.class);
+
+        System.out.println("현재 Repository: "
+                + userRepository.getClass().getName());
+
+        // 현재 저장된 사용자 확인
+        System.out.println("현재 저장된 사용자:");
+
+        userRepository.findAll().forEach(user ->
+                System.out.println(
+                        "사용자 이름: " + user.getUsername()
+                                + ", 이메일: " + user.getEmail()
+                )
+        );
 
         // 셋업
         UserDto user = setupUser(userService);
