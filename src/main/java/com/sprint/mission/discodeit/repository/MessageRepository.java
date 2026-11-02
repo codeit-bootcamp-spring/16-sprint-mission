@@ -15,6 +15,8 @@ public interface MessageRepository {
 
     Optional<Message> findLastMessageOfChannel(UUID channelId);
 
+    Optional<Message> findByAttachmentId(UUID attachmentId);
+
     List<Message> findAll();
 
     List<Message> findAllByChannelId(UUID channelId);

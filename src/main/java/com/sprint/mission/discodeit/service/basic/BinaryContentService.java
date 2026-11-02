@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRespons
 import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentFindResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -14,6 +16,8 @@ import java.util.*;
 @Service
 public class BinaryContentService {
     private final BinaryContentRepository binaryContentRepository;
+    private final UserRepository userRepository;
+    private final MessageRepository messageRepository;
 
     public BinaryContentCreateResponse create(BinaryContentCreateRequest createRequest) {
         String fileName = createRequest.fileName();
@@ -55,6 +59,16 @@ public class BinaryContentService {
         BinaryContent binaryContent = this.binaryContentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("존재하지 않는 바이너리 데이터입니다."));
         binaryContent.validateNotDeleted();
+
+        this.userRepository.findByProfileId(id).ifPresent(user -> {
+            user.assignProfileImage(null);
+            this.userRepository.update(user.getId(), user);
+        });
+
+        this.messageRepository.findByAttachmentId(id).ifPresent(message -> {
+            message.removeAttachment(id);
+            this.messageRepository.update(message.getId(), message);
+        });
 
         this.binaryContentRepository.delete(id);
     }

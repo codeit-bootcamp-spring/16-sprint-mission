@@ -52,6 +52,16 @@ public class FileMessageRepository extends FileRepository<Message> implements Me
     }
 
     @Override
+    public Optional<Message> findByAttachmentId(UUID attachmentId) {
+        Map<UUID, Message> messages = this.readFile(resolvedPath);
+        return messages.values()
+                .stream()
+                .filter(message -> message.getAttachmentIds().contains(attachmentId))
+                .filter(message -> !message.isDeleted())
+                .findFirst();
+    }
+
+    @Override
     public List<Message> findAll() {
         Map<UUID, Message> messages = this.readFile(resolvedPath);
         return messages.values().stream().filter(message -> !message.isDeleted()).toList();

@@ -62,6 +62,16 @@ public class FileUserRepository extends FileRepository<User> implements UserRepo
     }
 
     @Override
+    public Optional<User> findByProfileId(UUID profileId) {
+        Map<UUID, User> users = this.readFile(resolvedPath);
+        return users.values()
+                .stream()
+                .filter(user -> user.getProfileId().equals(profileId))
+                .filter(user -> !user.isDeleted())
+                .findFirst();
+    }
+
+    @Override
     public List<User> findAll() {
         Map<UUID, User> users = this.readFile(resolvedPath);
         return users.values().stream().filter(user -> !user.isDeleted()).toList();

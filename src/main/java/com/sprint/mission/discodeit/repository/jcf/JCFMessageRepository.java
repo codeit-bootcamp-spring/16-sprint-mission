@@ -47,6 +47,15 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     @Override
+    public Optional<Message> findByAttachmentId(UUID attachmentId) {
+        return this.data.values()
+                .stream()
+                .filter(message -> message.getAttachmentIds().contains(attachmentId))
+                .filter(message -> !message.isDeleted())
+                .findFirst();
+    }
+
+    @Override
     public List<Message> findAll() {
         return this.data.values().stream().filter(message -> !message.isDeleted()).toList();
     }

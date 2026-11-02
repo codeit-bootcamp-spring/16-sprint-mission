@@ -56,6 +56,15 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByProfileId(UUID profileId) {
+        return this.data.values()
+                .stream()
+                .filter(user -> user.getProfileId().equals(profileId))
+                .filter(user -> !user.isDeleted())
+                .findFirst();
+    }
+
+    @Override
     public List<User> findAll() {
         return this.data.values().stream().filter(user -> !user.isDeleted()).toList();
     }
