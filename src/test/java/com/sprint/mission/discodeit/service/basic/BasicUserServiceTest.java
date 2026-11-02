@@ -1,7 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
-import com.sprint.mission.discodeit.dto.request.UserRequest;
+import com.sprint.mission.discodeit.dto.request.CreateUserRequest;
+import com.sprint.mission.discodeit.dto.request.UpdateUserRequest;
 import com.sprint.mission.discodeit.dto.response.UserResponse;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -47,7 +48,7 @@ class BasicUserServiceTest {
     }
 
     private UserResponse createUser(String username, String email) {
-        return userService.create(new UserRequest(username, email, "password", null));
+        return userService.create(new CreateUserRequest(username, email, "password", null));
     }
 
     private UUID profileIdOf(UUID userId) {
@@ -73,7 +74,7 @@ class BasicUserServiceTest {
         @DisplayName("프로필을 함께 보내면 BinaryContent가 저장되고 유저와 연결된다")
         void withProfile() {
             UserResponse response = userService.create(
-                    new UserRequest("tester", "tester@test.com", "password", profileRequest()));
+                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
 
             UUID profileId = profileIdOf(response.userId());
             assertThat(profileId).isNotNull();
@@ -160,7 +161,7 @@ class BasicUserServiceTest {
             UserResponse created = createUser("tester", "tester@test.com");
 
             UserResponse updated = userService.update(created.userId(),
-                    new UserRequest("newName", null, null, null));
+                    new UpdateUserRequest("newName", null, null, null));
 
             assertThat(updated.username()).isEqualTo("newName");
             assertThat(updated.email()).isEqualTo("tester@test.com");
@@ -172,7 +173,7 @@ class BasicUserServiceTest {
             UserResponse created = createUser("tester", "tester@test.com");
 
             UserResponse updated = userService.update(created.userId(),
-                    new UserRequest("tester", null, null, null));
+                    new UpdateUserRequest("tester", null, null, null));
 
             assertThat(updated.username()).isEqualTo("tester");
         }
@@ -182,7 +183,7 @@ class BasicUserServiceTest {
         void duplicatedUsername() {
             createUser("other", "other@test.com");
             UserResponse created = createUser("tester", "tester@test.com");
-            UserRequest request = new UserRequest("other", null, null, null);
+            UpdateUserRequest request = new UpdateUserRequest("other", null, null, null);
 
             assertThatThrownBy(() -> userService.update(created.userId(), request))
                     .isInstanceOf(IllegalStateException.class);
@@ -193,7 +194,7 @@ class BasicUserServiceTest {
         void duplicatedEmail() {
             createUser("other", "other@test.com");
             UserResponse created = createUser("tester", "tester@test.com");
-            UserRequest request = new UserRequest(null, "other@test.com", null, null);
+            UpdateUserRequest request = new UpdateUserRequest(null, "other@test.com", null, null);
 
             assertThatThrownBy(() -> userService.update(created.userId(), request))
                     .isInstanceOf(IllegalStateException.class);
@@ -203,10 +204,10 @@ class BasicUserServiceTest {
         @DisplayName("새 프로필로 교체하면 기존 프로필은 삭제된다")
         void replaceProfile() {
             UserResponse created = userService.create(
-                    new UserRequest("tester", "tester@test.com", "password", profileRequest()));
+                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
             UUID oldProfileId = profileIdOf(created.userId());
 
-            userService.update(created.userId(), new UserRequest(null, null, null, profileRequest()));
+            userService.update(created.userId(), new UpdateUserRequest(null, null, null, profileRequest()));
 
             UUID newProfileId = profileIdOf(created.userId());
             assertThat(newProfileId).isNotEqualTo(oldProfileId);
@@ -218,10 +219,10 @@ class BasicUserServiceTest {
         @DisplayName("프로필을 보내지 않으면 기존 프로필이 유지된다")
         void keepProfile() {
             UserResponse created = userService.create(
-                    new UserRequest("tester", "tester@test.com", "password", profileRequest()));
+                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
             UUID oldProfileId = profileIdOf(created.userId());
 
-            userService.update(created.userId(), new UserRequest("newName", null, null, null));
+            userService.update(created.userId(), new UpdateUserRequest("newName", null, null, null));
 
             assertThat(profileIdOf(created.userId())).isEqualTo(oldProfileId);
             assertThat(binaryContentRepository.existsById(oldProfileId)).isTrue();
@@ -230,7 +231,7 @@ class BasicUserServiceTest {
         @Test
         @DisplayName("존재하지 않는 id면 예외가 발생한다")
         void notFound() {
-            UserRequest request = new UserRequest("newName", null, null, null);
+            UpdateUserRequest request = new UpdateUserRequest("newName", null, null, null);
 
             assertThatThrownBy(() -> userService.update(UUID.randomUUID(), request))
                     .isInstanceOf(NoSuchElementException.class);
@@ -244,7 +245,7 @@ class BasicUserServiceTest {
         @DisplayName("유저를 삭제하면 UserStatus, 프로필, ReadStatus도 함께 삭제된다")
         void success() {
             UserResponse created = userService.create(
-                    new UserRequest("tester", "tester@test.com", "password", profileRequest()));
+                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
             UUID profileId = profileIdOf(created.userId());
             ReadStatus readStatus = readStatusRepository.save(new ReadStatus(created.userId(), UUID.randomUUID()));
 

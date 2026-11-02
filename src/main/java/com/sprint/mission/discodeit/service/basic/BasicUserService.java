@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.UserRequest;
+import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.CreateUserRequest;
+import com.sprint.mission.discodeit.dto.request.UpdateUserRequest;
 import com.sprint.mission.discodeit.dto.response.UserResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
@@ -23,7 +25,7 @@ public class BasicUserService implements UserService {
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserResponse create(UserRequest newUser) {
+    public UserResponse create(CreateUserRequest newUser) {
         boolean duplicated = userRepository.findAll().stream()
                 .anyMatch(other ->
                         newUser.username().equals(other.getUsername())
@@ -35,7 +37,7 @@ public class BasicUserService implements UserService {
 
         User user = new User(newUser.username(), newUser.email(), newUser.password());
         if (newUser.profile() != null) {
-            BinaryContent binaryContent = createBinaryContent(newUser);
+            BinaryContent binaryContent = createBinaryContent(newUser.profile());
             user.setProfileId(binaryContent.getId());
             binaryContentRepository.save(binaryContent);
         }
@@ -61,7 +63,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponse update(UUID id, UserRequest request) {
+    public UserResponse update(UUID id, UpdateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("해당 id를 가진 유저를 찾을 수 없음"));
 
@@ -80,7 +82,7 @@ public class BasicUserService implements UserService {
 
         UUID oldProfileId = user.getProfileId();
         UUID newProfileId = Optional.ofNullable(request.profile())
-                .map(profile -> createBinaryContent(request))
+                .map(this::createBinaryContent)
                 .map(binaryContentRepository::save)
                 .map(BinaryContent::getId)
                 .orElse(null);
@@ -116,9 +118,9 @@ public class BasicUserService implements UserService {
 
     }
 
-    private BinaryContent createBinaryContent(UserRequest request) {
-        return new BinaryContent(request.profile().filename(), request.profile().size(),
-                request.profile().contentType(), request.profile().bytes());
+    private BinaryContent createBinaryContent(BinaryContentRequest profile) {
+        return new BinaryContent(profile.filename(), profile.size(),
+                profile.contentType(), profile.bytes());
     }
 
     private UserStatus getUserStatus(User user) {
