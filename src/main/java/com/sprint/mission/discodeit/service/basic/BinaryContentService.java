@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.Dto.BinaryContent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.Dto.BinaryContent.BinaryContentCreateResponse;
-import com.sprint.mission.discodeit.Dto.BinaryContent.BinaryContentFindResponse;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateResponse;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentFindResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import lombok.RequiredArgsConstructor;

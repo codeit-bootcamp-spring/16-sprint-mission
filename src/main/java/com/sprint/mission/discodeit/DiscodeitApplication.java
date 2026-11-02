@@ -1,16 +1,16 @@
 package com.sprint.mission.discodeit;
 
-import com.sprint.mission.discodeit.Dto.Auth.AuthUserRequest;
-import com.sprint.mission.discodeit.Dto.Auth.AuthUserResponse;
-import com.sprint.mission.discodeit.Dto.BinaryContent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.Dto.BinaryContent.BinaryContentCreateResponse;
-import com.sprint.mission.discodeit.Dto.BinaryContent.BinaryContentFindResponse;
-import com.sprint.mission.discodeit.Dto.Channel.*;
-import com.sprint.mission.discodeit.Dto.Message.*;
-import com.sprint.mission.discodeit.Dto.ReadStatus.*;
-import com.sprint.mission.discodeit.Dto.User.*;
+import com.sprint.mission.discodeit.dto.Auth.AuthUserRequest;
+import com.sprint.mission.discodeit.dto.Auth.AuthUserResponse;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateResponse;
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentFindResponse;
+import com.sprint.mission.discodeit.dto.Channel.*;
+import com.sprint.mission.discodeit.dto.Message.*;
+import com.sprint.mission.discodeit.dto.ReadStatus.*;
+import com.sprint.mission.discodeit.dto.User.*;
 
-import com.sprint.mission.discodeit.Dto.UserStatus.*;
+import com.sprint.mission.discodeit.dto.UserStatus.*;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;

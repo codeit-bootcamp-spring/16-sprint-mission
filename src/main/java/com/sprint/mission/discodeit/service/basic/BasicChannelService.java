@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.Dto.Channel.*;
+import com.sprint.mission.discodeit.dto.Channel.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -134,7 +134,7 @@ public class BasicChannelService implements ChannelService {
         // 채널 -> 메세지 -> 첨부 파일 삭제
         this.messageRepository.findAllByChannelId(id).forEach(message -> {
             List<UUID> distinctAttachmentIds = new ArrayList<>(new LinkedHashSet<>(message.getAttachmentIds()));
-            
+
             this.binaryContentRepository.findAllByIdIn(distinctAttachmentIds).forEach(binaryContent -> {
                 this.binaryContentRepository.delete(binaryContent.getId());
             });
