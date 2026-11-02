@@ -1,14 +1,19 @@
 package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.dto.*;
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFBinaryContentRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFReadStatusRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFUserStatusRepository;
 import com.sprint.mission.discodeit.service.*;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -146,7 +151,7 @@ public class DiscodeitApplication {
 		//조회상태 중복 테스트
 		try{
 			readStatusService.create(new ReadStatusCreateRequest(
-					user.getId(),testChannel.getId(),java.time.Instant.now()));
+					user.getId(),testChannel.getId(),Instant.now()));
 			System.out.println("조회상태 중복인데 생성됨");
 		}catch (IllegalArgumentException e){
 			System.out.println(e.getMessage());
@@ -156,6 +161,36 @@ public class DiscodeitApplication {
 		channelService.delete(testChannel.getId());
 		channelService.delete(publicChannel.getId());
 		userService.delete(user.getId());
+
+		//JCF 테스트
+		System.out.println("===== JCF 테스트 =====");
+
+		ReadStatusRepository readStatusRepository = new JCFReadStatusRepository();
+		UserStatusRepository userStatusRepository = new JCFUserStatusRepository();
+		BinaryContentRepository binaryContentRepository = new JCFBinaryContentRepository();
+
+		ReadStatus readStatus = new ReadStatus(UUID.randomUUID(),UUID.randomUUID(),Instant.now());
+		UserStatus userStatus = new UserStatus(UUID.randomUUID(),Instant.now());
+		BinaryContent binaryContent = new BinaryContent("test.txt","text/plain",new byte[]{1,2,3});
+
+		//저장
+		readStatusRepository.save(readStatus);
+		userStatusRepository.save(userStatus);
+		binaryContentRepository.save(binaryContent);
+
+		//조회
+		System.out.println(readStatusRepository.findById(readStatus.getId()).isPresent());
+		System.out.println(userStatusRepository.findById(userStatus.getId()).isPresent());
+		System.out.println(binaryContentRepository.findById(binaryContent.getId()).isPresent());
+
+		//삭제
+		readStatusRepository.deleteById(readStatus.getId());
+		userStatusRepository.deleteById(userStatus.getId());
+		binaryContentRepository.deleteById(binaryContent.getId());
+
+		System.out.println(readStatusRepository.findAll().size());
+		System.out.println(userStatusRepository.findAll().size());
+		System.out.println(binaryContentRepository.findAll().size());
 
 		System.out.println("===== 테스트 끝 =====");
 	}

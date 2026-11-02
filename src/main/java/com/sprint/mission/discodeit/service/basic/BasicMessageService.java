@@ -77,8 +77,6 @@ public class BasicMessageService implements MessageService {
     public void delete(UUID id) {
         Message message =  messageRepository.findById(id).orElseThrow(()->
                 new IllegalArgumentException("메시지를 찾을 수 없음"));
-        userRepository.findById(message.getAuthorId()).orElseThrow(()->
-                new IllegalArgumentException("사용자를 찾을 수 없음"));
         channelRepository.findById(message.getChannelId()).orElseThrow(()->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
