@@ -59,7 +59,7 @@ public class JCFUserRepository implements UserRepository {
     public Optional<User> findByProfileId(UUID profileId) {
         return this.data.values()
                 .stream()
-                .filter(user -> user.getProfileId().equals(profileId))
+                .filter(user -> Objects.equals(user.getProfileId(), profileId))
                 .filter(user -> !user.isDeleted())
                 .findFirst();
     }

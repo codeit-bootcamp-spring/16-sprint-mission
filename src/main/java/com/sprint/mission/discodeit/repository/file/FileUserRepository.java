@@ -66,7 +66,7 @@ public class FileUserRepository extends FileRepository<User> implements UserRepo
         Map<UUID, User> users = this.readFile(resolvedPath);
         return users.values()
                 .stream()
-                .filter(user -> user.getProfileId().equals(profileId))
+                .filter(user -> Objects.equals(user.getProfileId(), profileId))
                 .filter(user -> !user.isDeleted())
                 .findFirst();
     }
