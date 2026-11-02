@@ -32,6 +32,14 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserDto create(UserCreateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("사용자 생성 요청은 null일 수 없습니다.");
+        }
+
+        validateUsername(request.username());
+        validatePassword(request.password());
+        validateEmail(request.email());
+
         List<User> users = userRepository.findAll();
 
         boolean usernameExists = users.stream()
@@ -111,6 +119,14 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserDto update(UserUpdateRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException("사용자 수정 요청은 null일 수 없습니다.");
+        }
+
+        validateUsername(request.username());
+        validatePassword(request.password());
+        validateEmail(request.email());
+
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
 
@@ -183,6 +199,18 @@ public class BasicUserService implements UserService {
         String emailPattern = "^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$";
         if (!email.matches(emailPattern)) {
             throw new IllegalArgumentException("올바른 이메일 형식이 아닙니다: " + email);
+        }
+    }
+
+    private void validateUsername(String username) {
+        if (username == null || username.isBlank()) {
+            throw new IllegalArgumentException("사용자 이름은 비어 있을 수 없습니다.");
+        }
+    }
+
+    private void validatePassword(String password) {
+        if (password == null || password.isBlank()) {
+            throw new IllegalArgumentException("비밀번호는 비어 있을 수 없습니다.");
         }
     }
 }
