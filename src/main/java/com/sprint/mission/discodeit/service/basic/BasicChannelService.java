@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -27,6 +28,7 @@ public class BasicChannelService implements ChannelService {
     private final ChannelRepository channelRepository;
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     @Override
     public ChannelResponseDto createPublic(PublicChannelCreateRequest request) {
@@ -90,13 +92,19 @@ public class BasicChannelService implements ChannelService {
             throw new NoSuchElementException("Channel with id " + channelId + " not found");
         }
 
+        // 메시지의 첨부파일(BinaryContent)부터 삭제
+        for (Message message : messageRepository.findAllByChannelId(channelId)) {
+            for (UUID attachmentId : message.getAttachmentIds()) {
+                binaryContentRepository.deleteById(attachmentId);
+            }
+        }
+
         // 관련된 도메인도 같이 삭제
         messageRepository.deleteAllByChannelId(channelId);
         readStatusRepository.deleteAllByChannelId(channelId);
 
         channelRepository.deleteById(channelId);
     }
-
     private ChannelResponseDto toDto(Channel channel) {
         // 가장 최근 메시지의 시간 (없으면 null)
         Instant lastMessageAt = messageRepository.findAllByChannelId(channel.getId()).stream()

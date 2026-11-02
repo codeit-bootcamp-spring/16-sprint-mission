@@ -19,6 +19,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -86,6 +87,20 @@ public class BasicUserService implements UserService {
     public UserResponseDto update(UUID userId, UserUpdateRequest request) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
+
+        // 파일 저장 전에 중복을 검사 (자기 자신은 제외)
+        if (request.newUsername() != null) {
+            Optional<User> sameName = userRepository.findByUsername(request.newUsername());
+            if (sameName.isPresent() && !sameName.get().getId().equals(userId)) {
+                throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
+            }
+        }
+        if (request.newEmail() != null) {
+            Optional<User> sameEmail = userRepository.findByEmail(request.newEmail());
+            if (sameEmail.isPresent() && !sameEmail.get().getId().equals(userId)) {
+                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            }
+        }
 
         UUID newProfileId = null;
         BinaryContentCreateRequest newProfile = request.newProfile();
