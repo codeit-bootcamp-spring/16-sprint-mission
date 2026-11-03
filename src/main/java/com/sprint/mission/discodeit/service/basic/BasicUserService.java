@@ -1,8 +1,22 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.*;
-import com.sprint.mission.discodeit.entity.*;
-import com.sprint.mission.discodeit.repository.*;
+import com.sprint.mission.discodeit.dto.CreateBinaryContentRequest;
+import com.sprint.mission.discodeit.dto.CreateUserRequest;
+import com.sprint.mission.discodeit.dto.UpdateUserRequest;
+import com.sprint.mission.discodeit.dto.UserResponse;
+
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
+
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
+
 import com.sprint.mission.discodeit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,39 +34,32 @@ public class BasicUserService implements UserService {
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final ReadStatusRepository readStatusRepository;
-
-    @Override
-    public User create(
-            String username,
-            String email,
-            String password
-    ) {
-        return createInternal(
-                new CreateUserRequest(
-                        username,
-                        email,
-                        password,
-                        null
-                )
-        );
-    }
+    private final ChannelRepository channelRepository;
 
     @Override
     public UserResponse create(CreateUserRequest request) {
-        return toResponse(createInternal(request));
-    }
-
-    private User createInternal(CreateUserRequest request) {
         if (request == null) {
-            throw new IllegalArgumentException("사용자 정보가 없습니다.");
+            throw new IllegalArgumentException(
+                    "사용자 생성 정보가 없습니다."
+            );
         }
 
-        validate(
+        validateUser(
                 request.username(),
                 request.email(),
                 request.password(),
                 null
         );
+
+        UUID profileId = null;
+
+        if (request.profile() != null) {
+            BinaryContent profile = binaryContentRepository.save(
+                    createBinaryContent(request.profile())
+            );
+
+            profileId = profile.getId();
+        }
 
         User user = new User(
                 request.username().trim(),
@@ -60,25 +67,121 @@ public class BasicUserService implements UserService {
                 request.password()
         );
 
-        if (request.profile() != null) {
-            BinaryContent profile = binaryContentRepository.save(
-                    makeBinary(request.profile())
-            );
-
-            user.changeProfile(profile.getId());
+        if (profileId != null) {
+            user.changeProfile(profileId);
         }
 
-        userRepository.save(user);
+        User savedUser = userRepository.save(user);
 
-        userStatusRepository.save(
-                new UserStatus(user.getId(), Instant.now())
+        UserStatus userStatus = new UserStatus(
+                savedUser.getId(),
+                Instant.now()
         );
 
-        return user;
+        userStatusRepository.save(userStatus);
+
+        return toResponse(savedUser);
     }
 
     @Override
-    public User findById(UUID id) {
+    public UserResponse findById(UUID id) {
+        User user = requireUser(id);
+        return toResponse(user);
+    }
+
+    @Override
+    public List<UserResponse> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public UserResponse update(UpdateUserRequest request) {
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "사용자 수정 정보가 없습니다."
+            );
+        }
+
+        User user = requireUser(request.id());
+
+        validateUser(
+                request.username(),
+                request.email(),
+                request.password(),
+                request.id()
+        );
+
+        UUID oldProfileId = user.getProfileId();
+        UUID newProfileId = null;
+
+        if (request.profile() != null) {
+            BinaryContent newProfile = binaryContentRepository.save(
+                    createBinaryContent(request.profile())
+            );
+
+            newProfileId = newProfile.getId();
+        }
+
+        user.update(
+                request.username().trim(),
+                request.email().trim(),
+                request.password()
+        );
+
+        if (newProfileId != null) {
+            user.changeProfile(newProfileId);
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        if (newProfileId != null && oldProfileId != null) {
+            binaryContentRepository.delete(oldProfileId);
+        }
+
+        return toResponse(updatedUser);
+    }
+
+    @Override
+    public void delete(UUID id) {
+        User user = requireUser(id);
+
+        for (ReadStatus readStatus :
+                readStatusRepository.findAllByUserId(id)) {
+
+            readStatusRepository.delete(readStatus.getId());
+        }
+
+        for (Channel channel : channelRepository.findAll()) {
+            if (channel.getMemberIds().contains(id)) {
+                channel.removeMember(id);
+                channelRepository.save(channel);
+            }
+        }
+
+        UserStatus userStatus =
+                userStatusRepository.findByUserId(id);
+
+        if (userStatus != null) {
+            userStatusRepository.delete(userStatus.getId());
+        }
+
+        if (user.getProfileId() != null) {
+            binaryContentRepository.delete(user.getProfileId());
+        }
+
+        userRepository.delete(id);
+    }
+
+    private User requireUser(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "사용자 ID가 없습니다."
+            );
+        }
+
         User user = userRepository.findById(id);
 
         if (user == null) {
@@ -90,151 +193,35 @@ public class BasicUserService implements UserService {
         return user;
     }
 
-    @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-    @Override
-    public UserResponse findResponseById(UUID id) {
-        return toResponse(findById(id));
-    }
-
-    @Override
-    public List<UserResponse> findAllResponses() {
-        return findAll().stream()
-                .map(this::toResponse)
-                .toList();
-    }
-
-    @Override
-    public User update(
-            UUID id,
-            String username,
-            String email,
-            String password
-    ) {
-        updateInternal(
-                new UpdateUserRequest(
-                        id,
-                        username,
-                        email,
-                        password,
-                        null
-                )
-        );
-
-        return findById(id);
-    }
-
-    @Override
-    public UserResponse update(UpdateUserRequest request) {
-        return toResponse(updateInternal(request));
-    }
-
-    private User updateInternal(UpdateUserRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException("수정 정보가 없습니다.");
-        }
-
-        User user = findById(request.id());
-
-        validate(
-                request.username(),
-                request.email(),
-                request.password(),
-                request.id()
-        );
-
-        user.update(
-                request.username().trim(),
-                request.email().trim(),
-                request.password()
-        );
-
-        if (request.profile() != null) {
-            BinaryContent replacement = binaryContentRepository.save(
-                    makeBinary(request.profile())
-            );
-
-            UUID oldProfileId = user.getProfileId();
-
-            user.changeProfile(replacement.getId());
-
-            if (oldProfileId != null) {
-                binaryContentRepository.delete(oldProfileId);
-            }
-        }
-
-        return userRepository.save(user);
-    }
-
-    @Override
-    public void delete(UUID id) {
-        User user = findById(id);
-
-        if (!user.getChannelIds().isEmpty()
-                || !user.getMessageIds().isEmpty()) {
-            throw new IllegalStateException(
-                    "참여 중인 채널이나 작성한 메시지가 남아 있습니다."
-            );
-        }
-
-        if (user.getProfileId() != null) {
-            binaryContentRepository.delete(user.getProfileId());
-        }
-
-        UserStatus userStatus =
-                userStatusRepository.findByUserId(id);
-
-        if (userStatus != null) {
-            userStatusRepository.delete(userStatus.getId());
-        }
-
-        for (ReadStatus readStatus :
-                readStatusRepository.findAllByUserId(id)) {
-            readStatusRepository.delete(readStatus.getId());
-        }
-
-        userRepository.delete(id);
-    }
-
-    @Override
-    public void save(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("사용자 정보가 없습니다.");
-        }
-
-        findById(user.getId());
-        userRepository.save(user);
-    }
-
     private UserResponse toResponse(User user) {
-        UserStatus status =
+        UserStatus userStatus =
                 userStatusRepository.findByUserId(user.getId());
+
+        boolean online = userStatus != null
+                && userStatus.isOnline();
 
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                status != null && status.isOnline(),
+                online,
                 user.getProfileId(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
         );
     }
 
-    private BinaryContent makeBinary(
+    private BinaryContent createBinaryContent(
             CreateBinaryContentRequest request
     ) {
-        if (request == null
-                || request.fileName() == null
+        if (request.fileName() == null
                 || request.fileName().isBlank()
                 || request.contentType() == null
                 || request.contentType().isBlank()
                 || request.bytes() == null) {
+
             throw new IllegalArgumentException(
-                    "파일 이름, 타입, 데이터는 필수입니다."
+                    "프로필 파일 정보가 올바르지 않습니다."
             );
         }
 
@@ -245,39 +232,33 @@ public class BasicUserService implements UserService {
         );
     }
 
-    private void validate(
+    private void validateUser(
             String username,
             String email,
             String password,
-            UUID excludingId
+            UUID excludeId
     ) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException(
-                    "사용자 이름을 입력하세요."
-            );
-        }
-
-        if (email == null
+        if (username == null
+                || username.isBlank()
+                || email == null
                 || email.isBlank()
-                || !email.contains("@")) {
-            throw new IllegalArgumentException(
-                    "올바른 이메일을 입력하세요."
-            );
-        }
+                || !email.contains("@")
+                || password == null
+                || password.isBlank()) {
 
-        if (password == null || password.isBlank()) {
             throw new IllegalArgumentException(
-                    "비밀번호를 입력하세요."
+                    "사용자 이름, 이메일, 비밀번호를 확인하세요."
             );
         }
 
         for (User user : userRepository.findAll()) {
-            if (user.getId().equals(excludingId)) {
+            if (user.getId().equals(excludeId)) {
                 continue;
             }
 
             if (user.getUsername()
                     .equalsIgnoreCase(username.trim())) {
+
                 throw new IllegalArgumentException(
                         "이미 사용 중인 사용자 이름입니다."
                 );
@@ -285,6 +266,7 @@ public class BasicUserService implements UserService {
 
             if (user.getEmail()
                     .equalsIgnoreCase(email.trim())) {
+
                 throw new IllegalArgumentException(
                         "이미 사용 중인 이메일입니다."
                 );

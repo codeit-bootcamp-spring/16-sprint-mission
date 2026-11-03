@@ -10,9 +10,13 @@ import java.util.UUID;
 
 public interface ChannelService {
 
-    ChannelResponse createPublic(CreatePublicChannelRequest request);
+    ChannelResponse createPublic(
+            CreatePublicChannelRequest request
+    );
 
-    ChannelResponse createPrivate(CreatePrivateChannelRequest request);
+    ChannelResponse createPrivate(
+            CreatePrivateChannelRequest request
+    );
 
     ChannelResponse findById(UUID id);
 
