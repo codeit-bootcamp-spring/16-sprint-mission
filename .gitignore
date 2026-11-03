@@ -36,5 +36,8 @@ bin/
 .vscode/
 
 ### Mac OS ###
-.DS_Storefile-data-map/
 .DS_Store
+
+### 데이터 저장 폴더 ###
+file-data-map/
+.discodeit/

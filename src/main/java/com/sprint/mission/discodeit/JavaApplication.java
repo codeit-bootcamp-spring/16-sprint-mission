@@ -47,12 +47,13 @@ public class JavaApplication {
 
     public static void main(String[] args) {
         // 레포지토리 초기화
-        UserRepository userRepository = new FileUserRepository();
-        ChannelRepository channelRepository = new FileChannelRepository();
-        MessageRepository messageRepository = new FileMessageRepository();
-        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository();
-        UserStatusRepository userStatusRepository = new FileUserStatusRepository();
-        ReadStatusRepository readStatusRepository = new FileReadStatusRepository();
+        String fileDirectory = ".discodeit";
+        UserRepository userRepository = new FileUserRepository(fileDirectory);
+        ChannelRepository channelRepository = new FileChannelRepository(fileDirectory);
+        MessageRepository messageRepository = new FileMessageRepository(fileDirectory);
+        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository(fileDirectory);
+        UserStatusRepository userStatusRepository = new FileUserStatusRepository(fileDirectory);
+        ReadStatusRepository readStatusRepository = new FileReadStatusRepository(fileDirectory);
 
         // 매퍼 초기화
         UserMapper userMapper = new UserMapper(userStatusRepository);

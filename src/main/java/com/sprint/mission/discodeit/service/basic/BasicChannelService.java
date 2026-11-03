@@ -43,8 +43,8 @@ public class BasicChannelService implements ChannelService {
         Channel channel = new Channel(ChannelType.PRIVATE, null, null);
         Channel savedChannel = channelRepository.save(channel);
 
-        // 참여자마다 ReadStatus를 만든다
-        for (UUID userId : request.participantIds()) {
+        // 중복된 참여자는 한 번만 처리
+        for (UUID userId : request.participantIds().stream().distinct().toList()) {
             ReadStatus readStatus = new ReadStatus(userId, savedChannel.getId(), Instant.now());
             readStatusRepository.save(readStatus);
         }
