@@ -15,7 +15,9 @@ import java.util.List;
 import java.util.UUID;
 import java.util.Optional;
 import java.util.Comparator;
+import org.springframework.stereotype.Repository;
 
+@Repository
 public class FileChannelRepository implements ChannelRepository {
 
     private final File directory;

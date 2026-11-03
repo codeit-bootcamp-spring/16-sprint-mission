@@ -28,6 +28,15 @@ import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
 import com.sprint.mission.discodeit.service.basic.BasicUserService;
 import com.sprint.mission.discodeit.service.basic.BasicChannelService;
 import com.sprint.mission.discodeit.service.basic.BasicMessageService;
+import com.sprint.mission.discodeit.repository.jcf.JCFUserStatusRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFBinaryContentRepository;
+import com.sprint.mission.discodeit.repository.file.FileUserStatusRepository;
+import com.sprint.mission.discodeit.repository.file.FileBinaryContentRepository;
+import com.sprint.mission.discodeit.repository.jcf.JCFReadStatusRepository;
+import com.sprint.mission.discodeit.repository.file.FileReadStatusRepository;
+import com.sprint.mission.discodeit.service.basic.BasicBinaryContentService;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+
 
 public class JavaApplication {
 
@@ -144,18 +153,39 @@ public class JavaApplication {
         ChannelRepository basicJcfChannelRepository = new JCFChannelRepository();
         MessageRepository basicJcfMessageRepository = new JCFMessageRepository();
 
-        UserService basicJcfUserService =
-                new BasicUserService(basicJcfUserRepository);
+
+        UserService basicJcfUserService = new BasicUserService(
+                basicJcfUserRepository,
+                new JCFUserStatusRepository(),
+                new JCFBinaryContentRepository()
+        );
+
+        BinaryContentRepository sharedJcfBinaryRepository =
+                new JCFBinaryContentRepository();
 
         ChannelService basicJcfChannelService =
-                new BasicChannelService(basicJcfChannelRepository);
+                new BasicChannelService(
+                        basicJcfChannelRepository,
+                        basicJcfUserRepository,
+                        new JCFReadStatusRepository(),
+                        basicJcfMessageRepository,
+                        sharedJcfBinaryRepository
+                );
+
+
+
 
         MessageService basicJcfMessageService =
                 new BasicMessageService(
                         basicJcfMessageRepository,
                         basicJcfUserRepository,
-                        basicJcfChannelRepository
+                        basicJcfChannelRepository,
+                        new BasicBinaryContentService(
+                                sharedJcfBinaryRepository
+                        )
                 );
+
+
         User basicJcfUser =
                 basicJcfUserService.add(new User("JCF 사용자"));
 
@@ -183,18 +213,40 @@ public class JavaApplication {
         ChannelRepository basicFileChannelRepository = new FileChannelRepository();
         MessageRepository basicFileMessageRepository = new FileMessageRepository();
 
-        UserService basicFileUserService =
-                new BasicUserService(basicFileUserRepository);
+
+        UserService basicFileUserService = new BasicUserService(
+                basicFileUserRepository,
+                new FileUserStatusRepository(),
+                new FileBinaryContentRepository()
+        );
+
+        BinaryContentRepository sharedFileBinaryRepository =
+                new FileBinaryContentRepository();
+
 
         ChannelService basicFileChannelService =
-                new BasicChannelService(basicFileChannelRepository);
+                new BasicChannelService(
+                        basicFileChannelRepository,
+                        basicFileUserRepository,
+                        new FileReadStatusRepository(),
+                        basicFileMessageRepository,
+                        sharedFileBinaryRepository
+                );
+
+
+
 
         MessageService basicFileMessageService =
                 new BasicMessageService(
                         basicFileMessageRepository,
                         basicFileUserRepository,
-                        basicFileChannelRepository
+                        basicFileChannelRepository,
+                        new BasicBinaryContentService(
+                                sharedFileBinaryRepository
+                        )
                 );
+
+
 
         User basicFileUser =
                 basicFileUserService.add(new User("File 사용자"));
