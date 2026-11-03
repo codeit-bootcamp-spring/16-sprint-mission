@@ -21,7 +21,7 @@ public class Message implements Serializable {
     private UUID channelId;
     private UUID authorId;
 
-    public Message(String content, UUID channelId, UUID authorId) {
+    public Message(String content, UUID channelId, UUID authorId,List<UUID> attachmentIds) {
         this.id = UUID.randomUUID();
         Instant now = Instant.now();
         this.createdAt = now;
@@ -30,6 +30,9 @@ public class Message implements Serializable {
         this.content = content;
         this.channelId = channelId;
         this.authorId = authorId;
+        if (attachmentIds != null) {
+            this.attachmentIds.addAll(attachmentIds);
+        }
     }
 
     public void update(String newContent) {

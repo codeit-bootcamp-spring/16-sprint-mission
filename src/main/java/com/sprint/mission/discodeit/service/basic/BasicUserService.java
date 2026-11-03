@@ -26,7 +26,7 @@ public class BasicUserService implements UserService {
 
     @Override
     public User create(UserCreateDto dto) {
-        // 1. 중복 검증 (메서드 호출 시 get 생략)
+        // 중복 검증 (메서드 호출 시 get 생략)
         if (userRepository.existsByUsername(dto.username())) {
             throw new IllegalArgumentException("이미 존재하는 username입니다: " + dto.username());
         }
@@ -36,7 +36,7 @@ public class BasicUserService implements UserService {
 
         User user = new User(dto.username(), dto.email(), dto.password());
 
-        // 3. 프로필 이미지 정보가 있을 경우
+        // 프로필 이미지 정보가 있을 경우
         if (dto.hasProfileImage()) {
             BinaryContent binaryContent = new BinaryContent(
                     dto.fileName(),
@@ -48,7 +48,7 @@ public class BasicUserService implements UserService {
             user.updateProfile(binaryContent.getId());
         }
 
-        // 4. 유저 상태(UserStatus) 같이 생성 및 저장
+        // 유저 상태(UserStatus) 같이 생성 및 저장
         UserStatus userStatus = new UserStatus(user.getId());
         userStatusRepository.save(userStatus);
 
