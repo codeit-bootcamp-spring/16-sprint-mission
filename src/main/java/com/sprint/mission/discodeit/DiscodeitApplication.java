@@ -43,6 +43,11 @@ public class DiscodeitApplication {
     ) {
         return args -> {
 
+            System.out.println(
+                    "현재 UserRepository: "
+                            + userRepository.getClass().getSimpleName()
+            );
+
             System.out.println();
             System.out.println("========== 1. 사용자 생성 ==========");
 

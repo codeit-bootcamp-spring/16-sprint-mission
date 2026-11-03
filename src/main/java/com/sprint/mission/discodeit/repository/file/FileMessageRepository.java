@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -11,19 +13,23 @@ import java.nio.file.Paths;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+
 @Repository
+@ConditionalOnProperty(
+        name = "discodeit.repository.type",
+        havingValue = "file"
+)
 public class FileMessageRepository implements MessageRepository {
 
-    private static final Path DIRECTORY =
-            Paths.get(
-                    System.getProperty("user.dir"),
-                    "data",
-                    "messages"
-            );
+    private final Path directory;
 
-    public FileMessageRepository() {
+    public FileMessageRepository(
+            @Value("${discodeit.repository.file-directory:.discodeit}")
+            String fileDirectory
+    ) {
+        this.directory = Paths.get(fileDirectory, "messages");
         try {
-            Files.createDirectories(DIRECTORY);
+            Files.createDirectories(directory);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -46,7 +52,7 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public Message save(Message message) {
         Path filePath =
-                DIRECTORY.resolve(message.getId() + ".ser");
+                directory.resolve(message.getId() + ".ser");
 
         try (
                 FileOutputStream fos =
@@ -65,7 +71,7 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public Optional<Message> findById(UUID id) {
-        Path filePath = DIRECTORY.resolve(id + ".ser");
+        Path filePath = directory.resolve(id + ".ser");
 
         if (!Files.exists(filePath)) {
             return Optional.empty();
@@ -76,7 +82,7 @@ public class FileMessageRepository implements MessageRepository {
 
     @Override
     public List<Message> findAll() {
-        try (var paths = Files.list(DIRECTORY)) {
+        try (var paths = Files.list(directory)) {
             return paths
                     .filter(Files::isRegularFile)
                     .filter(path ->
@@ -108,7 +114,7 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public void delete(Message message) {
         Path filePath =
-                DIRECTORY.resolve(message.getId() + ".ser");
+                directory.resolve(message.getId() + ".ser");
 
         try {
             Files.delete(filePath);

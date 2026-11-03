@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.io.*;
@@ -13,18 +15,21 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Repository
+@ConditionalOnProperty(
+        name = "discodeit.repository.type",
+        havingValue = "file"
+)
 public class FileUserStatusRepository implements UserStatusRepository {
 
-    private static final Path DIRECTORY =
-            Paths.get(
-                    System.getProperty("user.dir"),
-                    "data",
-                    "userStatuses"
-            );
+    private final Path directory;
 
-    public FileUserStatusRepository() {
+    public FileUserStatusRepository(
+            @Value("${discodeit.repository.file-directory:.discodeit}")
+            String fileDirectory
+    ) {
+        this.directory = Paths.get(fileDirectory, "userStatus");
         try {
-            Files.createDirectories(DIRECTORY);
+            Files.createDirectories(directory);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -47,7 +52,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     @Override
     public UserStatus save(UserStatus userStatus) {
         Path filePath =
-                DIRECTORY.resolve(userStatus.getId() + ".ser");
+                directory.resolve(userStatus.getId() + ".ser");
 
         try (
                 FileOutputStream fos =
@@ -66,7 +71,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
 
     @Override
     public List<UserStatus> findAll() {
-        try (var paths = Files.list(DIRECTORY)) {
+        try (var paths = Files.list(directory)) {
             return paths
                     .filter(Files::isRegularFile)
                     .filter(path ->
@@ -82,7 +87,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     @Override
     public Optional<UserStatus> findById(UUID id) {
         Path filePath =
-                DIRECTORY.resolve(id + ".ser");
+                directory.resolve(id + ".ser");
 
         if (!Files.exists(filePath)) {
             return Optional.empty();
@@ -102,7 +107,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     @Override
     public void delete(UserStatus userStatus) {
         Path filePath =
-                DIRECTORY.resolve(userStatus.getId() + ".ser");
+                directory.resolve(userStatus.getId() + ".ser");
 
         try {
             Files.delete(filePath);
