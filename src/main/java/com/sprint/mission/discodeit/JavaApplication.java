@@ -61,7 +61,7 @@ public class JavaApplication {
         UserService userService = new BasicUserService(
                 userRepository, binaryContentRepository, userStatusRepository, userMapper);
         ChannelService channelService = new BasicChannelService(
-                channelRepository, readStatusRepository, messageRepository);
+                channelRepository, readStatusRepository, messageRepository, binaryContentRepository);
         MessageService messageService = new BasicMessageService(
                 messageRepository, channelRepository, userRepository, binaryContentRepository);
 
