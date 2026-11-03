@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.BinaryContentResponse;
 import com.sprint.mission.discodeit.dto.CreateBinaryContentRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -20,7 +21,9 @@ public class BasicBinaryContentService
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public BinaryContent create(CreateBinaryContentRequest request) {
+    public BinaryContentResponse create(
+            CreateBinaryContentRequest request
+    ) {
         if (request == null
                 || request.fileName() == null
                 || request.fileName().isBlank()
@@ -38,11 +41,11 @@ public class BasicBinaryContentService
                 request.bytes()
         );
 
-        return binaryContentRepository.save(content);
+        return toResponse(binaryContentRepository.save(content));
     }
 
     @Override
-    public BinaryContent findById(UUID id) {
+    public BinaryContentResponse findById(UUID id) {
         BinaryContent content = binaryContentRepository.findById(id);
 
         if (content == null) {
@@ -51,25 +54,40 @@ public class BasicBinaryContentService
             );
         }
 
-        return content;
+        return toResponse(content);
     }
 
     @Override
-    public List<BinaryContent> findAllByIdIn(
+    public List<BinaryContentResponse> findAllByIdIn(
             Collection<UUID> ids
     ) {
         if (ids == null) {
             throw new IllegalArgumentException(
-                    "ID 목록이 없습니다."
+                    "파일 ID 목록이 없습니다."
             );
         }
 
-        return binaryContentRepository.findAllByIdIn(ids);
+        return binaryContentRepository.findAllByIdIn(ids)
+                .stream()
+                .map(this::toResponse)
+                .toList();
     }
 
     @Override
     public void delete(UUID id) {
         findById(id);
         binaryContentRepository.delete(id);
+    }
+
+    private BinaryContentResponse toResponse(
+            BinaryContent content
+    ) {
+        return new BinaryContentResponse(
+                content.getId(),
+                content.getFileName(),
+                content.getContentType(),
+                content.getSize(),
+                content.getCreatedAt()
+        );
     }
 }

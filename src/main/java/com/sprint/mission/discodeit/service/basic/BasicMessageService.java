@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.Comparator;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -20,25 +21,10 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public Message create(
-            String content,
-            UUID userId,
-            UUID channelId
-    ) {
-        return create(
-                new CreateMessageRequest(
-                        content,
-                        userId,
-                        channelId,
-                        List.of()
-                )
-        );
-    }
-
-    @Override
-    public Message create(CreateMessageRequest request) {
+    public MessageResponse create(CreateMessageRequest request) {
         if (request == null
                 || request.content() == null
                 || request.content().isBlank()) {
@@ -47,64 +33,137 @@ public class BasicMessageService implements MessageService {
             );
         }
 
-        User user = requireUser(request.userId());
-        Channel channel = requireChannel(request.channelId());
+        User user = userRepository.findById(request.userId());
+        Channel channel =
+                channelRepository.findById(request.channelId());
 
-        if (!channel.getMemberIds().contains(request.userId())) {
+        if (user == null || channel == null) {
             throw new IllegalArgumentException(
-                    "채널에 참여한 사용자만 메시지를 작성할 수 있습니다."
+                    "사용자 또는 채널이 없습니다."
             );
         }
 
-        Message message = new Message(
-                request.content(),
-                request.userId(),
-                request.channelId()
-        );
+        if (readStatusRepository.findByUserIdAndChannelId(
+                user.getId(), channel.getId()) == null) {
+            throw new IllegalArgumentException(
+                    "채널 참여자만 메시지를 작성할 수 있습니다."
+            );
+        }
 
         List<CreateBinaryContentRequest> attachments =
                 request.attachments() == null
                         ? List.of()
                         : request.attachments();
 
-        for (CreateBinaryContentRequest attachment : attachments) {
-            if (attachment == null
-                    || attachment.fileName() == null
-                    || attachment.fileName().isBlank()
-                    || attachment.contentType() == null
-                    || attachment.contentType().isBlank()
-                    || attachment.bytes() == null) {
+        for (CreateBinaryContentRequest file : attachments) {
+            if (file == null
+                    || file.fileName() == null
+                    || file.fileName().isBlank()
+                    || file.contentType() == null
+                    || file.contentType().isBlank()
+                    || file.bytes() == null) {
                 throw new IllegalArgumentException(
                         "첨부파일 정보가 올바르지 않습니다."
                 );
             }
         }
 
-        for (CreateBinaryContentRequest attachment : attachments) {
-            BinaryContent saved = binaryContentRepository.save(
+        Message message = new Message(
+                request.content(),
+                user.getId(),
+                channel.getId()
+        );
+
+        for (CreateBinaryContentRequest file : attachments) {
+            BinaryContent binary = binaryContentRepository.save(
                     new BinaryContent(
-                            attachment.fileName(),
-                            attachment.contentType(),
-                            attachment.bytes()
+                            file.fileName(),
+                            file.contentType(),
+                            file.bytes()
                     )
             );
 
-            message.addAttachment(saved.getId());
+            message.addAttachment(binary.getId());
         }
 
         messageRepository.save(message);
 
         user.addMessage(message.getId());
-        channel.addMessage(message.getId());
-
         userRepository.save(user);
+
+        channel.addMessage(message.getId());
         channelRepository.save(channel);
 
-        return message;
+        return toResponse(message);
     }
 
     @Override
-    public Message findById(UUID id) {
+    public MessageResponse findById(UUID id) {
+        return toResponse(requireMessage(id));
+    }
+
+    @Override
+    public List<MessageResponse> findAllByChannelId(
+            UUID channelId
+    ) {
+        if (channelRepository.findById(channelId) == null) {
+            throw new IllegalArgumentException(
+                    "채널을 찾을 수 없습니다."
+            );
+        }
+
+        return messageRepository.findAllByChannelId(channelId)
+                .stream()
+                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public MessageResponse update(UpdateMessageRequest request) {
+        if (request == null
+                || request.content() == null
+                || request.content().isBlank()) {
+            throw new IllegalArgumentException(
+                    "메시지 내용을 입력하세요."
+            );
+        }
+
+        Message message = requireMessage(request.id());
+
+        message.update(request.content());
+
+        return toResponse(messageRepository.save(message));
+    }
+
+    @Override
+    public void delete(UUID id) {
+        Message message = requireMessage(id);
+
+        for (UUID attachmentId : message.getAttachmentIds()) {
+            binaryContentRepository.delete(attachmentId);
+        }
+
+        messageRepository.delete(id);
+
+        User author =
+                userRepository.findById(message.getUserId());
+
+        if (author != null) {
+            author.removeMessage(id);
+            userRepository.save(author);
+        }
+
+        Channel channel =
+                channelRepository.findById(message.getChannelId());
+
+        if (channel != null) {
+            channel.removeMessage(id);
+            channelRepository.save(channel);
+        }
+    }
+
+    private Message requireMessage(UUID id) {
         Message message = messageRepository.findById(id);
 
         if (message == null) {
@@ -116,93 +175,15 @@ public class BasicMessageService implements MessageService {
         return message;
     }
 
-    @Override
-    public List<Message> findAll() {
-        return messageRepository.findAll();
-    }
-
-    @Override
-    public List<Message> findAllByChannelId(UUID channelId) {
-        requireChannel(channelId);
-
-        return messageRepository.findAllByChannelId(channelId)
-                .stream()
-                .sorted(
-                        Comparator.comparing(Message::getCreatedAt)
-                )
-                .toList();
-    }
-
-    @Override
-    public Message update(UUID id, String content) {
-        return update(
-                new UpdateMessageRequest(id, content)
+    private MessageResponse toResponse(Message message) {
+        return new MessageResponse(
+                message.getId(),
+                message.getContent(),
+                message.getUserId(),
+                message.getChannelId(),
+                Set.copyOf(message.getAttachmentIds()),
+                message.getCreatedAt(),
+                message.getUpdatedAt()
         );
-    }
-
-    @Override
-    public Message update(UpdateMessageRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException(
-                    "메시지 수정 정보가 없습니다."
-            );
-        }
-
-        Message message = findById(request.id());
-
-        if (request.content() == null
-                || request.content().isBlank()) {
-            throw new IllegalArgumentException(
-                    "메시지 내용을 입력하세요."
-            );
-        }
-
-        message.update(request.content());
-
-        return messageRepository.save(message);
-    }
-
-    @Override
-    public void delete(UUID id) {
-        Message message = findById(id);
-
-        User user = requireUser(message.getUserId());
-        Channel channel = requireChannel(message.getChannelId());
-
-        for (UUID attachmentId : message.getAttachmentIds()) {
-            binaryContentRepository.delete(attachmentId);
-        }
-
-        messageRepository.delete(id);
-
-        user.removeMessage(id);
-        channel.removeMessage(id);
-
-        userRepository.save(user);
-        channelRepository.save(channel);
-    }
-
-    private User requireUser(UUID id) {
-        User user = userRepository.findById(id);
-
-        if (user == null) {
-            throw new IllegalArgumentException(
-                    "사용자를 찾을 수 없습니다."
-            );
-        }
-
-        return user;
-    }
-
-    private Channel requireChannel(UUID id) {
-        Channel channel = channelRepository.findById(id);
-
-        if (channel == null) {
-            throw new IllegalArgumentException(
-                    "채널을 찾을 수 없습니다."
-            );
-        }
-
-        return channel;
     }
 }

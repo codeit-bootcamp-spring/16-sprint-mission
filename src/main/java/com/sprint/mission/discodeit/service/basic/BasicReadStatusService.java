@@ -1,11 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.CreateReadStatusRequest;
-import com.sprint.mission.discodeit.dto.UpdateReadStatusRequest;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.ReadStatusRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 
 import lombok.RequiredArgsConstructor;
@@ -24,24 +21,19 @@ public class BasicReadStatusService implements ReadStatusService {
     private final ChannelRepository channelRepository;
 
     @Override
-    public ReadStatus create(CreateReadStatusRequest request) {
+    public ReadStatusResponse create(CreateReadStatusRequest request) {
         if (request == null
                 || userRepository.findById(request.userId()) == null
                 || channelRepository.findById(request.channelId()) == null) {
             throw new IllegalArgumentException(
-                    "사용자 또는 채널이 존재하지 않습니다."
+                    "사용자 또는 채널을 찾을 수 없습니다."
             );
         }
 
-        ReadStatus existing =
-                readStatusRepository.findByUserIdAndChannelId(
-                        request.userId(),
-                        request.channelId()
-                );
-
-        if (existing != null) {
+        if (readStatusRepository.findByUserIdAndChannelId(
+                request.userId(), request.channelId()) != null) {
             throw new IllegalArgumentException(
-                    "이미 읽음 상태가 존재합니다."
+                    "이미 존재하는 읽음 상태입니다."
             );
         }
 
@@ -53,11 +45,51 @@ public class BasicReadStatusService implements ReadStatusService {
                         : request.lastReadAt()
         );
 
-        return readStatusRepository.save(status);
+        return toResponse(readStatusRepository.save(status));
     }
 
     @Override
-    public ReadStatus findById(UUID id) {
+    public ReadStatusResponse findById(UUID id) {
+        return toResponse(require(id));
+    }
+
+    @Override
+    public List<ReadStatusResponse> findAllByUserId(UUID userId) {
+        if (userRepository.findById(userId) == null) {
+            throw new IllegalArgumentException(
+                    "사용자를 찾을 수 없습니다."
+            );
+        }
+
+        return readStatusRepository.findAllByUserId(userId)
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public ReadStatusResponse update(
+            UpdateReadStatusRequest request
+    ) {
+        if (request == null || request.lastReadAt() == null) {
+            throw new IllegalArgumentException(
+                    "읽음 시간을 입력하세요."
+            );
+        }
+
+        ReadStatus status = require(request.id());
+        status.update(request.lastReadAt());
+
+        return toResponse(readStatusRepository.save(status));
+    }
+
+    @Override
+    public void delete(UUID id) {
+        require(id);
+        readStatusRepository.delete(id);
+    }
+
+    private ReadStatus require(UUID id) {
         ReadStatus status = readStatusRepository.findById(id);
 
         if (status == null) {
@@ -69,41 +101,14 @@ public class BasicReadStatusService implements ReadStatusService {
         return status;
     }
 
-    @Override
-    public List<ReadStatus> findAllByUserId(UUID userId) {
-        if (userRepository.findById(userId) == null) {
-            throw new IllegalArgumentException(
-                    "사용자를 찾을 수 없습니다."
-            );
-        }
-
-        return readStatusRepository.findAllByUserId(userId);
-    }
-
-    @Override
-    public ReadStatus update(UpdateReadStatusRequest request) {
-        if (request == null) {
-            throw new IllegalArgumentException(
-                    "수정 정보가 없습니다."
-            );
-        }
-
-        ReadStatus status = findById(request.id());
-
-        if (request.lastReadAt() == null) {
-            throw new IllegalArgumentException(
-                    "읽은 시간이 없습니다."
-            );
-        }
-
-        status.update(request.lastReadAt());
-
-        return readStatusRepository.save(status);
-    }
-
-    @Override
-    public void delete(UUID id) {
-        findById(id);
-        readStatusRepository.delete(id);
+    private ReadStatusResponse toResponse(ReadStatus status) {
+        return new ReadStatusResponse(
+                status.getId(),
+                status.getUserId(),
+                status.getChannelId(),
+                status.getLastReadAt(),
+                status.getCreatedAt(),
+                status.getUpdatedAt()
+        );
     }
 }
