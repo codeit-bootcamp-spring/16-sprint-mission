@@ -12,4 +12,9 @@ public class ReadStatus extends Base {
     private UUID userId;
     private UUID channelId;
     private Instant lastReadAt;
+
+    public void update(Instant lastReadAt) {
+        this.lastReadAt = lastReadAt;
+        updateUpdatedAt();
+    }
 }

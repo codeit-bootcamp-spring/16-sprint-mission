@@ -14,8 +14,7 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        for (int i=0; i < users.size(); i++) {
-            // 만약 존재한다면 수정하기
+        for (int i = 0; i < users.size(); i++) {
             if (users.get(i).getId().equals(user.getId())) {
                 users.set(i, user);
                 return user;
@@ -29,15 +28,25 @@ public class JCFUserRepository implements UserRepository {
     @Override
     public Optional<User> findById(UUID id) {
         return users.stream()
-                .filter(user -> user.getId().equals(id))
+                .filter(user ->
+                        user.getId().equals(id))
                 .findFirst();
     }
 
     @Override
-    public List<User> findByName(String name) {
+    public Optional<User> findByUsername(String username) {
         return users.stream()
-                .filter(user -> user.getName().equals(name))
-                .toList();
+                .filter(user ->
+                        user.getUsername().equals(username))
+                .findFirst();
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return users.stream()
+                .filter(user ->
+                        user.getEmail().equals(email))
+                .findFirst();
     }
 
     @Override
@@ -46,17 +55,8 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
-    public List<User> findAllByChannelId(UUID channelId) {
-        return users.stream()
-                .filter(user ->
-                        user.getChannels().stream()
-                                .anyMatch(channel ->
-                                        channel.getId().equals(channelId)))
-                .toList();
-    }
-
-    @Override
     public void delete(User user) {
-        users.removeIf(existingUser -> existingUser.getId().equals(user.getId()));
+        users.removeIf(existingUser ->
+                existingUser.getId().equals(user.getId()));
     }
 }

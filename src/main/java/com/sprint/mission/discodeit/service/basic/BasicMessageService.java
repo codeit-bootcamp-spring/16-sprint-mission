@@ -4,16 +4,20 @@ import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.message.MessageCreateDto;
 import com.sprint.mission.discodeit.dto.message.MessageDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateDto;
-import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.*;
-import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
-import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -62,7 +66,7 @@ public class BasicMessageService implements MessageService {
             boolean joined = readStatusRepository.findAllByUserId(dto.authorId())
                     .stream()
                     .anyMatch(readStatus ->
-                        readStatus.getChannelId().equals(dto.channelId())
+                            readStatus.getChannelId().equals(dto.channelId())
                     );
             if (!joined) {
                 throw new IllegalStateException(
@@ -72,7 +76,7 @@ public class BasicMessageService implements MessageService {
         }
 
         List<UUID> attachmentIds = new ArrayList<>();
-        if(dto.attachments() != null) {
+        if (dto.attachments() != null) {
             for (BinaryContentDto attachment : dto.attachments()) {
                 BinaryContent binaryContent = new BinaryContent(
                         attachment.filename(),
@@ -121,11 +125,11 @@ public class BasicMessageService implements MessageService {
                 "채널 ID는 null일 수 없습니다."
         );
         channelRepository.findById(channelId)
-                        .orElseThrow(() ->
-                                new NoSuchElementException(
-                                        "채널이 존재하지 않습니다."
-                                )
-                        );
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "채널이 존재하지 않습니다."
+                        )
+                );
 
         return messageRepository.findAllByChannelId(channelId)
                 .stream()
@@ -163,7 +167,7 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public void deleteMessage (UUID id) {
+    public void deleteMessage(UUID id) {
         validator.validateNotNull(
                 id,
                 "메세지 ID는 null일 수 없습니다."

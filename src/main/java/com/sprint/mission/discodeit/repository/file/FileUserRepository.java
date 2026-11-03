@@ -14,7 +14,8 @@ import java.util.UUID;
 
 @Repository
 public class FileUserRepository implements UserRepository {
-    private static final Path DIRECTORY =  Paths.get(System.getProperty("user.dir"), "data", "users");
+    private static final Path DIRECTORY =
+            Paths.get(System.getProperty("user.dir"), "data", "users");
 
     public FileUserRepository() {
         try {
@@ -38,7 +39,8 @@ public class FileUserRepository implements UserRepository {
 
     @Override
     public User save(User user) {
-        Path filePath = DIRECTORY.resolve(user.getId() + ".ser");
+        Path filePath =
+                DIRECTORY.resolve(user.getId() + ".ser");
         try (
                 FileOutputStream fos = new FileOutputStream(filePath.toFile());
                 ObjectOutputStream oos = new ObjectOutputStream(fos);
@@ -62,10 +64,21 @@ public class FileUserRepository implements UserRepository {
     }
 
     @Override
-    public List<User> findByName(String name) {
+    public Optional<User> findByUsername(String username) {
         return findAll().stream()
-                .filter(user -> user.getName().equals(name))
-                .toList();
+                .filter(user ->
+                        user.getUsername().equals(username)
+                )
+                .findFirst();
+    }
+
+    @Override
+    public Optional<User> findByEmail(String email) {
+        return findAll().stream()
+                .filter(user ->
+                        user.getEmail().equals(email)
+                )
+                .findFirst();
     }
 
     @Override
@@ -80,16 +93,6 @@ public class FileUserRepository implements UserRepository {
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    @Override
-    public List<User> findAllByChannelId(UUID channelId) {
-        return findAll().stream()
-                .filter(user ->
-                        user.getChannels().stream()
-                                .anyMatch(channel ->
-                                        channel.getId().equals(channelId)))
-                .toList();
     }
 
     @Override
