@@ -1,9 +1,7 @@
 package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.repository.*;
-import com.sprint.mission.discodeit.repository.file.FileChannelRepository;
-import com.sprint.mission.discodeit.repository.file.FileMessageRepository;
-import com.sprint.mission.discodeit.repository.file.FileUserRepository;
+import com.sprint.mission.discodeit.repository.file.*;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -23,9 +21,9 @@ public class RepositoryConfig {
         return new FileMessageRepository();
     }
     @Bean
-    public BinaryContentRepository binaryContentRepository(){return null;}
+    public BinaryContentRepository binaryContentRepository(){return new FileBinaryContentRepository();}
     @Bean
-    public ReadStatusRepository readStatusRepository(){return null;}
+    public ReadStatusRepository readStatusRepository(){return new FileReadStatusRepository();}
     @Bean
-    public UserStatusRepository userStatusRepository(){return null;}
+    public UserStatusRepository userStatusRepository(){return new FileUserStatusRepository();}
 }
