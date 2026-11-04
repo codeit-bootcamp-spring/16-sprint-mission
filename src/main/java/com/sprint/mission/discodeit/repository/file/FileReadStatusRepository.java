@@ -16,7 +16,7 @@ import java.util.stream.Stream;
 // JCFReadStatusRepository와 FileReadStatusRepository가 모두 @Repository로 등록되어 있다면,
 // Spring 컨테이너가 ReadStatusRepository 타입의 빈을 주입할 때 어떤 구현체를 사용할 지 모르기 때문에,
 // @Primary, @Qualifier, @Profile등을 이용해 우선순위를 지정해주거나, 주입할 빈을 명시할 수 있습니다.
-@Repository
+// @Repository
 public class FileReadStatusRepository implements ReadStatusRepository {
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";

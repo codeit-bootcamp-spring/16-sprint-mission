@@ -72,7 +72,7 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusResponse updateByUserUd(UUID userId) {
+    public UserStatusResponse updateByUserId(UUID userId) {
         this.userRepository.findById(userId)
                         .orElseThrow(() -> new NoSuchElementException("userId가 " + userId + "인 user를 찾을 수 없습니다."));
 
