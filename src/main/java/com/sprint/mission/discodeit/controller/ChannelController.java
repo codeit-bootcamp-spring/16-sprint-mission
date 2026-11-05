@@ -26,6 +26,21 @@ public class ChannelController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.channelService.createPrivate(createRequest));
     }
 
+    @PostMapping("/{id}/users")
+    public ResponseEntity<Void> joinChannel(@PathVariable UUID id,
+                                            @RequestBody ChannelJoinRequest joinRequest) {
+        this.channelService.addUserToChannel(id, joinRequest.userId());
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @DeleteMapping("/{id}/users")
+    public ResponseEntity<Void> leaveChannel(@PathVariable UUID id,
+                                             @RequestBody ChannelLeaveRequest leaveRequest) {
+        this.channelService.removeUserFromChannel(id, leaveRequest.userId());
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+
     @PatchMapping("/{id}")
     public ResponseEntity<ChannelUpdateResponse> updatePublicChannel(@PathVariable UUID id,
                                                                      @RequestBody ChannelUpdateRequest updateRequest) {
