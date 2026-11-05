@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateResponse;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindAllByIdInRequest;
 import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -41,8 +42,8 @@ public class BinaryContentService {
                 .toList();
     }
 
-    public List<BinaryContentFindResponse> findAllByIdIn(List<UUID> ids) {
-        List<UUID> distinctIds = new ArrayList<>(new LinkedHashSet<>(ids));
+    public List<BinaryContentFindResponse> findAllByIdIn(BinaryContentFindAllByIdInRequest findRequest) {
+        List<UUID> distinctIds = new ArrayList<>(new LinkedHashSet<>(findRequest.ids()));
 
         List<BinaryContent> binaryContents = binaryContentRepository.findAllByIdIn(distinctIds);
         if (binaryContents.size() != distinctIds.size())
