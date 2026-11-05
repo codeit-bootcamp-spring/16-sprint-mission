@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.User.*;
+import com.sprint.mission.discodeit.dto.user.*;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -9,7 +8,9 @@ import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -22,10 +23,7 @@ public class BasicUserService implements UserService {
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserCreateResponse create(UserCreateRequest createRequest,
-                                     UserProfileImageCreateRequest imageCreateRequest) {
-        // TODO: 비밀번호 암호화
-
+    public UserCreateResponse create(UserCreateRequest createRequest, MultipartFile profileImage) {
         String name = createRequest.name();
         String email = createRequest.email();
 
@@ -40,13 +38,15 @@ public class BasicUserService implements UserService {
 
         this.userStatusRepository.save(new UserStatus(user.getId(), null));
 
-        if (imageCreateRequest != null) {
-            BinaryContentCreateRequest binaryContentCreateRequest = imageCreateRequest.binaryContentCreateRequest();
-            String fileName = binaryContentCreateRequest.fileName();
-            String extension = binaryContentCreateRequest.extension();
-            byte[] content = binaryContentCreateRequest.content();
-
-            BinaryContent binaryContent = new BinaryContent(fileName, extension, content);
+        if (!profileImage.isEmpty()) {
+            BinaryContent binaryContent = null;
+            try {
+                binaryContent = new BinaryContent(
+                        profileImage.getOriginalFilename(),
+                        profileImage.getBytes());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
             user.assignProfileImage(binaryContent.getId());
             this.binaryContentRepository.save(binaryContent);
         }
@@ -77,8 +77,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserUpdateResponse update(UserUpdateRequest updateRequest, UserProfileImageUpdateRequest imageUpdateRequest) {
-        UUID userId = updateRequest.userId();
+    public UserUpdateResponse update(UUID userId, UserUpdateRequest updateRequest, MultipartFile profileImage) {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
         user.validateNotDeleted();
@@ -96,13 +95,17 @@ public class BasicUserService implements UserService {
 
         user.update(newName, newEmail, newPassword);
 
-        if (imageUpdateRequest != null) {
+        if (!profileImage.isEmpty()) {
             UUID oldProfileId = user.getProfileId();
-            String fileName = imageUpdateRequest.fileName();
-            String extension = imageUpdateRequest.extension();
-            byte[] content = imageUpdateRequest.content();
+            String fileName = profileImage.getOriginalFilename();
+            byte[] content = null;
+            try {
+                content = profileImage.getBytes();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
 
-            BinaryContent binaryContent = new BinaryContent(fileName, extension, content);
+            BinaryContent binaryContent = new BinaryContent(fileName, content);
             this.binaryContentRepository.save(binaryContent);
             user.assignProfileImage(binaryContent.getId());
 

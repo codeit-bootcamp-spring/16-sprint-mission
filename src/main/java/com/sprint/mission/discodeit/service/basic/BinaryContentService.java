@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateResponse;
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentFindResponse;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateResponse;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -21,10 +21,9 @@ public class BinaryContentService {
 
     public BinaryContentCreateResponse create(BinaryContentCreateRequest createRequest) {
         String fileName = createRequest.fileName();
-        String extension = createRequest.extension();
         byte[] content = createRequest.content();
 
-        BinaryContent binaryContent = new BinaryContent(fileName, extension, content);
+        BinaryContent binaryContent = new BinaryContent(fileName, content);
         this.binaryContentRepository.save(binaryContent);
         return BinaryContentCreateResponse.from(binaryContent);
     }

@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.Channel.*;
+import com.sprint.mission.discodeit.dto.channel.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -80,9 +80,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelUpdateResponse update(ChannelUpdateRequest updateRequest) {
-        UUID id = updateRequest.id();
-
+    public ChannelUpdateResponse update(UUID id, ChannelUpdateRequest updateRequest) {
         Channel channel = this.channelRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();

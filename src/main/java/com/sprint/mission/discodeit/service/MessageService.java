@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service;
 
-import com.sprint.mission.discodeit.dto.Message.*;
+import com.sprint.mission.discodeit.dto.message.*;
 
 import java.util.List;
 import java.util.UUID;
