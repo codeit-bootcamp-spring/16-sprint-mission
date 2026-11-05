@@ -61,6 +61,8 @@ public class BasicUserStatusService implements UserStatusService {
                         .orElseThrow(() ->
                                 new IllegalArgumentException("존재하지 않는 사용자 상태입니다."));
 
+        userStatus.updateLastActiveAt();
+
         UserStatus savedUserStatus = userStatusRepository.save(userStatus);
 
         return toResponseDto(savedUserStatus);
@@ -71,6 +73,8 @@ public class BasicUserStatusService implements UserStatusService {
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("해당 사용자의 상태가 존재하지 않습니다."));
+
+        userStatus.updateLastActiveAt();
 
         UserStatus savedUserStatus = userStatusRepository.save(userStatus);
 
