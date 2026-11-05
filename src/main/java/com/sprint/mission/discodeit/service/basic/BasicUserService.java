@@ -13,11 +13,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
-
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -74,24 +70,49 @@ public class BasicUserService implements UserService {
 
         UserStatus userStatus = this.findUserStatus(user.getId());
 
-        UserResponse response = this.toResponse(user);
-
-        return response;
+        return this.toResponse(user, userStatus);
     }
 
     @Override
     public List<UserResponse> findAll() {
-        return userRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
+        List<User> userList = userRepository.findAll();
+        List<UserResponse> userResponseList = new ArrayList<>();
+        for (User user : userList) {
+            UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
+                    .orElseThrow(() -> new NoSuchElementException("ID가 " + user.getId() + "인 user의 userStatus를 찾을 수 없습니다." ));
+            userResponseList.add(this.toResponse(user, userStatus));
+        }
+
+        return userResponseList;
     }
 
+    // UserController에서 이와 같은 메서드가 필요합니다.
+    // 이 메서드를 public을 바꾸는 것 대신,
+    // Mapper 클래스를 작성해 사용하는것이 좋습니다.
+    /*
     private UserResponse toResponse(User user) {
         return new UserResponse(
                 user.getId(), user.getProfileId(),
                 user.getCreatedAt(), user.getUpdatedAt(),
                 user.getUsername(), user.getEmail(),
+                // DTO로 변환하는 것 뿐만 아니라, 사용자 상탸를 조회하는 책임까지 수행하기 때문에
+                // 아래 코드를 수정하는 것이 좋습니다.
+                // findUserStatus()가 Repository에 접근한다면,
+                // 사용자 목록을 변환할 때 사용자마다 추가 조회가 발생할 수도 있습니다.
                 this.findUserStatus(user.getId()).isOnline()
+        );
+    }
+     */
+
+    private UserResponse toResponse(User user, UserStatus userStatus) {
+        return new UserResponse(
+                user.getId(),
+                user.getProfileId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getUsername(),
+                user.getEmail(),
+                userStatus.isOnline()
         );
     }
 
@@ -141,6 +162,7 @@ public class BasicUserService implements UserService {
         userRepository.deleteById(userId);
     }
 
+    @Override
     public UserStatus findUserStatus(UUID userId) {
         if (!userRepository.existsById(userId)) {
             throw new NoSuchElementException("User with id " + userId + " not found.");
@@ -160,9 +182,9 @@ public class BasicUserService implements UserService {
             throw new NoSuchElementException("User with id " + userId + " not found");
         }
 
-        Optional<User> user = userRepository.findById(userId);
-        // user.get()은 Optional 객체 안에 들어 있는 값을 꺼내는 메서드입니다.
-        UUID profileId = user.get().getProfileId();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("User with id: " + userId + " not found."));
+        UUID profileId = user.getProfileId();
 
         return binaryContentRepository.findById(profileId);
     }
