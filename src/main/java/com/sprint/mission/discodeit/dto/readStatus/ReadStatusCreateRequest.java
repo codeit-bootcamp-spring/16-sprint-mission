@@ -1,9 +1,14 @@
 package com.sprint.mission.discodeit.dto.readStatus;
 
+import jakarta.validation.constraints.NotBlank;
+
 import java.util.UUID;
 
 public record ReadStatusCreateRequest(
+        @NotBlank
         UUID channelId,
+
+        @NotBlank
         UUID userId
 ) {
     public ReadStatusCreateRequest {
