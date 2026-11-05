@@ -57,8 +57,7 @@ public class ReadStatusService {
                 .toList();
     }
 
-    public ReadStatusUpdateResponse update(ReadStatusUpdateRequest updateRequest) {
-        UUID id = updateRequest.id();
+    public ReadStatusUpdateResponse update(UUID id, ReadStatusUpdateRequest updateRequest) {
         Instant lastReadTime = updateRequest.lastReadTime();
 
         ReadStatus readStatus = this.readStatusRepository.findById(id)
