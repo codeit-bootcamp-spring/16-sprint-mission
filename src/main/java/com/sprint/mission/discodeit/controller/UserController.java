@@ -1,0 +1,45 @@
+package com.sprint.mission.discodeit.controller;
+
+import com.sprint.mission.discodeit.dto.user.*;
+import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.basic.UserStatusService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.List;
+import java.util.UUID;
+
+@RequiredArgsConstructor
+@RestController
+@RequestMapping("v1/users")
+public class UserController {
+    private final UserService userService;
+    private final UserStatusService userStatusService;
+
+    @GetMapping
+    public ResponseEntity<List<UserFindResponse>> findAllUser() {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.findAll());
+    }
+
+    @PostMapping
+    public ResponseEntity<UserCreateResponse> createUser(@RequestPart("user") UserCreateRequest createRequest,
+                                                         @RequestPart("profileImage") MultipartFile profileImage) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.create(createRequest, profileImage));
+    }
+
+    @PatchMapping("/{userId}")
+    public ResponseEntity<UserUpdateResponse> updateUser(@PathVariable UUID userId,
+                                                         @RequestPart("user") UserUpdateRequest updateRequest,
+                                                         @RequestPart(name = "profileImage", required = false) MultipartFile profileImage) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.userService.update(userId, updateRequest, profileImage));
+    }
+
+    @DeleteMapping("/{userId}")
+    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+        this.userService.delete(userId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+}
