@@ -19,25 +19,25 @@ public class UserController {
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    @GetMapping
+    @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<UserFindResponse>> findAllUser() {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.findAll());
     }
 
-    @PostMapping
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<UserCreateResponse> createUser(@RequestPart("user") UserCreateRequest createRequest,
                                                          @RequestPart("profileImage") MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.create(createRequest, profileImage));
     }
 
-    @PatchMapping("/{userId}")
+    @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH)
     public ResponseEntity<UserUpdateResponse> updateUser(@PathVariable UUID userId,
                                                          @RequestPart("user") UserUpdateRequest updateRequest,
                                                          @RequestPart(name = "profileImage", required = false) MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.update(userId, updateRequest, profileImage));
     }
 
-    @DeleteMapping("/{userId}")
+    @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
         this.userService.delete(userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

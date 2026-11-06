@@ -16,17 +16,17 @@ import java.util.UUID;
 public class ReadStatusController {
     private final ReadStatusService readStatusService;
 
-    @GetMapping("/users/{userId}")
+    @RequestMapping(value = "/users/{userId}", method = RequestMethod.GET)
     public ResponseEntity<List<ReadStatusFindResponse>> findAllReadStatusByUserId(@PathVariable UUID userId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.readStatusService.findAllByUserId(userId));
     }
 
-    @PostMapping
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ReadStatusCreateResponse> createReadStatus(@RequestBody ReadStatusCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.readStatusService.create(createRequest));
     }
 
-    @PatchMapping("/{id}")
+    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
     public ResponseEntity<ReadStatusUpdateResponse> updateReadStatus(@PathVariable UUID id,
                                                                      @RequestBody ReadStatusUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.readStatusService.update(id, updateRequest));

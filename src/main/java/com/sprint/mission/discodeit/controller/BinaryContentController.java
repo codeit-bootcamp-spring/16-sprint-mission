@@ -16,13 +16,13 @@ import java.util.List;
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
-    @PostMapping
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<List<BinaryContentFindResponse>> findAllFilesByIds(@RequestBody BinaryContentFindAllByIdInRequest findRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAllByIdIn(findRequest));
     }
 
 
-    @GetMapping
+    @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<BinaryContentFindResponse>> findAllFiles() {
         return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAll());
     }

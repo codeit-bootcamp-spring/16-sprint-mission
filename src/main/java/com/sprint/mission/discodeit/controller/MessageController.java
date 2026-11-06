@@ -17,24 +17,24 @@ import java.util.UUID;
 public class MessageController {
     private final MessageService messageService;
 
-    @GetMapping("/channels/{channelId}")
+    @RequestMapping(value = "/channels/{channelId}", method = RequestMethod.GET)
     public ResponseEntity<List<MessageFindResponse>> findAllMessagesByUserId(@PathVariable UUID channelId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.messageService.findAllByChannelId(channelId));
     }
 
-    @PostMapping
+    @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<MessageCreateResponse> createMessage(@RequestPart("attachments") List<MultipartFile> attachments,
                                                                @RequestPart("message") MessageCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.messageService.create(createRequest, attachments));
     }
 
-    @PatchMapping("/{id}")
+    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
     public ResponseEntity<MessageUpdateResponse> updateMessage(@PathVariable UUID id,
                                                                @RequestBody MessageUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.messageService.update(id, updateRequest));
     }
 
-    @DeleteMapping("/{id}")
+    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
     public ResponseEntity<Void> deleteMessage(@PathVariable UUID id) {
         this.messageService.delete(id);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();

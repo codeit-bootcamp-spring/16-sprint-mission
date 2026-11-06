@@ -17,12 +17,12 @@ import java.util.UUID;
 public class UserStatusController {
     private final UserStatusService userStatusService;
 
-    @GetMapping("/{userId}")
+    @RequestMapping(value = "/{userId}", method = RequestMethod.GET)
     public ResponseEntity<UserStatusFindResponse> findUserStatusByUserId(@PathVariable UUID userId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userStatusService.findByUserId(userId));
     }
 
-    @PatchMapping("/{userId}")
+    @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH)
     public ResponseEntity<UserStatusUpdateResponse> updateUserStatus(@PathVariable UUID userId,
                                                                      @RequestBody UserStatusUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userStatusService.updateByUserId(userId, updateRequest));
