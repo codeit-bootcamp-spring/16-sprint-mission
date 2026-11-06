@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.file.service_fileConsoleRun;
 
-import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 
 import java.util.List;

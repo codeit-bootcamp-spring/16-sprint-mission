@@ -1,11 +1,11 @@
 package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.dto.request.otherRequest.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.entity.newDomain.UserStatus;

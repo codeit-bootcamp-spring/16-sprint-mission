@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.file.service_fileConsoleRun;
 
 import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.channelRequest.ChannelUpdateRequest;
-import com.sprint.mission.discodeit.dto.request.channelRequest.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import java.util.List;

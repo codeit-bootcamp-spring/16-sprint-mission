@@ -1,12 +1,12 @@
 package com.sprint.mission.discodeit.service.file.service_fileConsoleRun;
 
 import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.messageRequest.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.messages.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageDto;
-import com.sprint.mission.discodeit.dto.request.messageRequest.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.messages.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 
-import com.sprint.mission.discodeit.dto.request.channelRequest.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.UserService;

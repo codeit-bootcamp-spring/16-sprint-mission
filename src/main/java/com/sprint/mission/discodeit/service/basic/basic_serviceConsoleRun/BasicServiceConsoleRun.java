@@ -3,10 +3,10 @@ package com.sprint.mission.discodeit.service.basic.basic_serviceConsoleRun;
 // 엔티티 및 DTO 계층
 import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.MessageDto;
-import com.sprint.mission.discodeit.dto.request.channelRequest.PublicChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.messageRequest.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.messages.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.repository.jcf.otherJCF.JCFBinaryContentRepository;
 import com.sprint.mission.discodeit.repository.jcf.otherJCF.JCFReadStatusRepository;
 import com.sprint.mission.discodeit.repository.jcf.otherJCF.JCFUserStatusRepository;

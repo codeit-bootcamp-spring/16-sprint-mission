@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.type.ChannelType;
+import com.sprint.mission.discodeit.type.ChannelType;
 import lombok.Getter;
 
 import java.util.*;

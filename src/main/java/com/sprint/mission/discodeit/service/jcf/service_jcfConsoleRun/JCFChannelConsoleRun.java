@@ -2,9 +2,9 @@ package com.sprint.mission.discodeit.service.jcf.service_jcfConsoleRun;
 
 import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.channelRequest.ChannelUpdateRequest;
-import com.sprint.mission.discodeit.dto.request.channelRequest.PublicChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.jcf.JCFMessageRepository;
