@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class AuthMapper {
+
     public LoginResponse toLoginResponse(User user) {
         return new LoginResponse(
                 user.getId(),

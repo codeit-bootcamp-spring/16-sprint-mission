@@ -21,6 +21,8 @@ public class BasicChannelService implements ChannelService {
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
 
+    /* createPublicChannel()과 createPrivateChannel() 메서드들을 createChannel() 메서드로 통합하고
+    // 반환 타입을 Channel이 아닌 DTO로 변경합니다.
     @Override
     public Channel createPublicChannel(PublicChannelCreateRequest request) {
         Channel channel = new Channel(request);
@@ -40,7 +42,34 @@ public class BasicChannelService implements ChannelService {
 
         return channel;
     }
+     */
 
+    @Override
+    public ChannelInfo createChannel(ChannelCreateRequest request) {
+        if (request.type() == ChannelType.PRIVATE) {
+
+            Channel channel = new Channel(request);
+            List<ReadStatus> readStatusList = Objects.requireNonNull(request.userList()).stream()
+                    .map(u -> new ReadStatus(u.getId(), channel.getId()))
+                    .toList();
+
+            this.channelRepository.save(channel);
+            this.readStatusRepository.saveAll(readStatusList);
+
+            return this.toChannelInfo(channel);
+
+        } else if (request.type() == ChannelType.PUBLIC) {
+            Channel channel = new Channel(request);
+            channelRepository.save(channel);
+
+            return this.toChannelInfo(channel);
+        } else {
+            throw new IllegalArgumentException("옳바르지 않은 채널 생성 요청입니다. ");
+        }
+    }
+
+    // private 접근 제어자를 public으로 바꾼 뒤, ChannelService 인터페의스의 추상 메서드에 추가합니다.
+    // 생각해보니까 안해도 될 듯합니다.
     private Instant findLastMessageAt(UUID channelId) {
         return this.messageRepository.findAll().stream()
                 .filter(m -> m.getChannelId().equals(channelId))
