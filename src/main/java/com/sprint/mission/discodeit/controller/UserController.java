@@ -28,7 +28,7 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public List<UserResponseDto> findAccessible() {
+    public List<UserResponseDto> findAll() {
         return userService.findAllUsers();
     }
 

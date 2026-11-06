@@ -36,7 +36,7 @@ public class ChannelController {
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public List<ChannelResponseDto> findAll(
+    public List<ChannelResponseDto> findAccessible(
             @RequestHeader("USER-UUID") UUID userId
     ) {
         return channelService.findAllChannelsByUserId(userId);
