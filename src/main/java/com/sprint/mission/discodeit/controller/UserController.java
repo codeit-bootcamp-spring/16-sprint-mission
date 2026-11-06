@@ -24,7 +24,7 @@ public class UserController {
 
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<UserCreateResponse> createUser(@RequestPart("user") UserCreateRequest createRequest,
-                                                         @RequestPart("profileImage") MultipartFile profileImage) {
+                                                         @RequestPart(name = "profileImage", required = false) MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.create(createRequest, profileImage));
     }
 

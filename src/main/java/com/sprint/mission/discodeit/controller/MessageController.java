@@ -23,7 +23,7 @@ public class MessageController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<MessageCreateResponse> createMessage(@RequestPart("attachments") List<MultipartFile> attachments,
+    public ResponseEntity<MessageCreateResponse> createMessage(@RequestPart(name = "attachments", required = false) List<MultipartFile> attachments,
                                                                @RequestPart("message") MessageCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.messageService.create(createRequest, attachments));
     }
