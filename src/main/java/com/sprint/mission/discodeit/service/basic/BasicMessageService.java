@@ -50,7 +50,7 @@ public class BasicMessageService implements MessageService {
 
         Message message = new Message(authorId, content, channelId);
 
-        if (!attachments.isEmpty()) {
+        if (attachments != null && !attachments.isEmpty()) {
             attachments.forEach(attachment -> {
                 String fileName = attachment.getOriginalFilename();
                 byte[] fileContent = null;

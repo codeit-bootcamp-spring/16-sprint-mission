@@ -38,7 +38,7 @@ public class BasicUserService implements UserService {
 
         this.userStatusRepository.save(new UserStatus(user.getId(), null));
 
-        if (!profileImage.isEmpty()) {
+        if (profileImage != null && !profileImage.isEmpty()) {
             BinaryContent binaryContent = null;
             try {
                 binaryContent = new BinaryContent(
