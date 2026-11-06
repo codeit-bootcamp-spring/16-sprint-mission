@@ -10,3 +10,7 @@ spring:
 discodeit:
   repository:
     type: jcf
+
+server:
+  servlet:
+    context-path: /discodeit
