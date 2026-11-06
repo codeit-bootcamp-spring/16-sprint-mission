@@ -12,7 +12,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("v1/files")
+@RequestMapping("api/v1/files")
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 

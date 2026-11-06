@@ -12,7 +12,7 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("v1/channels")
+@RequestMapping("api/v1/channels")
 public class ChannelController {
     private final ChannelService channelService;
 

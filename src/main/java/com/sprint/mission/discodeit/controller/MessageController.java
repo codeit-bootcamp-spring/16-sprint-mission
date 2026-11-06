@@ -13,12 +13,12 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("v1/messages")
+@RequestMapping("api/v1/messages")
 public class MessageController {
     private final MessageService messageService;
 
     @RequestMapping(value = "/channels/{channelId}", method = RequestMethod.GET)
-    public ResponseEntity<List<MessageFindResponse>> findAllMessagesByUserId(@PathVariable UUID channelId) {
+    public ResponseEntity<List<MessageFindResponse>> findAllMessagesByChannelId(@PathVariable UUID channelId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.messageService.findAllByChannelId(channelId));
     }
 

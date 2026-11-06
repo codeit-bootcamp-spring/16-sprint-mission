@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.user.*;
 import com.sprint.mission.discodeit.service.UserService;
-import com.sprint.mission.discodeit.service.basic.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,10 +13,9 @@ import java.util.UUID;
 
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("v1/users")
+@RequestMapping("api/v1/users")
 public class UserController {
     private final UserService userService;
-    private final UserStatusService userStatusService;
 
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<UserFindResponse>> findAllUser() {
