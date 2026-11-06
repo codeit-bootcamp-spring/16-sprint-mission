@@ -38,7 +38,7 @@ public class BasicAuthService implements AuthService {
                 .filter(u -> u.getUsername().equals(loginRequest.username())
                         && u.getPassword().equals(loginRequest.password()))
                 .findFirst()
-                .orElseThrow(() -> new NoSuchElementException("일치하는 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new NoSuchElementException("입력하신 ID 또는 Password 가 올바르지 않습니다."));
 
         return user;
     }
