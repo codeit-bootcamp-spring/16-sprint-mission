@@ -12,6 +12,11 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +46,39 @@ public class UserController {
                 .body(createdUser);
     }
 
+    // Postman의 form-data로 사용자 정보와 프로필 이미지 파일을 받습니다.
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<UserDto> createWithProfile(
+            @RequestPart("user") UserCreateRequest request,
+            @RequestPart(value = "profile", required = false) MultipartFile profile
+    ) throws IOException {
+        BinaryContentCreateRequest profileImage = null;
+
+        // 프로필은 선택 사항입니다. 파일이 있으면 서버에서 바이트로 읽습니다.
+        if (profile != null && !profile.isEmpty()) {
+            profileImage = new BinaryContentCreateRequest(
+                    profile.getOriginalFilename(),
+                    profile.getContentType(),
+                    profile.getBytes()
+            );
+        }
+
+        // 사용자 정보와 이미지 데이터를 기존 서비스가 받는 DTO에 합칩니다.
+        UserCreateRequest serviceRequest = new UserCreateRequest(
+                request.username(),
+                request.email(),
+                request.password(),
+                profileImage
+        );
+
+        // 기존 서비스가 중복 검사와 저장을 처리합니다.
+        UserDto createdUser = userService.create(serviceRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).body(createdUser);
+    }
+
     //update
     @RequestMapping(
             value = "/{userId}",
@@ -63,6 +101,41 @@ public class UserController {
         UserDto updatedUser = userService.update(serviceRequest);
 
         return ResponseEntity.ok(updatedUser); // 200 OK와 JSON을 응답합니다.
+    }
+
+    // Postman에서 수정 정보와 새 프로필 이미지 파일을 함께 받습니다.
+    @RequestMapping(
+            value = "/{userId}",
+            method = RequestMethod.PATCH,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<UserDto> updateWithProfile(
+            @PathVariable("userId") UUID userId,
+            @RequestPart("user") UserUpdateRequest request,
+            @RequestPart(value = "profile", required = false) MultipartFile profile
+    ) throws IOException {
+        BinaryContentCreateRequest profileImage = null;
+
+        // 새 파일이 있으면 서비스에 전달할 이미지 DTO로 변환합니다.
+        if (profile != null && !profile.isEmpty()) {
+            profileImage = new BinaryContentCreateRequest(
+                    profile.getOriginalFilename(),
+                    profile.getContentType(),
+                    profile.getBytes()
+            );
+        }
+
+        // 수정 대상은 URL의 ID를 사용합니다. 이미지가 null이면 기존 프로필을 유지합니다.
+        UserUpdateRequest serviceRequest = new UserUpdateRequest(
+                userId,
+                request.username(),
+                request.email(),
+                request.password(),
+                profileImage
+        );
+
+        // 이미지 교체와 기존 이미지 정리는 이미 구현된 서비스가 처리합니다.
+        return ResponseEntity.ok(userService.update(serviceRequest));
     }
 
     //delete
