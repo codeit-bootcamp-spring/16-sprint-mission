@@ -16,6 +16,13 @@ public class UserStatus implements Serializable {
     private Instant updatedAt;
 
     public UserStatus(UUID userId) {
+        /* 엔티티의 검증 로직은 일단 사용하지 않습니다.
+        // UUID는 isBlank() 메서드가 존재하지 않고,
+        // UUID는 길이가 정해져있기 때문에 공백 여부를 검증할 필요성이없습니다.
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+         */
         this.id =  UUID.randomUUID();
         this.userId = userId;
         this.createdAt = Instant.now();

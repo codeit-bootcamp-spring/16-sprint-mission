@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -31,9 +32,9 @@ public class UserController {
     // Controller 계층은 다른 컨트롤러로 교체할 경우가 적기 때문입니다.
     // POST HTTP 메서드를 처리하는 스프링 애너테이션입니다.
     @PostMapping
-    public ResponseEntity<User> createUser(@RequestBody UserCreateRequest request) {
+    public ResponseEntity<User> createUser(@Valid @RequestBody UserCreateRequest request) {
         // this.userService.create(request) 를 호출하여 발생한 예외가 있다면
-        // 전역 예외 처리기인 GlobalExpceptionHandler가 이를 자동으로 감지하여
+        // 전역 예외 처리기인 GlobalExceptionHandler가 예외를 자동으로 감지하여
         // 해당하는 예외에 부합하는 메서드를 호출 시킵니다.
         // 따라서, 이 메서드를 포함한 컨트롤러의 메서드들에는
         // 예외 처리를 위한 별도 로직이나 애너테이션이 필요하지않습니다.
@@ -78,8 +79,11 @@ public class UserController {
 
     // @PatchMapping: 기존 사용자의 상태를 변경할 때
     // @PostMapping: 새로운 상태 변경 이벤트를 생성하거나 특정 동작을 실행하도록 요청할 때
-    @PatchMapping("/{user-id}")
+    @PatchMapping("/{user-id}/status")
     public ResponseEntity<UserResponse> updateUserOnlineStatus(
+            // Spring MVC는 @Valid를 보고 DTO에 선언된 검증을 실행합니다,
+            // 검증 실패 시, 일반적으로 MethodArgumentNotValidException이 발생하며,
+            // 기본적으로 HTTP 400 Bad Request를 처리합니다.
             @PathVariable("user-id") UUID userId, @RequestBody UserUpdateRequest request) {
         // UserResponse DTO에 온라인 여부를 알려주는 필드를 추가해야한다. // 알고 보니 이미 있었다.
         // this.userStatusService.xxx
