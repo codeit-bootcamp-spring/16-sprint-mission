@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
@@ -12,7 +11,9 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -28,15 +29,10 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public MessageResponseDto createMessage(MessageCreateRequestDto dto) {
-        return createMessage(dto, null);
-    }
-
-    @Override
     public MessageResponseDto createMessage(
             MessageCreateRequestDto dto,
-            List<BinaryContentCreateRequestDto> attachments
-    ) {
+            List<MultipartFile> attachments
+    ) throws IOException {
         if (dto.getContent() == null || dto.getContent().isBlank()) {
             throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
@@ -49,26 +45,17 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 채널입니다."));
 
-        // 첨부 파일 확인
-        List<UUID> attachmentIds = new ArrayList<>(
-                dto.getAttachmentIds() == null
-                        ? List.of()
-                        : dto.getAttachmentIds()
-        );
-
-        for (UUID attachmentId : attachmentIds) {
-            binaryContentRepository.findById(attachmentId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("존재하지 않는 첨부 파일입니다."));
-        }
+        List<UUID> attachmentIds = new ArrayList<>();
 
         if (attachments != null) {
-            for (BinaryContentCreateRequestDto attachment : attachments) {
-                BinaryContent saved = binaryContentRepository.save(
-                        new BinaryContent(attachment.getData())
-                );
+            for (MultipartFile attachment : attachments) {
+                BinaryContent binaryContent =
+                        new BinaryContent(attachment.getBytes());
 
-                attachmentIds.add(saved.getId());
+                BinaryContent savedAttachment =
+                        binaryContentRepository.save(binaryContent);
+
+                attachmentIds.add(savedAttachment.getId());
             }
         }
 
