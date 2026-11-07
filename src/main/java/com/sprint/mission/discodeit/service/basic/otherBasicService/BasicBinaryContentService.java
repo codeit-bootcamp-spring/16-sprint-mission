@@ -3,7 +3,7 @@ package com.sprint.mission.discodeit.service.basic.otherBasicService;
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
-import com.sprint.mission.discodeit.service.other.BinaryContentService;
+import com.sprint.mission.discodeit.service.otherService.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service.basic.otherBasicService;
+package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.AuthUserDto;
 import com.sprint.mission.discodeit.service.AuthService;

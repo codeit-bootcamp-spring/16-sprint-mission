@@ -6,7 +6,7 @@ import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.ReadStatusRepository;
-import com.sprint.mission.discodeit.service.other.ReadStatusService;
+import com.sprint.mission.discodeit.service.otherService.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -76,12 +76,12 @@ public class BasicChannelService implements ChannelService {
         channelRepository.save(channel);
 
         // 4. 참여자별 ReadStatus 생성 및 저장
-        for (UUID userId : channel.getMemberIds()) {
-            ReadStatus readStatus =
-                    new ReadStatus(userId, channel.getId(), Instant.now());
-
-            readStatusRepository.save(readStatus);
-        }
+//        for (UUID userId : channel.getMemberIds()) {
+//            ReadStatus readStatus =
+//                    new ReadStatus(userId, channel.getId(), Instant.now());
+//
+//            readStatusRepository.save(readStatus);
+//        }
 
         return toDto(channel);
     }

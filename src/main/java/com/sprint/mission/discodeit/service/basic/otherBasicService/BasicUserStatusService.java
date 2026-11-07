@@ -5,7 +5,7 @@ import com.sprint.mission.discodeit.dto.request.status.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
-import com.sprint.mission.discodeit.service.other.UserStatusService;
+import com.sprint.mission.discodeit.service.otherService.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

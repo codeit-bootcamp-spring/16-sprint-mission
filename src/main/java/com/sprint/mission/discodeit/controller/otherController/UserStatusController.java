@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.controller.otherController;
 
 import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
-import com.sprint.mission.discodeit.service.other.UserStatusService;
+import com.sprint.mission.discodeit.service.otherService.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
