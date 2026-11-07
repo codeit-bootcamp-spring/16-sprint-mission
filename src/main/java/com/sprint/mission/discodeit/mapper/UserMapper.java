@@ -24,6 +24,7 @@ public class UserMapper { // 복잡할 때 빈으로 만든다, 1 - 2 개 일 �
         );
     }
      */
+
     // JPA ORM를 쓰면 user를 가져오면 userStatus 도 가져온다,
     // public UserResponse toResponse(User user, UserStatus userStatus) { // body };
     public UserResponse toResponse(User user, UserStatus userStatus) {

@@ -4,12 +4,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
+import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.lang.annotation.Retention;
 import java.util.NoSuchElementException;
 
 // 여러 컨트롤러에 공통적으로 적용할 기능을 정의하는 스프링 애너테이션입니다.
-@ControllerAdvice
+// @ControllerAdvice에서는 해당 문자열이 응답 본문이 아니라 뷰 이름으로 해석될 수 있습니다.
+// @ControllerAdvice
+// 따라서 @RestControllerAdvice 를 사용해야합니다.
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(IllegalArgumentException.class)
@@ -42,6 +46,7 @@ public class GlobalExceptionHandler {
         return exception.getMessage();
     }
 
+    /*
     @ExceptionHandler(IllegalStateException.class)
     public String handleIllegalStateException(IllegalStateException exception) {
         return exception.getMessage();
@@ -51,4 +56,5 @@ public class GlobalExceptionHandler {
     public String handleNoSuchElementException(NoSuchElementException exception) {
         return exception.getMessage();
     }
+     */
 }

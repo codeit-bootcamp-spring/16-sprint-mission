@@ -36,10 +36,9 @@ public class BasicUserService implements UserService {
         this.validateUsername(request.username());
         this.validateEmail(request.email());
         this.validatePassword(request.password());
-
+        */
         this.validateUniqueUsername(request.username());
         this.validateUniqueEmail(request.email());
-         */
 
         UUID newProfileId = null;
 
@@ -158,7 +157,7 @@ public class BasicUserService implements UserService {
     @Override
     public UserResponse find(UUID userId) {
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
 
         UserStatus userStatus = this.findUserStatus(user.getId());
 
@@ -171,7 +170,7 @@ public class BasicUserService implements UserService {
         List<UserResponse> userResponseList = new ArrayList<>();
         for (User user : userList) {
             UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
-                    .orElseThrow(() -> new NoSuchElementException("ID가 " + user.getId() + "인 user의 userStatus를 찾을 수 없습니다." ));
+                    .orElseThrow(() -> new UserStatusNotFoundException("ID가 " + user.getId() + "인 user의 userStatus를 찾을 수 없습니다."));
             userResponseList.add(this.toResponse(user, userStatus));
         }
 
@@ -210,11 +209,17 @@ public class BasicUserService implements UserService {
 
     @Override
     public User update(UUID userId, UserUpdateRequest request) {
-        this.validateUniqueUsername(request.newUsername());
-        this.validateUniqueEmail(request.newEmail());
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
+
+        if (!Objects.equals(request.newUsername(), user.getUsername())) {
+            validateUniqueUsername(request.newUsername());
+        }
+
+        if (!Objects.equals(request.newEmail(), user.getEmail())) {
+            validateUniqueEmail(request.newEmail());
+        }
 
         UUID oldProfileId = user.getProfileId();
         UUID newProfileId = null;
