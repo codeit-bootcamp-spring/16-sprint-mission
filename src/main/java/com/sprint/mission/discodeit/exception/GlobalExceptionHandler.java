@@ -46,6 +46,12 @@ public class GlobalExceptionHandler {
         return exception.getMessage();
     }
 
+    @ExceptionHandler(InvalidCredentialException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public String handleInvalidCredentialException(InvalidCredentialException exception) {
+        return exception.getMessage();
+    }
+
     /*
     @ExceptionHandler(IllegalStateException.class)
     public String handleIllegalStateException(IllegalStateException exception) {

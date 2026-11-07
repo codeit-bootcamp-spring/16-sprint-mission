@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.authentication.LoginResponse;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.mapper.AuthMapper;
 import com.sprint.mission.discodeit.service.AuthService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -20,7 +21,7 @@ public class AuthController {
     private final AuthMapper authMapper;
 
     @PostMapping
-    public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest request) {
         User user = this.authService.login(request);
         LoginResponse loginResponse = this.authMapper.toLoginResponse(user);
 
