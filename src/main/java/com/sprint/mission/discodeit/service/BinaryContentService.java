@@ -8,13 +8,13 @@ import java.util.UUID;
 
 public interface BinaryContentService {
 
-    BinaryContentResponseDto createReadStatus(BinaryContentCreateRequestDto dto);
+    BinaryContentResponseDto createBinaryContent(BinaryContentCreateRequestDto dto);
 
-    BinaryContentResponseDto findReadStatus(UUID binaryContentId);
+    BinaryContentResponseDto findBinaryContent(UUID binaryContentId);
 
-    List<BinaryContentResponseDto> findAllReadStatusesByUserId(
+    List<BinaryContentResponseDto> findAllBinaryContentsByIds(
             List<UUID> binaryContentIds
     );
 
-    void deleteReadStatus(UUID binaryContentId);
+    void deleteBinaryContent(UUID binaryContentId);
 }
