@@ -34,6 +34,14 @@ public class BasicReadStatusService implements ReadStatusService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다."));
 
+        boolean isParticipant = channelRepository.findByParticipantId(userId)
+                .stream()
+                .anyMatch(channel -> channel.getId().equals(channelId));
+
+        if (!isParticipant) {
+            throw new IllegalArgumentException("사용자가 해당 채널에 참여하고 있지 않습니다.");
+        }
+
         if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
             throw new IllegalArgumentException("이미 해당 사용자의 채널 읽음 상태가 존재합니다.");
         }
