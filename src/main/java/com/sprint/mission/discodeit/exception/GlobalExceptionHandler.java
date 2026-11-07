@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.lang.annotation.Retention;
 import java.util.NoSuchElementException;
 
 // 여러 컨트롤러에 공통적으로 적용할 기능을 정의하는 스프링 애너테이션입니다.
@@ -26,6 +27,18 @@ public class GlobalExceptionHandler {
     // 실무에서는 GlobalExceptionHandler 내부에서 ResponseEntity를 반환하는 방식도 존재합니다.
     @ResponseStatus(HttpStatus.CONFLICT)
     public String handleDuplicateResourceException(DuplicateResourceException exception) {
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(UserNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleUserNotFoundException(UserNotFoundException exception) {
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(UserStatusNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleUserStatusNotFoundException(UserStatusNotFoundException exception) {
         return exception.getMessage();
     }
 

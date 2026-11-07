@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
@@ -7,6 +8,8 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.DuplicateResourceException;
+import com.sprint.mission.discodeit.exception.UserNotFoundException;
+import com.sprint.mission.discodeit.exception.UserStatusNotFoundException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -42,7 +45,7 @@ public class BasicUserService implements UserService {
 
         if (request.profile() != null) {
             // Java 10 부터 도입된 지역 변수 타입 추론입니다.
-            var profile = request.profile();
+            BinaryContentCreateRequest profile = request.profile();
             newProfileId = binaryContentRepository.save(
                     new BinaryContent(
                             profile.fileName(), profile.contentType(), profile.bytes()
@@ -211,13 +214,13 @@ public class BasicUserService implements UserService {
         this.validateUniqueEmail(request.newEmail());
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
 
         UUID oldProfileId = user.getProfileId();
         UUID newProfileId = null;
 
         if (request.profile() != null) {
-            var profile = request.profile();
+            BinaryContentCreateRequest profile = request.profile();
             newProfileId = binaryContentRepository.save(
                     new BinaryContent(
                             profile.fileName(), profile.contentType(), profile.bytes()
@@ -239,7 +242,7 @@ public class BasicUserService implements UserService {
     public void delete(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new NoSuchElementException("User with id: " + userId + " not found."));
+                        new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
 
         UserStatus userStatus = this.findUserStatus(userId);
         UUID profileId = user.getProfileId();
@@ -254,26 +257,24 @@ public class BasicUserService implements UserService {
     @Override
     public UserStatus findUserStatus(UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new NoSuchElementException("User with id " + userId + " not found.");
+            throw new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다.");
         }
 
         Optional<UserStatus> userStatus = this.userStatusRepository.findByUserId(userId);
 
         return userStatus.orElseThrow(() ->
-                new NoSuchElementException(
+                new UserStatusNotFoundException(
                         "사용자 ID " + userId + "에 해당하는 UserStatus를 찾을 수 없습니다."
                 )
         );
     }
 
     public Optional<BinaryContent> findBinaryContent(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NoSuchElementException("User with id " + userId + " not found");
-        }
-
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("User with id: " + userId + " not found."));
+                .orElseThrow(() -> new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
         UUID profileId = user.getProfileId();
+
+        if (profileId == null) return Optional.empty();
 
         return binaryContentRepository.findById(profileId);
     }

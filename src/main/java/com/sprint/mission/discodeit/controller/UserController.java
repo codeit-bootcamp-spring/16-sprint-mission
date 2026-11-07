@@ -48,7 +48,7 @@ public class UserController {
     @PatchMapping("/{user-id}")
     // @PathVariable은 특정 리소스로 들어온 값을 가져옵니다.
     // @RequestBody는 요청 본문의 값을 가져와서 DTO에 매핑합니다.
-    public ResponseEntity<User> updateUser(@PathVariable("user-id") UUID userId, @RequestBody UserUpdateRequest request) {
+    public ResponseEntity<User> updateUser(@PathVariable("user-id") UUID userId, @Valid @RequestBody UserUpdateRequest request) {
         User user = this.userService.update(userId, request);
 
         return ResponseEntity.ok(user);
