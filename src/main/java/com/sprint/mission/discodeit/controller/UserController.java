@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.UUID;
 
 @Controller
@@ -39,6 +40,13 @@ public class UserController {
         model.addAttribute("username", response.username());
         model.addAttribute("email", response.email());
         return "signUpResult";
+    }
+
+    @GetMapping
+    public String getUsers(Model model) {
+        List<UserResponse> all = userService.findAll();
+        model.addAttribute("userList", all);
+        return "userList";
     }
 
     @PostMapping("/update")

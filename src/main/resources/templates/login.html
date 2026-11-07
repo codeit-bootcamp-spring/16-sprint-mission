@@ -130,6 +130,14 @@
             box-shadow: 0 8px 20px rgba(88, 101, 242, 0.35);
         }
 
+        .btn-outline {
+            margin-top: 12px;
+            color: var(--accent);
+            background: rgba(88, 101, 242, 0.08);
+            border: 1.5px solid rgba(88, 101, 242, 0.25);
+        }
+        .btn-outline:hover { background: rgba(88, 101, 242, 0.14); }
+
         .btn-danger {
             margin-top: 12px;
             color: #dc2626;
@@ -162,6 +170,14 @@
         <span>
             회원정보 수정
             <small>GET /v1/users/update</small>
+        </span>
+        <span>→</span>
+    </a>
+
+    <a class="btn btn-outline" th:href="@{/v1/users}" href="/v1/users">
+        <span>
+            사용자 목록
+            <small>GET /v1/users</small>
         </span>
         <span>→</span>
     </a>
