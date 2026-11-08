@@ -18,7 +18,9 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -36,7 +38,11 @@ public class BasicUserService implements UserService {
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserDto createUser(UserCreateRequestDto dto) {
+    public UserDto createUser(
+            UserCreateRequestDto dto,
+            MultipartFile profile
+    ) throws IOException {
+
         validateUsernameDuplicate(dto.getUsername(), null);
         validateEmailDuplicate(dto.getEmail(), null);
 
@@ -46,11 +52,11 @@ public class BasicUserService implements UserService {
                 dto.getEmail()
         );
 
-        if (dto.getProfileRequest() != null) {
+        if (profile != null) {
             BinaryContent binaryContent =
                     new BinaryContent(
-                            dto.getProfileRequest().getContentType(),
-                            dto.getProfileRequest().getBytes()
+                            profile.getContentType(),
+                            profile.getBytes()
                     );
 
             BinaryContent savedContent =

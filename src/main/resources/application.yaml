@@ -1,6 +1,6 @@
 spring:
   application:
-    name: api
+    name: discodeit
 
 discodeit:
   repository:
@@ -13,4 +13,4 @@ discodeit:
 
 server:
   servlet:
-    context-path: /discodeit
+    context-path: /api
