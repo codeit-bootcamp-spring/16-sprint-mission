@@ -12,6 +12,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.type.ChannelType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -45,10 +46,10 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("채널을 찾을 수 없습니다"));
 
-        // 작성자의 채널 참여 여부 확인
-        if (!channel.hasMember(request.userId())) {
-            throw new IllegalArgumentException(
-                    "'" + user.getUsername() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
+        // PRIVATE 채널은 참여자만 메시지를 보낼 수 있습니다.
+        if (channel.getType() == ChannelType.PRIVATE
+                && !channel.hasMember(request.userId())) {
+            throw new IllegalArgumentException("비공개 채널 참여자만 메시지를 보낼 수 있습니다.");
         }
 
         // 첨부파일 DTO를 Entity로 변환하고 저장한다.
