@@ -15,8 +15,8 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
-    public FileReadStatusRepository() {
-        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), "file-data-map", ReadStatus.class.getSimpleName());
+    public FileReadStatusRepository(String baseDir) {
+        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), baseDir, ReadStatus.class.getSimpleName());
         if (Files.notExists(DIRECTORY)) {
             try {
                 Files.createDirectories(DIRECTORY);

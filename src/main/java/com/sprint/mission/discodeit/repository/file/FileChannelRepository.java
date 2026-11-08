@@ -15,8 +15,8 @@ public class FileChannelRepository implements ChannelRepository {
     private final Path DIRECTORY;
     private final String EXTENSION = ".ser";
 
-    public FileChannelRepository() {
-        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), "file-data-map", Channel.class.getSimpleName());
+    public FileChannelRepository(String baseDir) {
+        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), baseDir, Channel.class.getSimpleName());
         if (Files.notExists(DIRECTORY)) {
             try {
                 Files.createDirectories(DIRECTORY);
@@ -25,6 +25,7 @@ public class FileChannelRepository implements ChannelRepository {
             }
         }
     }
+
 
     private Path resolvePath(UUID id) {
         return DIRECTORY.resolve(id + EXTENSION);

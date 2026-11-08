@@ -46,20 +46,19 @@ public class JavaApplication {
     }
 
     public static void main(String[] args) {
-        //모든 레포지토리 초기화
-        UserRepository userRepository = new FileUserRepository();
-        ChannelRepository channelRepository = new FileChannelRepository();
-        MessageRepository messageRepository = new FileMessageRepository();
-        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository();
-        ReadStatusRepository readStatusRepository = new FileReadStatusRepository();
-        UserStatusRepository userStatusRepository = new FileUserStatusRepository();
+        String testFileDir = ".discodeit";
 
-        // 서비스 초기화
+        UserRepository userRepository = new FileUserRepository(testFileDir);
+        ChannelRepository channelRepository = new FileChannelRepository(testFileDir);
+        MessageRepository messageRepository = new FileMessageRepository(testFileDir);
+        BinaryContentRepository binaryContentRepository = new FileBinaryContentRepository(testFileDir);
+        ReadStatusRepository readStatusRepository = new FileReadStatusRepository(testFileDir);
+        UserStatusRepository userStatusRepository = new FileUserStatusRepository(testFileDir);
+
         UserService userService = new BasicUserService(userRepository, binaryContentRepository, userStatusRepository);
         ChannelService channelService = new BasicChannelService(channelRepository, messageRepository, readStatusRepository);
         MessageService messageService = new BasicMessageService(messageRepository, channelRepository, userRepository, binaryContentRepository);
 
-        //셋업 및 동작 테스트
         User user = setupUser(userService);
         Channel channel = setupChannel(channelService);
 
