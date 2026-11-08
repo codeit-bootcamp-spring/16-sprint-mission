@@ -111,6 +111,10 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
         }
 
+        if (channel.getType() == ChannelType.PRIVATE) {
+            throw new IllegalStateException("비공개 채널에는 임의로 참여할 수 없습니다.");
+        }
+
         channel.joinChannel(userId);
         Channel savedChannel = channelRepository.save(channel);
 
