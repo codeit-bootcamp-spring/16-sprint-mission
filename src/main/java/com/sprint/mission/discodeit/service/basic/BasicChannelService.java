@@ -4,12 +4,10 @@ import com.sprint.mission.discodeit.dto.channel.*;
 import com.sprint.mission.discodeit.entity.*;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.channel.InvalidChannelCreateRequestException;
+import com.sprint.mission.discodeit.exception.channel.InvalidChannelUpdateRequestException;
 import com.sprint.mission.discodeit.exception.channel.PrivateChannelModificationNotAllowedException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.ReadStatusRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +24,7 @@ public class BasicChannelService implements ChannelService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     /* createPublicChannel()과 createPrivateChannel() 메서드들을 createChannel() 메서드로 통합하고
     // 반환 타입을 Channel이 아닌 DTO로 변경합니다.
@@ -160,6 +159,12 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelInfo update(UUID channelId, ChannelUpdateRequest request) {
+        if (request.newName() != null && request.newName().isBlank()) {
+            throw new InvalidChannelUpdateRequestException(
+                    "채널 이름은 공백으로만 구성할 수 없습니다."
+            );
+        }
+
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> new ChannelNotFoundException("ID가 " + channelId + "인 채널을 찾을 수 없습니다."));
         if (channel.getType() == ChannelType.PRIVATE) {
@@ -181,6 +186,16 @@ public class BasicChannelService implements ChannelService {
         messageList.stream()
                 .filter(m -> m.getChannelId().equals(channel.getId()))
                 .forEach(m -> this.messageRepository.deleteById(m.getId()));
+
+        List<List<UUID>> attachmentIdsList = messageList.stream()
+                .filter(m -> m.getChannelId().equals(channel.getId()))
+                .map(Message::getAttachmentIds)
+                .toList();
+
+        attachmentIdsList.stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toSet())
+                .forEach(this.binaryContentRepository::deleteById);
 
         List<ReadStatus> readStatusList = this.readStatusRepository.findAll();
         readStatusList.stream()

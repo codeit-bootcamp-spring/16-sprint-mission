@@ -26,9 +26,7 @@ public class Message implements Serializable {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
-        //
         this.content = content;
-        //
         this.channelId = channelId;
         this.authorId = authorId;
         // attachmentIds는 수정 가능한 ArrayList를 사용해야합니다,
@@ -39,7 +37,7 @@ public class Message implements Serializable {
                 : new ArrayList<UUID>(attachmentIds);
     }
 
-    public void update(String newContent, List<BinaryContent> newBinaryContents) {
+    public void update(String newContent, List<UUID> newAttachmentIds) {
         boolean anyValueUpdated = false;
         if (newContent != null && !newContent.equals(this.content)) {
             this.content = newContent;
@@ -53,14 +51,17 @@ public class Message implements Serializable {
         }
          */
 
+        /*
         List<UUID> newAttachmentIds = newBinaryContents.stream()
                 .filter(b -> b != null && !this.attachmentIds.contains(b.getId()))
                 .map(BinaryContent::getId)
                 .distinct()
                 .toList();
-
-        if (this.attachmentIds.addAll(newAttachmentIds)) { // newAttachmentIds는 수정 불가여도됩니다.
-
+         */
+        // if (newAttachmentIds != null || !newAttachmentIds.isEmpty())
+        // 인 경우, newAttachmentIds 가 null 인 경우 오른쪽 isEmpty()를 평가하다가 NPE 가 발생할 수 있습니다.
+        if (!newAttachmentIds.isEmpty()) {
+            this.attachmentIds.addAll(newAttachmentIds); // newAttachmentIds는 수정 불가여도됩니다.
             anyValueUpdated = true;
         }
 
