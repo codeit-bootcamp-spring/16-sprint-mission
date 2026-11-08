@@ -6,10 +6,12 @@ import com.sprint.mission.discodeit.dto.UserResponseDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -18,16 +20,14 @@ import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final UserStatusRepository userStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final UserMapper userMapper;
 
-    public BasicUserService(UserRepository userRepository, UserStatusRepository userStatusRepository, BinaryContentRepository binaryContentRepository) {
-        this.userRepository = userRepository;
-        this.userStatusRepository = userStatusRepository;
-        this.binaryContentRepository = binaryContentRepository;
-    }
+
 
     private UUID saveProfile(BinaryContentRequestDto profile) {
         if (profile == null) {
@@ -38,9 +38,6 @@ public class BasicUserService implements UserService {
         return binaryContentRepository.save(binaryContent).getId();
     }
 
-    private UserResponseDto toDto(User user, UserStatus userStatus) {
-        return new UserResponseDto(user.getId(), user.getUsername(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
-    }
 
     @Override
     public UserResponseDto create(UserRequestDto userRequestDto) {
@@ -55,7 +52,7 @@ public class BasicUserService implements UserService {
         userRepository.save(user);
         UserStatus userStatus = userStatusRepository.save(new UserStatus(user.getId()));
 
-        return toDto(user, userStatus);
+        return userMapper.toResponseDto(user, userStatus);
     }
 
     @Override
@@ -65,7 +62,7 @@ public class BasicUserService implements UserService {
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
 
-        return toDto(user, userStatus);
+        return userMapper.toResponseDto(user, userStatus);
     }
 
     @Override
@@ -74,7 +71,7 @@ public class BasicUserService implements UserService {
                 .map(user -> {
                     UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
                             .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
-                    return toDto(user, userStatus);
+                    return userMapper.toResponseDto(user, userStatus);
                 })
                 .toList();
     }
@@ -96,7 +93,7 @@ public class BasicUserService implements UserService {
             binaryContentRepository.deleteById(oldProfileId);
         }
 
-        return toDto(user, userStatus);
+        return userMapper.toResponseDto(user, userStatus);
     }
 
     @Override
@@ -125,7 +122,7 @@ public class BasicUserService implements UserService {
         UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
 
-        return toDto(user, userStatus);
+        return userMapper.toResponseDto(user, userStatus);
     }
 
     @Override
@@ -136,6 +133,6 @@ public class BasicUserService implements UserService {
         UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
                 .orElseThrow(() -> new NoSuchElementException("UserStatus can not found"));
 
-        return toDto(user, userStatus);
+        return userMapper.toResponseDto(user, userStatus);
     }
 }

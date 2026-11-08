@@ -2,7 +2,9 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.basic.AuthService;
 import com.sprint.mission.discodeit.service.basic.UserStatusService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -12,34 +14,35 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/user")
+@RequiredArgsConstructor
+@RequestMapping("/users")
 public class UserController {
 
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    public UserController(UserService userService, UserStatusService userStatusService) {
-        this.userService = userService;
-        this.userStatusService = userStatusService;
-    }
-
-    @PostMapping("/create")
+    @PostMapping
     public ResponseEntity<UserResponseDto> create(@RequestBody UserRequestDto userRequestDto) {
         UserResponseDto userResponseDto = userService.create(userRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(userResponseDto);
     }
 
-    @GetMapping("/users")
+    @GetMapping
     public ResponseEntity<List<UserResponseDto>> findAll() {
         return ResponseEntity.ok(userService.findAll());
     }
 
-    @PatchMapping("/update/{userId}")
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserResponseDto> find(@PathVariable UUID userId) {
+        return ResponseEntity.ok(userService.find(userId));
+    }
+
+    @PatchMapping("/{userId}")
     public ResponseEntity<UserResponseDto> update(@PathVariable UUID userId , @RequestBody UserRequestDto userRequestDto) {
         return ResponseEntity.ok(userService.update(userId, userRequestDto));
     }
 
-    @DeleteMapping("/delete/{userId}")
+    @DeleteMapping("/{userId}")
     public void delete(@PathVariable UUID userId) {
         userService.delete(userId);
     }

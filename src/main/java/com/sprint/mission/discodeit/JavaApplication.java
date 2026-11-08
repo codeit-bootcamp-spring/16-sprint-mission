@@ -2,6 +2,9 @@ package com.sprint.mission.discodeit;
 
 import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.mapper.ChannelMapper;
+import com.sprint.mission.discodeit.mapper.MessageMapper;
+import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -43,11 +46,14 @@ public class JavaApplication {
         ReadStatusRepository readStatusRepository = new JCFReadStatusRepository();
         UserStatusRepository userStatusRepository = new JCFUserStatusRepository();
         BinaryContentRepository binaryContentRepository = new JCFBinaryContentRepository();
+        UserMapper userMapper = new UserMapper();
+        ChannelMapper channelMapper = new ChannelMapper(messageRepository, readStatusRepository);
+        MessageMapper messageMapper = new MessageMapper();
 
         // 서비스 초기화
-        userService = new BasicUserService(userRepository, userStatusRepository, binaryContentRepository);
-        channelService = new BasicChannelService(channelRepository, readStatusRepository, messageRepository, binaryContentRepository);
-        messageService = new BasicMessageService(messageRepository, channelRepository, userRepository, binaryContentRepository);
+        userService = new BasicUserService(userRepository, userStatusRepository, binaryContentRepository, userMapper);
+        channelService = new BasicChannelService(channelRepository, readStatusRepository, messageRepository, binaryContentRepository, channelMapper);
+        messageService = new BasicMessageService(messageRepository, channelRepository, userRepository, binaryContentRepository, messageMapper);
         readStatusService = new ReadStatusService(readStatusRepository, userRepository, channelRepository);
         userStatusService = new UserStatusService(userStatusRepository, userRepository);
         binaryContentService = new BinaryContentService(binaryContentRepository);
