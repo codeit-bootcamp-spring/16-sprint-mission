@@ -34,7 +34,7 @@ public class BinaryContentController {
 
     // 바이너리 콘텐츠 다건 조회(GET)
     @RequestMapping(value = "/findAll", method = RequestMethod.GET)
-    public List<BinaryContent> getAllBinaryContent(@RequestBody BinaryContentFindAllRequest request) {
-        return binaryContentService.findAllByIdIn(request.ids());
+    public List<BinaryContent> getAllBinaryContent(@RequestParam List<UUID> ids) {
+        return binaryContentService.findAllByIdIn(ids);
     }
 }
