@@ -59,10 +59,12 @@ public class Channel implements Serializable {
 
     public void update(String newName, String newDescription) {
         boolean anyValueUpdated = false;
-        if (newName != null && !newName.equals(this.name)) {
+        if (newName != null && !newName.isBlank() && !newName.equals(this.name)) {
             this.name = newName;
             anyValueUpdated = true;
         }
+
+        // null을 전달해서 기존 description을 삭제하는 구조로 작성하지는 않았습니다.
         if (newDescription != null && !newDescription.equals(this.description)) {
             this.description = newDescription;
             anyValueUpdated = true;

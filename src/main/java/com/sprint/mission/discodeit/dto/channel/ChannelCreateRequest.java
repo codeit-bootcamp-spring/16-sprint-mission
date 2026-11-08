@@ -5,11 +5,13 @@ import com.sprint.mission.discodeit.entity.User;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.UUID;
 
 public record ChannelCreateRequest(
         ChannelType type,
-        @Nullable List<User> userList,
-        @Nullable String name,
-        @Nullable String description
+        // 이 걸, List<User> 로 하는 사람이 어딧니 ㅡㅡ
+        List<UUID> userList,
+        String name,
+        String description
 ) {
 }

@@ -31,9 +31,11 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
         return Optional.ofNullable(this.data.get(readStatusId));
     }
 
+    /* 이 메서드가 왜 있는 지 모르겠음
     public Optional<ReadStatus> findByUserId(UUID userId) {
         return Optional.ofNullable(this.data.get(userId));
     }
+     */
 
     @Override
     public List<ReadStatus> findAll() {

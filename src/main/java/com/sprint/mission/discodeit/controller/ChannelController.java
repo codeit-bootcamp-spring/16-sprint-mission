@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.channel.*;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,7 +16,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ChannelController {
     private final ChannelService channelService;
-    private final ChannelMapper channelMapper;
+    // private final ChannelMapper channelMapper;
+
     /* 아래 createChannel() 메서드는 비즈니스 로직이 과하게 들어가있기 때문에 사용하지 않습니다.
     @PostMapping
     // 현재는, PrivateChannelCreateRequest DTO와 PublicChannelCreateRequest DTO 만
@@ -53,7 +55,8 @@ public class ChannelController {
     public ResponseEntity<ChannelInfo> createChannel(@RequestBody ChannelCreateRequest request) {
         ChannelInfo channelInfo = this.channelService.createChannel(request);
 
-        return ResponseEntity.ok(channelInfo);
+        // return ResponseEntity.ok(channelInfo);
+        return ResponseEntity.status(HttpStatus.CREATED).body(channelInfo);
     }
 
     @PatchMapping("/{channel-id}")
