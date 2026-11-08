@@ -48,7 +48,10 @@ public class BasicUserService implements UserService {
 
         if (dto.getProfileRequest() != null) {
             BinaryContent binaryContent =
-                    new BinaryContent(dto.getProfileRequest().getData());
+                    new BinaryContent(
+                            dto.getProfileRequest().getContentType(),
+                            dto.getProfileRequest().getBytes()
+                    );
 
             BinaryContent savedContent =
                     binaryContentRepository.save(binaryContent);
@@ -107,7 +110,10 @@ public class BasicUserService implements UserService {
             UUID oldProfileId = user.getProfileId();
 
             BinaryContent newContent =
-                    new BinaryContent(dto.getProfileRequest().getData());
+                    new BinaryContent(
+                            dto.getProfileRequest().getContentType(),
+                            dto.getProfileRequest().getBytes()
+                    );
 
             BinaryContent savedContent =
                     binaryContentRepository.save(newContent);

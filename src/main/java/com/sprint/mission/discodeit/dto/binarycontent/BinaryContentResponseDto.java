@@ -14,5 +14,6 @@ public class BinaryContentResponseDto {
 
     private UUID id;
     private Instant createdAt;
-    private byte[] data;
+    private String contentType;
+    private byte[] bytes;
 }

@@ -50,7 +50,10 @@ public class BasicMessageService implements MessageService {
         if (attachments != null) {
             for (MultipartFile attachment : attachments) {
                 BinaryContent binaryContent =
-                        new BinaryContent(attachment.getBytes());
+                        new BinaryContent(
+                                attachment.getContentType(),
+                                attachment.getBytes()
+                        );
 
                 BinaryContent savedAttachment =
                         binaryContentRepository.save(binaryContent);

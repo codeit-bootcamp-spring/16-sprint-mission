@@ -19,7 +19,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContentResponseDto createBinaryContent(BinaryContentCreateRequestDto dto) {
-        BinaryContent binaryContent = new BinaryContent(dto.getData());
+        BinaryContent binaryContent = new BinaryContent(dto.getContentType(), dto.getBytes());
 
         BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
 
@@ -27,12 +27,13 @@ public class BasicBinaryContentService implements BinaryContentService {
     }
 
     @Override
-    public BinaryContentResponseDto findBinaryContent(UUID binaryContentId) {
-        BinaryContent binaryContent = binaryContentRepository.findById(binaryContentId)
+    public BinaryContent findBinaryContent(UUID binaryContentId) {
+//        BinaryContent binaryContent =
+        return binaryContentRepository.findById(binaryContentId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("바이너리 콘텐츠를 찾을 수 없습니다."));
 
-        return toResponseDto(binaryContent);
+//        return toResponseDto(binaryContent);
     }
 
     @Override
@@ -58,7 +59,8 @@ public class BasicBinaryContentService implements BinaryContentService {
         return BinaryContentResponseDto.builder()
                 .id(binaryContent.getId())
                 .createdAt(binaryContent.getCreatedAt())
-                .data(binaryContent.getData())
+                .contentType(binaryContent.getContentType())
+                .bytes(binaryContent.getBytes())
                 .build();
     }
 }

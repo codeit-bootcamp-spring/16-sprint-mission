@@ -11,5 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BinaryContentCreateRequestDto {
 
-    private byte[] data;
+    private String contentType;
+    private byte[] bytes;
 }
