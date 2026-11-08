@@ -1,16 +1,18 @@
 package com.sprint.mission.discodeit.controller.otherController;
 
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.binary.BinaryContentFindAllRequest;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.service.otherService.BinaryContentService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/binary-content")
+@RequestMapping("/api/binary-contents")
 @RequiredArgsConstructor
 public class BinaryContentController {
 
@@ -23,14 +25,16 @@ public class BinaryContentController {
     }
 
     // 바이너리 콘텐츠 단건 조회(GET)
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public BinaryContent getBinaryContent(@PathVariable UUID id) {
-        return binaryContentService.find(id);
+    // 기존 코드는 UUID를 URL 경로로 전달받아 바이너리 콘텐츠를 반환했다면,
+    // 변경 코드는 UUID를 요청 파라미터로 전달받고, ResponseEntity로 HTTP 응답을 직접 제어한다.
+    @RequestMapping(value = "/find", method = RequestMethod.GET)
+    public ResponseEntity<BinaryContent> getBinaryContent(@RequestParam UUID binaryContentId) {
+        return ResponseEntity.ok(binaryContentService.find(binaryContentId));
     }
 
     // 바이너리 콘텐츠 다건 조회(GET)
-    @RequestMapping(method = RequestMethod.GET)
-    public List<BinaryContent> getAllBinaryContent(@RequestParam List<UUID> ids) {
-        return binaryContentService.findAllByIdIn(ids);
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    public List<BinaryContent> getAllBinaryContent(@RequestBody BinaryContentFindAllRequest request) {
+        return binaryContentService.findAllByIdIn(request.ids());
     }
 }
