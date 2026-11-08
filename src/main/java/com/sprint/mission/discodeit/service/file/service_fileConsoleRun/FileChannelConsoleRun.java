@@ -55,8 +55,12 @@ public class FileChannelConsoleRun {
         System.out.println(String.join(", ", beforeNames));
 
         // 여기에서 각 채널의 새 이름을 직접 지정해 수정한다.
-        channelService.updateChannel(new ChannelUpdateRequest(channel1.id(), "공지"));
-        channelService.updateChannel(new ChannelUpdateRequest(channel2.id(), "자유"));
+        channelService.updateChannel(
+                new ChannelUpdateRequest(
+                        channel1.id(), "공지사항 수정", "수정한 공지사항 내용"));
+        channelService.updateChannel(
+                new ChannelUpdateRequest(
+                        channel2.id(), "자유게시판 수정", "수정한 자유게시판 내용"));
 
         // 수정 후 채널 이름 목록
         List<String> afterNames = channelService.findAllByUserId(userId)

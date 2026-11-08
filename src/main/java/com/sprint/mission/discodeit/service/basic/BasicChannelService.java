@@ -19,10 +19,7 @@ import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
 
 import java.time.Instant;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Service // 해당 클래스를 Spring의 Service 계층 Bean으로 등록하여, Spring IoC 컨테이너가 관리하도록 한다.
 @RequiredArgsConstructor // final 필드와 @NonNull 필드를 매개변수로 받는 생성자를 Lombok이 자동으로 생성하도록 한다.
@@ -33,7 +30,6 @@ public class BasicChannelService implements ChannelService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
-
 
     @Override
     public ChannelDto createPublicChannel(PublicChannelCreateRequest request) {
@@ -74,14 +70,6 @@ public class BasicChannelService implements ChannelService {
         // 3. PRIVATE 채널 생성 및 저장
         Channel channel = new Channel(memberIds);
         channelRepository.save(channel);
-
-        // 4. 참여자별 ReadStatus 생성 및 저장
-//        for (UUID userId : channel.getMemberIds()) {
-//            ReadStatus readStatus =
-//                    new ReadStatus(userId, channel.getId(), Instant.now());
-//
-//            readStatusRepository.save(readStatus);
-//        }
 
         return toDto(channel);
     }
@@ -124,9 +112,10 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
-        // 3. 기존 채널 이름과 동일한지 확인한다.
-        if (targetChannel.getName().equals(request.channelName())) {
-            throw new IllegalArgumentException("기존 채널명과 동일합니다.");
+        // 3. 이름과 설명 모두 변경되지 않았는지 확인한다.
+        if (targetChannel.getName().equals(request.channelName())
+                && Objects.equals(targetChannel.getDescription(), request.description())) {
+            throw new IllegalArgumentException("변경된 내용이 없습니다.");
         }
 
         // 4. 다른 PUBLIC 채널과 이름이 중복되는지 확인한다.
@@ -140,8 +129,10 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("중복된 채널 이름입니다.");
         }
 
-        // 5. 채널 이름 변경 및 수정 정보를 저장한다.
+        // 5. 채널 이름과 설명을 변경하고 수정 정보를 저장한다.
         targetChannel.changeName(request.channelName());
+        targetChannel.changeDescription(request.description());
+
         channelRepository.save(targetChannel);
 
         return toDto(targetChannel);

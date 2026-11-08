@@ -102,9 +102,9 @@ public class ReJCFChannelConsoleRun {
 
         /* 6. 채널 이름 수정 */
         channelService.updateChannel(
-                new ChannelUpdateRequest(channel1.id(), "공지사항 수정"));
+                new ChannelUpdateRequest(channel1.id(), "공지사항 수정", "수정한 공지사항 내용"));
         channelService.updateChannel(
-                new ChannelUpdateRequest(channel2.id(), "자유게시판 수정"));
+                new ChannelUpdateRequest(channel2.id(), "자유게시판 수정", "수정한 자유게시판 내용"));
 
         /* 7. 채널 수정 후 목록 */
         List<String> afterNames = channelService.findAllByUserId(user.id()).stream()
