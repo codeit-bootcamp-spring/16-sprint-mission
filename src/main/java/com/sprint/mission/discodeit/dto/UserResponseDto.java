@@ -6,6 +6,6 @@ public record UserResponseDto(
         UUID id,
         String username,
         String email,
-        UUID profiledId,
+        UUID profileId,
         boolean online
 ) {}
