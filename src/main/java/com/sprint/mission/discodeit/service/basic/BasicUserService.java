@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequestDto;
-import com.sprint.mission.discodeit.dto.user.UserResponseDto;
+import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequestDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -36,7 +36,7 @@ public class BasicUserService implements UserService {
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserResponseDto createUser(UserCreateRequestDto dto) {
+    public UserDto createUser(UserCreateRequestDto dto) {
         validateUsernameDuplicate(dto.getUsername(), null);
         validateEmailDuplicate(dto.getEmail(), null);
 
@@ -65,15 +65,15 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponseDto findUser(UUID userId) {
+    public UserDto findUser(UUID userId) {
         User user = findUserEntity(userId);
         return toResponseDto(user);
     }
 
     @Override
-    public List<UserResponseDto> findAllUsers() {
+    public List<UserDto> findAllUsers() {
         List<User> users = userRepository.findAll();
-        List<UserResponseDto> result = new ArrayList<>();
+        List<UserDto> result = new ArrayList<>();
 
         for (User user : users) {
             result.add(toResponseDto(user));
@@ -83,7 +83,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponseDto updateUser(
+    public UserDto updateUser(
             UUID userId,
             UserUpdateRequestDto dto
     ) {
@@ -324,12 +324,12 @@ public class BasicUserService implements UserService {
         }
     }
 
-    private UserResponseDto toResponseDto(User user) {
+    private UserDto toResponseDto(User user) {
         boolean online = userStatusRepository.findByUserId(user.getId())
                 .map(UserStatus::isOnline)
                 .orElse(false);
 
-        return UserResponseDto.builder()
+        return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())
