@@ -21,7 +21,7 @@ import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/v1/users")
+@RequestMapping("/api/user")
 public class UserController {
     private final UserService userService;
 
@@ -60,4 +60,6 @@ public class UserController {
         userService.delete((UUID) session.getAttribute("userId"));
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
+
+
 }

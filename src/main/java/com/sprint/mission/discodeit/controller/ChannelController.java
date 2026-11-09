@@ -17,7 +17,7 @@ import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("v1/channels")
+@RequestMapping("api/channel")
 public class ChannelController {
     private final ChannelService channelService;
 
@@ -34,14 +34,12 @@ public class ChannelController {
     }
 
     @PatchMapping("/update")
-    @ResponseBody
     public ResponseEntity<ChannelResponse> updateChannel(@RequestBody UpdateChannelRequest request) {
         ChannelResponse response = channelService.update(request);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/delete/{channel-id}")
-    @ResponseBody
     public ResponseEntity deleteChannel(@PathVariable("channel-id") UUID channelId) {
         channelService.delete(channelId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
