@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.controller.otherController;
 
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.request.binary.BinaryContentFindAllRequest;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.service.otherService.BinaryContentService;
 import lombok.RequiredArgsConstructor;
