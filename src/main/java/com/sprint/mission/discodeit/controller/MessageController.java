@@ -42,4 +42,6 @@ public class MessageController {
         List<MessageResponse> response = messageService.findAllByChannelId(channelId);
         return ResponseEntity.status(HttpStatus.OK).body(response);
     }
+
+
 }
