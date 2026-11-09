@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.exception;
 
 import com.sprint.mission.discodeit.exception.authentication.InvalidCredentialException;
+import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentNotFoundException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.channel.InvalidChannelCreateRequestException;
 import com.sprint.mission.discodeit.exception.channel.InvalidChannelUpdateRequestException;
@@ -81,6 +82,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ReadStatusNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleReadStatusNotFoundException(ReadStatusNotFoundException exception) {
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(BinaryContentNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleBinaryContentNotFoundException(BinaryContentNotFoundException exception) {
         return exception.getMessage();
     }
 }

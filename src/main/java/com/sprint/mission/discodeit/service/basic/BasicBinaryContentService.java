@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentFindAllByIdInRequest;
 import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.exception.binarycontent.BinaryContentNotFoundException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
@@ -12,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @Service
@@ -22,7 +21,6 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContentResponse create(BinaryContentCreateRequest request) {
-
         BinaryContent binaryContent = new BinaryContent(request.fileName(), request.contentType(), request.bytes());
         this.binaryContentRepository.save(binaryContent);
 
@@ -33,26 +31,27 @@ public class BasicBinaryContentService implements BinaryContentService {
         return new BinaryContentResponse(
                 binaryContent.getId(),
                 binaryContent.getFileName(),
-                binaryContent.getContentType()
+                binaryContent.getContentType(),
+                binaryContent.getBytes()
         );
     }
 
     @Override
     public BinaryContentResponse find(UUID binaryContentId) {
         BinaryContent binaryContent = this.binaryContentRepository.findById(binaryContentId)
-                .orElseThrow(() -> new NoSuchElementException(
+                .orElseThrow(() -> new BinaryContentNotFoundException(
                         "ID가 " + binaryContentId + "인 파일을 찾을 수 없습니다."));
 
         return this.toBinaryContentResponse(binaryContent);
     }
 
     @Override
-    public List<BinaryContentResponse> findAllByIdIn(BinaryContentFindAllByIdInRequest request) {
+    public List<BinaryContentResponse> findAllByIdIn(List<UUID> binaryContentIds) {
         List<BinaryContentResponse> binaryContentResponses = new ArrayList<>();
 
-        for (UUID binaryContentId : request.binaryContentIds()) {
+        for (UUID binaryContentId : binaryContentIds) {
             BinaryContent binaryContent = this.binaryContentRepository.findById(binaryContentId)
-                    .orElseThrow(() -> new NoSuchElementException(
+                    .orElseThrow(() -> new BinaryContentNotFoundException(
                             "ID가 " + binaryContentId + "인 파일을 찾을 수 없습니다."));
             BinaryContentResponse binaryContentResponse = this.toBinaryContentResponse(binaryContent);
             binaryContentResponses.add(binaryContentResponse);
@@ -64,9 +63,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public void delete(UUID id) {
         if (!this.binaryContentRepository.existsById(id)) {
-            throw new NoSuchElementException("ID가 " + id + "인 파일을 찾을 수 없습니다.");
+            throw new BinaryContentNotFoundException("ID가 " + id + "인 파일을 찾을 수 없습니다.");
         }
-
         this.binaryContentRepository.deleteById(id);
     }
 }

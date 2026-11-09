@@ -7,7 +7,7 @@ import java.util.UUID;
 public record BinaryContentResponse(
         UUID binaryContentId,
         String fileName,
-        String contentType
-        // byte[] bytes
+        String contentType,
+        byte[] bytes
 ) {
 }
