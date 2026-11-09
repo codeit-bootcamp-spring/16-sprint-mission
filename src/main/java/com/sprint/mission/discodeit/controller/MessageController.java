@@ -18,22 +18,8 @@ import java.util.UUID;
 public class MessageController {
     private final MessageService messageService;
 
-    /*
-    HTTP POST /messages
-    Content-Type: multipart/form-data
-
-    Part 1: request
-        Content-Type: application/json
-        메시지 내용, 채널 ID, 작성자 ID
-
-    Part 2: attachments
-        Content-Type: image/png
-        이미지 바이너리 데이터
-     */
-
     @PostMapping
     public ResponseEntity<MessageResponse> createMessage(
-            // value 속성만 지정할 경우, "value = " 는 생략 가능합니다
             @Valid @RequestPart("request") MessageCreateRequest request,
             @RequestPart(value = "attachments", required = false)
             List<MultipartFile> attachments

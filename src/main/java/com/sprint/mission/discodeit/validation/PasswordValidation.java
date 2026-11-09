@@ -5,7 +5,6 @@ import jakarta.validation.ConstraintValidatorContext;
 
 public class PasswordValidation implements ConstraintValidator<Password, String> {
     @Override
-    // context: 검증 실패 메시지를 직접 설정하거나, 어떤 필드에서 검증에 실패했는지 등의 정보를 구성하는 데 사용하는 객체입니다.
     public boolean isValid(String password, ConstraintValidatorContext context) {
         if (password == null) {
             return false;

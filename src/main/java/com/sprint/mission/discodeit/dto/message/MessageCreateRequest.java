@@ -15,6 +15,5 @@ public record MessageCreateRequest(
         UUID channelId,
         @NotNull
         UUID authorId
-        // @Nullable List<BinaryContent> attachments
 ) {
 }

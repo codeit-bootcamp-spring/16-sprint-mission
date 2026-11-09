@@ -12,7 +12,6 @@ public record ChannelCreateRequest(
 
         @NonNull
         ChannelType type,
-        // 이 걸, List<User> 로 하는 사람이 어딧니 ㅡㅡ
         List<UUID> userList,
         String name,
         String description

@@ -10,7 +10,6 @@ public record UserResponse(
         Instant updatedAt,
         String username,
         String email,
-        // String password // password는 제외합니다.
         boolean isOnline
 ) {
 }

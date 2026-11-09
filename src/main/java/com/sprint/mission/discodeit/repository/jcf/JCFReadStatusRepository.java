@@ -21,9 +21,8 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     }
 
     @Override
-    public List<ReadStatus> saveAll(List<ReadStatus> readStatusList) {
+    public void saveAll(List<ReadStatus> readStatusList) {
         readStatusList.forEach(readStatus -> this.data.put(readStatus.getId(), readStatus));
-        return readStatusList;
     }
 
     @Override
@@ -31,18 +30,11 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
         return Optional.ofNullable(this.data.get(readStatusId));
     }
 
-    /* 이 메서드가 왜 있는 지 모르겠음
-    public Optional<ReadStatus> findByUserId(UUID userId) {
-        return Optional.ofNullable(this.data.get(userId));
-    }
-     */
-
     @Override
     public List<ReadStatus> findAll() {
         return this.data.values().stream().toList();
     }
 
-    // 구현체
     @Override
     public List<ReadStatus> findAllByUserId(UUID userId) {
         return data.values().stream()
