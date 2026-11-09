@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
@@ -9,7 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -22,14 +26,32 @@ public class MessageController {
 
     @RequestMapping(
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_JSON_VALUE
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<Message> create(
-            @RequestBody MessageCreateRequest request
+            @RequestPart("message") MessagePart request,
+            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
-        Message message = messageService.create(request);
+        List<BinaryContentCreateRequest> files = new ArrayList<>();
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
+                try {
+                    files.add(new BinaryContentCreateRequest(
+                            attachment.getOriginalFilename(),
+                            attachment.getContentType(),
+                            attachment.getBytes()
+                    ));
+                } catch (IOException exception) {
+                    throw new IllegalArgumentException("첨부 파일 처리에 실패했습니다.", exception);
+                }
+            }
+        }
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(message);
+        MessageCreateRequest serviceRequest = new MessageCreateRequest(
+                request.content(), request.channelId(), request.authorId(), files
+        );
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(messageService.create(serviceRequest));
     }
 
     @RequestMapping(
@@ -73,4 +95,8 @@ public class MessageController {
 
         return ResponseEntity.ok(messages);
     }
+
+    public record MessagePart(String content, UUID channelId, UUID authorId) {
+    }
+
 }

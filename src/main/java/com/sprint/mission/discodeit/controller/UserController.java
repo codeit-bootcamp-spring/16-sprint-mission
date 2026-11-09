@@ -31,24 +31,10 @@ public class UserController {
 
     @RequestMapping(
             method = RequestMethod.POST,
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<UserDto> create(
-            @RequestBody UserCreateRequest request
-    ) {
-        UserDto createdUser = userService.create(request);
-
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(createdUser);
-    }
-
-    @RequestMapping(
-            method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<UserDto> createWithProfile(
-            @RequestPart("user") UserCreateRequest request,
+    public ResponseEntity<UserDto> create(
+            @RequestPart("user") RegistrationPart request,
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException {
         BinaryContentCreateRequest profileImage = null;
@@ -161,4 +147,8 @@ public class UserController {
 
         return ResponseEntity.ok(updatedUser);
     }
+
+    public record RegistrationPart(String username, String email, String password) {
+    }
+
 }

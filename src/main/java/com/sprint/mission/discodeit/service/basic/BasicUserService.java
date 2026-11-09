@@ -122,25 +122,29 @@ public class BasicUserService implements UserService {
             throw new IllegalArgumentException("사용자 수정 요청은 null일 수 없습니다.");
         }
 
-        validateUsername(request.username());
-        validatePassword(request.password());
-        validateEmail(request.email());
-
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+
+        String username = request.username() == null ? user.getUsername() : request.username();
+        String email = request.email() == null ? user.getEmail() : request.email();
+        String password = request.password() == null ? user.getPassword() : request.password();
+
+        validateUsername(username);
+        validatePassword(password);
+        validateEmail(email);
 
         List<User> users = userRepository.findAll();
 
         boolean usernameExists = users.stream()
                 .anyMatch(other -> !other.getId().equals(user.getId())
-                        && other.getUsername().equalsIgnoreCase(request.username()));
+                        && other.getUsername().equalsIgnoreCase(username));
         if (usernameExists) {
             throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
         }
 
         boolean emailExists = users.stream()
                 .anyMatch(other -> !other.getId().equals(user.getId())
-                        && other.getEmail().equalsIgnoreCase(request.email()));
+                        && other.getEmail().equalsIgnoreCase(email));
         if (emailExists) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
@@ -159,7 +163,7 @@ public class BasicUserService implements UserService {
             profileId = profile.getId();
         }
 
-        user.update(request.username(), request.email(), request.password(), profileId);
+        user.update(username, email, password, profileId);
         userRepository.save(user);
 
         if (profileRequest != null && oldProfileId != null) {
