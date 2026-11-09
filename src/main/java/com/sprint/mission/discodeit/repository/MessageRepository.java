@@ -1,0 +1,24 @@
+package com.sprint.mission.discodeit.repository;
+
+import com.sprint.mission.discodeit.entity.Message;
+
+import java.util.List;
+import java.util.UUID;
+
+public interface MessageRepository {
+
+    Message save(Message entity);
+
+    Message findById(UUID id);
+
+    List<Message> findAll();
+
+    void delete(UUID id);
+
+    default List<Message> findAllByChannelId(UUID channelId) {
+        return findAll().stream()
+                .filter(message ->
+                        message.getChannelId().equals(channelId))
+                .toList();
+    }
+}
