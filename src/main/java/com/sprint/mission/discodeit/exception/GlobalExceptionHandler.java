@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.exception.channel.InvalidChannelCreateReques
 import com.sprint.mission.discodeit.exception.channel.InvalidChannelUpdateRequestException;
 import com.sprint.mission.discodeit.exception.channel.PrivateChannelModificationNotAllowedException;
 import com.sprint.mission.discodeit.exception.message.MessageNotFoundException;
+import com.sprint.mission.discodeit.exception.readstatus.ReadStatusNotFoundException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.exception.userstatus.UserStatusNotFoundException;
 import org.springframework.http.HttpStatus;
@@ -74,6 +75,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MessageNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleMessageNotFoundException(MessageNotFoundException exception) {
+        return exception.getMessage();
+    }
+
+    @ExceptionHandler(ReadStatusNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleReadStatusNotFoundException(ReadStatusNotFoundException exception) {
         return exception.getMessage();
     }
 }

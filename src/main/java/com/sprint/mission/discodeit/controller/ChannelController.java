@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.channel.*;
+import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponse;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
@@ -45,4 +46,8 @@ public class ChannelController {
 
         return ResponseEntity.ok(channelInfoListDto);
     }
+
+    /* 특정 채널의 메시지 수신 정보를 생성할 수 있다. */
+
+    /* 특정 채널의 메시지 수신 정보를 수정할 수 있다. */
 }
