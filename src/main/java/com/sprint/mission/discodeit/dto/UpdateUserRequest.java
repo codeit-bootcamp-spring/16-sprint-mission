@@ -6,7 +6,6 @@ public record UpdateUserRequest(
         UUID id,
         String username,
         String email,
-        String password,
-        CreateBinaryContentRequest profile
+        String password
 ) {
 }

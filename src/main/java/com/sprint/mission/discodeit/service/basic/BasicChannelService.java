@@ -73,8 +73,18 @@ public class BasicChannelService implements ChannelService {
         if (request == null
                 || request.participantIds() == null
                 || request.participantIds().isEmpty()) {
+
             throw new IllegalArgumentException(
                     "PRIVATE 채널에는 참여자가 필요합니다."
+            );
+        }
+
+        if (request.participantIds()
+                .stream()
+                .anyMatch(id -> id == null)) {
+
+            throw new IllegalArgumentException(
+                    "참여자 ID에 null을 포함할 수 없습니다."
             );
         }
 
@@ -86,7 +96,11 @@ public class BasicChannelService implements ChannelService {
         }
 
         Channel channel = channelRepository.save(
-                new Channel(ChannelType.PRIVATE, null, null)
+                new Channel(
+                        ChannelType.PRIVATE,
+                        null,
+                        null
+                )
         );
 
         for (UUID userId : participantIds) {
@@ -99,6 +113,7 @@ public class BasicChannelService implements ChannelService {
             readStatusRepository.save(readStatus);
 
             User user = requireUser(userId);
+
             user.addChannel(channel.getId());
             userRepository.save(user);
         }
@@ -204,7 +219,10 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public void joinChannel(UUID channelId, UUID userId) {
+    public void joinChannel(
+            UUID channelId,
+            UUID userId
+    ) {
         Channel channel = requireChannel(channelId);
         User user = requireUser(userId);
 
@@ -242,7 +260,10 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public void leaveChannel(UUID channelId, UUID userId) {
+    public void leaveChannel(
+            UUID channelId,
+            UUID userId
+    ) {
         Channel channel = requireChannel(channelId);
         User user = requireUser(userId);
 
@@ -313,6 +334,7 @@ public class BasicChannelService implements ChannelService {
         if (name == null
                 || name.isBlank()
                 || description == null) {
+
             throw new IllegalArgumentException(
                     "채널 이름과 설명을 확인하세요."
             );
@@ -326,6 +348,7 @@ public class BasicChannelService implements ChannelService {
             if (channel.getType() == ChannelType.PUBLIC
                     && channel.getName()
                     .equalsIgnoreCase(name.trim())) {
+
                 throw new IllegalStateException(
                         "이미 사용 중인 채널 이름입니다."
                 );

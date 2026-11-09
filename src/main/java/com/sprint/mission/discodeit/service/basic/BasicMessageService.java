@@ -48,15 +48,34 @@ public class BasicMessageService implements MessageService {
             CreateMessageRequest request,
             List<MultipartFile> attachments
     ) {
-        if (request == null
-                || request.content() == null
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "메시지 생성 정보가 없습니다."
+            );
+        }
+
+        if (request.content() == null
                 || request.content().isBlank()) {
+
             throw new IllegalArgumentException(
                     "메시지 내용을 입력하세요."
             );
         }
 
-        User user = userRepository.findById(request.userId());
+        if (request.userId() == null) {
+            throw new IllegalArgumentException(
+                    "메시지 작성자 ID가 필요합니다."
+            );
+        }
+
+        if (request.channelId() == null) {
+            throw new IllegalArgumentException(
+                    "메시지를 작성할 채널 ID가 필요합니다."
+            );
+        }
+
+        User user =
+                userRepository.findById(request.userId());
 
         if (user == null) {
             throw new ResourceNotFoundException(
@@ -69,7 +88,7 @@ public class BasicMessageService implements MessageService {
 
         if (channel == null) {
             throw new ResourceNotFoundException(
-                    "메시지를 작성할 채널이 없습니다."
+                    "메시지를 작성할 채널을 찾을 수 없습니다."
             );
         }
 
@@ -77,6 +96,7 @@ public class BasicMessageService implements MessageService {
                 user.getId(),
                 channel.getId()
         ) == null) {
+
             throw new IllegalStateException(
                     "채널에 참여한 사용자만 메시지를 작성할 수 있습니다."
             );
@@ -123,7 +143,9 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public List<MessageResponse> findAllByChannelId(UUID channelId) {
+    public List<MessageResponse> findAllByChannelId(
+            UUID channelId
+    ) {
         if (channelId == null) {
             throw new IllegalArgumentException(
                     "채널 ID가 없습니다."
@@ -138,16 +160,23 @@ public class BasicMessageService implements MessageService {
 
         return messageRepository.findAllByChannelId(channelId)
                 .stream()
-                .sorted(Comparator.comparing(Message::getCreatedAt))
+                .sorted(
+                        Comparator.comparing(
+                                Message::getCreatedAt
+                        )
+                )
                 .map(this::toResponse)
                 .toList();
     }
 
     @Override
-    public MessageResponse update(UpdateMessageRequest request) {
+    public MessageResponse update(
+            UpdateMessageRequest request
+    ) {
         if (request == null
                 || request.content() == null
                 || request.content().isBlank()) {
+
             throw new IllegalArgumentException(
                     "메시지 수정 내용을 입력하세요."
             );
@@ -207,7 +236,8 @@ public class BasicMessageService implements MessageService {
         String contentType = attachment.getContentType();
 
         if (contentType == null || contentType.isBlank()) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
+            contentType =
+                    MediaType.APPLICATION_OCTET_STREAM_VALUE;
         }
 
         try {
@@ -216,6 +246,7 @@ public class BasicMessageService implements MessageService {
                     contentType,
                     attachment.getBytes()
             );
+
         } catch (IOException exception) {
             throw new FileStorageException(
                     "첨부파일을 읽는 중 오류가 발생했습니다.",

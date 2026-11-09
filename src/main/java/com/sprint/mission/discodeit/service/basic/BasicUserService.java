@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.CreateBinaryContentRequest;
 import com.sprint.mission.discodeit.dto.CreateUserRequest;
 import com.sprint.mission.discodeit.dto.UpdateUserRequest;
 import com.sprint.mission.discodeit.dto.UserResponse;
@@ -24,13 +23,13 @@ import com.sprint.mission.discodeit.service.UserService;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
 @Service
@@ -94,7 +93,9 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserResponse findById(UUID id) {
-        return toResponse(requireUser(id));
+        User user = requireUser(id);
+
+        return toResponse(user);
     }
 
     @Override
@@ -106,7 +107,10 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponse update(UpdateUserRequest request) {
+    public UserResponse update(
+            UpdateUserRequest request,
+            MultipartFile profile
+    ) {
         if (request == null) {
             throw new IllegalArgumentException(
                     "사용자 수정 정보가 없습니다."
@@ -122,16 +126,20 @@ public class BasicUserService implements UserService {
                 request.id()
         );
 
+        BinaryContent newProfile = null;
+
+        if (profile != null) {
+            newProfile = convertProfile(profile);
+        }
+
         UUID oldProfileId = user.getProfileId();
         UUID newProfileId = null;
 
-        if (request.profile() != null) {
-            BinaryContent profileContent =
-                    binaryContentRepository.save(
-                            convertProfileRequest(request.profile())
-                    );
+        if (newProfile != null) {
+            BinaryContent savedProfile =
+                    binaryContentRepository.save(newProfile);
 
-            newProfileId = profileContent.getId();
+            newProfileId = savedProfile.getId();
         }
 
         user.update(
@@ -159,6 +167,7 @@ public class BasicUserService implements UserService {
 
         for (ReadStatus readStatus :
                 readStatusRepository.findAllByUserId(id)) {
+
             readStatusRepository.delete(readStatus.getId());
         }
 
@@ -183,7 +192,9 @@ public class BasicUserService implements UserService {
         userRepository.delete(id);
     }
 
-    private BinaryContent convertProfile(MultipartFile profile) {
+    private BinaryContent convertProfile(
+            MultipartFile profile
+    ) {
         if (profile.isEmpty()) {
             throw new IllegalArgumentException(
                     "빈 프로필 파일은 등록할 수 없습니다."
@@ -200,11 +211,10 @@ public class BasicUserService implements UserService {
 
         String contentType = profile.getContentType();
 
-        if (contentType == null || contentType.isBlank()) {
-            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE;
-        }
+        if (contentType == null
+                || !contentType.toLowerCase(Locale.ROOT)
+                .startsWith("image/")) {
 
-        if (!contentType.toLowerCase().startsWith("image/")) {
             throw new IllegalArgumentException(
                     "프로필은 이미지 파일만 등록할 수 있습니다."
             );
@@ -222,26 +232,6 @@ public class BasicUserService implements UserService {
                     exception
             );
         }
-    }
-
-    private BinaryContent convertProfileRequest(
-            CreateBinaryContentRequest request
-    ) {
-        if (request.fileName() == null
-                || request.fileName().isBlank()
-                || request.contentType() == null
-                || request.contentType().isBlank()
-                || request.bytes() == null) {
-            throw new IllegalArgumentException(
-                    "프로필 수정 파일 정보가 올바르지 않습니다."
-            );
-        }
-
-        return new BinaryContent(
-                request.fileName(),
-                request.contentType(),
-                request.bytes()
-        );
     }
 
     private User requireUser(UUID id) {
@@ -263,11 +253,11 @@ public class BasicUserService implements UserService {
     }
 
     private UserResponse toResponse(User user) {
-        UserStatus status =
+        UserStatus userStatus =
                 userStatusRepository.findByUserId(user.getId());
 
-        boolean online =
-                status != null && status.isOnline();
+        boolean online = userStatus != null
+                && userStatus.isOnline();
 
         return new UserResponse(
                 user.getId(),
@@ -293,6 +283,7 @@ public class BasicUserService implements UserService {
                 || !email.contains("@")
                 || password == null
                 || password.isBlank()) {
+
             throw new IllegalArgumentException(
                     "사용자 이름, 이메일, 비밀번호를 확인하세요."
             );
@@ -305,6 +296,7 @@ public class BasicUserService implements UserService {
 
             if (existing.getUsername()
                     .equalsIgnoreCase(username.trim())) {
+
                 throw new IllegalStateException(
                         "이미 사용 중인 사용자 이름입니다."
                 );
@@ -312,6 +304,7 @@ public class BasicUserService implements UserService {
 
             if (existing.getEmail()
                     .equalsIgnoreCase(email.trim())) {
+
                 throw new IllegalStateException(
                         "이미 사용 중인 이메일입니다."
                 );

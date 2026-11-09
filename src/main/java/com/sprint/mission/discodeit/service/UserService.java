@@ -20,7 +20,10 @@ public interface UserService {
 
     List<UserResponse> findAll();
 
-    UserResponse update(UpdateUserRequest request);
+    UserResponse update(
+            UpdateUserRequest request,
+            MultipartFile profile
+    );
 
     void delete(UUID id);
 }

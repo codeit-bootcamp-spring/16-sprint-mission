@@ -71,22 +71,19 @@ public class UserController {
 
     @RequestMapping(
             value = "/{userId}",
-            method = RequestMethod.PATCH
+            method = RequestMethod.PATCH,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public UserResponse update(
             @PathVariable("userId") UUID userId,
-            @RequestBody UpdateUserRequest request
+            @RequestPart("request") UpdateUserRequest request,
+            @RequestPart(value = "profile", required = false)
+            MultipartFile profile
     ) {
-        if (request == null) {
-            throw new IllegalArgumentException(
-                    "사용자 수정 정보가 없습니다."
-            );
-        }
-
         if (request.id() != null
                 && !userId.equals(request.id())) {
             throw new IllegalArgumentException(
-                    "URL과 요청 본문의 사용자 ID가 다릅니다."
+                    "URL의 사용자 ID와 요청 본문의 ID가 일치하지 않습니다."
             );
         }
 
@@ -95,11 +92,10 @@ public class UserController {
                         userId,
                         request.username(),
                         request.email(),
-                        request.password(),
-                        request.profile()
+                        request.password()
                 );
 
-        return userService.update(updateRequest);
+        return userService.update(updateRequest, profile);
     }
 
     @RequestMapping(
