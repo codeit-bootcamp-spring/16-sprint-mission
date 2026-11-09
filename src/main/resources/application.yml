@@ -12,3 +12,6 @@ discodeit:
   repository:
     type: jcf
     file-directory: data
+
+  demo:
+    seed-users: true

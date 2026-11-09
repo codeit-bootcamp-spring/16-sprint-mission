@@ -4,77 +4,350 @@
     box-sizing: border-box;
 }
 
-body {
-    font-family: Arial, sans-serif;
-    background-color: #f5f5f5;
+html {
+    font-size: 16px;
 }
+
+body {
+    min-height: 100vh;
+    background-color: #f4f4f4;
+    color: #303030;
+
+    font-family:
+            Arial,
+            "Apple SD Gothic Neo",
+            "Noto Sans KR",
+            sans-serif;
+}
+
+/* 상단 주소 표시줄 */
+
+.browser-bar {
+    width: 100%;
+    height: 55px;
+
+    display: flex;
+    align-items: center;
+    gap: 22px;
+
+    padding: 0 20px;
+
+    background-color: #252525;
+
+    background-image:
+            repeating-linear-gradient(
+                    45deg,
+                    rgba(255, 255, 255, 0.012) 0px,
+                    rgba(255, 255, 255, 0.012) 20px,
+                    transparent 20px,
+                    transparent 40px
+            );
+
+    color: #dddddd;
+}
+
+.browser-info {
+    font-size: 19px;
+    font-weight: bold;
+}
+
+.browser-url {
+    font-family:
+            Menlo,
+            Monaco,
+            Consolas,
+            monospace;
+
+    font-size: 17px;
+    font-weight: 600;
+}
+
+/* 페이지 전체 */
+
+.page {
+    width: 100%;
+    min-height: calc(100vh - 55px);
+
+    padding: 26px 24px 100px;
+
+    background-color: #f4f4f4;
+}
+
+/* 중앙 컨테이너 */
 
 .container {
-    max-width: 800px;
+    width: 100%;
+    max-width: 1148px;
     margin: 0 auto;
-    padding: 20px;
 }
+
+/* 제목 */
 
 h1 {
+    margin-bottom: 43px;
+
+    font-size: 48px;
+    font-weight: 800;
+    line-height: 1.3;
+    letter-spacing: -2px;
+
+    color: #303030;
     text-align: center;
-    margin-bottom: 30px;
-    color: #333;
 }
 
+/* 사용자 목록 카드 */
+
 .user-list {
-    background-color: white;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    width: 100%;
+
+    background-color: #ffffff;
+
+    border-radius: 13px;
+    overflow: hidden;
+
+    box-shadow:
+            0 3px 9px rgba(0, 0, 0, 0.09);
 }
+
+/* 사용자별 항목 */
 
 .user-item {
     display: flex;
     align-items: center;
-    padding: 20px;
-    border-bottom: 1px solid #eee;
+    gap: 30px;
+
+    width: 100%;
+    min-height: 152px;
+
+    padding: 24px 30px;
+
+    border-bottom: 1px solid #e7e7e7;
 }
 
 .user-item:last-child {
     border-bottom: none;
 }
 
+/* 프로필 사진 */
+
 .user-avatar {
-    width: 60px;
-    height: 60px;
+    width: 90px;
+    height: 90px;
+
+    flex-shrink: 0;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    background-color: #e4e4e4;
+    border: 1px solid #d4d4d4;
     border-radius: 50%;
-    margin-right: 20px;
+
+    overflow: hidden;
+
+    font-size: 34px;
+    font-weight: bold;
+    color: #666666;
+}
+
+.user-avatar img {
+    display: block;
+
+    width: 100%;
+    height: 100%;
+
+    border-radius: 50%;
     object-fit: cover;
 }
 
+/* 사용자 이름과 이메일 */
+
 .user-info {
-    flex-grow: 1;
+    flex: 1;
+    min-width: 0;
+
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
 }
 
 .user-name {
-    font-size: 18px;
-    font-weight: bold;
-    color: #333;
     margin-bottom: 5px;
+
+    font-size: 28px;
+    font-weight: 800;
+    line-height: 1.3;
+
+    color: #303030;
 }
 
 .user-email {
-    font-size: 14px;
-    color: #666;
+    font-size: 21px;
+    font-weight: 400;
+    line-height: 1.4;
+
+    color: #606060;
+    overflow-wrap: anywhere;
 }
 
+/* 온라인 / 오프라인 뱃지 */
+
 .status-badge {
-    padding: 6px 12px;
-    border-radius: 20px;
-    font-size: 14px;
-    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+
+    min-width: 92px;
+    min-height: 43px;
+
+    padding: 7px 17px;
+
+    border-radius: 999px;
+
+    font-size: 20px;
+    font-weight: 700;
+    color: white;
+
+    white-space: nowrap;
+    flex-shrink: 0;
 }
 
 .online {
-    background-color: #4CAF50;
-    color: white;
+    background-color: #40a94c;
 }
 
 .offline {
     background-color: #9e9e9e;
-    color: white;
+}
+
+/* 목록이 비어 있거나 오류가 발생했을 때 */
+
+.state-message {
+    padding: 50px 20px;
+
+    text-align: center;
+
+    font-size: 18px;
+    line-height: 1.6;
+
+    color: #777777;
+}
+
+.state-message.error {
+    color: #d04848;
+}
+
+/* 태블릿 화면 */
+
+@media (max-width: 900px) {
+
+    .page {
+        padding: 30px 20px 80px;
+    }
+
+    h1 {
+        font-size: 42px;
+        margin-bottom: 35px;
+    }
+
+    .user-item {
+        min-height: 125px;
+
+        gap: 22px;
+        padding: 20px 24px;
+    }
+
+    .user-avatar {
+        width: 75px;
+        height: 75px;
+    }
+
+    .user-name {
+        font-size: 24px;
+    }
+
+    .user-email {
+        font-size: 17px;
+    }
+
+    .status-badge {
+        min-width: 80px;
+        min-height: 38px;
+
+        padding: 7px 14px;
+        font-size: 17px;
+    }
+}
+
+/* 모바일 화면 */
+
+@media (max-width: 600px) {
+
+    .browser-bar {
+        height: 50px;
+
+        gap: 12px;
+        padding: 0 16px;
+    }
+
+    .browser-info {
+        font-size: 17px;
+    }
+
+    .browser-url {
+        font-size: 13px;
+    }
+
+    .page {
+        min-height: calc(100vh - 50px);
+        padding: 30px 14px 60px;
+    }
+
+    h1 {
+        font-size: 34px;
+        margin-bottom: 28px;
+        letter-spacing: -1px;
+    }
+
+    .user-list {
+        border-radius: 12px;
+    }
+
+    .user-item {
+        min-height: 102px;
+
+        gap: 14px;
+        padding: 16px 14px;
+    }
+
+    .user-avatar {
+        width: 58px;
+        height: 58px;
+
+        font-size: 24px;
+    }
+
+    .user-name {
+        font-size: 19px;
+        margin-bottom: 3px;
+    }
+
+    .user-email {
+        font-size: 13px;
+    }
+
+    .status-badge {
+        min-width: 61px;
+        min-height: 32px;
+
+        padding: 5px 10px;
+
+        font-size: 13px;
+    }
+
+    .state-message {
+        padding: 40px 15px;
+        font-size: 15px;
+    }
 }
