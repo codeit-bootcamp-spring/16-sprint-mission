@@ -1,8 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentResponse;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.AllArgsConstructor;
+import org.apache.coyote.Response;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.ContentDisposition;
@@ -18,12 +20,12 @@ import java.util.UUID;
 
 @RestController
 @AllArgsConstructor
-@RequestMapping("/api/content")
+@RequestMapping("/api/binaryContent")
 public class BinaryContentController {
 
     private final BinaryContentService binaryContentService;
 
-    @GetMapping("{content-id}")
+    @GetMapping("/{content-id}")
     public ResponseEntity<Resource> getContent(@PathVariable("content-id") UUID contentId) {
         BinaryContentResponse response = binaryContentService.find(contentId);
         ContentDisposition contentDisposition = ContentDisposition.attachment()
@@ -35,6 +37,17 @@ public class BinaryContentController {
                 .contentType(toMediaType(response.contentType()))
                 .contentLength(response.bytes().length)
                 .body(new ByteArrayResource(response.bytes()));
+    }
+
+    @GetMapping("/find/{content-id}")
+    public ResponseEntity<BinaryContentResponse> showContent(@PathVariable("content-id") UUID contentId) {
+        BinaryContentResponse response = binaryContentService.find(contentId);
+        return ResponseEntity.ok(response);
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<BinaryContentResponse>> getContents(@RequestParam List<UUID> contentIds) {
+        return ResponseEntity.ok(binaryContentService.findAllByIdIn(contentIds));
     }
 
     // 저장된 형식이 없거나 잘못된 경우 일반 바이너리 파일로 응답

@@ -7,7 +7,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 @Controller
 @AllArgsConstructor
 public class HomeController {
-    @GetMapping("/")
+    // "/"는 static/index.html(사용자 목록)이 서빙한다
+    @GetMapping("/login")
     public String home() {
         return "home";
     }

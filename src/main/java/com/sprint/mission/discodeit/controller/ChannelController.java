@@ -36,7 +36,7 @@ public class ChannelController {
     @PatchMapping("/update")
     public ResponseEntity<ChannelResponse> updateChannel(@RequestBody UpdateChannelRequest request) {
         ChannelResponse response = channelService.update(request);
-        return ResponseEntity.status(HttpStatus.OK).body(response);
+        return ResponseEntity.ok(response);
     }
 
     @DeleteMapping("/delete/{channel-id}")
