@@ -2,15 +2,19 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.user.*;
 import com.sprint.mission.discodeit.service.UserService;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
 
+@Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("api/v1/users")
@@ -23,20 +27,20 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<UserCreateResponse> createUser(@RequestPart("user") UserCreateRequest createRequest,
+    public ResponseEntity<UserCreateResponse> createUser(@Valid @RequestPart("user") UserCreateRequest createRequest,
                                                          @RequestPart(name = "profileImage", required = false) MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.create(createRequest, profileImage));
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH)
-    public ResponseEntity<UserUpdateResponse> updateUser(@PathVariable UUID userId,
-                                                         @RequestPart("user") UserUpdateRequest updateRequest,
+    public ResponseEntity<UserUpdateResponse> updateUser(@NotNull @PathVariable UUID userId,
+                                                         @Valid @RequestPart("user") UserUpdateRequest updateRequest,
                                                          @RequestPart(name = "profileImage", required = false) MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.update(userId, updateRequest, profileImage));
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+    public ResponseEntity<Void> deleteUser(@NotNull @PathVariable UUID userId) {
         this.userService.delete(userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
