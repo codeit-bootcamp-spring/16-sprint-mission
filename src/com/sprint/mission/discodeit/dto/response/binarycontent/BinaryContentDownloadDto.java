@@ -6,14 +6,14 @@ public record BinaryContentDownloadDto(
         UUID id,
         String fileName,
         String contentType,
-        byte[] data
+        byte[] bytes
 ) {
     public BinaryContentDownloadDto {
-        data = data.clone();
+        bytes = bytes.clone();
     }
 
     @Override
-    public byte[] data() {
-        return data.clone();
+    public byte[] bytes() {
+        return bytes.clone();
     }
 }

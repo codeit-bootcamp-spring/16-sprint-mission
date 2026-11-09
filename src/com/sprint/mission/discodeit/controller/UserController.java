@@ -11,10 +11,16 @@ import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -26,12 +32,16 @@ public class UserController {
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    // 사용자 등록
-    @RequestMapping(method = RequestMethod.POST)
+    // 사용자 등록 (프로필 이미지 선택 첨부)
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<UserDto> create(
-            @RequestBody UserCreateRequest request
+            @RequestPart("request") UserCreateRequest request,
+            @RequestPart(value = "profile", required = false) MultipartFile profile
     ) {
-        UserDto userDto = userService.create(request);
+        UserDto userDto = userService.create(request, profile);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -39,7 +49,10 @@ public class UserController {
     }
 
     // 모든 사용자 조회
-    @RequestMapping(value = "/findAll", method=RequestMethod.GET)
+    @RequestMapping(
+            value = "/findAll",
+            method = RequestMethod.GET
+    )
     public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userService.findAll());
     }

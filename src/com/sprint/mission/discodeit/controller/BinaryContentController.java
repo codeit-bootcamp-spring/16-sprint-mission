@@ -27,7 +27,7 @@ public class BinaryContentController {
 
     private final BinaryContentService binaryContentService;
 
-    // 과제 요구사항: 첨부파일 원본 조회
+    // 첨부파일 원본 조회
     @RequestMapping(
             value = "/find",
             method = RequestMethod.GET
@@ -59,11 +59,11 @@ public class BinaryContentController {
                         new IllegalArgumentException("첨부파일을 찾을 수 없습니다.")
                 );
 
-        ByteArrayResource resource = new ByteArrayResource(file.data());
+        ByteArrayResource resource = new ByteArrayResource(file.bytes());
 
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(file.contentType()))
-                .contentLength(file.data().length)
+                .contentLength(file.bytes().length)
                 .header(
                         HttpHeaders.CONTENT_DISPOSITION,
                         "attachment; filename*=UTF-8''" +
@@ -100,7 +100,7 @@ public class BinaryContentController {
                 ZipEntry entry = new ZipEntry(file.fileName());
 
                 zipOutputStream.putNextEntry(entry);
-                zipOutputStream.write(file.data());
+                zipOutputStream.write(file.bytes());
                 zipOutputStream.closeEntry();
             }
         }
