@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateReq
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.service.UserService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -20,21 +21,39 @@ public class ChannelController {
 
     private final ChannelService channelService;
 
-    // 공개 채널 생성(PUBLIC)
+    // 공개 채널 생성(PUBLIC)-POST
     @RequestMapping(value = "/public", method = RequestMethod.POST)
-    public ChannelDto postPublicChannel(@RequestBody PublicChannelCreateRequest request) {
+    public ChannelDto postPublicChannel(@Valid @RequestBody PublicChannelCreateRequest request) {
         return channelService.createPublicChannel(request);
     }
 
-    // 공개 채널 생성(PUBLIC)
+    // 비공개 채널 생성(PRIVATE)-POST
     @RequestMapping(value = "/private", method = RequestMethod.POST)
-    public ChannelDto postPrivateChannel(@RequestBody PrivateChannelCreateRequest request) {
+    public ChannelDto postPrivateChannel(@Valid @RequestBody PrivateChannelCreateRequest request) {
         return channelService.createPrivateChannel(request);
+    }
+
+    // 채널 단건 조회(GET)
+    @RequestMapping(value = "/{channelId}", method = RequestMethod.GET)
+    public ChannelDto getChannel(@PathVariable UUID channelId) {
+        return channelService.readChannel(channelId);
+    }
+
+    // 전체 채널 목록 조회(GET)
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    public List<ChannelDto> findAllChannels() {
+        return channelService.findAll();
+    }
+
+    // 특정 사용자가 볼 수 있는 모든 채널 조회(GET)
+    @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
+    public List<ChannelDto> getChannelByUserId(@PathVariable UUID userId){
+        return channelService.findAllByUserId(userId);
     }
 
     // 공개 채널 정보 수정(PUT)
     @RequestMapping(method = RequestMethod.PUT)
-    public ChannelDto putChannel(@RequestBody ChannelUpdateRequest request) {
+    public ChannelDto putChannel(@Valid @RequestBody ChannelUpdateRequest request) {
         return channelService.updateChannel(request);
     }
 
@@ -42,11 +61,5 @@ public class ChannelController {
     @RequestMapping(value = "/{channelId}",method = RequestMethod.DELETE)
     public void deleteChannel(@PathVariable UUID channelId) {
         channelService.deleteChannel(channelId);
-    }
-
-    // 특정 사용자가 볼 수 있는 모든 채널 조회(GET)
-    @RequestMapping(value = "/user/{userId}", method = RequestMethod.GET)
-    public List<ChannelDto> getChannelByUserId(@PathVariable UUID userId){
-        return channelService.findAllByUserId(userId);
     }
 }

@@ -15,6 +15,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.ReadStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -103,7 +104,20 @@ public class FileChannelService implements ChannelService {
     }
 
     @Override
+    public List<ChannelDto> findAll() {
+        return channelRepository.findAll().stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
+
+        // 사용자가 존재하는지 확인한다.
+        userRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("사용자를 찾을 수 없습니다.")
+                );
 
         // PUBLIC 채널과 해당 사용자가 참여한 PRIVATE 채널 조회
         return channelRepository.findAll().stream()

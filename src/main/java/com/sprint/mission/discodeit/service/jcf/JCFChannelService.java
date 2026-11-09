@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateReq
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.type.ChannelType;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
@@ -95,7 +96,21 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
+    public List<ChannelDto> findAll() {
+        return data.stream()
+                .map(this::toDto)
+                .toList();
+    }
+
+    @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
+
+        // 사용자가 존재하는지 확인한다.
+        userRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("사용자를 찾을 수 없습니다.")
+                );
+
         return data.stream()
                 .filter(channel ->
                         channel.getType() == ChannelType.PUBLIC
