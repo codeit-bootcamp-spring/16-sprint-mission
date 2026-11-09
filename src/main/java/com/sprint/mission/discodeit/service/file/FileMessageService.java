@@ -7,13 +7,18 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
+import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.type.ChannelType;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -43,20 +48,23 @@ public class FileMessageService implements MessageService {
         // 작성자와 채널이 실제로 존재하는지 확인한다.
         User user = userRepository.findByUserId(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
 
         Channel channel = channelRepository.findByChannelId(request.channelId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+                        new ResourceNotFoundException("채널을 찾을 수 없습니다."));
 
-        // 작성자의 채널 참여 여부 확인
-        if (!channel.hasMember(request.userId())){
-            throw new IllegalArgumentException
-                    ("'" + user.getUsername() + "' (이)가 해당 채널에 참여 중이 아닙니다.");
+        // 비공개 채널인 경우에만 참여 여부를 확인한다.
+        if (channel.getType() == ChannelType.PRIVATE
+                && !channel.hasMember(request.userId())) {
+
+            throw new ForbiddenOperationException(
+                    "비공개 채널 참여자만 메시지를 보낼 수 있습니다."
+            );
         }
 
-        // 첨부파일 DTO를 Entity로 변환하고 저장한다.
-        List<UUID> attachmentIds = null;
+        // 첨부파일이 전달된 경우 BinaryContent로 변환하여 저장한다.
+        List<UUID> attachmentIds = new ArrayList<>();
 
         // 첨부파일이 전달된 경우 Entity로 변환하고 저장한다.
         if (request.attachments() != null) {
@@ -79,8 +87,8 @@ public class FileMessageService implements MessageService {
         // 메시지 생성 및 저장
         Message message = new Message(
                 request.content(),
-                request.userId(),
-                request.channelId(),
+                user.getId(),
+                channel.getId(),
                 attachmentIds
         );
 
@@ -95,7 +103,7 @@ public class FileMessageService implements MessageService {
         // 요청받은 ID와 일치하는 메시지를 찾아 반환한다.
         Message targetMessage = messageRepository.findByMessageId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("메시지를 찾을 수 없습니다"));
+                        new ResourceNotFoundException("메시지를 찾을 수 없습니다"));
 
         return toDto(targetMessage);
     }
@@ -111,6 +119,12 @@ public class FileMessageService implements MessageService {
 
     @Override
     public List<MessageDto> findAllByChannelId(UUID channelId) {
+
+        // 채널이 실제로 존재하는지 확인한다.
+        channelRepository.findByChannelId(channelId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("채널을 찾을 수 없습니다."));
+
         return messageRepository.findAllByChannelId(channelId).stream()
                 .map(this::toDto)
                 .toList();
@@ -122,10 +136,15 @@ public class FileMessageService implements MessageService {
         // 수정 대상 메시지 조회
         Message targetMessage = messageRepository.findByMessageId(request.messageId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("메시지를 찾을 수 없습니다"));
+                        new ResourceNotFoundException("메시지를 찾을 수 없습니다"));
 
-        // 기존 메시지 내용과 수정할 내용이 동일한지 확인한다.
-        if (targetMessage.getContent().equals(request.content())){
+        // 메시지 작성자 권한 확인
+        if (!targetMessage.getUserId().equals(request.requesterId())) {
+            throw new ForbiddenOperationException("메시지 작성자만 수정할 수 있습니다.");
+        }
+
+        // 기존 메시지 내용과 동일한지 확인
+        if (Objects.equals(targetMessage.getContent(), request.content())) {
             throw new IllegalArgumentException("기존 메시지 내용과 동일합니다.");
         }
 
@@ -144,11 +163,18 @@ public class FileMessageService implements MessageService {
         // 삭제할 메시지가 존재하는지 확인한다.
         Message targetMessage = messageRepository.findByMessageId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("삭제할 메시지를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("삭제할 메시지를 찾을 수 없습니다."));
 
         // 메시지 작성자와 삭제 요청자가 일치하는지 확인한다.
         if (!targetMessage.getUserId().equals(requesterId)) {
-            throw new IllegalArgumentException("메시지 작성자만 삭제할 수 있습니다.");
+            throw new ForbiddenOperationException("메시지 작성자만 삭제할 수 있습니다.");
+        }
+
+        // 메시지에 연결된 첨부파일도 삭제한다.
+        if (targetMessage.getAttachmentIds() != null) {
+            for (UUID attachmentId : targetMessage.getAttachmentIds()) {
+                binaryContentRepository.deleteById(attachmentId);
+            }
         }
 
         // 메시지 삭제

@@ -31,4 +31,12 @@ public class GlobalExceptionHandler {
                 .status(HttpStatus.CONFLICT)
                 .body(drException.getMessage());
     }
+
+    // ??
+    @ExceptionHandler(ForbiddenOperationException.class)
+    public ResponseEntity<String> handleForbiddenOperationException(ForbiddenOperationException foException) {
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(foException.getMessage());
+    }
 }
