@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -39,7 +39,7 @@ public class UserController {
     }
 
     // 모든 사용자 조회
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(value = "/findAll", method=RequestMethod.GET)
     public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userService.findAll());
     }
