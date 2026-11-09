@@ -4,6 +4,9 @@ import com.sprint.mission.discodeit.dto.userstatus.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.DuplicateResourceException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
+import com.sprint.mission.discodeit.exception.userstatus.UserStatusNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -23,10 +26,12 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponse create(UserStatusCreateRequest request) {
         this.userRepository.findById(request.userId())
-                .orElseThrow(() -> new NoSuchElementException("ID가 " + request.userId() + "인 사용자를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserNotFoundException("ID가 " + request.userId() + "인 사용자를 찾을 수 없습니다."));
 
         if (this.userStatusRepository.findByUserId(request.userId()).isPresent()) {
-            throw new IllegalStateException("ID가 " + request.userId() + "인 사용자의 상태 정보가 이미 존재합니다."); // 현재 상태에서 허용되지 않는 연산
+            throw new DuplicateResourceException(
+                    "해당 사용자의 온라인 상태 정보가 이미 존재합니다. 사용자 ID: " + request.userId()
+            );
         }
 
         UserStatus userStatus =  new UserStatus(request.userId());
@@ -47,7 +52,9 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponse find(UUID userStatusId) {
         UserStatus userStatus = this.userStatusRepository.findById(userStatusId)
-                .orElseThrow(() -> new NoSuchElementException("userStatusId가 " + userStatusId + "인 userStatus를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserStatusNotFoundException(
+                        "ID가 " + userStatusId + "인 사용자 상태 정보를 찾을 수 없습니다."
+                ));
 
         return this.toUserStatusResponse(userStatus);
     }
@@ -64,7 +71,9 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponse update(UUID userStatusId, UserStatusUpdateRequest request) {
         UserStatus userStatus = this.userStatusRepository.findById(userStatusId)
-                .orElseThrow(() -> new NoSuchElementException("userStatusId가 " + userStatusId + "인 userStatus를 찾을 수 없습니다."));
+                .orElseThrow(() -> new UserStatusNotFoundException(
+                                "ID가 " + userStatusId + "인 사용자 상태 정보를 찾을 수 없습니다."
+                        ));
 
         userStatus.update();
         this.userStatusRepository.save(userStatus);
@@ -74,10 +83,13 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponse updateByUserId(UUID userId) {
         this.userRepository.findById(userId)
-                        .orElseThrow(() -> new NoSuchElementException("userId가 " + userId + "인 user를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new UserNotFoundException(
+                                "ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
 
         UserStatus userStatus = this.userStatusRepository.findByUserId(userId)
-                        .orElseThrow(() -> new NoSuchElementException("userId가 " + userId + "인 userStatus를 찾을 수 없습니다."));
+                        .orElseThrow(() -> new UserStatusNotFoundException(
+                                        "사용자 ID가 " + userId + "인 사용자의 상태 정보를 찾을 수 없습니다."
+                                ));
 
         userStatus.update();
         this.userStatusRepository.save(userStatus);
