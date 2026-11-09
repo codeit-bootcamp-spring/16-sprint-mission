@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 
+import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -21,8 +22,14 @@ public class UserController {
 
     // 사용자 등록(POST)
     @RequestMapping(method = RequestMethod.POST)
-    public UserDto postUser(@RequestBody UserCreateRequest request) {
+    public UserDto postUser(@Valid @RequestBody UserCreateRequest request) {
         return userService.createUser(request);
+    }
+
+    // 사용자 단건 조회(GET)
+    @RequestMapping(value = "/{userId}", method = RequestMethod.GET)
+    public ResponseEntity<UserDto> getUser(@PathVariable UUID userId) {
+        return ResponseEntity.ok(userService.readUser(userId));
     }
 
     // 모든 사용자 조회(GET)
@@ -35,7 +42,7 @@ public class UserController {
 
     // 사용자 정보 수정(PUT)
     @RequestMapping(method = RequestMethod.PUT)
-    public UserDto putUser(@RequestBody UserUpdateRequest request) {
+    public UserDto putUser(@Valid @RequestBody UserUpdateRequest request) {
         return userService.updateUser(request);
     }
 

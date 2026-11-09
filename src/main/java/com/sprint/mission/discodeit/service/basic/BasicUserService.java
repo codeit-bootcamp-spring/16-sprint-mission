@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 
+import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -45,7 +47,7 @@ public class BasicUserService implements UserService {
                 .anyMatch(user -> user.getUsername().equals(request.username()));
 
         if (duplicatedUsername) {
-            throw new IllegalArgumentException("중복된 이름입니다.");
+            throw new DuplicateResourceException("중복된 이름입니다.");
         }
 
         // 2. 이메일 중복 검사
@@ -53,7 +55,7 @@ public class BasicUserService implements UserService {
                 .anyMatch(user -> user.getEmail().equals(request.email()));
 
         if (duplicatedEmail) {
-            throw new IllegalArgumentException("중복된 이메일입니다.");
+            throw new DuplicateResourceException("중복된 이메일입니다.");
         }
 
         // 3. 프로필 이미지가 전달된 경우 저장
@@ -95,12 +97,12 @@ public class BasicUserService implements UserService {
         // 1. 사용자 조회
         User user = userRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 2. 사용자 상태 조회
         UserStatus userStatus = userStatusRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
         // 3. 조회 결과를 DTO로 변환하여 반환
         return toDto(user, userStatus);
@@ -115,7 +117,7 @@ public class BasicUserService implements UserService {
                     UserStatus userStatus = userStatusRepository
                             .findByUserId(user.getId())
                             .orElseThrow(() ->
-                                    new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                                    new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
                     return toDto(user, userStatus);
                 })
@@ -131,7 +133,7 @@ public class BasicUserService implements UserService {
         // 1. 수정 대상 사용자 조회
         User targetUser = userRepository.findByUserId(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 전달되지 않은 항목은 기존 값을 유지한다.
         String username = request.username() != null
@@ -151,7 +153,7 @@ public class BasicUserService implements UserService {
                                 && otherUser.getUsername().equals(username));
 
         if (duplicatedUsername) {
-            throw new IllegalArgumentException("중복된 사용자 이름입니다.");
+            throw new DuplicateResourceException("중복된 사용자 이름입니다.");
         }
 
         // 3. 이메일 중복 검사 (본인 제외)
@@ -161,7 +163,7 @@ public class BasicUserService implements UserService {
                                 && otherUser.getEmail().equals(email));
 
         if (duplicatedEmail) {
-            throw new IllegalArgumentException("중복된 이메일입니다.");
+            throw new DuplicateResourceException("중복된 이메일입니다.");
         }
 
         // 4. 기존 프로필 이미지 ID 유지
@@ -205,7 +207,7 @@ public class BasicUserService implements UserService {
         // 8. 사용자 상태 조회 및 DTO 반환
         UserStatus userStatus = userStatusRepository.findByUserId(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
         return toDto(updatedUser, userStatus);
     }
@@ -219,7 +221,7 @@ public class BasicUserService implements UserService {
         // 1. 삭제 대상 사용자 조회
         User user = userRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 2. 프로필 이미지 ID 확인
         UUID profileId = user.getProfileId();
