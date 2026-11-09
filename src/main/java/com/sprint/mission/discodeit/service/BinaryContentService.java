@@ -9,13 +9,17 @@ import java.util.UUID;
 
 public interface BinaryContentService {
 
-    BinaryContentResponse create(CreateBinaryContentRequest request);
+    BinaryContentResponse create(
+            CreateBinaryContentRequest request
+    );
 
     BinaryContentResponse findById(UUID id);
 
     List<BinaryContentResponse> findAllByIdIn(
             Collection<UUID> ids
     );
+
+    byte[] readBytes(UUID id);
 
     void delete(UUID id);
 }

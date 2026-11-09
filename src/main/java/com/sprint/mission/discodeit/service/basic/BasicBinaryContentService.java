@@ -2,11 +2,13 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.BinaryContentResponse;
 import com.sprint.mission.discodeit.dto.CreateBinaryContentRequest;
+
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.Collection;
@@ -41,20 +43,15 @@ public class BasicBinaryContentService
                 request.bytes()
         );
 
-        return toResponse(binaryContentRepository.save(content));
+        BinaryContent savedContent =
+                binaryContentRepository.save(content);
+
+        return toResponse(savedContent);
     }
 
     @Override
     public BinaryContentResponse findById(UUID id) {
-        BinaryContent content = binaryContentRepository.findById(id);
-
-        if (content == null) {
-            throw new IllegalArgumentException(
-                    "파일을 찾을 수 없습니다."
-            );
-        }
-
-        return toResponse(content);
+        return toResponse(requireContent(id));
     }
 
     @Override
@@ -74,9 +71,36 @@ public class BasicBinaryContentService
     }
 
     @Override
+    public byte[] readBytes(UUID id) {
+        BinaryContent content = requireContent(id);
+
+        return content.getBytes().clone();
+    }
+
+    @Override
     public void delete(UUID id) {
-        findById(id);
+        requireContent(id);
+
         binaryContentRepository.delete(id);
+    }
+
+    private BinaryContent requireContent(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "파일 ID가 없습니다."
+            );
+        }
+
+        BinaryContent content =
+                binaryContentRepository.findById(id);
+
+        if (content == null) {
+            throw new IllegalArgumentException(
+                    "파일을 찾을 수 없습니다."
+            );
+        }
+
+        return content;
     }
 
     private BinaryContentResponse toResponse(
