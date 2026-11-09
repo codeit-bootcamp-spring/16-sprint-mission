@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.binarycontent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
+import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDownloadDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
@@ -76,6 +77,30 @@ public class BasicBinaryContentService implements BinaryContentService {
                 .toList();
     }
 
+    // 파일 하나의 실제 데이터 조회
+    @Override
+    public Optional<BinaryContentDownloadDto> downloadById(UUID id) {
+        Objects.requireNonNull(id, "첨부파일 ID는 필수입니다.");
+
+        return binaryContentRepository.findById(id)
+                .map(this::toDownloadDto);
+    }
+
+    // 여러 파일의 실제 데이터 조회
+    @Override
+    public List<BinaryContentDownloadDto> downloadAllByIdIn(List<UUID> ids) {
+        Objects.requireNonNull(ids, "첨부파일 ID 목록은 필수입니다.");
+
+        if (ids.stream().anyMatch(Objects::isNull)) {
+            throw new IllegalArgumentException("첨부파일 ID는 null일 수 없습니다.");
+        }
+
+        return binaryContentRepository.findAllByIdIn(ids)
+                .stream()
+                .map(this::toDownloadDto)
+                .toList();
+    }
+
     // ID로 첨부파일 삭제
     @Override
     public void deleteById(UUID id) {
@@ -89,6 +114,7 @@ public class BasicBinaryContentService implements BinaryContentService {
         binaryContentRepository.deleteById(id);
     }
 
+    // 일반 조회 DTO 변환
     private BinaryContentDto toDto(BinaryContent binaryContent) {
         return new BinaryContentDto(
                 binaryContent.getId(),
@@ -96,6 +122,16 @@ public class BasicBinaryContentService implements BinaryContentService {
                 binaryContent.getFileName(),
                 binaryContent.getContentType(),
                 binaryContent.getSize()
+        );
+    }
+
+    // 다운로드 DTO 변환
+    private BinaryContentDownloadDto toDownloadDto(BinaryContent binaryContent) {
+        return new BinaryContentDownloadDto(
+                binaryContent.getId(),
+                binaryContent.getFileName(),
+                binaryContent.getContentType(),
+                binaryContent.getData()
         );
     }
 }
