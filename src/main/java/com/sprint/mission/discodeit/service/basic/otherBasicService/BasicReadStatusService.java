@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.service.otherService.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -44,7 +45,7 @@ public class BasicReadStatusService implements ReadStatusService {
         ReadStatus readStatus = new ReadStatus(
                 request.userId(),
                 request.channelId(),
-                request.lastReadAt()
+                Instant.now()
         );
 
         return readStatusRepository.save(readStatus);
