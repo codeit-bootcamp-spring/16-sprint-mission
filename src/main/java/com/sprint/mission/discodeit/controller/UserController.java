@@ -13,13 +13,17 @@ import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -33,11 +37,17 @@ public class UserController {
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<UserResponse> create(
-            @RequestBody CreateUserRequest request
+            @RequestPart("request") CreateUserRequest request,
+            @RequestPart(value = "profile", required = false)
+            MultipartFile profile
     ) {
-        UserResponse response = userService.create(request);
+        UserResponse response =
+                userService.create(request, profile);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -67,20 +77,27 @@ public class UserController {
             @PathVariable("userId") UUID userId,
             @RequestBody UpdateUserRequest request
     ) {
-        if (request.id() != null
-                && !userId.equals(request.id())) {
+        if (request == null) {
             throw new IllegalArgumentException(
-                    "URL의 사용자 ID와 요청 본문의 ID가 다릅니다."
+                    "사용자 수정 정보가 없습니다."
             );
         }
 
-        UpdateUserRequest updateRequest = new UpdateUserRequest(
-                userId,
-                request.username(),
-                request.email(),
-                request.password(),
-                request.profile()
-        );
+        if (request.id() != null
+                && !userId.equals(request.id())) {
+            throw new IllegalArgumentException(
+                    "URL과 요청 본문의 사용자 ID가 다릅니다."
+            );
+        }
+
+        UpdateUserRequest updateRequest =
+                new UpdateUserRequest(
+                        userId,
+                        request.username(),
+                        request.email(),
+                        request.password(),
+                        request.profile()
+                );
 
         return userService.update(updateRequest);
     }
@@ -106,13 +123,10 @@ public class UserController {
             @RequestBody(required = false)
             UpdateOnlineStatusRequest request
     ) {
-        Instant lastSeenAt;
-
-        if (request == null || request.lastSeenAt() == null) {
-            lastSeenAt = Instant.now();
-        } else {
-            lastSeenAt = request.lastSeenAt();
-        }
+        Instant lastSeenAt =
+                request == null || request.lastSeenAt() == null
+                        ? Instant.now()
+                        : request.lastSeenAt();
 
         UpdateUserStatusByUserIdRequest updateRequest =
                 new UpdateUserStatusByUserIdRequest(

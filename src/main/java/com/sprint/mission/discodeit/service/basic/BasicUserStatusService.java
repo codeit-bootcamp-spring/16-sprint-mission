@@ -1,8 +1,17 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.*;
+import com.sprint.mission.discodeit.dto.CreateUserStatusRequest;
+import com.sprint.mission.discodeit.dto.UpdateUserStatusByUserIdRequest;
+import com.sprint.mission.discodeit.dto.UpdateUserStatusRequest;
+import com.sprint.mission.discodeit.dto.UserStatusResponse;
+
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.repository.*;
+
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+
+import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
+
 import com.sprint.mission.discodeit.service.UserStatusService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,18 +29,25 @@ public class BasicUserStatusService implements UserStatusService {
     private final UserRepository userRepository;
 
     @Override
-    public UserStatusResponse create(CreateUserStatusRequest request) {
-        if (request == null
-                || userRepository.findById(request.userId()) == null) {
+    public UserStatusResponse create(
+            CreateUserStatusRequest request
+    ) {
+        if (request == null || request.userId() == null) {
             throw new IllegalArgumentException(
+                    "사용자 ID가 없습니다."
+            );
+        }
+
+        if (userRepository.findById(request.userId()) == null) {
+            throw new ResourceNotFoundException(
                     "사용자를 찾을 수 없습니다."
             );
         }
 
-        if (userStatusRepository.findByUserId(
-                request.userId()) != null) {
-            throw new IllegalArgumentException(
-                    "이미 존재하는 접속 상태입니다."
+        if (userStatusRepository.findByUserId(request.userId())
+                != null) {
+            throw new IllegalStateException(
+                    "이미 존재하는 사용자 접속 상태입니다."
             );
         }
 
@@ -47,7 +63,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatusResponse findById(UUID id) {
-        return toResponse(require(id));
+        return toResponse(requireUserStatus(id));
     }
 
     @Override
@@ -64,11 +80,11 @@ public class BasicUserStatusService implements UserStatusService {
     ) {
         if (request == null || request.lastSeenAt() == null) {
             throw new IllegalArgumentException(
-                    "접속 시간을 입력하세요."
+                    "마지막 접속 시간이 필요합니다."
             );
         }
 
-        UserStatus status = require(request.id());
+        UserStatus status = requireUserStatus(request.id());
 
         status.update(request.lastSeenAt());
 
@@ -79,9 +95,17 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatusResponse updateByUserId(
             UpdateUserStatusByUserIdRequest request
     ) {
-        if (request == null || request.lastSeenAt() == null) {
+        if (request == null
+                || request.userId() == null
+                || request.lastSeenAt() == null) {
             throw new IllegalArgumentException(
-                    "접속 시간을 입력하세요."
+                    "사용자 ID와 접속 시간이 필요합니다."
+            );
+        }
+
+        if (userRepository.findById(request.userId()) == null) {
+            throw new ResourceNotFoundException(
+                    "사용자를 찾을 수 없습니다."
             );
         }
 
@@ -89,8 +113,8 @@ public class BasicUserStatusService implements UserStatusService {
                 userStatusRepository.findByUserId(request.userId());
 
         if (status == null) {
-            throw new IllegalArgumentException(
-                    "접속 상태를 찾을 수 없습니다."
+            throw new ResourceNotFoundException(
+                    "사용자 접속 상태를 찾을 수 없습니다."
             );
         }
 
@@ -101,16 +125,22 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public void delete(UUID id) {
-        require(id);
+        requireUserStatus(id);
         userStatusRepository.delete(id);
     }
 
-    private UserStatus require(UUID id) {
+    private UserStatus requireUserStatus(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "접속 상태 ID가 없습니다."
+            );
+        }
+
         UserStatus status = userStatusRepository.findById(id);
 
         if (status == null) {
-            throw new IllegalArgumentException(
-                    "접속 상태를 찾을 수 없습니다."
+            throw new ResourceNotFoundException(
+                    "사용자 접속 상태를 찾을 수 없습니다."
             );
         }
 

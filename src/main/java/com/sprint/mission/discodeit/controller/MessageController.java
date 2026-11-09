@@ -9,13 +9,18 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
+
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -27,12 +32,17 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<MessageResponse> create(
-            @RequestBody CreateMessageRequest request
+            @RequestPart("request") CreateMessageRequest request,
+            @RequestPart(value = "attachments", required = false)
+            List<MultipartFile> attachments
     ) {
         MessageResponse response =
-                messageService.create(request);
+                messageService.create(request, attachments);
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
@@ -64,10 +74,16 @@ public class MessageController {
             @PathVariable("messageId") UUID messageId,
             @RequestBody UpdateMessageRequest request
     ) {
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "메시지 수정 정보가 없습니다."
+            );
+        }
+
         if (request.id() != null
                 && !messageId.equals(request.id())) {
             throw new IllegalArgumentException(
-                    "URL의 메시지 ID와 요청 본문의 ID가 다릅니다."
+                    "URL과 요청 본문의 메시지 ID가 다릅니다."
             );
         }
 

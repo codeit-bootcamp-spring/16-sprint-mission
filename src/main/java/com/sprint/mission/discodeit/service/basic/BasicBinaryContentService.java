@@ -4,7 +4,11 @@ import com.sprint.mission.discodeit.dto.BinaryContentResponse;
 import com.sprint.mission.discodeit.dto.CreateBinaryContentRequest;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
+
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
 import lombok.RequiredArgsConstructor;
@@ -26,38 +30,43 @@ public class BasicBinaryContentService
     public BinaryContentResponse create(
             CreateBinaryContentRequest request
     ) {
+
         if (request == null
                 || request.fileName() == null
                 || request.fileName().isBlank()
                 || request.contentType() == null
                 || request.contentType().isBlank()
                 || request.bytes() == null) {
+
             throw new IllegalArgumentException(
                     "파일 정보가 올바르지 않습니다."
             );
         }
 
-        BinaryContent content = new BinaryContent(
+        BinaryContent binaryContent = new BinaryContent(
                 request.fileName(),
                 request.contentType(),
                 request.bytes()
         );
 
         BinaryContent savedContent =
-                binaryContentRepository.save(content);
+                binaryContentRepository.save(binaryContent);
 
         return toResponse(savedContent);
     }
 
     @Override
     public BinaryContentResponse findById(UUID id) {
-        return toResponse(requireContent(id));
+        BinaryContent binaryContent = requireContent(id);
+
+        return toResponse(binaryContent);
     }
 
     @Override
     public List<BinaryContentResponse> findAllByIdIn(
             Collection<UUID> ids
     ) {
+
         if (ids == null) {
             throw new IllegalArgumentException(
                     "파일 ID 목록이 없습니다."
@@ -71,10 +80,15 @@ public class BasicBinaryContentService
     }
 
     @Override
-    public byte[] readBytes(UUID id) {
-        BinaryContent content = requireContent(id);
+    public BinaryContent findEntityById(UUID id) {
+        return requireContent(id);
+    }
 
-        return content.getBytes().clone();
+    @Override
+    public byte[] readBytes(UUID id) {
+        BinaryContent binaryContent = requireContent(id);
+
+        return binaryContent.getBytes();
     }
 
     @Override
@@ -85,33 +99,34 @@ public class BasicBinaryContentService
     }
 
     private BinaryContent requireContent(UUID id) {
+
         if (id == null) {
             throw new IllegalArgumentException(
                     "파일 ID가 없습니다."
             );
         }
 
-        BinaryContent content =
+        BinaryContent binaryContent =
                 binaryContentRepository.findById(id);
 
-        if (content == null) {
-            throw new IllegalArgumentException(
-                    "파일을 찾을 수 없습니다."
+        if (binaryContent == null) {
+            throw new ResourceNotFoundException(
+                    "파일을 찾을 수 없습니다. ID: " + id
             );
         }
 
-        return content;
+        return binaryContent;
     }
 
     private BinaryContentResponse toResponse(
-            BinaryContent content
+            BinaryContent binaryContent
     ) {
         return new BinaryContentResponse(
-                content.getId(),
-                content.getFileName(),
-                content.getContentType(),
-                content.getSize(),
-                content.getCreatedAt()
+                binaryContent.getId(),
+                binaryContent.getFileName(),
+                binaryContent.getContentType(),
+                binaryContent.getSize(),
+                binaryContent.getCreatedAt()
         );
     }
 }
