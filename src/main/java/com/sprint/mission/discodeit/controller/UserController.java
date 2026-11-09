@@ -9,7 +9,9 @@ import com.sprint.mission.discodeit.dto.response.UserStatusDto;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -27,9 +29,10 @@ public class UserController {
     private final UserStatusService userStatusService;
 
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UserDto create(@RequestPart("userCreateRequest") UserCreateRequest request,
-                          @RequestPart(value = "profile", required = false) MultipartFile profile) {
-        return userService.create(request, toBinaryContentRequest(profile));
+    public ResponseEntity<UserDto> create(@RequestPart("userCreateRequest") UserCreateRequest request,
+                                          @RequestPart(value = "profile", required = false) MultipartFile profile) {
+        UserDto user = userService.create(request, toBinaryContentRequest(profile));
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     private Optional<BinaryContentCreateRequest> toBinaryContentRequest(MultipartFile file) {
@@ -48,25 +51,26 @@ public class UserController {
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UserDto update(@PathVariable UUID userId,
+    public ResponseEntity<UserDto> update(@PathVariable UUID userId,
                           @RequestPart("userUpdateRequest")UserUpdateRequest request,
                           @RequestPart(value = "profile", required = false) MultipartFile profile) {
-        return userService.update(userId, request, toBinaryContentRequest(profile));
+        return ResponseEntity.ok(userService.update(userId, request, toBinaryContentRequest(profile)));
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
-    public void delete(@PathVariable UUID userId) {
+    public ResponseEntity<Void> delete(@PathVariable UUID userId) {
         userService.delete(userId);
+        return ResponseEntity.noContent().build();
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public List<UserDto> findAll() {
-        return userService.findAll();
+    public ResponseEntity<List<UserDto>> findAll() {
+        return ResponseEntity.ok(userService.findAll());
     }
 
     @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
-    public UserStatusDto updateOnline(@PathVariable UUID userId,
+    public ResponseEntity<UserStatusDto> updateOnline(@PathVariable UUID userId,
                                       @RequestBody UserStatusUpdateRequest request) {
-        return userStatusService.updateByUserId(userId, request);
+        return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
     }
 }
