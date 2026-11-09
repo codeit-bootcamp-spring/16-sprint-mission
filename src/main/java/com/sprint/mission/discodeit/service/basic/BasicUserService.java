@@ -7,6 +7,9 @@ import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.DuplicateEmailException;
+import com.sprint.mission.discodeit.exception.DuplicateUsernameException;
+import com.sprint.mission.discodeit.exception.UserNotFoundException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -30,8 +33,8 @@ public class BasicUserService implements UserService {
 
     @Override
     public UserDto create(UserCreateRequest request, Optional<BinaryContentCreateRequest> profileRequest) {
-        if (userRepository.existsByEmail(request.email())) throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
-        if (userRepository.existsByUsername(request.username())) throw new IllegalArgumentException("이미 존재하는 이름입니다.");
+        if (userRepository.existsByEmail(request.email())) throw new DuplicateEmailException("이미 존재하는 이메일입니다.");
+        if (userRepository.existsByUsername(request.username())) throw new DuplicateUsernameException("이미 존재하는 이름입니다.");
 
         User user = new User(request.username(), request.email(), request.password(), null);
 
@@ -79,12 +82,12 @@ public class BasicUserService implements UserService {
 
         if (!username.equals(user.getUsername())
                 && userRepository.existsByUsername(username)) {
-            throw new IllegalArgumentException("이미 존재하는 이름입니다.");
+            throw new DuplicateUsernameException("이미 존재하는 이름입니다.");
         }
 
         if (!email.equals(user.getEmail())
                 && userRepository.existsByEmail(email)) {
-            throw new IllegalArgumentException("이미 존재하는 이메일입니다.");
+            throw new DuplicateEmailException("이미 존재하는 이메일입니다.");
         }
 
         user.update(username, email, password);
@@ -118,6 +121,6 @@ public class BasicUserService implements UserService {
 
     private User getUserOrThrow(UUID id) {
         return userRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
     }
 }

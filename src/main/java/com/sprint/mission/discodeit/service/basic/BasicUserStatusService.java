@@ -4,6 +4,9 @@ import com.sprint.mission.discodeit.dto.request.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.UserStatusDto;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.DuplicateUserStatusException;
+import com.sprint.mission.discodeit.exception.UserNotFoundException;
+import com.sprint.mission.discodeit.exception.UserStatusNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserStatusMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -25,9 +28,9 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusDto create(UserStatusCreateRequest request) {
         if (!userRepository.existsById(request.userId()))
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+            throw new UserNotFoundException("존재하지 않는 사용자입니다.");
         if (userStatusRepository.findByUserId(request.userId()).isPresent())
-            throw new IllegalArgumentException("이미 해당 사용자의 접속 상태가 존재합니다.");
+            throw new DuplicateUserStatusException("이미 존재하는 접속 상태입니다.");
 
         Instant lastActiveAt = request.lastActiveAt() != null ? request.lastActiveAt() : Instant.now();
         UserStatus userStatus = userStatusRepository.save(
@@ -57,7 +60,7 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusDto updateByUserId(UUID userId, UserStatusUpdateRequest request) {
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자의 접속 상태가 존재하지 않습니다."));
+                .orElseThrow(() -> new UserStatusNotFoundException("존재하지 않는 접속 상태입니다."));
 
         return applyUpdate(request, userStatus);
     }
@@ -70,7 +73,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     private UserStatus getUserStatusOrThrow(UUID id) {
         return userStatusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 접속 상태입니다."));
+                .orElseThrow(() -> new UserStatusNotFoundException("존재하지 않는 접속 상태입니다."));
     }
 
     private UserStatusDto applyUpdate(UserStatusUpdateRequest request, UserStatus userStatus) {

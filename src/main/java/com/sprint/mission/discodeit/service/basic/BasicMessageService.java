@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.*;
 import com.sprint.mission.discodeit.mapper.MessageMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -33,11 +34,11 @@ public class BasicMessageService implements MessageService {
     @Override
     public MessageDto create(MessageCreateRequest request, List<BinaryContentCreateRequest> attachmentRequests) {
         Channel channel = channelRepository.findById(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
+                .orElseThrow(() -> new ChannelNotFoundException("존재하지 않는 채널입니다."));
         User author = userRepository.findById(request.authorId())
-                .orElseThrow(() -> new IllegalArgumentException("해당 사용자가 존재하지 않습니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
         if (!channel.hasUser(request.authorId())) {
-            throw new IllegalArgumentException("채널 멤버만 메시지를 작성할 수 있습니다.");
+            throw new ChannelMemberRequiredException("채널 멤버만 메시지를 작성할 수 있습니다.");
         }
 
         List<UUID> attachmentIds = attachmentRequests.stream()
@@ -84,7 +85,7 @@ public class BasicMessageService implements MessageService {
     public MessageDto update(UUID id, MessageUpdateRequest request) {
         Message message = getMessageOrThrow(id);
 
-        requireSender(message, request.requesterId(), "메시지 수정 권한이 없습니다.");
+        requireAuthor(message, request.requesterId(), "메시지 수정 권한이 없습니다.");
         message.update(request.newContent());
         messageRepository.save(message);
 
@@ -94,7 +95,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public void delete(UUID id, UUID requesterId) {
         Message message = getMessageOrThrow(id);
-        requireSender(message, requesterId, "메시지 삭제 권한이 없습니다.");
+        requireAuthor(message, requesterId, "메시지 삭제 권한이 없습니다.");
 
         message.getAttachmentIds().forEach(binaryContentRepository::deleteById);
 
@@ -113,12 +114,12 @@ public class BasicMessageService implements MessageService {
 
     private Message getMessageOrThrow(UUID id) {
         return messageRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 메시지입니다."));
+                .orElseThrow(() -> new MessageNotFoundException("존재하지 않는 메시지입니다."));
     }
 
-    private void requireSender(Message message, UUID requesterId, String errorMessage) {
+    private void requireAuthor(Message message, UUID requesterId, String errorMessage) {
         if (!message.getAuthorId().equals(requesterId)) {
-            throw new IllegalArgumentException(errorMessage);
+            throw new MessageAuthorRequiredException(errorMessage);
         }
     }
 }

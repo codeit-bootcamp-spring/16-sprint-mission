@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.*;
 import com.sprint.mission.discodeit.mapper.ChannelMapper;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
@@ -33,7 +34,7 @@ public class BasicChannelService implements ChannelService {
 
         List<User> members = memberIds.stream()
                 .map(id -> userRepository.findById(id)
-                        .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + id)))
+                        .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.")))
                 .toList();
 
         Channel channel = new Channel(request.ownerId(), ChannelType.PRIVATE, null, null);
@@ -54,7 +55,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     public ChannelDto createPublic(PublicChannelCreateRequest request) {
         User owner = userRepository.findById(request.ownerId())
-                .orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다: " + request.ownerId()));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
         Channel channel = new Channel(request.ownerId(), ChannelType.PUBLIC, request.name(), request.description());
         owner.addChannel(channel.getId());
@@ -73,7 +74,7 @@ public class BasicChannelService implements ChannelService {
 
     private Channel getChannelOrThrow(UUID id) {
         return channelRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 채널입니다."));
+                .orElseThrow(() -> new ChannelNotFoundException("존재하지 않는 채널입니다."));
     }
 
     @Override
@@ -96,7 +97,7 @@ public class BasicChannelService implements ChannelService {
     @Override
     public ChannelDto update(UUID id, ChannelUpdateRequest request) {
         Channel channel = getChannelOrThrow(id);
-        if (channel.getType() == ChannelType.PRIVATE) throw new IllegalStateException("Private Channel은 수정할 수 없습니다.");
+        if (channel.getType() == ChannelType.PRIVATE) throw new PrivateChannelUpdateNotAllowedException("PRIVATE 채널은 수정할 수 없습니다.");
 
         requireOwner(channel, request.requesterId(), "채널 수정 권한이 없습니다.");
         channel.update(request.name(), request.description());
@@ -143,10 +144,10 @@ public class BasicChannelService implements ChannelService {
     public void join(UUID id, UUID userId) {
         Channel channel = getChannelOrThrow(id);
         if (channel.getType() == ChannelType.PRIVATE)
-            throw new IllegalStateException("PRIVATE 채널에는 참여할 수 없습니다.");
+            throw new PrivateChannelJoinNotAllowedException("PRIVATE 채널에는 참여할 수 없습니다.");
 
         User user = userRepository.findById(userId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 사용자입니다."));
+                .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
 
         channel.addUser(userId);
         user.addChannel(id);
@@ -158,7 +159,7 @@ public class BasicChannelService implements ChannelService {
     public void leave(UUID id, UUID userId) {
         Channel channel = getChannelOrThrow(id);
         if (channel.getOwnerId().equals(userId))
-            throw new IllegalStateException("소유자는 채널을 나갈 수 없습니다. 먼저 소유권을 양도하세요.");
+            throw new ChannelOwnerLeaveNotAllowedException("소유자는 채널을 나갈 수 없습니다. 먼저 소유권을 양도하세요.");
 
         channel.removeUser(userId);
         channelRepository.save(channel);
@@ -173,10 +174,10 @@ public class BasicChannelService implements ChannelService {
     @Override
     public void transferOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId) {
         Channel channel = getChannelOrThrow(id);
-        requireOwner(channel, currentOwnerId, "소유자만 양도 가능합니다.");
+        requireOwner(channel, currentOwnerId, "채널 양도 권한이 없습니다.");
 
         if (!channel.hasUser(newOwnerId))
-            throw new IllegalArgumentException("채널 멤버에게만 소유권을 양도할 수 있습니다.");
+            throw new ChannelOwnershipTransferNotAllowedException("채널 멤버에게만 소유권을 양도할 수 있습니다.");
 
         channel.transferOwnership(newOwnerId);
         channelRepository.save(channel);
@@ -184,7 +185,7 @@ public class BasicChannelService implements ChannelService {
 
     private void requireOwner(Channel channel, UUID requesterId, String message) {
         if (!channel.isOwner(requesterId)) {
-            throw new IllegalArgumentException(message);
+            throw new ChannelOwnerRequiredException(message);
         }
     }
 }

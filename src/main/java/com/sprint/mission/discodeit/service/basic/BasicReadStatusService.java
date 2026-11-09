@@ -4,6 +4,10 @@ import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.ReadStatusDto;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.exception.ChannelNotFoundException;
+import com.sprint.mission.discodeit.exception.DuplicateReadStatusException;
+import com.sprint.mission.discodeit.exception.ReadStatusNotFoundException;
+import com.sprint.mission.discodeit.exception.UserNotFoundException;
 import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -27,11 +31,11 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public ReadStatusDto create(ReadStatusCreateRequest request) {
         if (!userRepository.existsById(request.userId()))
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+            throw new UserNotFoundException("존재하지 않는 사용자입니다.");
         if (!channelRepository.existsById(request.channelId()))
-            throw new IllegalArgumentException("존재하지 않는 채널입니다.");
+            throw new ChannelNotFoundException("존재하지 않는 채널입니다.");
         if (readStatusRepository.findByUserIdAndChannelId(request.userId(), request.channelId()).isPresent())
-            throw new IllegalArgumentException("이미 해당 사용자와 채널의 읽음 상태가 존재합니다.");
+            throw new DuplicateReadStatusException("이미 존재하는 읽음 상태입니다.");
 
         Instant lastReadAt = request.lastReadAt() != null ? request.lastReadAt() : Instant.now();
         ReadStatus readStatus = readStatusRepository.save(new ReadStatus(request.userId(), request.channelId(), lastReadAt));
@@ -71,6 +75,6 @@ public class BasicReadStatusService implements ReadStatusService {
 
     private ReadStatus getReadStatusOrThrow(UUID id) {
         return readStatusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 읽음 상태입니다."));
+                .orElseThrow(() -> new ReadStatusNotFoundException("존재하지 않는 읽음 상태입니다."));
     }
 }
