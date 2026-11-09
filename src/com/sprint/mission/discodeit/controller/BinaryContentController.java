@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDownloadDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
 import lombok.RequiredArgsConstructor;
@@ -20,11 +21,30 @@ import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
 @RestController
-@RequestMapping("/api/binary-contents")
+@RequestMapping("/api/binaryContent")
 @RequiredArgsConstructor
 public class BinaryContentController {
 
     private final BinaryContentService binaryContentService;
+
+    // 과제 요구사항: 첨부파일 원본 조회
+    @RequestMapping(
+            value = "/find",
+            method = RequestMethod.GET
+    )
+    public ResponseEntity<BinaryContent> find(
+            @RequestParam UUID binaryContentId
+    ) {
+        BinaryContent binaryContent = binaryContentService
+                .findEntityById(binaryContentId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException(
+                                "첨부파일 정보를 찾을 수 없습니다."
+                        )
+                );
+
+        return ResponseEntity.ok(binaryContent);
+    }
 
     // 파일 하나 다운로드
     @RequestMapping(
@@ -77,7 +97,6 @@ public class BinaryContentController {
                      new ZipOutputStream(outputStream)) {
 
             for (BinaryContentDownloadDto file : files) {
-
                 ZipEntry entry = new ZipEntry(file.fileName());
 
                 zipOutputStream.putNextEntry(entry);
