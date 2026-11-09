@@ -16,7 +16,9 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @Service
@@ -27,20 +29,24 @@ public class BasicUserService implements UserService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public User create(UserCreateRequest request) {
+    public User create(UserCreateRequest request, MultipartFile profile) {
 
         this.validateUniqueUsername(request.username());
         this.validateUniqueEmail(request.email());
 
         UUID newProfileId = null;
 
-        if (request.profile() != null) {
-            BinaryContentCreateRequest profile = request.profile();
-            newProfileId = binaryContentRepository.save(
-                    new BinaryContent(
-                            profile.fileName(), profile.contentType(), profile.bytes()
-                    )
-            ).getId();
+        if (profile != null) {
+            // BinaryContentCreateRequest profile = request.profile();
+            try {
+                newProfileId = binaryContentRepository.save(
+                        new BinaryContent(
+                                profile.getOriginalFilename(), profile.getContentType(), profile.getBytes()
+                        )
+                ).getId();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         User user = new User(request.username(), request.email(), request.password(), newProfileId);
@@ -103,7 +109,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public User update(UUID userId, UserUpdateRequest request) {
+    public User update(UUID userId, UserUpdateRequest request, MultipartFile profile) {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
@@ -118,13 +124,16 @@ public class BasicUserService implements UserService {
         UUID oldProfileId = user.getProfileId();
         UUID newProfileId = null;
 
-        if (request.profile() != null) {
-            BinaryContentCreateRequest profile = request.profile();
-            newProfileId = binaryContentRepository.save(
-                    new BinaryContent(
-                            profile.fileName(), profile.contentType(), profile.bytes()
-                    )
-            ).getId();
+        if (profile != null) {
+            try {
+                newProfileId = binaryContentRepository.save(
+                        new BinaryContent(
+                                profile.getOriginalFilename(), profile.getContentType(), profile.getBytes()
+                        )
+                ).getId();
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         user.update(request.newUsername(), request.newEmail(), request.newPassword(), newProfileId);

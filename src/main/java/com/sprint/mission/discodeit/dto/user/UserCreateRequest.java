@@ -20,8 +20,6 @@ public record UserCreateRequest(
 
         @NotBlank
         @Password
-        String password,
-
-        @Nullable BinaryContentCreateRequest profile
+        String password
 ) {
 }

@@ -15,8 +15,10 @@ import com.sprint.mission.discodeit.service.UserStatusService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -30,18 +32,25 @@ public class UserController {
     private final UserMapper userMapper;
     private final UserStatusMapper userStatusMapper;
 
-    @PostMapping
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestBody UserCreateRequest request) {
-        User user = this.userService.create(request);
-        UserStatus userStatus = this.userService.findUserStatus(user.getId());
-        UserResponse userResponse = this.userMapper.toResponse(user, userStatus);
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserResponse> createUser(
+            @Valid @RequestPart("request") UserCreateRequest request,
+            @RequestPart(value = "profile", required = false)
+            MultipartFile profile
+    ) {
+        User user = userService.create(request, profile);
+        UserStatus userStatus = userService.findUserStatus(user.getId());
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(userResponse);
-    };
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(userMapper.toResponse(user, userStatus));
+    }
 
     @PatchMapping("/{user-id}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable("user-id") UUID userId, @Valid @RequestBody UserUpdateRequest request) {
-        User user = this.userService.update(userId, request);
+    public ResponseEntity<UserResponse> updateUser(@PathVariable("user-id") UUID userId,
+                                                   @Valid @RequestPart("request") UserUpdateRequest request,
+                                                   @RequestPart(value = "profile", required = false)
+                                                   MultipartFile profile) {
+        User user = this.userService.update(userId, request, profile);
         UserStatus userStatus = this.userService.findUserStatus(user.getId());
         UserResponse userResponse = this.userMapper.toResponse(user, userStatus);
 

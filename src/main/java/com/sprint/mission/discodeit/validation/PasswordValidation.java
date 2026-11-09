@@ -6,9 +6,7 @@ import jakarta.validation.ConstraintValidatorContext;
 public class PasswordValidation implements ConstraintValidator<Password, String> {
     @Override
     public boolean isValid(String password, ConstraintValidatorContext context) {
-        if (password == null) {
-            return false;
-        }
+        if (password == null ) return true;
 
         boolean hasLetter = password.matches(".*[A-Za-z].*");
         boolean hasDigit = password.matches(".*[0-9].*");

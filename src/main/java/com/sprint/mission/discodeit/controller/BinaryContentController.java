@@ -45,7 +45,7 @@ public class BinaryContentController {
         return ResponseEntity.ok(new BinaryContentListResponse(binaryContentListResponse));
     }
 
-    @GetMapping("/{binary-content-id}")
+    @GetMapping("/{binary-content-id}/download")
     public ResponseEntity<byte[]> downloadBinaryContent(
             @PathVariable("binary-content-id") UUID binaryContentId) {
 
