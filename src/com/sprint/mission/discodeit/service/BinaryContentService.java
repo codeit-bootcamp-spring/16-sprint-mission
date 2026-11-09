@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service;
 import com.sprint.mission.discodeit.dto.request.binarycontent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDownloadDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,6 +14,9 @@ public interface BinaryContentService {
     BinaryContentDto create(BinaryContentCreateRequest request);
 
     Optional<BinaryContentDto> findById(UUID id);
+
+    // 원본 BinaryContent 엔티티 조회
+    Optional<BinaryContent> findEntityById(UUID id);
 
     List<BinaryContentDto> findAllByIdIn(List<UUID> ids);
 

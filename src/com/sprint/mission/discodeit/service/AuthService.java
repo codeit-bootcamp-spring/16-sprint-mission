@@ -52,6 +52,8 @@ public class AuthService {
         // 4. 비밀번호를 제외한 사용자 정보 반환
         return new UserDto(
                 user.getId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
                 user.getUsername(),
                 user.getEmail(),
                 user.getProfileImageId(),

@@ -53,13 +53,21 @@ public class BasicBinaryContentService implements BinaryContentService {
         return toDto(savedContent);
     }
 
-    // ID로 첨부파일 조회
+    // ID로 첨부파일 조회 (일반 DTO)
     @Override
     public Optional<BinaryContentDto> findById(UUID id) {
         Objects.requireNonNull(id, "첨부파일 ID는 필수입니다.");
 
         return binaryContentRepository.findById(id)
                 .map(this::toDto);
+    }
+
+    // 원본 BinaryContent 엔티티 조회
+    @Override
+    public Optional<BinaryContent> findEntityById(UUID id) {
+        Objects.requireNonNull(id, "첨부파일 ID는 필수입니다.");
+
+        return binaryContentRepository.findById(id);
     }
 
     // 여러 ID로 첨부파일 조회
