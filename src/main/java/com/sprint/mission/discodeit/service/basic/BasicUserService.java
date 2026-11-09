@@ -95,7 +95,7 @@ public class BasicUserService implements UserService {
 
         user.update(newName, newEmail, newPassword);
 
-        if (!profileImage.isEmpty()) {
+        if (profileImage != null && !profileImage.isEmpty()) {
             UUID oldProfileId = user.getProfileId();
             String fileName = profileImage.getOriginalFilename();
             byte[] content = null;
