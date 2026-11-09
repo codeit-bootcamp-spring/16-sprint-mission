@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDownloadDto;
-import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,11 +31,11 @@ public class BinaryContentController {
             value = "/find",
             method = RequestMethod.GET
     )
-    public ResponseEntity<BinaryContent> find(
+    public ResponseEntity<BinaryContentDownloadDto> find(
             @RequestParam UUID binaryContentId
     ) {
-        BinaryContent binaryContent = binaryContentService
-                .findEntityById(binaryContentId)
+        BinaryContentDownloadDto binaryContent = binaryContentService
+                .downloadById(binaryContentId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "첨부파일 정보를 찾을 수 없습니다."
