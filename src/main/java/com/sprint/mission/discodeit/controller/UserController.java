@@ -7,6 +7,9 @@ import com.sprint.mission.discodeit.dto.response.UserResponse;
 import com.sprint.mission.discodeit.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
@@ -16,18 +19,17 @@ import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @RequestMapping("/v1/users")
 public class UserController {
     private final UserService userService;
 
-    @PostMapping
-    public String postUser(@RequestParam("username") String username,
-                           @RequestParam("email") String email,
-                           @RequestParam("password") String password,
-                           @RequestParam(required = false) MultipartFile profile,
-                           Model model) throws IOException {
+    @PostMapping("/create")
+    public ResponseEntity<UserResponse> postUser(@RequestParam("username") String username,
+                                   @RequestParam("email") String email,
+                                   @RequestParam("password") String password,
+                                   @RequestParam(required = false) MultipartFile profile) throws IOException {
 
         BinaryContentRequest contentRequest = null;
         if (profile != null) {
@@ -37,33 +39,25 @@ public class UserController {
         CreateUserRequest request = new CreateUserRequest(username, email, password, contentRequest);
 
         UserResponse response = userService.create(request);
-        model.addAttribute("username", response.username());
-        model.addAttribute("email", response.email());
-        return "signUpResult";
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @GetMapping
-    public String getUsers(Model model) {
-        List<UserResponse> all = userService.findAll();
-        model.addAttribute("userList", all);
-        return "userList";
+    public ResponseEntity<List<UserResponse>> getUsers() {
+        List<UserResponse> response = userService.findAll();
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @PostMapping("/update")
-    public String postUpdateUser(@ModelAttribute UpdateUserRequest request,
+    public ResponseEntity<UserResponse> postUpdateUser(@ModelAttribute UpdateUserRequest request,
                                  HttpSession session) {
-        userService.update((UUID) session.getAttribute("userId"), request);
-        return "updateResult";
-    }
-
-    @GetMapping("/update")
-    public String showUpdateForm() {
-        return "updateForm";
+        UserResponse response = userService.update((UUID) session.getAttribute("userId"), request);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @DeleteMapping("/delete")
-    public String deleteUser(HttpSession session) {
+    public ResponseEntity deleteUser(HttpSession session) {
         userService.delete((UUID) session.getAttribute("userId"));
-        return "delete";
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

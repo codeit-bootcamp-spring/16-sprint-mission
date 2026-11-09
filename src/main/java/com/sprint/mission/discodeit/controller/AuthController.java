@@ -5,22 +5,24 @@ import com.sprint.mission.discodeit.dto.response.UserResponse;
 import com.sprint.mission.discodeit.service.AuthService;
 import jakarta.servlet.http.HttpSession;
 import lombok.AllArgsConstructor;
+import org.apache.coyote.Response;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @RequestMapping("/v1/users")
 public class AuthController {
     private final AuthService authService;
 
     @PostMapping("/login")
-    public String login(@ModelAttribute LoginRequest request,
-                        HttpSession session) {
+    public ResponseEntity<UserResponse> login(@ModelAttribute LoginRequest request) {
         UserResponse response = authService.login(request);
-        session.setAttribute("userId", response.userId());
-        return "login";
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }

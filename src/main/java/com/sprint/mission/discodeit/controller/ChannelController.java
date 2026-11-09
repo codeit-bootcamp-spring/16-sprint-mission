@@ -7,40 +7,30 @@ import com.sprint.mission.discodeit.dto.response.ChannelResponse;
 import com.sprint.mission.discodeit.dto.response.CreatePrivateChannelResponse;
 import com.sprint.mission.discodeit.dto.response.FindChannelResponse;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.UserService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
-@Controller
+@RestController
 @AllArgsConstructor
 @RequestMapping("v1/channels")
 public class ChannelController {
     private final ChannelService channelService;
-    private final UserService userService;
-
-    @GetMapping("/new")
-    public String showCreateForm(Model model) {
-        model.addAttribute("userList", userService.findAll());
-        return "createChannel";
-    }
 
     @PostMapping("/public")
-    public String createPublicChannel(@ModelAttribute CreatePublicChannelRequest request) {
+    public ResponseEntity<ChannelResponse> createPublicChannel(@RequestBody CreatePublicChannelRequest request) {
         ChannelResponse response = channelService.createPublicChannel(request);
-        return "redirect:/v1/channels/" + response.id();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PostMapping("/private")
-    public String createPrivateChannel(@ModelAttribute CreatePrivateChannelRequest request) {
+    public ResponseEntity<CreatePrivateChannelResponse> createPrivateChannel(@RequestBody CreatePrivateChannelRequest request) {
         CreatePrivateChannelResponse response = channelService.createPrivateChannel(request);
-        return "redirect:/v1/channels/" + response.id();
+        return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
 
     @PatchMapping("/update")
@@ -52,21 +42,20 @@ public class ChannelController {
 
     @DeleteMapping("/delete/{channel-id}")
     @ResponseBody
-    public void deleteChannel(@PathVariable("channel-id") UUID channelId) {
+    public ResponseEntity deleteChannel(@PathVariable("channel-id") UUID channelId) {
         channelService.delete(channelId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @GetMapping("/user/{user-id}")
-    public String getChannels(@PathVariable("user-id") UUID userId,
-                              Model model) {
+    public ResponseEntity<List<FindChannelResponse>> getChannels(@PathVariable("user-id") UUID userId) {
         List<FindChannelResponse> response = channelService.findAllByUserId(userId);
-        model.addAttribute("list", response);
-        return "userChannelList";
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 
     @GetMapping("/{channelId}")
-    public String getChannel(@PathVariable UUID channelId, Model model) {
-        model.addAttribute("channel", channelService.find(channelId));
-        return "showChannel";
+    public ResponseEntity<FindChannelResponse> getChannel(@PathVariable UUID channelId) {
+        FindChannelResponse response = channelService.find(channelId);
+        return ResponseEntity.status(HttpStatus.OK).body(response);
     }
 }
