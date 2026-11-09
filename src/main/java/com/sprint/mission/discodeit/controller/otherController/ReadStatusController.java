@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/read-statuses")
+@RequestMapping("/api/read-status")
 @RequiredArgsConstructor
 public class ReadStatusController {
 
@@ -24,10 +24,10 @@ public class ReadStatusController {
     }
 
     // 특정 채널의 메시지 수신 정보 수정(PUT)
-    @RequestMapping(value = "/{userId}", method = RequestMethod.PUT)
-    public ReadStatus putReadStatus(@PathVariable UUID userId,
+    @RequestMapping(value = "/{readStatusId}", method = RequestMethod.PUT)
+    public ReadStatus putReadStatus(@PathVariable UUID readStatusId,
                                     @RequestBody ReadStatusUpdateRequest request) {
-        return readStatusService.update(request);
+        return readStatusService.update(readStatusId, request);
     }
 
     // 특정 사용자의 메시지 수신 정보 조회(GET)

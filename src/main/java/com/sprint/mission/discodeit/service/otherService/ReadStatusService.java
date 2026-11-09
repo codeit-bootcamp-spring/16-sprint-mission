@@ -18,7 +18,7 @@ public interface ReadStatusService {
     List<ReadStatus> findAllByUserId(UUID userId);
 
     // 읽음 상태 수정
-    ReadStatus update(ReadStatusUpdateRequest request);
+    ReadStatus update(UUID readStatusId, ReadStatusUpdateRequest request);
 
     // ID로 읽음 상태 삭제
     void delete(UUID id);
