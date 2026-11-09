@@ -1,4 +1,5 @@
 const API_BASE_URL = '/api';
+const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 const ENDPOINTS = {
     USERS: `${API_BASE_URL}/user/findAll`,
     BINARY_CONTENT: `${API_BASE_URL}/binaryContent/find`
@@ -47,14 +48,18 @@ async function renderUserList(users) {
         userElement.appendChild(fallback);
 
         const profileUrl = user.profileId ? await fetchUserProfile(user.profileId) : null;
-        if (profileUrl) {
-            const image = document.createElement('img');
-            image.className = 'user-avatar';
-            image.alt = '';
-            image.addEventListener('error', () => image.replaceWith(fallback), { once: true });
-            fallback.replaceWith(image);
-            image.src = profileUrl;
-        }
+        const image = document.createElement('img');
+        image.className = 'user-avatar';
+        image.alt = '';
+        image.addEventListener('error', () => {
+            if (image.getAttribute('src') === DEFAULT_AVATAR_URL) {
+                image.replaceWith(fallback);
+            } else {
+                image.src = DEFAULT_AVATAR_URL;
+            }
+        });
+        fallback.replaceWith(image);
+        image.src = profileUrl || DEFAULT_AVATAR_URL;
 
         const info = document.createElement('div');
         info.className = 'user-info';
