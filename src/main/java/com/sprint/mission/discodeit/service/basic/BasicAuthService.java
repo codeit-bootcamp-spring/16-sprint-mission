@@ -3,7 +3,9 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.auth.AuthLoginRequestDto;
 import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import org.springframework.stereotype.Service;
 public class BasicAuthService implements AuthService {
 
     private final UserRepository userRepository;
+    private final UserStatusRepository userStatusRepository;
 
     @Override
     public UserDto login(AuthLoginRequestDto dto) {
@@ -24,6 +27,13 @@ public class BasicAuthService implements AuthService {
                         new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.")
                 );
 
+        UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
+                .orElseThrow(() ->
+                        new IllegalArgumentException("사용자 상태를 찾을 수 없습니다."));
+
+        userStatus.updateLastActiveAt();
+        userStatusRepository.save(userStatus);
+
         return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
@@ -31,6 +41,7 @@ public class BasicAuthService implements AuthService {
                 .profileId(user.getProfileId())
                 .createdAt(user.getCreatedAt())
                 .updatedAt(user.getUpdatedAt())
+                .online(userStatus.isOnline())
                 .build();
     }
 }
