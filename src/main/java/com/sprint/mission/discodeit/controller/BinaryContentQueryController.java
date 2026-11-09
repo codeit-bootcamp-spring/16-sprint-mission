@@ -17,15 +17,12 @@ public class BinaryContentQueryController {
 
     private final BinaryContentService binaryContentService;
 
-    // 쿼리 파라미터로 파일 ID를 받아 바이너리 콘텐츠를 조회합니다.
     @RequestMapping(value = "/api/binaryContent/find", method = RequestMethod.GET)
     public ResponseEntity<BinaryContent> find(
             @RequestParam("binaryContentId") UUID binaryContentId
     ) {
-        // 기존 서비스에서 ID에 해당하는 파일 정보를 가져옵니다.
         BinaryContent content = binaryContentService.findById(binaryContentId);
 
-        // 200 OK와 함께 파일 정보를 JSON으로 반환합니다.
         return ResponseEntity.ok(content);
     }
 }

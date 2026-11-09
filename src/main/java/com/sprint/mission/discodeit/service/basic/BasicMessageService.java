@@ -17,7 +17,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/** 메시지 규칙과 참조 검증을 처리하며 필요한 저장소 인터페이스에 저장을 위임합니다. */
 @Service
 @RequiredArgsConstructor
 public class BasicMessageService implements MessageService {

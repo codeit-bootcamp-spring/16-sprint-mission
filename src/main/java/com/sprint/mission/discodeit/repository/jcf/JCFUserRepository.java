@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/** UserRepository를 JCF의 Map으로 구현합니다. 저장 데이터는 실행 중 메모리에만 있습니다. */
 @Repository
 @ConditionalOnProperty(
         prefix = "discodeit.repository",
@@ -25,7 +24,6 @@ public class JCFUserRepository implements UserRepository {
 
     @Override
     public void save(User user) {
-        // 중복 ID를 거부할지 여부는 호출하는 서비스가 결정합니다.
         data.put(user.getId(), user);
     }
 

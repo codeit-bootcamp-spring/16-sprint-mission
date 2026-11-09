@@ -13,7 +13,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/** ChannelRepository를 Java Collection Framework의 Map으로 구현합니다. */
 @Repository
 @ConditionalOnProperty(
         prefix = "discodeit.repository",

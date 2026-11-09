@@ -18,10 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/**
- * ReadStatus를 파일로 저장하고 조회하는 Repository 구현체입니다.
- * @Repository가 있어서 Spring이 Bean으로 찾아 BasicChannelService에 주입할 수 있습니다.
- */
 @Repository
 @ConditionalOnProperty(
         prefix = "discodeit.repository",
@@ -43,7 +39,6 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         this.directory = directory;
 
         try {
-            // 저장 폴더가 아직 없으면 미리 만듭니다.
             Files.createDirectories(directory);
         } catch (IOException e) {
             throw new IllegalStateException(
@@ -54,7 +49,6 @@ public class FileReadStatusRepository implements ReadStatusRepository {
 
     @Override
     public void save(ReadStatus readStatus) {
-        // 객체의 ID를 파일명으로 사용해 저장합니다.
         write(fileFor(readStatus.getId()), readStatus);
     }
 
@@ -96,7 +90,6 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             UUID userId,
             UUID channelId
     ) {
-        // 사용자가 해당 채널에 참여했는지 찾을 때 이 두 ID를 함께 비교합니다.
         return findAll().stream()
                 .filter(readStatus ->
                         readStatus.getUserId().equals(userId)
@@ -108,7 +101,6 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     @Override
     public boolean deleteById(UUID id) {
         try {
-            // 파일이 실제로 삭제됐는지 결과를 돌려줍니다.
             return Files.deleteIfExists(fileFor(id));
         } catch (IOException e) {
             throw new IllegalStateException(

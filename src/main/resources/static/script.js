@@ -1,16 +1,13 @@
-// API endpoints
 const API_BASE_URL = '/api';
 const ENDPOINTS = {
     USERS: `${API_BASE_URL}/user/findAll`,
     BINARY_CONTENT: `${API_BASE_URL}/binaryContent/find`
 };
 
-// Initialize the application
 document.addEventListener('DOMContentLoaded', () => {
     fetchAndRenderUsers();
 });
 
-// Fetch users from the API
 async function fetchAndRenderUsers() {
     try {
         const response = await fetch(ENDPOINTS.USERS);
@@ -22,14 +19,12 @@ async function fetchAndRenderUsers() {
     }
 }
 
-// Fetch user profile image
 async function fetchUserProfile(profileId) {
     try {
         const response = await fetch(`${ENDPOINTS.BINARY_CONTENT}?binaryContentId=${profileId}`);
         if (!response.ok) throw new Error('Failed to fetch profile');
         const profile = await response.json();
 
-        // Convert base64 encoded bytes to data URL
         return `data:${profile.contentType};base64,${profile.data}`;
     } catch (error) {
         console.error('Error fetching profile:', error);
@@ -37,10 +32,9 @@ async function fetchUserProfile(profileId) {
     }
 }
 
-// Render user list
 async function renderUserList(users) {
     const userListElement = document.getElementById('userList');
-    userListElement.innerHTML = ''; // Clear existing content
+    userListElement.innerHTML = '';
 
     for (const user of users) {
         const userElement = document.createElement('div');

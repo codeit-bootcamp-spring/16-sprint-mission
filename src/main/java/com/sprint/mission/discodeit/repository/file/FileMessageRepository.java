@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** MessageRepository를 객체 직렬화를 이용한 개별 파일로 구현합니다. */
 @Repository
 @ConditionalOnProperty(
         prefix = "discodeit.repository",
@@ -98,7 +97,6 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     private Path fileFor(UUID id) {
-        // 이 규칙을 메서드 하나에 두어 저장·조회·삭제가 같은 경로를 사용합니다.
         return directory.resolve(id + ".ser");
     }
 

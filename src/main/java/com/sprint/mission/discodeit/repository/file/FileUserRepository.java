@@ -18,7 +18,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** UserRepository를 객체 직렬화를 이용한 파일 저장 방식으로 구현합니다. */
 @Repository
 @ConditionalOnProperty(
         prefix = "discodeit.repository",

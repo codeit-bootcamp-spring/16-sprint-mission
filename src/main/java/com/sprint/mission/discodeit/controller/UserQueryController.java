@@ -16,10 +16,8 @@ public class UserQueryController {
 
     private final UserService userService;
 
-    // 파라미터와 본문 없이 전체 사용자 목록을 조회합니다.
     @RequestMapping(value = "/api/user/findAll", method = RequestMethod.GET)
     public ResponseEntity<List<UserDto>> findAll() {
-        // 기존 서비스가 만든 사용자 목록을 200 OK와 함께 반환합니다.
         return ResponseEntity.ok(userService.findAll());
     }
 }

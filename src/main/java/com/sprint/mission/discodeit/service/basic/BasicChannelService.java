@@ -25,7 +25,6 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
-/** 채널 업무 흐름을 처리하고 영속화는 ChannelRepository에 맡깁니다. */
 @Service
 @RequiredArgsConstructor
 public class BasicChannelService implements ChannelService {
@@ -60,7 +59,6 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("비공개 채널에는 참여자가 필요합니다.");
         }
 
-        // 채널을 저장하기 전에 모든 참여자 ID가 null이 아니고 실제 사용자로 존재하는지 확인합니다.
         for (UUID participantUserId : request.participantUserIds()) {
             if (participantUserId == null) {
                 throw new IllegalArgumentException("참여자 ID는 null일 수 없습니다.");
@@ -134,10 +132,8 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public void delete(UUID id) {
-        // 없는 채널 ID로 연관 데이터를 지우지 않도록 먼저 채널 존재 여부를 확인합니다.
         Channel channel = findChannelOrThrow(id);
 
-        // 이 채널에 속한 메시지들을 찾아 각각 삭제합니다.
         for (Message message : messageRepository.findAll()) {
             if (message.getChannelId().equals(channel.getId())) {
                 messageRepository.deleteById(message.getId());
@@ -149,7 +145,6 @@ public class BasicChannelService implements ChannelService {
             }
         }
 
-        // 이 채널의 참여·읽음 상태들도 찾아 각각 삭제합니다.
         for (ReadStatus readStatus : readStatusRepository.findAll()) {
             if (readStatus.getChannelId().equals(channel.getId())) {
                 readStatusRepository.deleteById(readStatus.getId());

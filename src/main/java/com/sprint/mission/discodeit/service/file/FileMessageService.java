@@ -14,11 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 기본 요구사항의 File 서비스 예제입니다.
- * 메시지 업무 규칙과 File IO 저장을 직접 수행합니다.
- * 심화 과제의 BasicMessageService는 같은 저장 작업을 MessageRepository에 위임합니다.
- */
 public class FileMessageService {
 
     private static final String EXTENSION = ".ser";

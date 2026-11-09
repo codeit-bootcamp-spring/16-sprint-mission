@@ -19,7 +19,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-/** 채널별 직렬화 파일을 저장소로 사용합니다. */
 @Repository
 @ConditionalOnProperty(
         prefix = "discodeit.repository",

@@ -12,11 +12,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * 기본 요구사항의 File 서비스 예제입니다.
- * 채널 업무 규칙과 파일 입출력을 한 구현체에서 보여줍니다.
- * 심화 과제에서는 BasicChannelService가 저장을 ChannelRepository에 맡깁니다.
- */
 public class FileChannelService {
 
     private final Path directory;
@@ -25,7 +20,6 @@ public class FileChannelService {
         this(Paths.get(System.getProperty("user.dir"), "data", "channels"));
     }
 
-    /** 저장 폴더를 직접 지정할 수 있는 생성자입니다. */
     public FileChannelService(Path directory) {
         this.directory = directory;
         try {

@@ -32,7 +32,6 @@ public class JCFChannelParticipationService
         Set<UUID> participantIds = participantIdsByChannelId
                 .computeIfAbsent(channelId, id -> new java.util.HashSet<>());
 
-        // 이미 참여한 사용자의 중복 참여를 거부
         if (!participantIds.add(userId)) {
             throw new IllegalArgumentException("이미 채널에 참여한 사용자입니다.");
         }
@@ -40,7 +39,6 @@ public class JCFChannelParticipationService
 
     @Override
     public void leaveChannel(UUID userId, UUID channelId) {
-        // 잘못된 사용자나 채널 ID를 정상적인 탈퇴로 처리하지 않도록 확인
         userService.findById(userId);
         channelService.findById(channelId);
 

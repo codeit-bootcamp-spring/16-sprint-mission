@@ -20,7 +20,6 @@ public class FileUserService {
         this(Paths.get(System.getProperty("user.dir"), "data", "users"));
     }
 
-    /** 테스트 또는 실행 코드에서 저장 폴더를 직접 지정할 수 있습니다. */
     public FileUserService(Path directory) {
         this.directory = directory;
         try {
@@ -116,7 +115,6 @@ public class FileUserService {
         }
     }
 
-    /** UUID를 파일명으로 사용해 저장·조회·삭제에서 공통으로 쓸 경로를 만듭니다. */
     private Path fileFor(UUID id) {
         return directory.resolve(id + ".ser");
     }

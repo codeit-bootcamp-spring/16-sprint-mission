@@ -11,7 +11,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 
-/** MessageRepository를 Java Collection Framework의 Map으로 구현합니다. */
 @Repository
 @ConditionalOnProperty(
         prefix = "discodeit.repository",
@@ -25,7 +24,6 @@ public class JCFMessageRepository implements MessageRepository {
 
     @Override
     public void save(Message message) {
-        // 중복 등록을 허용할지는 서비스가 먼저 검사합니다.
         data.put(message.getId(), message);
     }
 
