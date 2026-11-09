@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.sprint.mission.discodeit.exception.ChannelOwnerLeaveNotAllowedException;
+import com.sprint.mission.discodeit.exception.ChannelOwnershipTransferNotAllowedException;
 import lombok.Getter;
 
 import java.io.Serial;
@@ -51,7 +53,7 @@ public class Channel extends BaseUpdatableEntity {
 
     public void removeUser(UUID userId) {
         if (isOwner(userId)) {
-            throw new IllegalArgumentException("채널 소유주는 퇴장이 불가합니다.");
+            throw new ChannelOwnerLeaveNotAllowedException("소유자는 채널을 나갈 수 없습니다. 먼저 소유권을 양도하세요.");
         }
         if (!users.remove(userId)) {
             throw new IllegalArgumentException("채널 멤버가 아닙니다.");
@@ -71,7 +73,7 @@ public class Channel extends BaseUpdatableEntity {
 
     public void transferOwnership(UUID newOwnerId) {
         if (!hasUser(newOwnerId)) {
-            throw new IllegalArgumentException("채널 멤버에게만 양도 가능합니다.");
+            throw new ChannelOwnershipTransferNotAllowedException("채널 멤버에게만 소유권을 양도할 수 있습니다.");
         }
         this.ownerId = newOwnerId;
         touch();
