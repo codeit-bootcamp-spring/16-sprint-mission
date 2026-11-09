@@ -5,13 +5,19 @@ import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
 import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDownloadDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 public interface BinaryContentService {
 
+    // 기존 DTO 방식 파일 생성
     BinaryContentDto create(BinaryContentCreateRequest request);
+
+    // MultipartFile 방식 파일 생성
+    BinaryContentDto create(MultipartFile file);
 
     Optional<BinaryContentDto> findById(UUID id);
 
