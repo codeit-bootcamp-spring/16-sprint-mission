@@ -8,6 +8,9 @@ import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -22,4 +25,28 @@ public class ChannelController {
         Channel channel = channelService.create(request);
         return channelService.find(channel.getId());
     }
+
+    @RequestMapping(value = "/private", method = RequestMethod.POST)
+    @ResponseStatus(HttpStatus.CREATED)
+    public ChannelDto createPrivate(@RequestBody PrivateChannelCreateRequest request) {
+        Channel channel = channelService.create(request);
+        return channelService.find(channel.getId());
+    }
+
+    @RequestMapping(value = "/{channelId}", method = RequestMethod.PATCH)
+    public ChannelDto updatePublic(
+            @PathVariable UUID channelId,
+            @RequestBody PublicChannelUpdateRequest request) {
+
+        channelService.update(channelId, request);
+        return channelService.find(channelId);
+    }
+
+    @RequestMapping(value = "/{channelId}", method = RequestMethod.DELETE)
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID channelId) {
+        channelService.delete(channelId);
+    }
+
+
 }
