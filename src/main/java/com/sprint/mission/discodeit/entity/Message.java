@@ -1,35 +1,45 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
-public class Message extends BaseEntity {
-    UUID channelId;
-    UUID userId;
-    String content;
+@Getter
+public class Message implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    public Message(){
-        super();
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
+    //
+    private String content;
+    //
+    private UUID channelId;
+    private UUID authorId;
+    private List<UUID> attachmentIds;
+
+    public Message(String content, UUID channelId, UUID authorId, List<UUID> attachmentIds) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        //
+        this.content = content;
+        this.channelId = channelId;
+        this.authorId = authorId;
+        this.attachmentIds = attachmentIds;
     }
 
-     public Message(UUID userId, UUID channelId, String content){
-        this();
-         if (userId == null || channelId == null) {
-             throw new NullPointerException("ID 값들은 null일 수 없습니다.");
-         }
-         if (content == null || content.trim().isEmpty()) {
-             throw new NullPointerException("내용이 비어있습니다.");
-         }
-        this.userId=userId;
-        this.channelId=channelId;
-        this.content=content;
-    }
+    public void update(String newContent) {
+        boolean anyValueUpdated = false;
+        if (newContent != null && !newContent.equals(this.content)) {
+            this.content = newContent;
+            anyValueUpdated = true;
+        }
 
-    public UUID getChannelId() {return channelId;}
-    public UUID getUserId() {return userId;}
-    public String getContent() {return content;}
-
-    public void setContent(String message) {
-        this.content = message;
-        this.updateTime();
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
 }

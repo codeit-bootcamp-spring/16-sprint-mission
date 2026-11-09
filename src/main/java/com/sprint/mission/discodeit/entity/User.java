@@ -1,32 +1,55 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.HashSet;
-import java.util.Set;
+import lombok.Getter;
+
+import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
-public class User extends BaseEntity {
-    String name;
-    final Set<UUID> channels;
+@Getter
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    public User(){
-        super();
-        this.channels=new HashSet<>();
-    }
-    public User(String name){
-         this();
-         this.name=name;
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
+    //
+    private String username;
+    private String email;
+    private String password;
+    private UUID profileId;     // BinaryContent
+
+    public User(String username, String email, String password, UUID profileId) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        //
+        this.username = username;
+        this.email = email;
+        this.password = password;
+        this.profileId = profileId;
     }
 
-    public String getName() {
-        return name;
-    }
-    public Set<UUID> getChannels() { return channels; }
+    public void update(String newUsername, String newEmail, String newPassword, UUID newProfileId) {
+        boolean anyValueUpdated = false;
+        if (newUsername != null && !newUsername.equals(this.username)) {
+            this.username = newUsername;
+            anyValueUpdated = true;
+        }
+        if (newEmail != null && !newEmail.equals(this.email)) {
+            this.email = newEmail;
+            anyValueUpdated = true;
+        }
+        if (newPassword != null && !newPassword.equals(this.password)) {
+            this.password = newPassword;
+            anyValueUpdated = true;
+        }
+        if (newProfileId != null && !newProfileId.equals(this.profileId)) {
+            this.profileId = newProfileId;
+            anyValueUpdated = true;
+        }
 
-    public void setName(String name) {
-        this.name = name;
-        this.updateTime();
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
-
-    public void joinChannel(UUID channelId) { this.channels.add(channelId); }
-    public void leaveChannel(UUID channelId){ this.channels.remove(channelId); }
 }
