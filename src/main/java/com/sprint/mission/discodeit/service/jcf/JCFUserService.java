@@ -1,6 +1,8 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
@@ -43,7 +45,7 @@ public class JCFUserService implements UserService {
                         targetUser.getUsername().equals(request.username()));
 
         if (duplicatedUsername) {
-            throw new IllegalArgumentException("중복된 이름입니다.");
+            throw new DuplicateResourceException("중복된 이름입니다.");
         }
 
         // 이메일 중복 검사
@@ -52,7 +54,7 @@ public class JCFUserService implements UserService {
                         targetUser.getEmail().equals(request.email()));
 
         if (duplicatedEmail) {
-            throw new IllegalArgumentException("중복된 이메일입니다.");
+            throw new DuplicateResourceException("중복된 이메일입니다.");
         }
 
         // 프로필 이미지가 전달된 경우 저장
@@ -96,12 +98,12 @@ public class JCFUserService implements UserService {
         // 요청받은 ID와 일치하는 유저를 찾는다.
         User user = userRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 해당 유저의 상태 정보를 찾는다.
         UserStatus userStatus = userStatusRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
         return toDto(user, userStatus);
     }
@@ -115,7 +117,7 @@ public class JCFUserService implements UserService {
                     UserStatus userStatus = userStatusRepository
                             .findByUserId(user.getId())
                             .orElseThrow(() ->
-                                    new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                                    new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
                     return toDto(user, userStatus);
                 })
@@ -128,7 +130,7 @@ public class JCFUserService implements UserService {
         // 수정 대상 사용자 조회
         User targetUser = userRepository.findByUserId(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("수정할 유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("수정할 유저를 찾을 수 없습니다."));
 
         // 사용자 이름 변경 시 중복 검사
         String username = request.username() != null
@@ -141,7 +143,7 @@ public class JCFUserService implements UserService {
                                     && otherUser.getUsername().equals(username));
 
             if (duplicatedUsername) {
-                throw new IllegalArgumentException("중복된 이름입니다.");
+                throw new DuplicateResourceException("중복된 이름입니다.");
             }
         }
 
@@ -156,7 +158,7 @@ public class JCFUserService implements UserService {
                                     && otherUser.getEmail().equals(email));
 
             if (duplicatedEmail) {
-                throw new IllegalArgumentException("중복된 이메일입니다.");
+                throw new DuplicateResourceException("중복된 이메일입니다.");
             }
         }
 
@@ -182,7 +184,13 @@ public class JCFUserService implements UserService {
                 ? request.password() : targetUser.getPassword();
 
         // 수정된 사용자 생성 및 저장
-        User updatedUser = new User(targetUser, username, email, password, profileId);
+        User updatedUser = new User(
+                targetUser,
+                username,
+                email,
+                password,
+                profileId
+        );
 
         userRepository.save(updatedUser);
 
@@ -190,7 +198,7 @@ public class JCFUserService implements UserService {
         UserStatus userStatus = userStatusRepository
                 .findByUserId(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
         return toDto(updatedUser, userStatus);
     }
@@ -201,7 +209,7 @@ public class JCFUserService implements UserService {
         // 삭제 대상 사용자 조회
         User targetUser = userRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("삭제할 유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("삭제할 유저를 찾을 수 없습니다."));
 
         // 사용자 상태 삭제
         userStatusRepository.deleteByUserId(id);
@@ -213,7 +221,7 @@ public class JCFUserService implements UserService {
             binaryContentRepository.deleteById(profileId);
         }
 
-        // 4. 사용자 삭제
+        // 사용자 삭제
         userRepository.deleteByUserId(id);
     }
 

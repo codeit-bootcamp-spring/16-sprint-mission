@@ -4,6 +4,8 @@ import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateReq
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.type.ChannelType;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -25,10 +27,9 @@ public class JCFChannelService implements ChannelService {
     private final MessageRepository messageRepository;
 
     // 의존성 주입 및 데이터 저장소 초기화
-    public JCFChannelService(
-                    UserRepository userRepository,
-                    ReadStatusRepository readStatusRepository,
-                    MessageRepository messageRepository) {
+    public JCFChannelService(UserRepository userRepository,
+                             ReadStatusRepository readStatusRepository,
+                             MessageRepository messageRepository) {
 
         this.data = new ArrayList<>();
         this.userRepository = userRepository;
@@ -45,7 +46,7 @@ public class JCFChannelService implements ChannelService {
                                 && channel.getName().equals(request.channelName()));
 
         if (duplicated) {
-            throw new IllegalArgumentException("중복된 채널 이름입니다.");
+            throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
         Channel channel = new Channel(
@@ -68,7 +69,7 @@ public class JCFChannelService implements ChannelService {
         // 모든 참여자의 존재 여부 확인
         for (UUID userId : request.memberIds()) {
             if (userRepository.findByUserId(userId).isEmpty()) {
-                throw new IllegalArgumentException("존재하지 않는 유저입니다.");
+                throw new ResourceNotFoundException("존재하지 않는 사용자입니다.");
             }
         }
 
@@ -127,7 +128,7 @@ public class JCFChannelService implements ChannelService {
 
         // PRIVATE 채널 수정 방지
         if (targetChannel.getType() == ChannelType.PRIVATE) {
-            throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
+            throw new ForbiddenOperationException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
         // 기존 채널명과 변경할 채널명이 같은지 확인
@@ -143,7 +144,7 @@ public class JCFChannelService implements ChannelService {
 
         // 중복된 채널 이름이 있으면 예외를 발생시킨다.
         if (duplicated) {
-            throw new IllegalArgumentException("중복된 채널 이름입니다.");
+            throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
         targetChannel.changeName(request.channelName()); // 이름을 변경하고 수정 시각을 갱신한다.
@@ -167,13 +168,13 @@ public class JCFChannelService implements ChannelService {
 
         // 참여하려는 유저의 존재 여부 확인
         if (userRepository.findByUserId(userId).isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 유저입니다.");
+            throw new ResourceNotFoundException("존재하지 않는 유저입니다.");
         }
 
         // PRIVATE 채널은 생성 당시 지정된 참여자만 입장 허용
         if (channel.getType() == ChannelType.PRIVATE
                 && !channel.hasMember(userId)) {
-            throw new IllegalArgumentException("PRIVATE 채널의 참여자가 아닙니다.");
+            throw new ForbiddenOperationException("PRIVATE 채널의 참여자가 아닙니다.");
         }
 
         // 아직 참여하지 않은 유저라면 채널에 추가
@@ -195,6 +196,13 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void leaveChannel(UUID channelId, UUID userId) {
+
+        // 퇴장 요청자의 존재 여부 확인
+        userRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다.")
+                );
+
         Channel channel = findChannel(channelId);
 
         // 채널에서 유저를 제외하고 해당 유저의 읽음 상태 삭제
@@ -214,7 +222,7 @@ public class JCFChannelService implements ChannelService {
                 .filter(channel -> channel.getId().equals(id))
                 .findFirst()
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+                        new ResourceNotFoundException("채널을 찾을 수 없습니다."));
     }
 
     // 해당 채널의 가장 최근 메시지 시간 조회
@@ -227,15 +235,19 @@ public class JCFChannelService implements ChannelService {
 
     // Channel 객체를 ChannelDto로 변환한다.
     private ChannelDto toDto(Channel channel) {
-        Set<UUID> memberIds = channel.getMemberIds();
-//        Set<UUID> memberIds = channel.getType() == ChannelType.PRIVATE
-//                ? channel.getMemberIds() : Set.of();
+        // Set<UUID> memberIds = channel.getMemberIds();
+        Set<UUID> memberIds = channel.getType() == ChannelType.PRIVATE
+                        ? channel.getMemberIds() : Set.of();
 
         return new ChannelDto(
-                channel.getId(), channel.getType(),
-                channel.getName(), channel.getDescription(),
-                memberIds, channel.getCreatedAt(),
-                channel.getUpdatedAt(), findLastMessageAt(channel.getId())
+                channel.getId(),
+                channel.getType(),
+                channel.getName(),
+                channel.getDescription(),
+                memberIds,
+                channel.getCreatedAt(),
+                channel.getUpdatedAt(),
+                findLastMessageAt(channel.getId())
         );
     }
 }

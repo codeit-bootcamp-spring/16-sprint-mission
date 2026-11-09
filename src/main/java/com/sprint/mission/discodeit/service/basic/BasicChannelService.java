@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.type.ChannelType;
 
@@ -124,7 +125,7 @@ public class BasicChannelService implements ChannelService {
 
         // 2. PRIVATE 채널 수정을 제한한다.
         if (targetChannel.getType() == ChannelType.PRIVATE) {
-            throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
+            throw new ForbiddenOperationException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
         // 3. 수정할 채널 이름과 설명을 결정
@@ -188,7 +189,7 @@ public class BasicChannelService implements ChannelService {
         // 3. PRIVATE 채널은 기존 참여자만 접근이 가능
         if (channel.getType() == ChannelType.PRIVATE
                 && !channel.hasMember(userId)) {
-            throw new IllegalArgumentException("PRIVATE 채널에 참여할 수 없습니다.");
+            throw new ForbiddenOperationException("PRIVATE 채널에 참여할 수 없습니다.");
         }
 
         // 이미 참여 중인 사용자는 별도 처리하지 않는다.

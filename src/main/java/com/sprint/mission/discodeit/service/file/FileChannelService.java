@@ -4,6 +4,8 @@ import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.type.ChannelType;
 
 import com.sprint.mission.discodeit.entity.Channel;
@@ -53,7 +55,7 @@ public class FileChannelService implements ChannelService {
                 .anyMatch(channel -> channel.getName().equals(request.channelName()));
 
         if (duplicated) {
-            throw new IllegalArgumentException("중복된 채널 이름입니다.");
+            throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
         // PUBLIC 채널 생성 및 저장
@@ -78,7 +80,8 @@ public class FileChannelService implements ChannelService {
         for (UUID userId : memberIds) {
             userRepository.findByUserId(userId)
                     .orElseThrow(() ->
-                            new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                            new ResourceNotFoundException("유저를 찾을 수 없습니다.")
+                    );
         }
 
         // PRIVATE 채널 생성 및 저장
@@ -144,7 +147,7 @@ public class FileChannelService implements ChannelService {
 
         // PRIVATE 채널 수정 제한
         if (channel.getType() == ChannelType.PRIVATE) {
-            throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
+            throw new ForbiddenOperationException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
         // 기존 채널 이름과 변경할 이름이 동일한지 확인
@@ -161,7 +164,7 @@ public class FileChannelService implements ChannelService {
 
         // 중복된 채널 이름이 있으면 예외를 발생시킨다.
         if (duplicated) {
-            throw new IllegalArgumentException("중복된 채널 이름입니다.");
+            throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
         // 채널 이름 변경 및 저장
@@ -192,14 +195,14 @@ public class FileChannelService implements ChannelService {
         // 참여 요청자의 존재 여부를 확인한다.
         userRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         Channel channel = findChannel(channelId);
 
         // PRIVATE 채널은 기존 참여자만 이용 가능하다.
         if (channel.getType() == ChannelType.PRIVATE
                 && !channel.hasMember(userId)){
-            throw new IllegalArgumentException("PRIVATE 채널에 참여할 수 없습니다.");
+            throw new ForbiddenOperationException("PRIVATE 채널에 참여할 수 없습니다.");
         }
 
         // 이미 참여 중인 사용자는 추가 작업 없이 종료
@@ -224,7 +227,9 @@ public class FileChannelService implements ChannelService {
         // 퇴장 요청자의 존재 여부 확인
         userRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다.")
+                );
+
         Channel channel = findChannel(channelId);
 
         // 채널에서 사용자 제거 및 변경 사항 저장
@@ -245,8 +250,8 @@ public class FileChannelService implements ChannelService {
     // ID와 일치하는 실제 Channel 객체를 반환한다.
     private Channel findChannel(UUID id) {
         return channelRepository.findByChannelId(id)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("채널을 찾을 수 없습니다."));
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("채널을 찾을 수 없습니다."));
     }
 
     // Channel 객체를 ChannelDto로 변환한다.
