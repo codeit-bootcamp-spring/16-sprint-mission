@@ -99,6 +99,7 @@ public class BasicUserService implements UserService {
         UserStatus savedStatus = userStatusRepository.save(userStatus);
 
         return new UserDto(
+                savedUser.getId(),
                 savedUser.getUsername(),
                 savedUser.getAge(),
                 savedUser.getEmail(),
@@ -294,6 +295,7 @@ public class BasicUserService implements UserService {
                         );
 
         return new UserDto(
+                user.getId(),
                 user.getUsername(),
                 user.getAge(),
                 user.getEmail(),
