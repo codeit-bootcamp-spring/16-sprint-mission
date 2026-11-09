@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>상태 업데이트 완료 · Discodeit</title>
+    <style>
+        :root {
+            --bg-1: #1e1f3b;
+            --bg-2: #3b2f6b;
+            --card: rgba(255, 255, 255, 0.96);
+            --text: #1f2333;
+            --muted: #6b7088;
+            --accent: #5865f2;
+            --accent-2: #8b5cf6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 16px;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                         "Segoe UI", "Malgun Gothic", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.35), transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(88, 101, 242, 0.35), transparent 45%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2));
+        }
+
+        .card {
+            width: 100%;
+            max-width: 420px;
+            padding: 44px 32px 32px;
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: 0 24px 60px rgba(10, 10, 30, 0.45);
+            text-align: center;
+            animation: rise 0.5s ease-out;
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .icon {
+            width: 72px;
+            height: 72px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: rgba(34, 197, 94, 0.12);
+            color: #16a34a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+            font-weight: 800;
+        }
+
+        h1 {
+            margin-top: 20px;
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            margin-top: 8px;
+            color: var(--muted);
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 28px;
+        }
+
+        .btn {
+            flex: 1;
+            padding: 13px 0;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            box-shadow: 0 8px 20px rgba(88, 101, 242, 0.35);
+        }
+
+        .btn-secondary {
+            color: var(--text);
+            background: #f1f2f6;
+        }
+        .btn-secondary:hover { background: #e6e8ef; }
+    </style>
+</head>
+<body>
+<main class="card">
+    <div class="icon">✓</div>
+    <h1>온라인 상태가 업데이트되었어요</h1>
+    <p class="subtitle">변경된 상태는 사용자 목록에서<br>확인할 수 있어요.</p>
+
+    <div class="actions">
+        <a class="btn btn-secondary" th:href="@{/v1/users}" href="/v1/users">사용자 목록</a>
+        <a class="btn btn-primary" th:href="@{/}" href="/">처음으로</a>
+    </div>
+</main>
+</body>
+</html>

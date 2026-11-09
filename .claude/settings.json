@@ -1,0 +1,7 @@
+{
+  "enabledPlugins": {
+    "superpowers@anthropic-plugin-directory": true,
+    "code-review-anthropics@anthropic-plugin-directory": true,
+    "ponytail@ponytail": true
+  }
+}

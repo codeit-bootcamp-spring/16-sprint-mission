@@ -182,6 +182,14 @@
         <span>→</span>
     </a>
 
+    <a class="btn btn-outline" th:href="@{/v1/channels/new}" href="/v1/channels/new">
+        <span>
+            채널 만들기
+            <small>GET /v1/channels/new</small>
+        </span>
+        <span>→</span>
+    </a>
+
     <form th:action="@{/v1/users/delete}" th:method="delete" action="/v1/users/delete" method="post"
           onsubmit="return confirm('정말 계정을 삭제할까요? 삭제한 계정은 되돌릴 수 없어요.');">
         <button type="submit" class="btn btn-danger">

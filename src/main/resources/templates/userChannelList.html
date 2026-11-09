@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>채널 목록 · Discodeit</title>
+    <style>
+        :root {
+            --bg-1: #1e1f3b;
+            --bg-2: #3b2f6b;
+            --card: rgba(255, 255, 255, 0.96);
+            --text: #1f2333;
+            --muted: #6b7088;
+            --line: #e7e8f0;
+            --accent: #5865f2;
+            --accent-2: #8b5cf6;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            min-height: 100vh;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 48px 16px;
+            font-family: "Pretendard", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo",
+                         "Segoe UI", "Malgun Gothic", sans-serif;
+            color: var(--text);
+            background:
+                radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.35), transparent 40%),
+                radial-gradient(circle at 85% 80%, rgba(88, 101, 242, 0.35), transparent 45%),
+                linear-gradient(135deg, var(--bg-1), var(--bg-2));
+            background-attachment: fixed;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 640px;
+            background: var(--card);
+            border-radius: 20px;
+            box-shadow: 0 24px 60px rgba(10, 10, 30, 0.45);
+            overflow: hidden;
+            animation: rise 0.5s ease-out;
+        }
+
+        @keyframes rise {
+            from { opacity: 0; transform: translateY(16px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .header {
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 28px 28px 20px;
+            border-bottom: 1px solid var(--line);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+        }
+
+        .subtitle {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 14px;
+        }
+
+        .stat {
+            flex-shrink: 0;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #f1f2f6;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+
+        .list { list-style: none; }
+
+        .list li + li { border-top: 1px solid var(--line); }
+
+        .item {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 16px 28px;
+            color: inherit;
+            text-decoration: none;
+            transition: background 0.15s ease;
+        }
+        .item:hover { background: #f8f8fc; }
+
+        .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .name {
+            font-size: 15px;
+            font-weight: 700;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .detail {
+            margin-top: 2px;
+            color: var(--muted);
+            font-size: 13px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .badge {
+            flex-shrink: 0;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: rgba(88, 101, 242, 0.12);
+            color: var(--accent);
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .badge.private {
+            background: #f1f2f6;
+            color: var(--muted);
+        }
+
+        .empty {
+            padding: 56px 28px;
+            color: var(--muted);
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px 28px;
+            border-top: 1px solid var(--line);
+        }
+
+        .btn {
+            padding: 11px 18px;
+            border-radius: 10px;
+            font-size: 14px;
+            font-weight: 700;
+            text-decoration: none;
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+        .btn:hover { transform: translateY(-1px); }
+
+        .btn-primary {
+            color: #fff;
+            background: linear-gradient(120deg, var(--accent), var(--accent-2));
+            box-shadow: 0 8px 20px rgba(88, 101, 242, 0.35);
+        }
+
+        .btn-secondary {
+            color: var(--text);
+            background: #f1f2f6;
+        }
+        .btn-secondary:hover { background: #e6e8ef; }
+
+        @media (max-width: 520px) {
+            .header { flex-direction: column; align-items: flex-start; }
+            .item, .header, .footer { padding-left: 18px; padding-right: 18px; }
+        }
+    </style>
+</head>
+<body>
+<main class="card">
+    <header class="header">
+        <div>
+            <h1>채널 목록</h1>
+            <p class="subtitle">이 사용자가 볼 수 있는 모든 채널이에요.</p>
+        </div>
+        <span class="stat">전체 <span th:text="${#lists.size(list)}">0</span>개</span>
+    </header>
+
+    <ul class="list" th:unless="${#lists.isEmpty(list)}">
+        <li th:each="channel : ${list}" th:with="isPrivate=${channel.channelType().name() == 'PRIVATE'}">
+            <a class="item" th:href="@{/v1/channels/{id}(id=${channel.id()})}" href="#">
+                <div class="info">
+                    <p class="name" th:text="${isPrivate} ? '비공개 채널' : ${channel.name()}">채널 이름</p>
+                    <p class="detail" th:if="${isPrivate}"
+                       th:text="|참여자 ${#lists.size(channel.participantIds())}명|">참여자 0명</p>
+                    <p class="detail" th:unless="${isPrivate}" th:text="${channel.description()}">채널 설명</p>
+                </div>
+                <span class="badge" th:classappend="${isPrivate} ? 'private'"
+                      th:text="${isPrivate} ? '비공개' : '공개'">공개</span>
+            </a>
+        </li>
+    </ul>
+
+    <p class="empty" th:if="${#lists.isEmpty(list)}">아직 볼 수 있는 채널이 없어요.</p>
+
+    <footer class="footer">
+        <a class="btn btn-secondary" th:href="@{/}" href="/">처음으로</a>
+        <a class="btn btn-primary" th:href="@{/v1/channels/new}" href="/v1/channels/new">채널 만들기</a>
+    </footer>
+</main>
+</body>
+</html>
