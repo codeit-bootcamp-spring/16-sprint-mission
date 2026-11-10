@@ -8,6 +8,7 @@ public record UserUpdateDto(
         UUID id,
         String username,
         Integer age,
-        String password
+        String password,
+        BinaryContentDto profile
 ) {
 }

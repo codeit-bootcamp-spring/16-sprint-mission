@@ -4,7 +4,6 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -19,10 +18,6 @@ public class Message extends Base{
     public void update(String content) {
         this.content = content;
         updateUpdatedAt();
-    }
-
-    public void replaceAttachments(List<UUID> newAttachmentIds) {
-        this.attachmentIds =  new ArrayList<>(attachmentIds);
     }
 
     @Override

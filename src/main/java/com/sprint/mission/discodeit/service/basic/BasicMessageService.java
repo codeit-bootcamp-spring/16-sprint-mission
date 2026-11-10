@@ -13,10 +13,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.service.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.io.IOException;
-import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -34,10 +31,7 @@ public class BasicMessageService implements MessageService {
     private final CommonValidator validator;
 
     @Override
-    public MessageDto createMessage(
-            MessageCreateDto dto,
-            List<MultipartFile> attachments
-    ) {
+    public MessageDto createMessage(MessageCreateDto dto) {
         validator.validateNotNull(
                 dto,
                 "메세지 생성 정보는 null일 수 없습니다."
@@ -81,7 +75,21 @@ public class BasicMessageService implements MessageService {
             }
         }
 
-        List<UUID> attachmentIds = saveAttachments(attachments);
+        List<UUID> attachmentIds = new ArrayList<>();
+        if (dto.attachments() != null) {
+            for (BinaryContentDto attachment : dto.attachments()) {
+                BinaryContent binaryContent = new BinaryContent(
+                        attachment.filename(),
+                        attachment.size(),
+                        attachment.bytes()
+                );
+
+                BinaryContent saveBinaryContent =
+                        binaryContentRepository.save(binaryContent);
+
+                attachmentIds.add(saveBinaryContent.getId());
+            }
+        }
 
         Message message = new Message(
                 dto.content(),
@@ -130,7 +138,7 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public MessageDto updateMessage(MessageUpdateDto dto, List<MultipartFile> attachments) {
+    public MessageDto updateMessage(MessageUpdateDto dto) {
         validator.validateNotNull(
                 dto,
                 "메세지 수정 정보는 null일 수 없습니다."
@@ -151,23 +159,10 @@ public class BasicMessageService implements MessageService {
                 dto.content(),
                 "메세지 내용은 비어있을 수 없습니다."
         );
-
-        List<UUID> newAttachmentIds = saveAttachments(attachments);
-        List<UUID> oldAttachmentIds = List.of();
-
         message.update(dto.content());
-
-        if (!newAttachmentIds.isEmpty()) {
-            oldAttachmentIds = new ArrayList<>(message.getAttachmentIds());
-            message.replaceAttachments(newAttachmentIds);
-        }
 
         Message savedMessage = messageRepository.save(message);
 
-        for (UUID oldAttachmentId : oldAttachmentIds) {
-            binaryContentRepository.findById(oldAttachmentId)
-                    .ifPresent(binaryContentRepository::delete);
-        }
         return toDto(savedMessage);
     }
 
@@ -233,36 +228,5 @@ public class BasicMessageService implements MessageService {
                 message.getChannelId(),
                 message.getAttachmentIds()
         );
-    }
-
-    private List<UUID> saveAttachments(List<MultipartFile> attachments) {
-        List<BinaryContent> files  = new ArrayList<>();
-
-        if (attachments != null) {
-            for (MultipartFile attachment : attachments) {
-                if (attachment.isEmpty()) {
-                    continue;
-                }
-
-                try {
-                    byte[] bytes = attachment.getBytes();
-                    files.add(new BinaryContent(
-                            attachment.getOriginalFilename(),
-                            attachment.getSize(),
-                            bytes
-                    ));
-                } catch (IOException e) {
-                    throw new UncheckedIOException("첨부파일을 읽을 수 없습니다.", e);
-                }
-            }
-        }
-
-        List<UUID> attachmentIds = new ArrayList<>();
-
-        for (BinaryContent file : files) {
-            attachmentIds.add(binaryContentRepository.save(file).getId());
-        }
-
-        return attachmentIds;
     }
 }

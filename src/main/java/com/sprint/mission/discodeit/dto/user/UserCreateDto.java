@@ -6,6 +6,7 @@ public record UserCreateDto(
     String username,
     int age,
     String email,
-    String password
+    String password,
+    BinaryContentDto profile
 ) {
 }

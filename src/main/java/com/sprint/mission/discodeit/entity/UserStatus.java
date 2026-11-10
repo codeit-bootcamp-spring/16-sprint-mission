@@ -17,11 +17,7 @@ public class UserStatus extends Base {
     }
 
     public void updateLastActiveAt() {
-        updateLastActiveAt(Instant.now());
-    }
-
-    public void updateLastActiveAt(Instant lastActiveAt) {
-        this.lastActiveAt = lastActiveAt;
+        this.lastActiveAt = Instant.now();
         updateUpdatedAt();
     }
 }
