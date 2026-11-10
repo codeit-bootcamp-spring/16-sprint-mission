@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.ConflictException;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -23,11 +25,11 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatus create(UserStatusCreateRequest request) {
         userRepository.findById(request.userId()).orElseThrow(() ->
-                new IllegalArgumentException("사용자를 찾을 수 없음"));
+                new ResourceNotFoundException("유저를 찾을 수 없음"));
 
         for (UserStatus userStatus : userStatusRepository.findAll()) {
             if (userStatus.getUserId().equals(request.userId())) {
-                throw new IllegalArgumentException("이미 접속 상태가 존재하는 사용자");
+                throw new ConflictException("이미 등록된 접속 상태입니다");
             }
         }
 
@@ -41,7 +43,7 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatus findById(UUID id) {
         return userStatusRepository.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("접속 상태를 찾을 수 없음"));
+                new ResourceNotFoundException("접속 상태를 찾을 수 없음"));
     }
 
     @Override
@@ -51,9 +53,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatus update(UserStatusUpdateRequest request) {
-        UserStatus userStatus = userStatusRepository.findById(
-                request.userStatusId()).orElseThrow(() ->
-                new IllegalArgumentException("접속 상태를 찾을 수 없음"));
+        UserStatus userStatus = findById(request.userStatusId());
 
         userStatus.update(request.lastActiveAt());
         userStatusRepository.save(userStatus);
@@ -62,11 +62,13 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatus updateByUserId(UUID userId, Instant lastActiveAt) {
+        userRepository.findById(userId).orElseThrow(() ->
+                new ResourceNotFoundException("유저를 찾을 수 없음"));
+
         UserStatus userStatus = userStatusRepository.findAll().stream()
-                .filter(s -> s.getUserId().equals(userId))
+                .filter(status -> status.getUserId().equals(userId))
                 .findFirst()
-                .orElseThrow(() ->
-                        new IllegalArgumentException("접속 상태를 찾을 수 없음"));
+                .orElseThrow(() -> new ResourceNotFoundException("접속 상태를 찾을 수 없음"));
 
         userStatus.update(lastActiveAt);
         userStatusRepository.save(userStatus);
@@ -75,9 +77,7 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public void delete(UUID id) {
-        userStatusRepository.findById(id).orElseThrow(() ->
-                new IllegalArgumentException("접속 상태를 찾을 수 없음"));
-
+        findById(id);
         userStatusRepository.deleteById(id);
     }
 }
