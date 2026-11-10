@@ -1,7 +1,7 @@
 // API endpoints
 const API_BASE_URL = '/api';
 const ENDPOINTS = {
-    USERS: `${API_BASE_URL}/user/findAll`,
+    USERS: `${API_BASE_URL}/users/findAll`,
     BINARY_CONTENT: `${API_BASE_URL}/binaryContent/find`
 };
 

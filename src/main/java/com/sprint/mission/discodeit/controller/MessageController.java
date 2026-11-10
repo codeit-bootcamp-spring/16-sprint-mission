@@ -25,7 +25,7 @@ public class MessageController {
     private final MessageService messageService;
 
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<MessageDto> create(@RequestPart("messageCreateRequest")MessageCreateRequest request,
+    public ResponseEntity<MessageDto> create(@RequestPart("messageCreateRequest") MessageCreateRequest request,
                                              @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) throws IOException {
         List<BinaryContentCreateRequest> attachmentRequests = new ArrayList<>();
         if (attachments != null) {
