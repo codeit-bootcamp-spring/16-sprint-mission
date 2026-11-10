@@ -1,47 +1,46 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
-public class Message extends Entity implements Serializable {
+@Getter
+public class Message implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    private String message;
-    private final Channel channel;
-    private final User user;
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
 
-    private static final long serialVersionUID = 2;
+    private String content;
 
-    public Message(String message, Channel channel, User user) {
-        this.message = message;
-        this.channel = channel;
-        this.user = user;
+    private UUID channelId;
+    private UUID authorId;
+
+    private List<UUID> attachmentIds;
+
+    public Message(String content, UUID channelId, UUID authorId, List<UUID> attachmentIds) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.content = content;
+        this.channelId = channelId;
+        this.authorId = authorId;
+        this.attachmentIds = attachmentIds;
     }
 
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public void update(String message) {
-        if (message != null) {
-            this.message = message;
+    public void update(String newContent) {
+        boolean anyValueUpdated = false;
+        if (newContent != null && !newContent.equals(this.content)) {
+            this.content = newContent;
+            anyValueUpdated = true;
         }
-        touch();
-    }
 
-    // 다른 복사본(같은 id)의 최신 정보를 이 객체에 반영한다.
-    public void sync(Message source) {
-        this.message = source.message;
-        this.updatedAt = source.updatedAt;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
-
-    public User getUser() {
-        return user;
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
 }

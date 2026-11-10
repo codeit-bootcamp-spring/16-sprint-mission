@@ -1,0 +1,1021 @@
+{
+  "info": {
+    "name": "discodeit API",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "description": "discodeit REST API 회귀 테스트. 폴더 순서대로 실행해야 함(앞 요청의 id를 변수로 넘김)."
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8080"
+    },
+    {
+      "key": "password",
+      "value": "pass1234"
+    }
+  ],
+  "item": [
+    {
+      "name": "0. Home",
+      "item": [
+        {
+          "name": "홈 (static index.html)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "1. User / Auth",
+      "item": [
+        {
+          "name": "사용자 생성 (프로필 포함)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/create",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "{{email}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text"
+                },
+                {
+                  "key": "profile",
+                  "type": "file",
+                  "src": "postman/fixtures/sample.txt"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"응답에 입력값 반영\", () => { pm.expect(b.username).to.eql(pm.collectionVariables.get(\"username\")); pm.expect(b.email).to.eql(pm.collectionVariables.get(\"email\")); });",
+                  "pm.test(\"프로필 id 존재\", () => pm.expect(b.profileId).to.be.a(\"string\"));",
+                  "pm.test(\"비밀번호 미노출\", () => pm.expect(b).to.not.have.property(\"password\"));",
+                  "pm.collectionVariables.set(\"userId\", b.userId); pm.collectionVariables.set(\"profileId\", b.profileId);"
+                ]
+              }
+            },
+            {
+              "listen": "prerequest",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "const s = Date.now();",
+                  "pm.collectionVariables.set(\"username\", \"user\" + s); pm.collectionVariables.set(\"email\", \"user\" + s + \"@test.com\");",
+                  "pm.collectionVariables.set(\"username2\", \"other\" + s); pm.collectionVariables.set(\"email2\", \"other\" + s + \"@test.com\");"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "두 번째 사용자 생성 (프로필 없음)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/create",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "username",
+                  "value": "{{username2}}",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "{{email2}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"프로필 id 없음\", () => pm.expect(pm.response.json().profileId).to.be.null);",
+                  "pm.collectionVariables.set(\"userId2\", pm.response.json().userId);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "중복 사용자 생성 → 409",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/create",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "{{email}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));",
+                  "pm.test(\"ErrorResponse 형식\", () => pm.expect(pm.response.json()).to.include.keys(\"timestamp\",\"status\",\"error\",\"message\",\"path\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "전체 사용자 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/findAll"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"생성한 사용자 포함\", () => pm.expect(pm.response.json().map(u => u.userId)).to.include.members([pm.collectionVariables.get(\"userId\"), pm.collectionVariables.get(\"userId2\")]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "로그인 성공",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"로그인한 사용자 반환\", () => pm.expect(pm.response.json().userId).to.eql(pm.collectionVariables.get(\"userId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "로그인 실패 (비밀번호 오류) → 400",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/auth/login",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "wrong",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "UserStatus 갱신 (로그인 세션)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/user-status",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "lastActiveAt",
+                  "value": "{{$isoTimestamp}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"본인 status 갱신\", () => pm.expect(pm.response.json().userId).to.eql(pm.collectionVariables.get(\"userId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "사용자 수정 (로그인 세션)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/update",
+            "body": {
+              "mode": "urlencoded",
+              "urlencoded": [
+                {
+                  "key": "username",
+                  "value": "{{username}}_new",
+                  "type": "text"
+                },
+                {
+                  "key": "email",
+                  "value": "{{email}}",
+                  "type": "text"
+                },
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "text"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"이름 변경 반영\", () => pm.expect(pm.response.json().username).to.eql(pm.collectionVariables.get(\"username\") + \"_new\"));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "2. Channel",
+      "item": [
+        {
+          "name": "공개 채널 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/public",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"general\",\n  \"description\": \"postman test channel\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"PUBLIC 타입\", () => pm.expect(b.channelType).to.eql(\"PUBLIC\"));",
+                  "pm.test(\"이름 반영\", () => pm.expect(b.name).to.eql(\"general\"));",
+                  "pm.collectionVariables.set(\"channelId\", b.id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "비공개 채널 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/private",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userList\": [\n    \"{{userId}}\",\n    \"{{userId2}}\"\n  ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.test(\"PRIVATE 타입\", () => pm.expect(pm.response.json().channelType).to.eql(\"PRIVATE\"));",
+                  "pm.collectionVariables.set(\"privateChannelId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "비공개 채널 생성 (참여자 없음) → 400",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/private",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userList\": []\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "공개 채널 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{channelId}}\",\n  \"newName\": \"general-renamed\",\n  \"newDescription\": \"updated\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"수정값 반영\", () => { const b = pm.response.json(); pm.expect(b.name).to.eql(\"general-renamed\"); pm.expect(b.description).to.eql(\"updated\"); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "비공개 채널 수정 → 409",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"{{privateChannelId}}\",\n  \"newName\": \"x\",\n  \"newDescription\": \"x\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "채널 단건 조회 (비공개, 참여자 포함)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/{{privateChannelId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"참여자 목록\", () => pm.expect(pm.response.json().participantIds).to.have.members([pm.collectionVariables.get(\"userId\"), pm.collectionVariables.get(\"userId2\")]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "사용자별 채널 목록",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/user/{{userId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"공개+비공개 채널 포함\", () => pm.expect(pm.response.json().map(c => c.id)).to.include.members([pm.collectionVariables.get(\"channelId\"), pm.collectionVariables.get(\"privateChannelId\")]));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "없는 채널 조회 → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/00000000-0000-0000-0000-000000000000"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "3. Message / BinaryContent",
+      "item": [
+        {
+          "name": "메시지 전송 (첨부파일 포함)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/message/send",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "request",
+                  "type": "text",
+                  "contentType": "application/json",
+                  "value": "{\"content\":\"hello\",\"channelId\":\"{{channelId}}\",\"authorId\":\"{{userId}}\"}"
+                },
+                {
+                  "key": "attachments",
+                  "type": "file",
+                  "src": "postman/fixtures/sample.txt"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "const b = pm.response.json();",
+                  "pm.test(\"내용/채널/작성자 반영\", () => { pm.expect(b.content).to.eql(\"hello\"); pm.expect(b.channelId).to.eql(pm.collectionVariables.get(\"channelId\")); pm.expect(b.authorId).to.eql(pm.collectionVariables.get(\"userId\")); });",
+                  "pm.test(\"첨부파일 1개\", () => pm.expect(b.attachmentIds).to.have.lengthOf(1));",
+                  "pm.collectionVariables.set(\"messageId\", b.id); pm.collectionVariables.set(\"attachmentId\", b.attachmentIds[0]);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "메시지 전송 (없는 채널) → 404",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/message/send",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "request",
+                  "type": "text",
+                  "contentType": "application/json",
+                  "value": "{\"content\":\"x\",\"channelId\":\"00000000-0000-0000-0000-000000000000\",\"authorId\":\"{{userId}}\"}"
+                }
+              ]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "채널 메시지 목록",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/message/{{channelId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"전송한 메시지 포함\", () => pm.expect(pm.response.json().map(m => m.id)).to.include(pm.collectionVariables.get(\"messageId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "메시지 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/message/update/{{messageId}}",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"content\": \"hello edited\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"내용 변경\", () => pm.expect(pm.response.json().content).to.eql(\"hello edited\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "첨부파일 정보 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/binaryContent/find/{{attachmentId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"파일명/크기\", () => { const b = pm.response.json(); pm.expect(b.filename).to.eql(\"sample.txt\"); pm.expect(b.size).to.be.above(0); });"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "첨부파일 다운로드",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/binaryContent/{{attachmentId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"attachment 헤더\", () => pm.expect(pm.response.headers.get(\"Content-Disposition\")).to.include(\"attachment\").and.include(\"sample.txt\"));",
+                  "pm.test(\"원본 내용\", () => pm.expect(pm.response.text()).to.include(\"discodeit\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "첨부파일 여러 건 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/binaryContent/list?contentIds={{attachmentId}}&contentIds={{profileId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"2건 반환\", () => pm.expect(pm.response.json()).to.have.lengthOf(2));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "없는 첨부파일 조회 → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/binaryContent/find/00000000-0000-0000-0000-000000000000"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "4. ReadStatus",
+      "item": [
+        {
+          "name": "ReadStatus 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/read-status/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"channelId\": \"{{channelId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 201\", () => pm.response.to.have.status(201));",
+                  "pm.collectionVariables.set(\"readStatusId\", pm.response.json().id);"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ReadStatus 중복 생성 → 409",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": "{{baseUrl}}/api/read-status/create",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{userId}}\",\n  \"channelId\": \"{{channelId}}\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 409\", () => pm.response.to.have.status(409));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ReadStatus 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/read-status/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": \"{{readStatusId}}\",\n  \"lastReadAt\": \"2026-01-01T00:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"lastReadAt 반영\", () => pm.expect(pm.response.json().lastReadAt).to.eql(\"2026-01-01T00:00:00Z\"));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "ReadStatus 수정 (미래 시각) → 400",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": "{{baseUrl}}/api/read-status/update",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"statusId\": \"{{readStatusId}}\",\n  \"lastReadAt\": \"2999-01-01T00:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 400\", () => pm.response.to.have.status(400));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "사용자별 ReadStatus 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/read-status/{{userId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"생성한 ReadStatus 포함\", () => pm.expect(pm.response.json().map(r => r.id)).to.include(pm.collectionVariables.get(\"readStatusId\")));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "5. 삭제",
+      "item": [
+        {
+          "name": "메시지 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/message/delete/{{messageId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "삭제된 메시지 목록에서 제외",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/message/{{channelId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 200\", () => pm.response.to.have.status(200));",
+                  "pm.test(\"메시지 없음\", () => pm.expect(pm.response.json().map(m => m.id)).to.not.include(pm.collectionVariables.get(\"messageId\")));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "메시지 삭제 시 첨부파일도 삭제 → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/binaryContent/find/{{attachmentId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "채널 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/delete/{{channelId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "삭제된 채널 조회 → 404",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{baseUrl}}/api/channel/{{channelId}}"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 404\", () => pm.response.to.have.status(404));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "사용자 삭제 (로그인 세션)",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": "{{baseUrl}}/api/user/delete"
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "type": "text/javascript",
+                "exec": [
+                  "pm.test(\"status 204\", () => pm.response.to.have.status(204));"
+                ]
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

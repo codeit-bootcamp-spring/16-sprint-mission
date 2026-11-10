@@ -2,11 +2,19 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
+@Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "jcf",
+        matchIfMissing = true
+)
 public class JCFUserRepository implements UserRepository {
-
     private final Map<UUID, User> data;
 
     public JCFUserRepository() {
@@ -14,34 +22,28 @@ public class JCFUserRepository implements UserRepository {
     }
 
     @Override
-    public User create(User user) {
-        data.put(user.getId(), user);
+    public User save(User user) {
+        this.data.put(user.getId(), user);
         return user;
     }
 
     @Override
     public Optional<User> findById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
     public List<User> findAll() {
-        return new ArrayList<>(data.values());
+        return this.data.values().stream().toList();
     }
 
     @Override
-    public User update(User user) {
-        if (!data.containsKey(user.getId())) {
-            throw new NoSuchElementException("존재하지 않는 User입니다.");
-        }
-        data.put(user.getId(), user);
-        return user;
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
     }
 
     @Override
-    public void delete(UUID id) {
-        if (data.remove(id) == null) {
-            throw new NoSuchElementException("존재하지 않는 User입니다.");
-        }
+    public void deleteById(UUID id) {
+        this.data.remove(id);
     }
 }
