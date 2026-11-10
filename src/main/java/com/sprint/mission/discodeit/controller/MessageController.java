@@ -7,7 +7,9 @@ import com.sprint.mission.discodeit.service.MessageService;
 
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -20,10 +22,17 @@ public class MessageController {
     private final MessageService messageService;
 
     // 메시지 전송(생성)-POST
-    // PRIVATE 채널에서만 메시지 생성이 가능하다.
-    @RequestMapping(method = RequestMethod.POST)
-    public MessageDto postMessage(@Valid @RequestBody MessageCreateRequest request) {
-        return messageService.createMessage(request);
+    // PUBLIC 채널은 누구나, PRIVATE 채널은 참여자만 메시지를 생성할 수 있다.
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public MessageDto postMessage(
+            @Valid @RequestPart("request") MessageCreateRequest request,
+            @RequestPart(value = "attachments", required = false)
+            List<MultipartFile> attachments) {
+
+        return messageService.createMessage(request, attachments);
     }
 
     // 특정 채널의 메시지 목록 조회(GET)

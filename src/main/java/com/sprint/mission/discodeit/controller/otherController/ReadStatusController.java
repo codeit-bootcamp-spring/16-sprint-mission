@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.request.status.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
 import com.sprint.mission.discodeit.service.otherService.ReadStatusService;
 
+import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,7 +28,7 @@ public class ReadStatusController {
     // 특정 채널의 메시지 수신 정보 수정(PUT)
     @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
     public ReadStatus putReadStatus(@PathVariable UUID id,
-                                    @RequestBody ReadStatusUpdateRequest request) {
+                                    @Valid @RequestBody ReadStatusUpdateRequest request) {
         return readStatusService.update(id, request);
     }
 

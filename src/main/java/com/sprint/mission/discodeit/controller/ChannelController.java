@@ -51,6 +51,7 @@ public class ChannelController {
     }
 
     // 공개 채널 정보 수정(PUT)
+    // 수정할 때 본인을 제외한 다른 유저의 이름이나 이메일을 수정할 경우 "409" 가 발생한다.
     @RequestMapping(method = RequestMethod.PUT)
     public ChannelDto putChannel(@Valid @RequestBody ChannelUpdateRequest request) {
         return channelService.updateChannel(request);

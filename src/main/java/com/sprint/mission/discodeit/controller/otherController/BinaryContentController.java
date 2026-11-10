@@ -21,7 +21,10 @@ public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
     // 바이너리 콘텐츠 생성(POST)
-    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public BinaryContent postBinaryContent(@RequestPart("file") MultipartFile file) throws IOException {
 
         // 파일이 없거나 비어 있으면 업로드를 허용하지 않는다.

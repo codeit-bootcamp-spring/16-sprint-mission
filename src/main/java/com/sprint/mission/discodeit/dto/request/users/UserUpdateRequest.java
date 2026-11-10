@@ -25,6 +25,5 @@ public record UserUpdateRequest(
         @Pattern(
                 regexp = "^\\S+$",
                 message = "비밀번호는 공백을 포함할 수 없습니다.")
-        String password,
-
-        BinaryContentCreateRequest profile) { }
+        String password
+) { }

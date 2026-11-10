@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
+import com.sprint.mission.discodeit.exceptions.FileProcessingException;
 import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -19,7 +20,9 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.service.MessageService;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -37,7 +40,8 @@ public class BasicMessageService implements MessageService {
     private final ChannelRepository channelRepository;
 
     @Override
-    public MessageDto createMessage(MessageCreateRequest request) {
+    public MessageDto createMessage(MessageCreateRequest request,
+                                    List<MultipartFile> attachments) {
 
         // 작성자가 실제로 존재하는지 확인한다.
         User user = userRepository.findByUserId(request.userId())
@@ -61,21 +65,18 @@ public class BasicMessageService implements MessageService {
         // 첨부파일이 전달된 경우 BinaryContent로 변환하여 저장한다.
         List<UUID> attachmentIds = new ArrayList<>();
 
-        if (request.attachments() != null) {
-            attachmentIds = request.attachments().stream()
-                    .map(attachment -> {
-                        BinaryContent binaryContent = new BinaryContent(
-                                attachment.fileName(),
-                                attachment.contentType(),
-                                attachment.size(),
-                                attachment.bytes()
-                        );
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
 
-                        binaryContentRepository.save(binaryContent);
+                if (attachment == null || attachment.isEmpty()) {
+                    continue;
+                }
 
-                        return binaryContent.getId();
-                    })
-                    .toList();
+                BinaryContent binaryContent = createBinaryContent(attachment);
+
+                binaryContentRepository.save(binaryContent);
+                attachmentIds.add(binaryContent.getId());
+            }
         }
 
         // 메시지 생성 및 저장
@@ -89,6 +90,23 @@ public class BasicMessageService implements MessageService {
         // Repository에 메시지 저장을 요청한다.
         messageRepository.save(message);
         return toDto(message);
+    }
+
+    // MultipartFile을 BinaryContent 객체로 변환한다.
+    private BinaryContent createBinaryContent(MultipartFile file) {
+        try {
+            return new BinaryContent(
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getSize(),
+                    file.getBytes()
+            );
+        } catch (IOException ioException) {
+            throw new FileProcessingException(
+                    "첨부파일을 읽을 수 없습니다.",
+                    ioException
+            );
+        }
     }
 
     @Override
@@ -132,6 +150,11 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("메시지를 찾을 수 없습니다"));
 
+        // 요청자가 실제로 존재하는지 확인한다.
+        userRepository.findByUserId(request.requesterId())
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("요청자를 찾을 수 없습니다."));
+
         // 메시지 작성자 권한 확인
         if (!targetMessage.getUserId().equals(request.requesterId())) {
             throw new ForbiddenOperationException("메시지 작성자만 수정할 수 있습니다.");
@@ -156,6 +179,11 @@ public class BasicMessageService implements MessageService {
         Message targetMessage = messageRepository.findByMessageId(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("삭제할 메시지를 찾을 수 없습니다."));
+
+        // 삭제 요청자가 실제로 존재하는지 확인한다.
+        userRepository.findByUserId(requesterId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("요청자를 찾을 수 없습니다."));
 
         // 메시지 작성자와 삭제 요청자가 일치하는지 확인
         if (!targetMessage.getUserId().equals(requesterId)) {

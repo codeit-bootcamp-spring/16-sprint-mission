@@ -1,5 +1,6 @@
-package com.sprint.mission.discodeit.exceptions;
+package com.sprint.mission.discodeit.exceptions.handler;
 
+import com.sprint.mission.discodeit.exceptions.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -8,7 +9,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    // 잘못된 요청 처리
+    // 잘못된 요청 처리(상태코드 : 400)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgumentException(IllegalArgumentException iaException) {
         return ResponseEntity
@@ -46,5 +47,13 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(afException.getMessage());
+    }
+
+    // 파일 읽는 과정에서 서버 내부 문제발생할 때 처리(상태코드 : 500)
+    @ExceptionHandler(FileProcessingException.class)
+    public ResponseEntity<String> handleFileProcessingException(FileProcessingException fpException) {
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(fpException.getMessage());
     }
 }

@@ -1,43 +1,53 @@
 package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.FileProcessingException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
-import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
-import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
+
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
+import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
+
+import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
+import com.sprint.mission.discodeit.repository.UserRepository;
+
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
 import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
-import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.UserService;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 public class FileUserService implements UserService {
 
-    // Repository 의존성
+    // Repository 및 PasswordEncoder 의존성
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final PasswordEncoder passwordEncoder;
 
     // 생성자 의존성 주입
     public FileUserService(
                     UserRepository userRepository,
                     BinaryContentRepository binaryContentRepository,
-                    UserStatusRepository userStatusRepository){
+                    UserStatusRepository userStatusRepository,
+                    PasswordEncoder passwordEncoder) {
 
         this.userRepository = userRepository;
         this.binaryContentRepository = binaryContentRepository;
         this.userStatusRepository = userStatusRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     @Override
-    public UserDto createUser(UserCreateRequest request) {
+    public UserDto createUser(UserCreateRequest request, MultipartFile profile) {
 
         // 사용자 이름 중복 검사
         boolean duplicatedUsername = userRepository.findAll().stream()
@@ -58,27 +68,23 @@ public class FileUserService implements UserService {
         }
 
         // 프로필 이미지가 전달된 경우 저장
-        BinaryContentCreateRequest profileRequest = request.profile();
-        BinaryContent profile = null;
+        BinaryContent profileContent = null;
 
-        if (profileRequest != null) {
-            profile = new BinaryContent(
-                    profileRequest.fileName(),
-                    profileRequest.contentType(),
-                    profileRequest.size(),
-                    profileRequest.bytes()
-            );
-
-            binaryContentRepository.save(profile);
+        if (profile != null && !profile.isEmpty()) {
+            profileContent = createBinaryContent(profile);
+            binaryContentRepository.save(profileContent);
         }
 
-        UUID profileId = profile != null ? profile.getId() : null;
+        UUID profileId = profileContent != null ? profileContent.getId() : null;
+
+        // 비밀번호를 BCrypt 방식으로 암호화하고 사용자 생성
+        String encodedPassword = passwordEncoder.encode(request.password());
 
         // 사용자 생성 및 저장
         User user = new User(
                 request.username(),
                 request.email(),
-                request.password(),
+                encodedPassword,
                 profileId
         );
 
@@ -90,6 +96,21 @@ public class FileUserService implements UserService {
 
         // 6. DTO로 변환하여 반환
         return toDto(user, userStatus);
+    }
+
+    // MultipartFile을 BinaryContent 객체로 변환한다.
+    private BinaryContent createBinaryContent(MultipartFile file) {
+
+        try {
+            return new BinaryContent(
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getSize(),
+                    file.getBytes()
+            );
+        } catch (IOException ioException) {
+            throw new FileProcessingException("프로필 파일을 읽을 수 없습니다.", ioException);
+        }
     }
 
     @Override
@@ -125,7 +146,7 @@ public class FileUserService implements UserService {
     }
 
     @Override
-    public UserDto updateUser(UserUpdateRequest request) {
+    public UserDto updateUser(UserUpdateRequest request, MultipartFile profile) {
 
         // 수정 대상 사용자 조회
         User targetUser = userRepository.findByUserId(request.userId())
@@ -162,18 +183,12 @@ public class FileUserService implements UserService {
             }
         }
 
-        // 새 프로필 이미지 DTO를 Entity로 변환하고 저장한다.
-        BinaryContentCreateRequest profileRequest = request.profile();
+        // 새 프로필 이미지가 전달된 경우 BinaryContent로 변환하여 저장한다.
+        UUID oldProfileId = targetUser.getProfileId();
+        UUID profileId = oldProfileId;
 
-        UUID profileId = targetUser.getProfileId();
-
-        if (profileRequest != null) {
-            BinaryContent newProfile = new BinaryContent(
-                    profileRequest.fileName(),
-                    profileRequest.contentType(),
-                    profileRequest.size(),
-                    profileRequest.bytes()
-            );
+        if (profile != null && !profile.isEmpty()) {
+            BinaryContent newProfile = createBinaryContent(profile);
 
             binaryContentRepository.save(newProfile);
             profileId = newProfile.getId();
@@ -181,7 +196,7 @@ public class FileUserService implements UserService {
 
         // 전달되지 않은 수정 항목은 기존 값 유지
         String password = request.password() != null
-                ? request.password() : targetUser.getPassword();
+                ? passwordEncoder.encode(request.password()) : targetUser.getPassword();
 
         // 수정된 사용자 생성 및 저장
         User updatedUser = new User(
@@ -193,6 +208,11 @@ public class FileUserService implements UserService {
         );
 
         userRepository.save(updatedUser);
+
+        // 새 프로필로 교체된 경우 기존 프로필 이미지 삭제
+        if (profile != null && !profile.isEmpty() && oldProfileId != null) {
+            binaryContentRepository.deleteById(oldProfileId);
+        }
 
         // 기존 사용자 상태를 조회하여 DTO로 변환한다.
         UserStatus userStatus = userStatusRepository

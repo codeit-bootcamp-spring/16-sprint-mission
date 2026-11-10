@@ -18,6 +18,7 @@ public record MessageCreateRequest (
         UUID userId,
 
         @NotNull(message = "채널 ID는 필수입니다.")
-        UUID channelId,
+        UUID channelId // ,
 
-        List<@Valid BinaryContentCreateRequest> attachments) { }
+        // List<@Valid BinaryContentCreateRequest> attachments
+) { }

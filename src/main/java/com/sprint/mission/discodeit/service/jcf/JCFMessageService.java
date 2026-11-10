@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.Message;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
+import com.sprint.mission.discodeit.exceptions.FileProcessingException;
 import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
@@ -15,7 +16,9 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import com.sprint.mission.discodeit.type.ChannelType;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -41,7 +44,8 @@ public class JCFMessageService implements MessageService {
     }
 
     @Override
-    public MessageDto createMessage(MessageCreateRequest request) {
+    public MessageDto createMessage(MessageCreateRequest request,
+                                    List<MultipartFile> attachments) {
 
         // 작성자와 채널이 실제로 존재하는지 확인한다.
         User user = userRepository.findByUserId(request.userId())
@@ -64,21 +68,18 @@ public class JCFMessageService implements MessageService {
         // 첨부파일이 전달된 경우 BinaryContent로 변환하여 저장한다.
         List<UUID> attachmentIds = new ArrayList<>();
 
-        if (request.attachments() != null) {
-            attachmentIds = request.attachments().stream()
-                    .map(attachment -> {
-                        BinaryContent binaryContent = new BinaryContent(
-                                attachment.fileName(),
-                                attachment.contentType(),
-                                attachment.size(),
-                                attachment.bytes()
-                        );
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
 
-                        binaryContentRepository.save(binaryContent);
+                if (attachment == null || attachment.isEmpty()) {
+                    continue;
+                }
 
-                        return binaryContent.getId();
-                    })
-                    .toList();
+                BinaryContent binaryContent = createBinaryContent(attachment);
+
+                binaryContentRepository.save(binaryContent);
+                attachmentIds.add(binaryContent.getId());
+            }
         }
 
         // 메시지 생성 및 저장
@@ -91,6 +92,23 @@ public class JCFMessageService implements MessageService {
 
         data.add(message);      // 메시지를 목록에 추가한다.
         return toDto(message);  // 추가한 메시지를 DTO로 변환하여 반환한다.
+    }
+
+    // MultipartFile을 BinaryContent 객체로 변환한다.
+    private BinaryContent createBinaryContent(MultipartFile file) {
+        try {
+            return new BinaryContent(
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getSize(),
+                    file.getBytes()
+            );
+        } catch (IOException ioException) {
+            throw new FileProcessingException(
+                    "첨부파일을 읽을 수 없습니다.",
+                    ioException
+            );
+        }
     }
 
     @Override
