@@ -75,7 +75,6 @@ public class BasicChannelService implements ChannelService {
         }
     }
 
-
     private Instant findLastMessageAt(UUID channelId) {
         return this.messageRepository.findAll().stream()
                 .filter(m -> m.getChannelId().equals(channelId))
@@ -163,11 +162,13 @@ public class BasicChannelService implements ChannelService {
                 .orElseThrow(() -> new ChannelNotFoundException(
                         "ID가 " + channelId + "인 채널을 찾을 수 없습니다."
                 ));
+
         if (channel.getType() == ChannelType.PRIVATE) {
             throw new PrivateChannelModificationNotAllowedException(
                     "프라이빗 채널은 수정할 수 없습니다."
             );
         }
+
         channel.update(request.newName(), request.newDescription());
         this.channelRepository.save(channel);
 

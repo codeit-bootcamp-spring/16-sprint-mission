@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.userstatus.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusListResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.DuplicateResourceException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -33,6 +35,7 @@ public class BasicUserStatusService implements UserStatusService {
      * <p>처리 과정:
      * <ol>
      *     <li>유효한 사용자 ID 인지 확인합니다</li>
+     *     <li>사용자 ID를 사용하여 사용자 상태 정보가 이미 존재하는 지 확인합니다.</li>
      *     <li>사용자 ID를 사용하여, 사용자 상태 정보를 가져옵니다.</li>
      *     <li>사용자 상태 정보를 저장합니다</li>
      *     <li>사용자 상태 정보를 DTO로 매핑해 반환합니다.</li>
@@ -40,13 +43,20 @@ public class BasicUserStatusService implements UserStatusService {
      */
     @Override
     public UserStatusResponse create(UserStatusCreateRequest request) {
-        this.userRepository.findById(request.userId())
-                .orElseThrow(() -> new UserNotFoundException("ID가 " + request.userId() + "인 사용자를 찾을 수 없습니다."));
+        if (!this.userRepository.existsById(request.userId())) {
+            throw new UserNotFoundException(
+                    "ID가 " + request.userId() + "인 사용자를 찾을 수 없습니다."
+            );
+        }
 
-        UserStatus userStatus = this.userStatusRepository.findByUserId(request.userId())
-                .orElseThrow(() -> new DuplicateResourceException(
-                    "해당 사용자의 사용자 상태 정보가 이미 존재합니다. 사용자 ID: " + request.userId()
-            ));
+        if (this.userStatusRepository.findByUserId(request.userId()).isPresent()) {
+            throw new DuplicateResourceException(
+                    "해당 사용자의 사용자 상태 정보가 이미 존재합니다. 사용자 ID: "
+                            + request.userId()
+            );
+        }
+
+        UserStatus userStatus = new UserStatus(request.userId());
 
         this.userStatusRepository.save(userStatus);
 
@@ -154,7 +164,8 @@ public class BasicUserStatusService implements UserStatusService {
         if (!this.userRepository.existsById(userId)) {
             throw new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다.");
         }
-        UserStatus userStatus = this.userStatusRepository.findByUserId(userId)
+        UserStatus userStatus = this.userStatusRepository
+                .findByUserId(userId)
                         .orElseThrow(() -> new UserStatusNotFoundException(
                                         "사용자 ID가 " + userId + "인 사용자의 상태 정보를 찾을 수 없습니다."
                                 ));
@@ -189,7 +200,7 @@ public class BasicUserStatusService implements UserStatusService {
      */
     @Override
     public void delete(UUID userStatusId) {
-        if (this.userStatusRepository.existsById(userStatusId)) {
+        if (!this.userStatusRepository.existsById(userStatusId)) {
             throw new UserStatusNotFoundException(
                     "ID가 " + userStatusId + "인 사용자 상태 정보를 찾을 수 없습니다.");
         }

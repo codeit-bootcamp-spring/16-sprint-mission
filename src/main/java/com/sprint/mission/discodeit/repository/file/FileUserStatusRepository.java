@@ -2,7 +2,6 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
-import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -65,7 +64,7 @@ public class FileUserStatusRepository implements UserStatusRepository {
     }
 
     @Override
-    public Optional<UserStatus> findByUserId(UUID userId) {
+    public boolean findByUserId(UUID userId) {
         return this.findAll().stream()
                 .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst();
