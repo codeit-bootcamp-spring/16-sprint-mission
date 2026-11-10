@@ -10,6 +10,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -29,9 +30,9 @@ public class UserController {
     }
 
 
-    @RequestMapping(method = RequestMethod.GET)
-    public List<UserDto> findAll() {
-        return userService.findAll();
+    @RequestMapping(method = RequestMethod.GET, value = {"/findAll"})
+    public ResponseEntity<List<UserDto>> findAll() {
+        return ResponseEntity.ok(userService.findAll());
     }
 
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)

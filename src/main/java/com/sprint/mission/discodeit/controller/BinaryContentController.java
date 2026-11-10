@@ -35,5 +35,10 @@ public class BinaryContentController {
         return ResponseEntity.ok(binaryContentService.findAllByIdIn(binaryContentIds));
     }
 
+    @RequestMapping(method = RequestMethod.GET, value = "/find")
+    public ResponseEntity<BinaryContent> find(
+            @RequestParam("binaryContentId") UUID binaryContentId) {
+        return ResponseEntity.ok(binaryContentService.findById(binaryContentId));
+    }
 
 }

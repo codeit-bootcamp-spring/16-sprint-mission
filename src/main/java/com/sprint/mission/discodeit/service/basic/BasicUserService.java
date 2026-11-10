@@ -76,7 +76,8 @@ public class BasicUserService implements UserService {
                 .orElseThrow(() -> new IllegalStateException("접속 상태를 찾을 수 없음"));
 
         return new UserDto(
-                user.getId(), user.getName(), user.getEmail(), user.getProfileId(), userStatus.isOnline());
+                user.getId(), user.getCreatedAt(), user.getUpdatedAt(), user.getName(),
+                user.getEmail(), user.getProfileId(), userStatus.isOnline());
     }
 
     @Override
@@ -91,8 +92,8 @@ public class BasicUserService implements UserService {
                     .orElseThrow(() -> new IllegalStateException("접속 상태를 찾을 수 없음"));
 
             UserDto userDto = new UserDto(
-                    user.getId(), user.getName(), user.getEmail(),
-                    user.getProfileId(), userStatus.isOnline());
+                    user.getId(), user.getCreatedAt(), user.getUpdatedAt(), user.getName(),
+                    user.getEmail(), user.getProfileId(), userStatus.isOnline());
             userDtos.add(userDto);
         }
 
