@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
@@ -28,6 +29,7 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     @Override
     public User create(UserCreateRequest userCreateRequest, MultipartFile profile) {
@@ -118,6 +120,8 @@ public class BasicUserService implements UserService {
         if (user.getProfileId() != null) {
             binaryContentRepository.deleteById(user.getProfileId());
         }
+
+        readStatusRepository.deleteAllByUserId(userId);
         userStatusRepository.deleteByUserId(userId);
         userRepository.deleteById(userId);
     }

@@ -8,9 +8,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -22,9 +20,10 @@ import java.util.*;
 @Service
 public class BasicChannelService implements ChannelService {
     private final ChannelRepository channelRepository;
-    //
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final UserRepository userRepository;
 
     @Override
     public Channel create(PublicChannelCreateRequest request) {
@@ -37,10 +36,26 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public Channel create(PrivateChannelCreateRequest request) {
+        List<UUID> participantIds = request.participantIds();
+        // 참여자 목록 리스트 자체가 null이거나 비어있는지 확인
+        if (participantIds == null || participantIds.isEmpty()) {
+            throw new IllegalArgumentException("비공개 채널을 생성하려면 최소 1명 이상의 참여자가 지정되어야 합니다.");
+        }
+        // 참여자 목록을 순회하며 실제 존재하는 사용자인지 식별자 검증
+        for (UUID userId : participantIds) {
+            if (userId == null) {
+                throw new IllegalArgumentException("참여자 식별자(ID)는 null 일 수 없습니다.");
+            }
+            if (!userRepository.existsById(userId)) {
+                // 존재하지 않는 가짜 유저 ID가 발견되면 404 예외 혹은 잘못된 요청 예외
+                throw new NoSuchElementException("식별자가 " + userId + "인 사용자가 존재하지 않습니다. 올바른 참여자를 지정해 주세요.");
+            }
+        }
+
         Channel channel = new Channel(ChannelType.PRIVATE, null, null);
         Channel createdChannel = channelRepository.save(channel);
 
-        request.participantIds().stream()
+        participantIds.stream()
                 .map(userId -> new ReadStatus(userId, createdChannel.getId(), Instant.MIN))
                 .forEach(readStatusRepository::save);
 
@@ -87,9 +102,16 @@ public class BasicChannelService implements ChannelService {
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("Channel with id " + channelId + " not found"));
 
-        messageRepository.deleteAllByChannelId(channel.getId());
-        readStatusRepository.deleteAllByChannelId(channel.getId());
+        List<Message> channelMessages = messageRepository.findAllByChannelId(channel.getId());
 
+        for (Message message : channelMessages) {
+            if (message.getAttachmentIds() != null) {
+                message.getAttachmentIds().forEach(binaryContentRepository::deleteById);
+            }
+            messageRepository.deleteById(message.getId());
+        }
+
+        readStatusRepository.deleteAllByChannelId(channel.getId());
         channelRepository.deleteById(channelId);
     }
 

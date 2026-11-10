@@ -134,4 +134,9 @@ public class FileReadStatusRepository implements ReadStatusRepository {
         this.findAllByChannelId(channelId)
                 .forEach(readStatus -> this.deleteById(readStatus.getId()));
     }
+    @Override
+    public void deleteAllByUserId(UUID userId) {
+        this.findAllByUserId(userId)
+                .forEach(readStatus -> this.deleteById(readStatus.getId()));
+    }
 }
