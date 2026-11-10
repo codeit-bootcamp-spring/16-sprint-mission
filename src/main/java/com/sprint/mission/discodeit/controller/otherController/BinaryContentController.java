@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/binary-contents")
+@RequestMapping("/api/binaryContent")
 @RequiredArgsConstructor
 public class BinaryContentController {
 
@@ -44,12 +44,12 @@ public class BinaryContentController {
     // 기존 코드는 UUID를 URL 경로로 전달받아 바이너리 콘텐츠를 반환했다면,
     // 변경 코드는 UUID를 요청 파라미터로 전달받고, ResponseEntity로 HTTP 응답을 직접 제어한다.
     @RequestMapping(value = "/find", method = RequestMethod.GET)
-    public ResponseEntity<BinaryContent> getBinaryContent(@RequestParam UUID binaryContentId) {
-        return ResponseEntity.ok(binaryContentService.find(binaryContentId));
+    public ResponseEntity<BinaryContent> getBinaryContent(@RequestParam UUID id) {
+        return ResponseEntity.ok(binaryContentService.find(id));
     }
 
     // 바이너리 콘텐츠 다건 조회(GET)
-    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET)
     public List<BinaryContent> getAllBinaryContent(@RequestParam List<UUID> ids) {
         return binaryContentService.findAllByIdIn(ids);
     }
