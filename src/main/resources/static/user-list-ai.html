@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>사용자 목록 (AI 생성)</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+            background: linear-gradient(180deg, #eef6ff 0%, #ffffff 100%);
+            min-height: 100vh;
+            padding: 48px 16px;
+            color: #1f2937;
+        }
+        .container { max-width: 720px; margin: 0 auto; }
+        h1 { text-align: center; font-size: 28px; margin-bottom: 8px; }
+        .sub { text-align: center; color: #6b7280; margin-bottom: 32px; font-size: 14px; }
+        .list { display: grid; gap: 16px; }
+        .card {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            background: #ffffff;
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 4px 14px rgba(59, 130, 246, 0.12);
+        }
+        .avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #e5edff;
+            flex-shrink: 0;
+        }
+        .info { flex: 1; min-width: 0; }
+        .name { font-size: 18px; font-weight: 700; }
+        .email { font-size: 14px; color: #6b7280; margin-top: 4px; word-break: break-all; }
+        .badge {
+            padding: 6px 14px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #fff;
+            background: #9ca3af;
+        }
+        .badge.online { background: #22c55e; }
+        .empty { text-align: center; color: #6b7280; padding: 32px 0; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>사용자 목록</h1>
+    <p class="sub">AI로 만든 화면</p>
+    <div class="list" id="list"></div>
+</div>
+
+<script>
+    const USERS_URL = '/api/user/findAll';
+    const BINARY_URL = '/api/binaryContent/find';
+    const DEFAULT_AVATAR = '/stichi.png';
+    const AVATAR_BY_USERNAME = {
+        woody: '/teletobi.png'
+    };
+
+    async function getProfileImage(user) {
+        if (!user.profileId) return AVATAR_BY_USERNAME[user.username] || DEFAULT_AVATAR;
+        try {
+            const res = await fetch(BINARY_URL + '?binaryContentId=' + user.profileId);
+            if (!res.ok) throw new Error('profile fetch failed');
+            const profile = await res.json();
+            return 'data:' + profile.contentType + ';base64,' + profile.bytes;
+        } catch (e) {
+            return AVATAR_BY_USERNAME[user.username] || DEFAULT_AVATAR;
+        }
+    }
+
+    async function render() {
+        const list = document.getElementById('list');
+        try {
+            const res = await fetch(USERS_URL);
+            if (!res.ok) throw new Error('users fetch failed');
+            const users = await res.json();
+
+            if (users.length === 0) {
+                list.innerHTML = '<p class="empty">등록된 사용자가 없습니다.</p>';
+                return;
+            }
+
+            list.innerHTML = '';
+            for (const user of users) {
+                const img = await getProfileImage(user);
+                const card = document.createElement('div');
+                card.className = 'card';
+
+                const avatar = document.createElement('img');
+                avatar.className = 'avatar';
+                avatar.src = img;
+                avatar.alt = user.username;
+
+                const info = document.createElement('div');
+                info.className = 'info';
+                const name = document.createElement('div');
+                name.className = 'name';
+                name.textContent = user.username;
+                const email = document.createElement('div');
+                email.className = 'email';
+                email.textContent = user.email;
+                info.append(name, email);
+
+                const badge = document.createElement('span');
+                badge.className = 'badge' + (user.online ? ' online' : '');
+                badge.textContent = user.online ? '온라인' : '오프라인';
+
+                card.append(avatar, info, badge);
+                list.appendChild(card);
+            }
+        } catch (e) {
+            list.innerHTML = '<p class="empty">사용자 목록을 불러오지 못했습니다.</p>';
+            console.error(e);
+        }
+    }
+
+    render();
+</script>
+</body>
+</html>

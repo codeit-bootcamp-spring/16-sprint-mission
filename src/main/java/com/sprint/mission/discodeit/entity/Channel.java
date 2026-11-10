@@ -1,57 +1,44 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.UUID;
-import java.util.List;
-import java.util.ArrayList;
+import lombok.Getter;
+
 import java.io.Serializable;
+import java.time.Instant;
+import java.util.UUID;
 
-public class Channel extends BaseEntity implements Serializable {
-
-
-    private String channelName;
-    private String topic;
-    private String type;
-    private List<UUID> participantIds;
+@Getter
+public class Channel implements Serializable {
     private static final long serialVersionUID = 1L;
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
+    //
+    private ChannelType type;
+    private String name;
+    private String description;
 
-
-    public Channel(String ChannelName, String Topic, String Type) {
-        super();
-        this.channelName = ChannelName;
-        this.topic = Topic;
-        this.type = Type;
-        this.participantIds = new ArrayList<>();
-    }
-
-    public String getChannelName() {
-        return channelName;
-    }
-    public String getTopic() {
-        return topic;
-    }
-    public String getType() {
-        return type;
-    }
-    public List<UUID> getParticipantIds() {
-        return new ArrayList<>(participantIds);
-    }
-    public void update(String channelName, String topic, String type) {
-        this.channelName = channelName;
-        this.topic = topic;
+    public Channel(ChannelType type, String name, String description) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        //
         this.type = type;
-        updateTimestamp();
+        this.name = name;
+        this.description = description;
     }
-    public void addParticipant(UUID userId) {
-        if(participantIds.contains(userId)) {
-            throw new IllegalArgumentException("이미 참여한 사용자입니다: " + userId);
+
+    public void update(String newName, String newDescription) {
+        boolean anyValueUpdated = false;
+        if (newName != null && !newName.equals(this.name)) {
+            this.name = newName;
+            anyValueUpdated = true;
         }
-        this.participantIds.add(userId);
-        updateTimestamp();
-    }
-    public void removeParticipant(UUID userId) {
-        this.participantIds.remove(userId);
-        updateTimestamp();
-    }
+        if (newDescription != null && !newDescription.equals(this.description)) {
+            this.description = newDescription;
+            anyValueUpdated = true;
+        }
 
-
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
+    }
 }
