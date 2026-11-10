@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import java.util.UUID;
 
 import java.util.List;
 
@@ -22,4 +23,10 @@ public class MessageController {
     public Message create(@RequestBody MessageCreateRequest request) {
         return messageService.create(request, List.of());
     }
+
+    @GetMapping
+    public List<Message> findAll(@RequestParam("channelId") UUID channelId) {
+        return messageService.findAllByChannelId(channelId);
+    }
+
 }
