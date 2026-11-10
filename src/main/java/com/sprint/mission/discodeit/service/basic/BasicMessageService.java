@@ -12,7 +12,10 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
@@ -21,13 +24,12 @@ import java.util.UUID;
 @Service
 public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
-    //
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public Message create(MessageCreateRequest messageCreateRequest, List<BinaryContentCreateRequest> binaryContentCreateRequests) {
+    public Message create(MessageCreateRequest messageCreateRequest, List<MultipartFile> attachments) {
         UUID channelId = messageCreateRequest.channelId();
         UUID authorId = messageCreateRequest.authorId();
 
@@ -38,25 +40,28 @@ public class BasicMessageService implements MessageService {
             throw new NoSuchElementException("Author with id " + authorId + " does not exist");
         }
 
-        List<UUID> attachmentIds = binaryContentCreateRequests.stream()
-                .map(attachmentRequest -> {
-                    String fileName = attachmentRequest.fileName();
-                    String contentType = attachmentRequest.contentType();
-                    byte[] bytes = attachmentRequest.bytes();
+        // 첨부파일(MultipartFile)
+        List<UUID> attachmentIds = new ArrayList<>();
+        if (attachments != null && !attachments.isEmpty()) {
+            for (MultipartFile file : attachments) {
+                if (file != null && !file.isEmpty()) {
+                    try {
+                        String fileName = file.getOriginalFilename();
+                        String contentType = file.getContentType();
+                        byte[] bytes = file.getBytes();
 
-                    BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length, contentType, bytes);
-                    BinaryContent createdBinaryContent = binaryContentRepository.save(binaryContent);
-                    return createdBinaryContent.getId();
-                })
-                .toList();
+                        BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length, contentType, bytes);
+                        BinaryContent createdBinaryContent = binaryContentRepository.save(binaryContent);
+                        attachmentIds.add(createdBinaryContent.getId());
+                    } catch (IOException e) {
+                        throw new RuntimeException("메시지 첨부파일 저장 중 에러가 발생했습니다.", e);
+                    }
+                }
+            }
+        }
 
         String content = messageCreateRequest.content();
-        Message message = new Message(
-                content,
-                channelId,
-                authorId,
-                attachmentIds
-        );
+        Message message = new Message(content, channelId, authorId, attachmentIds);
         return messageRepository.save(message);
     }
 
@@ -77,6 +82,7 @@ public class BasicMessageService implements MessageService {
         String newContent = request.newContent();
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NoSuchElementException("Message with id " + messageId + " not found"));
+
         message.update(newContent);
         return messageRepository.save(message);
     }
@@ -86,8 +92,10 @@ public class BasicMessageService implements MessageService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NoSuchElementException("Message with id " + messageId + " not found"));
 
-        message.getAttachmentIds()
-                .forEach(binaryContentRepository::deleteById);
+        if (message.getAttachmentIds() != null) {
+            message.getAttachmentIds()
+                    .forEach(binaryContentRepository::deleteById);
+        }
 
         messageRepository.deleteById(messageId);
     }
