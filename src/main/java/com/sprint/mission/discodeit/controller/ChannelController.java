@@ -21,7 +21,7 @@ public class ChannelController {
     private final ChannelService channelService;
 
 
-    @PostMapping("/publc")
+    @PostMapping("/public")
     public ResponseEntity<ChannelResponseDto> createPublicChannel(@RequestBody PublicChannelRequestDto publicChannelRequestDto) {
         ChannelResponseDto channelResponseDto = channelService.createPublicChannel(publicChannelRequestDto);
         return ResponseEntity.status(HttpStatus.CREATED).body(channelResponseDto);

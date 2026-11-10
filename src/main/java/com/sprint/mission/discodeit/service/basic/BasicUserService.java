@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.BinaryContentRequestDto;
 import com.sprint.mission.discodeit.dto.UserRequestDto;
 import com.sprint.mission.discodeit.dto.UserResponseDto;
+import com.sprint.mission.discodeit.dto.UserUpdateDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -77,7 +78,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponseDto update(UUID userId, UserRequestDto userRequestDto) {
+    public UserResponseDto update(UUID userId, UserUpdateDto userUpdateDto) {
         User  user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
@@ -85,8 +86,8 @@ public class BasicUserService implements UserService {
 
 
         UUID oldProfileId = user.getProfileId();
-        UUID newProfileId = saveProfile(userRequestDto.profile());
-        user.update(userRequestDto.username(), userRequestDto.email(), userRequestDto.password(), newProfileId);
+        UUID newProfileId = saveProfile(userUpdateDto.profile());
+        user.update(userUpdateDto.email(), userUpdateDto.password(), newProfileId);
         userRepository.save(user);
 
         if (newProfileId != null && oldProfileId != null) {

@@ -21,7 +21,7 @@ public class AuthService {
     }
 
     public UserResponseDto login(LoginRequestDto loginRequestDto) {
-        User user = userRepository.findByUsername(loginRequestDto.userName())
+        User user = userRepository.findByUsername(loginRequestDto.username())
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
         if (!user.getPassword().equals(loginRequestDto.password())) {
