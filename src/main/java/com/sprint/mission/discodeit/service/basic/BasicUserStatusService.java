@@ -98,6 +98,10 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public void delete(UUID userStatusId) {
+        if (this.userStatusRepository.existsById(userStatusId)) {
+            throw new UserStatusNotFoundException(
+                    "ID가 " + userStatusId + "인 사용자 상태 정보를 찾을 수 없습니다.");
+        }
         this.userStatusRepository.deleteById(userStatusId);
     }
 

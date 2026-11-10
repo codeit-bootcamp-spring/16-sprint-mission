@@ -47,7 +47,4 @@ public class ChannelController {
         return ResponseEntity.ok(channelInfoListDto);
     }
 
-    /* 특정 채널의 메시지 수신 정보를 생성할 수 있다. */
-
-    /* 특정 채널의 메시지 수신 정보를 수정할 수 있다. */
 }
