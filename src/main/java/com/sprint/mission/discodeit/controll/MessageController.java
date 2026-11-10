@@ -6,13 +6,11 @@ import com.sprint.mission.discodeit.dto.message.MessageUpdateDto;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -24,11 +22,16 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    @RequestMapping(method = RequestMethod.POST)
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<MessageDto> create(
-            @RequestBody MessageCreateDto dto
+            @RequestPart("message") MessageCreateDto dto,
+            @RequestPart(value = "attachments", required = false)
+            List<MultipartFile> attachments
     ) {
-        MessageDto message = messageService.createMessage(dto);
+        MessageDto message = messageService.createMessage(dto, attachments);
         return ResponseEntity.status(HttpStatus.CREATED).body(message);
     }
 
@@ -39,13 +42,19 @@ public class MessageController {
         return ResponseEntity.ok(messageService.findAllByChannelId(channelId));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
+    @RequestMapping(
+            value = "/{id}",
+            method = RequestMethod.PATCH,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<MessageDto> update(
             @PathVariable("id") UUID id,
-            @RequestBody MessageUpdateDto dto
+            @RequestPart("message") MessageUpdateDto dto,
+            @RequestPart(value = "attachments", required = false)
+            List<MultipartFile> attachments
     ) {
         MessageUpdateDto updateDto = new MessageUpdateDto(id, dto.content());
-        return ResponseEntity.ok(messageService.updateMessage(updateDto));
+        return ResponseEntity.ok(messageService.updateMessage(updateDto, attachments));
     }
 
     @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
