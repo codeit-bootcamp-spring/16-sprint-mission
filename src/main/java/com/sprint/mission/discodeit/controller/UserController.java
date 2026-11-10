@@ -52,7 +52,7 @@ public class UserController {
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserDto> update(@PathVariable UUID userId,
-                          @RequestPart("userUpdateRequest")UserUpdateRequest request,
+                          @RequestPart("userUpdateRequest") UserUpdateRequest request,
                           @RequestPart(value = "profile", required = false) MultipartFile profile) {
         return ResponseEntity.ok(userService.update(userId, request, toBinaryContentRequest(profile)));
     }
@@ -63,7 +63,7 @@ public class UserController {
         return ResponseEntity.noContent().build();
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userService.findAll());
     }
