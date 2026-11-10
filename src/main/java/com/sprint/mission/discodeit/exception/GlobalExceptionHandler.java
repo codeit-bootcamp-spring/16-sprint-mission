@@ -2,8 +2,15 @@ package com.sprint.mission.discodeit.exception;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -106,6 +113,41 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DuplicateUserStatusException.class)
     public ResponseEntity<ErrorResponse> handleDuplicateUserStatus(DuplicateUserStatusException e) {
         return toResponse(HttpStatus.CONFLICT, "DUPLICATE_USER_STATUS", e);
+    }
+
+    @ExceptionHandler({
+            MissingServletRequestParameterException.class,
+            MethodArgumentTypeMismatchException.class,
+            HttpMessageNotReadableException.class,
+            MissingServletRequestPartException.class
+    })
+    public ResponseEntity<ErrorResponse> handleBadRequest(Exception e) {
+        return ResponseEntity.badRequest()
+                .body(new ErrorResponse(
+                        "INVALID_REQUEST", "요청 형식을 확인해주세요."));
+    }
+
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<ErrorResponse> handleUnsupportedMediaType(
+            HttpMediaTypeNotSupportedException e) {
+        return ResponseEntity.status(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+                .body(new ErrorResponse(
+                        "UNSUPPORTED_MEDIA_TYPE",
+                        "지원하지 않는 Content-Type입니다."));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleUploadTooLarge(
+            MaxUploadSizeExceededException e) {
+        return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+                .body(new ErrorResponse(
+                        "FILE_TOO_LARGE", "업로드 용량을 초과했습니다."));
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ErrorResponse> handleNoResource(NoResourceFoundException e) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(new ErrorResponse("NOT_FOUND", "요청한 경로를 찾을 수 없습니다."));
     }
 
     @ExceptionHandler(Exception.class)
