@@ -48,4 +48,18 @@ public class ChannelController {
     public ResponseEntity<List<ChannelDto>> findAllByUserId(@RequestParam UUID userId) {
         return ResponseEntity.ok(channelService.findAllByUserId(userId));
     }
+
+    @RequestMapping(value = "/{channelId}/members", method = RequestMethod.POST)
+    public ResponseEntity<Void> join(@PathVariable UUID channelId,
+                                     @RequestParam UUID userId) {
+        channelService.join(channelId, userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @RequestMapping(value = "/{channelId}/members", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> leave(@PathVariable UUID channelId,
+                                     @RequestParam UUID userId) {
+        channelService.leave(channelId, userId);
+        return ResponseEntity.noContent().build();
+    }
 }
