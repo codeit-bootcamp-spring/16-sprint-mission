@@ -73,16 +73,12 @@ public class BasicChannelService implements ChannelService {
 
         channel.joinChannel(creatorId);
 
-        List<UUID> participantIds = new ArrayList<>();
-        participantIds.add(creatorId);
-
         if (dto.getParticipantIds() != null) {
             for (UUID participantId : dto.getParticipantIds()) {
                 findUserEntity(participantId);
 
                 // 중복 참여 방지
-                if (!participantIds.contains(participantId)) {
-                    participantIds.add(participantId);
+                if (!channel.getParticipantIds().contains(participantId)) {
                     channel.joinChannel(participantId);
                 }
             }
@@ -90,7 +86,7 @@ public class BasicChannelService implements ChannelService {
 
         Channel savedChannel = channelRepository.save(channel);
 
-        for (UUID participantId : participantIds) {
+        for (UUID participantId : channel.getParticipantIds()) {
             User participant = findUserEntity(participantId);
 
             participant.addChannelId(savedChannel.getId());
@@ -106,10 +102,6 @@ public class BasicChannelService implements ChannelService {
     public ChannelResponseDto joinChannel(UUID channelId, UUID userId) {
         User user = findUserEntity(userId);
         Channel channel = findChannelEntity(channelId);
-
-        if (channel.getParticipantIds().contains(userId)) {
-            throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
-        }
 
         if (channel.getType() == ChannelType.PRIVATE) {
             throw new IllegalStateException("비공개 채널에는 임의로 참여할 수 없습니다.");
@@ -131,10 +123,6 @@ public class BasicChannelService implements ChannelService {
         User user = findUserEntity(userId);
         Channel channel = findChannelEntity(channelId);
 
-        if (!channel.getParticipantIds().contains(userId)) {
-            throw new IllegalArgumentException("채널에 참여 중인 사용자가 아닙니다.");
-        }
-
         channel.leaveChannel(userId);
         channelRepository.save(channel);
 
@@ -155,25 +143,12 @@ public class BasicChannelService implements ChannelService {
 
     // 사용자가 볼 수 있는 채널 목록 조회
     @Override
-    public List<ChannelResponseDto> findAllChannelsByUserId(UUID userId) {
+    public List<ChannelResponseDto> findAccessibleChannelsByUserId(UUID userId) {
         findUserEntity(userId);
 
-        List<Channel> allChannels = channelRepository.findAll();
-        List<ChannelResponseDto> result = new ArrayList<>();
-
-        for (Channel channel : allChannels) {
-            // 공개 채널은 모두 조회 가능
-            if (channel.getType() == ChannelType.PUBLIC) {
-                result.add(toResponseDto(channel));
-            }
-            // 비공개 채널은 참여자만 조회 가능
-            else if (channel.getType() == ChannelType.PRIVATE
-                    && channel.getParticipantIds().contains(userId)) {
-                result.add(toResponseDto(channel));
-            }
-        }
-
-        return result;
+        return channelRepository.findAccessibleByUserId(userId).stream()
+                .map(this::toResponseDto)
+                .toList();
     }
 
     @Override
@@ -216,7 +191,6 @@ public class BasicChannelService implements ChannelService {
             sender.removeMessageId(message.getId());
             userRepository.save(sender);
 
-            // 메시지에 연결된 첨부파일 삭제
             for (UUID attachmentId : message.getAttachmentIds()) {
                 binaryContentRepository.deleteById(attachmentId);
             }

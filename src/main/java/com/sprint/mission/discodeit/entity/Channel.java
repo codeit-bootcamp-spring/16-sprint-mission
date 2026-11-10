@@ -116,9 +116,8 @@ public class Channel extends BaseEntity {
 
     public void removeMessageId(UUID messageId) {
         Validation.validateNull(messageId, "messageId");
-
-        messageIds.remove(messageId);
-
-        super.update();
+        if (messageIds.remove(messageId)) {
+            super.update();
+        }
     }
 }
