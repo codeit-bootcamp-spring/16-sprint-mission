@@ -10,7 +10,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 @Component
 public class UserMapper {
-    public UserResponse toResponse(User user, UserStatus userStatus) {
+    public UserResponse toUserResponse(User user, UserStatus userStatus) {
         return new UserResponse(
                 user.getId(),
                 user.getProfileId(),
