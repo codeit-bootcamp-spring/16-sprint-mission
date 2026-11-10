@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.PrivateChannelRequest;
 import com.sprint.mission.discodeit.dto.PublicChannelRequest;
 import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.DuplicateChannelException;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class BasicChannelService implements ChannelService {
         List<Channel> channels = channelRepository.findAll();
 
         if(channels.stream().anyMatch(c -> c.getType() == ChannelType.PUBLIC&&c.getName().equals(request.name()))) {
-            throw new IllegalArgumentException("사용 중인 채널명");
+            throw new DuplicateChannelException();
         }
 
         Channel channel = new Channel(ChannelType.PUBLIC,request.name(),request.description());
@@ -114,7 +115,7 @@ public class BasicChannelService implements ChannelService {
                 .filter(c -> c.getType() == ChannelType.PUBLIC)
                 .anyMatch(otherChannel -> !otherChannel.getId().equals(request.channelId())
                                 && otherChannel.getName().equals(request.name()))) {
-            throw new IllegalArgumentException("사용 중인 채널명");
+            throw new DuplicateChannelException();
         }
 
 
