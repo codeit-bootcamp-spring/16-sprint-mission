@@ -1,32 +1,32 @@
 package com.sprint.mission.discodeit.service;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
+import com.sprint.mission.discodeit.dto.channel.ChannelUpdateRequestDto;
+import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequestDto;
+import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequestDto;
 
 import java.util.List;
 import java.util.UUID;
 
 public interface ChannelService {
 
-    // 생성
-    Channel createChannel(Channel channel);
+    ChannelResponseDto createPublicChannel(
+            UUID creatorId, PublicChannelCreateRequestDto dto);
 
-    // 참여/퇴장
-    Channel joinChannel(UUID channelId, UUID userId);
+    ChannelResponseDto createPrivateChannel(
+            UUID creatorId, PrivateChannelCreateRequestDto dto);
+
+    // 채널 입장
+    ChannelResponseDto joinChannel(UUID channelId, UUID userId);
+
+    // 채널 퇴장
     void leaveChannel(UUID channelId, UUID userId);
 
-    // 조회
-    Channel getChannelById(UUID channelId);
-    List<Channel> getAllChannels();
-    List<Channel> getChannelsByCreatorId(UUID creatorId);
-    List<Channel> getChannelsByParticipantId(UUID userId);
-    List<User> getParticipants(UUID channelId);
-    boolean isParticipant(UUID channelId, UUID userId);
+    ChannelResponseDto findChannel(UUID channelId);
 
-    // 수정
-    Channel updateChannelName(UUID channelId, UUID userId, String channelName);
+    List<ChannelResponseDto> findAllChannelsByUserId(UUID userId);
 
-    // 삭제
-    void deleteChannel(UUID channelId, UUID userId);
+    ChannelResponseDto updateChannel(UUID channelId, ChannelUpdateRequestDto dto);
 
+    void deleteChannel(UUID channelId);
 }

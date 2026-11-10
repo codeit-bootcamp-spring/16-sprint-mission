@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Stream;
 
@@ -44,28 +45,28 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Channel findById(UUID channelId) {
+    public Optional<Channel> findById(UUID channelId) {
         Path file = fileFor(channelId);
 
         if (Files.notExists(file)) {
-            return null;
+            return Optional.empty();
         }
 
-        return readChannel(file);
+        return Optional.of(readChannel(file));
     }
 
     @Override
     public List<Channel> findAll() {
-        List<Channel> channels = new ArrayList<>();
+        List<Channel> allChannels = new ArrayList<>();
 
         try (Stream<Path> files = Files.list(channelDirectory)) {
             files.filter(file -> file.getFileName().toString().endsWith(".ser"))
-                    .forEach(file -> channels.add(readChannel(file)));
+                    .forEach(file -> allChannels.add(readChannel(file)));
         } catch (IOException e) {
             throw new RuntimeException("채널 파일 목록을 읽는 데 실패했습니다.", e);
         }
 
-        return channels;
+        return allChannels;
     }
 
     @Override

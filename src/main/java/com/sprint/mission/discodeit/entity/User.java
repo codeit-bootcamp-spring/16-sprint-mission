@@ -1,11 +1,16 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.io.Serializable;
+import lombok.Getter;
+
+import java.io.Serial;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-public class User extends BaseEntity implements Serializable {
+@Getter
+public class User extends BaseEntity {
+
+    @Serial
     private static final long serialVersionUID = 2L;
 
     private String username;
@@ -13,32 +18,23 @@ public class User extends BaseEntity implements Serializable {
     private String email;
     private final List<UUID> myChannelIds;
     private final List<UUID> myMessageIds;
+    private UUID profileId;
 
     public User(String username, String password, String email) {
         super();
+
         Validation.validateWhitespace(username, "username");
         Validation.validateWhitespace(password, "password");
         if (email != null) {
             Validation.validateWhitespace(email, "email");
             Validation.validateEmailRegex(email);
         }
+
         this.username = username;
         this.password = password;
         this.email = email;
         this.myChannelIds = new ArrayList<>();
         this.myMessageIds = new ArrayList<>();
-    }
-
-    public String getUsername() {
-        return username;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public String getEmail() {
-        return email;
     }
 
     public List<UUID> getMyChannelIds() {
@@ -65,6 +61,12 @@ public class User extends BaseEntity implements Serializable {
         Validation.validateWhitespace(email, "email");
         Validation.validateEmailRegex(email);
         this.email = email;
+        super.update();
+    }
+
+    public void changeProfileId(UUID profileId) {
+        Validation.validateNull(profileId, "profileId");
+        this.profileId = profileId;
         super.update();
     }
 
@@ -102,6 +104,11 @@ public class User extends BaseEntity implements Serializable {
 
     public void deleteEmail() {
         this.email = null;
+        super.update();
+    }
+
+    public void deleteProfileId() {
+        this.profileId = null;
         super.update();
     }
 }
