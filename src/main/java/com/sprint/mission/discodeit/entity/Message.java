@@ -21,10 +21,8 @@ public class Message extends Base{
         updateUpdatedAt();
     }
 
-    public void addAttachments(List<UUID> newAttachmentIds) {
-        List<UUID> combinedIds =  new ArrayList<>(attachmentIds);
-        combinedIds.addAll(newAttachmentIds);
-        this.attachmentIds = combinedIds;
+    public void replaceAttachments(List<UUID> newAttachmentIds) {
+        this.attachmentIds =  new ArrayList<>(attachmentIds);
     }
 
     @Override
