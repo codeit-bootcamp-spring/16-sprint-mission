@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.service.basic.otherBasicService;
+package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
