@@ -114,7 +114,8 @@ public class BasicUserService implements UserService {
         List<UserResponse> userResponses = new ArrayList<>();
         for (User user : users) {
             UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
-                    .orElseThrow(() -> new UserStatusNotFoundException(
+                    .orElseThrow(() ->
+                            new UserStatusNotFoundException(
                             "ID가 " + user.getId() + "인 user의 userStatus를 찾을 수 없습니다."
                     ));
 
