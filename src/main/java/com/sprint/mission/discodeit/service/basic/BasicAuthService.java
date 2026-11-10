@@ -59,6 +59,7 @@ public class BasicAuthService implements AuthService {
                 user.getUsername(),
                 user.getAge(),
                 user.getEmail(),
+                user.getProfileId(),
                 userStatus.isOnline()
         );
     }

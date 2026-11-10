@@ -7,6 +7,7 @@ public record UserDto(
         String username,
         int age,
         String email,
+        UUID profileId,
         boolean online
 ) {
 }

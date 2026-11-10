@@ -110,6 +110,7 @@ public class BasicUserService implements UserService {
                 savedUser.getUsername(),
                 savedUser.getAge(),
                 savedUser.getEmail(),
+                savedUser.getProfileId(),
                 savedStatus.isOnline()
         );
     }
@@ -319,6 +320,7 @@ public class BasicUserService implements UserService {
                 user.getUsername(),
                 user.getAge(),
                 user.getEmail(),
+                user.getProfileId(),
                 userStatus.isOnline()
         );
     }
