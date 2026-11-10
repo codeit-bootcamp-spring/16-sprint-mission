@@ -32,7 +32,6 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
-
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
@@ -131,13 +130,6 @@ public class BasicUserService implements UserService {
             }
         }
 
-        UserStatus userStatus = userStatusRepository.findByUserId(userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자 상태를 찾을 수 없습니다."));
-
-        userStatus.updateLastActiveAt();
-        userStatusRepository.save(userStatus);
-
         User savedUser = userRepository.save(user);
 
         return toResponseDto(savedUser);
@@ -184,9 +176,7 @@ public class BasicUserService implements UserService {
                 }
 
                 // 사용자 참여 채널 ID 정리
-                if (user.getMyChannelIds().contains(channelId)) {
-                    user.removeChannelId(channelId);
-                }
+                user.removeChannelId(channelId);
 
                 // 해당 사용자의 읽음 상태 삭제
                 readStatusRepository
@@ -287,10 +277,8 @@ public class BasicUserService implements UserService {
 
             userRepository.findById(participantId)
                     .ifPresent(participant -> {
-                        if (participant.getMyChannelIds().contains(channelId)) {
-                            participant.removeChannelId(channelId);
-                            userRepository.save(participant);
-                        }
+                        participant.removeChannelId(channelId);
+                        userRepository.save(participant);
                     });
         }
 
@@ -308,10 +296,9 @@ public class BasicUserService implements UserService {
             String username,
             UUID excludeUserId
     ) {
-        boolean duplicated = userRepository.findAll().stream()
-                .anyMatch(user ->
-                        user.getUsername().equals(username)
-                                && !user.getId().equals(excludeUserId));
+        boolean duplicated = excludeUserId == null
+                ? userRepository.existsByUsername(username)
+                : userRepository.existsByUsernameAndIdNot(username, excludeUserId);
 
         if (duplicated) {
             throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
@@ -326,10 +313,9 @@ public class BasicUserService implements UserService {
             return;
         }
 
-        boolean duplicated = userRepository.findAll().stream()
-                .anyMatch(user ->
-                        email.equals(user.getEmail())
-                                && !user.getId().equals(excludeUserId));
+        boolean duplicated = excludeUserId == null
+                ? userRepository.existsByEmail(email)
+                : userRepository.existsByEmailAndIdNot(email, excludeUserId);
 
         if (duplicated) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
