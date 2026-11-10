@@ -5,13 +5,9 @@ import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 import java.util.UUID;
@@ -26,9 +22,10 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    @RequestMapping(method = RequestMethod.POST)
-    public Message create(@RequestBody MessageCreateRequest request) {
-        return messageService.create(request, List.of());
+    @RequestMapping(method = RequestMethod.POST,consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public Message create(@RequestPart("request") MessageCreateRequest request,
+                          @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        return messageService.create(request, attachments);
     }
 
     @RequestMapping(method = RequestMethod.GET)

@@ -12,7 +12,10 @@ import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +30,7 @@ public class BasicUserService implements UserService {
 
 
     @Override
-    public User create(UserCreateRequest request, BinaryContentRequest profile) {
+    public User create(UserCreateRequest request, MultipartFile profile) {
         List<User> users = userRepository.findAll();
 
         if(users.stream().anyMatch(u->u.getName().equals(request.name()))) {
@@ -42,8 +45,16 @@ public class BasicUserService implements UserService {
         User user = new User(request.name(),request.password(),request.email());
 
 
-        if(profile != null) {
-            BinaryContent binaryContent = new BinaryContent(profile.fileName(),profile.contentType(), profile.bytes());
+        if (profile != null && !profile.isEmpty()) {
+            byte[] bytes;
+            try {
+                bytes = profile.getBytes();
+            } catch (IOException e) {
+                throw new UncheckedIOException("프로필 파일을 읽을 수 없습니다.", e);
+            }
+
+            BinaryContent binaryContent = new BinaryContent(
+                    profile.getOriginalFilename(), profile.getContentType(), bytes);
             binaryContentRepository.save(binaryContent);
             user.updateProfile(binaryContent.getId());
         }
@@ -82,7 +93,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public User update(UserUpdateRequest request, BinaryContentRequest profile) {
+    public User update(UserUpdateRequest request, MultipartFile profile) {
 
         List<User> users = userRepository.findAll();
 
@@ -100,16 +111,22 @@ public class BasicUserService implements UserService {
 
         user.update(request.name(), request.password(), request.email());
 
-        if(profile != null) {
-            BinaryContent binaryContent = new BinaryContent(profile.fileName(),profile.contentType(), profile.bytes());
+        if (profile != null && !profile.isEmpty()) {
+            byte[] bytes;
+            try {
+                bytes = profile.getBytes();
+            } catch (IOException e) {
+                throw new UncheckedIOException("프로필 파일을 읽을 수 없습니다.", e);
+            }
+            BinaryContent binaryContent = new BinaryContent(
+                    profile.getOriginalFilename(), profile.getContentType(), bytes);
             binaryContentRepository.save(binaryContent);
             UUID oldProfileId = user.getProfileId();
             user.updateProfile(binaryContent.getId());
-            if(oldProfileId!=null) {
+            if (oldProfileId != null) {
                 binaryContentRepository.deleteById(oldProfileId);
             }
         }
-
         userRepository.save(user);
         return user;
     }

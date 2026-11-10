@@ -9,7 +9,9 @@ import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.Instant;
 import java.util.List;
@@ -32,9 +34,11 @@ public class UserController {
         return userService.findAll();
     }
 
-    @RequestMapping(method = RequestMethod.POST)
-    public UserDto create(@RequestBody UserCreateRequest request) {
-        User user =  userService.create(request,null);
+    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public UserDto create(@RequestPart("request") UserCreateRequest request, @RequestPart(value = "profile", required = false)
+            MultipartFile profile) {
+        User user = userService.create(request, profile);
         return userService.findById(user.getId());
     }
 
@@ -44,12 +48,14 @@ public class UserController {
         userService.delete(userId);
     }
 
-    @RequestMapping(method = RequestMethod.PATCH,value = "/{userId}")
-    public UserDto update(@PathVariable UUID userId,@RequestBody UserUpdateRequest request) {
-        UserUpdateRequest updateRequest = new UserUpdateRequest(userId,request.name(),request.password(),request.email());
-        userService.update(updateRequest,null);
+    @RequestMapping(method = RequestMethod.PATCH,value = "/{userId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public UserDto update(@PathVariable UUID userId,@RequestPart("request") UserUpdateRequest request,
+                          @RequestPart(value = "profile", required = false)MultipartFile profile) {
+        userService.update(new UserUpdateRequest(userId, request.name(), request.password(), request.email()), profile);
         return userService.findById(userId);
     }
+
+
 
     @RequestMapping(method = RequestMethod.PATCH,value = "/{userId}/online-status")
     public UserDto onlineStatus(@PathVariable UUID userId){

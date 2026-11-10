@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContentRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.*;
@@ -11,7 +10,10 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
@@ -27,7 +29,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public Message create(MessageCreateRequest request,List<BinaryContentRequest> attachments) {
+    public Message create(MessageCreateRequest request,List<MultipartFile> attachments) {
         userRepository.findById(request.authorId()).orElseThrow(()->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
         channelRepository.findById(request.channelId()).orElseThrow(()->
@@ -35,12 +37,23 @@ public class BasicMessageService implements MessageService {
 
         List<UUID> attachmentIds = new ArrayList<>();
 
-        for(BinaryContentRequest binaryContentRequest : attachments){
-            BinaryContent binaryContent = new BinaryContent(binaryContentRequest.fileName(),binaryContentRequest.contentType(),binaryContentRequest.bytes());
-            binaryContentRepository.save(binaryContent);
-            attachmentIds.add(binaryContent.getId());
+        if(attachments!=null){
+            List<BinaryContent>files=new ArrayList<>();
+            for(MultipartFile attachment : attachments){
+                if(attachment.isEmpty()){
+                    continue;
+                }
+                try{
+                    files.add(new BinaryContent(attachment.getOriginalFilename(),attachment.getContentType(),attachment.getBytes()));
+                }catch(IOException e){
+                    throw new UncheckedIOException("첨부파일을 읽을 수 없음",e);
+                }
+            }
+            for(BinaryContent file : files){
+                binaryContentRepository.save(file);
+                attachmentIds.add(file.getId());
+            }
         }
-
         Message message = new Message(request.comment(), request.authorId(),request.channelId(),attachmentIds);
         messageRepository.save(message);
         return message;
