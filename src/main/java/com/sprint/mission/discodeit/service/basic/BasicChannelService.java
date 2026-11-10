@@ -241,12 +241,8 @@ public class BasicChannelService implements ChannelService {
     }
 
     private ChannelResponseDto toResponseDto(Channel channel) {
-        List<Message> messages =
-                messageRepository.findByChannelId(channel.getId());
-
-        Instant lastMessageAt = messages.stream()
-                .map(Message::getCreatedAt)
-                .max(Instant::compareTo)
+        Instant lastMessageAt = messageRepository
+                .findLatestCreatedAtByChannelId(channel.getId())
                 .orElse(null);
 
         return ChannelResponseDto.builder()
