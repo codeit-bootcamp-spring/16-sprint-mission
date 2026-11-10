@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.LoginRequestDto;
 import com.sprint.mission.discodeit.dto.UserResponseDto;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.LoginFailedException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import org.springframework.stereotype.Service;
@@ -25,7 +26,7 @@ public class AuthService {
                 .orElseThrow(() -> new NoSuchElementException("User not found"));
 
         if (!user.getPassword().equals(loginRequestDto.password())) {
-            throw new NoSuchElementException("Wrong password");
+            throw new LoginFailedException("Wrong password");
         }
 
         UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
