@@ -3,6 +3,8 @@ package com.sprint.mission.discodeit.service.basic.otherBasicService;
 import com.sprint.mission.discodeit.dto.request.status.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.status.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
+import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.otherService.UserStatusService;
@@ -26,12 +28,12 @@ public class BasicUserStatusService implements UserStatusService {
         // 유저 존재 여부 확인
         userRepository.findByUserId(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
 
         // 동일한 유저의 유저 상태 중복 확인
         userStatusRepository.findByUserId(request.userId())
                 .ifPresent(userStatus -> {
-                    throw new IllegalArgumentException("이미 존재하는 유저 상태입니다.");
+                    throw new DuplicateResourceException("이미 존재하는 유저 상태입니다.");
                 });
 
         UserStatus userStatus = new UserStatus(
@@ -48,7 +50,7 @@ public class BasicUserStatusService implements UserStatusService {
     public UserStatus find(UUID id) {
         return userStatusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
     }
 
     @Override
@@ -73,7 +75,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
         userStatus.updateLastActiveAt(lastActiveAt);
 
