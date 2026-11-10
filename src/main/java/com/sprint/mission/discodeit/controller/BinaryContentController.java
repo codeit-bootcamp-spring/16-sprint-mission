@@ -21,12 +21,12 @@ import java.util.UUID;
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
-    @RequestMapping(value = "{binaryContentId}", method = RequestMethod.GET)
-    public ResponseEntity<BinaryContentDto> findById(@PathVariable UUID binaryContentId) {
+    @RequestMapping(value = "/find", method = RequestMethod.GET)
+    public ResponseEntity<BinaryContentDto> findById(@RequestParam UUID binaryContentId) {
         return ResponseEntity.ok(binaryContentService.findById(binaryContentId));
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<List<BinaryContentDto>> findAllByIdIn(
             @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
         return ResponseEntity.ok(binaryContentService.findAllByIdIn(binaryContentIds));
