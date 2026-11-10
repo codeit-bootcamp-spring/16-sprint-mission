@@ -153,13 +153,22 @@ public class BasicMessageService implements MessageService {
         );
 
         List<UUID> newAttachmentIds = saveAttachments(attachments);
+        List<UUID> oldAttachmentIds = List.of();
 
         message.update(dto.content());
+
         if (!newAttachmentIds.isEmpty()) {
-            message.addAttachments(newAttachmentIds);
+            oldAttachmentIds = new ArrayList<>(message.getAttachmentIds());
+            message.replaceAttachments(newAttachmentIds);
         }
 
-        return toDto(messageRepository.save(message));
+        Message savedMessage = messageRepository.save(message);
+
+        for (UUID oldAttachmentId : oldAttachmentIds) {
+            binaryContentRepository.findById(oldAttachmentId)
+                    .ifPresent(binaryContentRepository::delete);
+        }
+        return toDto(savedMessage);
     }
 
     @Override
