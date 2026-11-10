@@ -17,12 +17,12 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/binaryContents")
+@RequestMapping("/api/binaryContent")
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
     @RequestMapping(value = "/find", method = RequestMethod.GET)
-    public ResponseEntity<BinaryContentDto> findById(@RequestParam UUID binaryContentId) {
+    public ResponseEntity<BinaryContentDto> findById(@RequestParam("binaryContentId") UUID binaryContentId) {
         return ResponseEntity.ok(binaryContentService.findById(binaryContentId));
     }
 
