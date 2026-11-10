@@ -19,7 +19,9 @@ public class BasicAuthService implements AuthService {
                 .filter(u -> u.getUsername().equals(loginRequest.username())
                         && u.getPassword().equals(loginRequest.password()))
                 .findFirst()
-                .orElseThrow(() -> new InvalidCredentialException("입력하신 ID 또는 Password 가 올바르지 않습니다."));
+                .orElseThrow(() -> new InvalidCredentialException(
+                        "입력하신 ID 또는 Password 가 올바르지 않습니다."
+                ));
 
         return user;
     }

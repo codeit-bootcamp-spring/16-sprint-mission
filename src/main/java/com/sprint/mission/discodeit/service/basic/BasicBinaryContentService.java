@@ -21,13 +21,17 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContentResponse create(BinaryContentCreateRequest request) {
-        BinaryContent binaryContent = new BinaryContent(request.fileName(), request.contentType(), request.bytes());
+        BinaryContent binaryContent = new BinaryContent(
+                request.fileName(),
+                request.contentType(),
+                request.bytes());
         this.binaryContentRepository.save(binaryContent);
 
         return this.toBinaryContentResponse(binaryContent);
     }
 
-    private BinaryContentResponse toBinaryContentResponse(@NonNull BinaryContent binaryContent) {
+    private BinaryContentResponse toBinaryContentResponse(
+            @NonNull BinaryContent binaryContent) {
         return new BinaryContentResponse(
                 binaryContent.getId(),
                 binaryContent.getFileName(),
@@ -38,9 +42,11 @@ public class BasicBinaryContentService implements BinaryContentService {
 
     @Override
     public BinaryContentResponse find(UUID binaryContentId) {
-        BinaryContent binaryContent = this.binaryContentRepository.findById(binaryContentId)
+        BinaryContent binaryContent =
+                this.binaryContentRepository.findById(binaryContentId)
                 .orElseThrow(() -> new BinaryContentNotFoundException(
-                        "ID가 " + binaryContentId + "인 파일을 찾을 수 없습니다."));
+                        "ID가 " + binaryContentId + "인 파일을 찾을 수 없습니다."
+                ));
 
         return this.toBinaryContentResponse(binaryContent);
     }
@@ -50,10 +56,14 @@ public class BasicBinaryContentService implements BinaryContentService {
         List<BinaryContentResponse> binaryContentResponses = new ArrayList<>();
 
         for (UUID binaryContentId : binaryContentIds) {
-            BinaryContent binaryContent = this.binaryContentRepository.findById(binaryContentId)
+            BinaryContent binaryContent =
+                    this.binaryContentRepository.findById(binaryContentId)
                     .orElseThrow(() -> new BinaryContentNotFoundException(
-                            "ID가 " + binaryContentId + "인 파일을 찾을 수 없습니다."));
-            BinaryContentResponse binaryContentResponse = this.toBinaryContentResponse(binaryContent);
+                            "ID가 " + binaryContentId + "인 파일을 찾을 수 없습니다."
+                    ));
+            BinaryContentResponse binaryContentResponse =
+                    this.toBinaryContentResponse(binaryContent);
+
             binaryContentResponses.add(binaryContentResponse);
         }
 
@@ -63,8 +73,11 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public void delete(UUID id) {
         if (!this.binaryContentRepository.existsById(id)) {
-            throw new BinaryContentNotFoundException("ID가 " + id + "인 파일을 찾을 수 없습니다.");
+            throw new BinaryContentNotFoundException(
+                    "ID가 " + id + "인 파일을 찾을 수 없습니다."
+            );
         }
+
         this.binaryContentRepository.deleteById(id);
     }
 }

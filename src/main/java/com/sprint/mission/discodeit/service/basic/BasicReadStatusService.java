@@ -28,10 +28,14 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public ReadStatusResponse create(ReadStatusCreateRequest request) {
         if (!this.userRepository.existsById(request.userId())) {
-            throw new UserNotFoundException("ID가 " + request.userId() + "인 사용자를 찾을 수 없습니다.");
+            throw new UserNotFoundException(
+                    "ID가 " + request.userId() + "인 사용자를 찾을 수 없습니다."
+            );
         }
         if (!this.channelRepository.existsById(request.channelId())) {
-            throw new ChannelNotFoundException("ID가 " + request.channelId() + "인 채널을 찾을 수 없습니다.");
+            throw new ChannelNotFoundException(
+                    "ID가 " + request.channelId() + "인 채널을 찾을 수 없습니다."
+            );
         }
         if (this.readStatusRepository.findAll().stream()
                 .anyMatch(status ->
@@ -52,7 +56,9 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public ReadStatusResponse find(UUID readStatusId) {
         ReadStatus readStatus = this.readStatusRepository.findById(readStatusId)
-                .orElseThrow(() -> new ReadStatusNotFoundException("ID가 " + readStatusId + "인 메시지 수신 정보를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ReadStatusNotFoundException(
+                        "ID가 " + readStatusId + "인 메시지 수신 정보를 찾을 수 없습니다."
+                ));
 
         return this.toReadStatusResponse(readStatus);
     }
@@ -70,7 +76,9 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public List<ReadStatusResponse> findAllByUserId(UUID userId) {
         if (!this.userRepository.existsById(userId)) {
-            throw new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다.");
+            throw new UserNotFoundException(
+                    "ID가 " + userId + "인 사용자를 찾을 수 없습니다."
+            );
         }
 
         List<ReadStatus> readStatus = this.readStatusRepository.findAllByUserId(userId);
@@ -82,8 +90,11 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatusResponse update(ReadStatusUpdateRequest request) {
-        ReadStatus readStatus = this.readStatusRepository.findById(request.readStatusId())
-                .orElseThrow(() -> new ReadStatusNotFoundException("ID가 " + request.readStatusId() + "인 메시지 수신 정보를 찾을 수 없습니다."));
+        ReadStatus readStatus =
+                this.readStatusRepository.findById(request.readStatusId())
+                .orElseThrow(() -> new ReadStatusNotFoundException(
+                        "ID가 " + request.readStatusId() + "인 메시지 수신 정보를 찾을 수 없습니다."
+                ));
 
         readStatus.update();
         this.readStatusRepository.save(readStatus);
@@ -94,8 +105,11 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public void delete(UUID readStatusId) {
         if (!this.readStatusRepository.existsById(readStatusId)) {
-            throw new ReadStatusNotFoundException("ID가 " + readStatusId + "인 메시지 수신 정보를 찾을 수 없습니다.");
+            throw new ReadStatusNotFoundException(
+                    "ID가 " + readStatusId + "인 메시지 수신 정보를 찾을 수 없습니다."
+            );
         }
+
         this.readStatusRepository.deleteById(readStatusId);
     }
 }
