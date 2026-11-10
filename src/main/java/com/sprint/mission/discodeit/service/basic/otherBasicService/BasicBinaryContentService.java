@@ -2,13 +2,16 @@ package com.sprint.mission.discodeit.service.basic.otherBasicService;
 
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.otherService.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -36,12 +39,27 @@ public class BasicBinaryContentService implements BinaryContentService {
     public BinaryContent find(UUID id) {
         return binaryContentRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("바이너리 콘텐츠를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("바이너리 콘텐츠를 찾을 수 없습니다."));
     }
 
     @Override
     public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
-        return binaryContentRepository.findAllByIdIn(ids);
+        List<BinaryContent> binaryContents =
+                binaryContentRepository.findAllByIdIn(ids);
+
+        // 요청한 UUID 중 조회되지 않은 바이너리 콘텐츠가 있는지 확인한다.
+        Set<UUID> foundIds = binaryContents.stream()
+                .map(BinaryContent::getId)
+                .collect(Collectors.toSet());
+
+        if (!foundIds.containsAll(ids)) {
+            throw new ResourceNotFoundException(
+                    "일부 바이너리 콘텐츠를 찾을 수 없습니다."
+            );
+        }
+
+        return binaryContents;
+        // return binaryContentRepository.findAllByIdIn(ids);
     }
 
     @Override

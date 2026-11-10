@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.entity.newDomain;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;
 
 import java.io.Serial;
@@ -8,6 +9,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter // Lombok을 통해 모든 필드의 Getter 메서드를 자동 생성한다.
+@JsonPropertyOrder({
+        "id",
+        "createdAt",
+        "fileName",
+        "contentType",
+        "size",
+        "bytes"
+})
 public class BinaryContent implements Serializable {
 
     // static 필드는 기본적으로 Getter에서 제외대상 입니다.
