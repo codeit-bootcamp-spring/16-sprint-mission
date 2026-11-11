@@ -25,14 +25,14 @@ public class BinaryContentController {
             @RequestParam UUID binaryContentId
     ) {
         return ResponseEntity.ok(
-                binaryContentService.findBinaryContent(binaryContentId));
+                binaryContentService.find(binaryContentId));
     }
 
     @RequestMapping(value = "/find/multiple", method = RequestMethod.GET)
     public List<BinaryContentResponseDto> findAllByIds(
             @RequestParam List<UUID> binaryContentIds
     ) {
-        return binaryContentService.findAllBinaryContentsByIds(binaryContentIds);
+        return binaryContentService.findAllByIdIn(binaryContentIds);
     }
 }
 

@@ -1,4 +1,3 @@
-
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
@@ -35,6 +34,10 @@ public class BasicMessageService implements MessageService {
     ) throws IOException {
         User user = findUserEntity(dto.getUserId());
         Channel channel = findChannelEntity(dto.getChannelId());
+
+        if (!channel.getParticipantIds().contains(user.getId())) {
+            throw new IllegalArgumentException("채널 참여자만 메시지를 보낼 수 있습니다.");
+        }
 
         List<UUID> attachmentIds = new ArrayList<>();
 

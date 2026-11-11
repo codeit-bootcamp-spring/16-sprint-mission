@@ -9,13 +9,13 @@ import java.util.UUID;
 
 public interface BinaryContentService {
 
-    BinaryContentResponseDto createBinaryContent(BinaryContentCreateRequestDto dto);
+    BinaryContentResponseDto create(BinaryContentCreateRequestDto dto);
 
-    BinaryContent findBinaryContent(UUID binaryContentId);
+    BinaryContent find(UUID binaryContentId);
 
-    List<BinaryContentResponseDto> findAllBinaryContentsByIds(
+    List<BinaryContentResponseDto> findAllByIdIn(
             List<UUID> binaryContentIds
     );
 
-    void deleteBinaryContent(UUID binaryContentId);
+    void delete(UUID binaryContentId);
 }
