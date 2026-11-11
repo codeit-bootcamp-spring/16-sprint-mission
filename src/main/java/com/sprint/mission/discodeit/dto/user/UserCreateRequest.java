@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 
 public record UserCreateRequest(
         @NotBlank
-        String name,
+        String username,
 
         @NotBlank
         @Email

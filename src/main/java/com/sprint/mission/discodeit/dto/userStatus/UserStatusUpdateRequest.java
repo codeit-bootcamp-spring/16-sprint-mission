@@ -6,6 +6,6 @@ import java.time.Instant;
 
 public record UserStatusUpdateRequest(
         @NotNull
-        Instant lastActiveTime
+        Instant newLastActiveAt
 ) {
 }

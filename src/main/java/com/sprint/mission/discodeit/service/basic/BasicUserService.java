@@ -23,8 +23,8 @@ public class BasicUserService implements UserService {
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserCreateResponse create(UserCreateRequest createRequest, MultipartFile profileImage) {
-        String name = createRequest.name();
+    public UserResponse create(UserCreateRequest createRequest, MultipartFile profileImage) {
+        String name = createRequest.username();
         String email = createRequest.email();
 
         this.userRepository.findByName(name).ifPresent((existingUser) -> {
@@ -52,7 +52,7 @@ public class BasicUserService implements UserService {
         }
         this.userRepository.save(user);
 
-        return UserCreateResponse.from(user);
+        return UserResponse.from(user);
     }
 
     @Override
@@ -77,14 +77,14 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserUpdateResponse update(UUID userId, UserUpdateRequest updateRequest, MultipartFile profileImage) {
+    public UserResponse update(UUID userId, UserUpdateRequest updateRequest, MultipartFile profileImage) {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
         user.validateNotDeleted();
 
-        String newName = updateRequest.name();
-        String newEmail = updateRequest.email();
-        String newPassword = updateRequest.password();
+        String newName = updateRequest.newUsername();
+        String newEmail = updateRequest.newEmail();
+        String newPassword = updateRequest.newPassword();
 
         this.userRepository.findByName(newName).ifPresent((existingUser) -> {
             throw new IllegalArgumentException("이미 수정할 이름과 같은 이름의 유저가 존재합니다. 이름: %s".formatted(existingUser.getName()));
@@ -114,7 +114,7 @@ public class BasicUserService implements UserService {
             }
         }
         this.userRepository.update(userId, user);
-        return UserUpdateResponse.from(user);
+        return UserResponse.from(user);
     }
 
     @Override
