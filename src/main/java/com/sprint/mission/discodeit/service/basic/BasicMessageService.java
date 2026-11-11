@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.message.*;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -27,8 +26,8 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public MessageCreateResponse create(MessageCreateRequest createRequest,
-                                        List<MultipartFile> attachments) {
+    public MessageResponse create(MessageCreateRequest createRequest,
+                                  List<MultipartFile> attachments) {
         UUID authorId = createRequest.authorId();
         UUID channelId = createRequest.channelId();
         String content = createRequest.content();
@@ -67,12 +66,12 @@ public class BasicMessageService implements MessageService {
         }
         this.messageRepository.save(message);
 
-        return MessageCreateResponse.from(message);
+        return MessageResponse.from(message);
     }
 
     @Override
-    public MessageUpdateResponse update(UUID id, MessageUpdateRequest updateRequest) {
-        String newContent = updateRequest.content();
+    public MessageResponse update(UUID id, MessageUpdateRequest updateRequest) {
+        String newContent = updateRequest.newContent();
 
         Message message = this.messageRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("수정할 메세지가 존재하지 않습니다."));
@@ -80,21 +79,21 @@ public class BasicMessageService implements MessageService {
 
         message.update(newContent);
         this.messageRepository.update(id, message);
-        return MessageUpdateResponse.from(message);
+        return MessageResponse.from(message);
     }
 
     @Override
-    public MessageFindResponse findById(UUID id) {
+    public MessageResponse findById(UUID id) {
         Message message = this.messageRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("조회할 메세지가 없습니다."));
-        return MessageFindResponse.from(message);
+        return MessageResponse.from(message);
     }
 
     @Override
-    public List<MessageFindResponse> findAllByChannelId(UUID channelId) {
+    public List<MessageResponse> findAllByChannelId(UUID channelId) {
         return this.messageRepository.findAllByChannelId(channelId)
                 .stream()
-                .map(MessageFindResponse::from)
+                .map(MessageResponse::from)
                 .toList();
     }
 

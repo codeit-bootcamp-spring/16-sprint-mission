@@ -18,33 +18,32 @@ import java.util.UUID;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/v1/messages")
+@RequestMapping("api/messages")
 public class MessageController {
     private final MessageService messageService;
 
-    @RequestMapping(value = "/channels/{channelId}", method = RequestMethod.GET)
-    public ResponseEntity<List<MessageFindResponse>> findAllMessagesByChannelId(@NotNull @PathVariable UUID channelId) {
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<MessageResponse>> findAllMessagesByChannelId(@NotNull @RequestParam UUID channelId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.messageService.findAllByChannelId(channelId));
     }
 
     @RequestMapping(
             method = RequestMethod.POST,
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<MessageCreateResponse> createMessage(@RequestPart(name = "attachments", required = false) List<MultipartFile> attachments,
-                                                               @Valid @RequestPart("message") MessageCreateRequest createRequest) {
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<MessageResponse> createMessage(@RequestPart(name = "attachments", required = false) List<MultipartFile> attachments,
+                                                         @Valid @RequestPart("messageCreateRequest") MessageCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.messageService.create(createRequest, attachments));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
-    public ResponseEntity<MessageUpdateResponse> updateMessage(@NotNull @PathVariable UUID id,
-                                                               @RequestBody MessageUpdateRequest updateRequest) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.messageService.update(id, updateRequest));
+    @RequestMapping(value = "/{messageId}", method = RequestMethod.PATCH)
+    public ResponseEntity<MessageResponse> updateMessage(@NotNull @PathVariable UUID messageId,
+                                                         @RequestBody MessageUpdateRequest updateRequest) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.messageService.update(messageId, updateRequest));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteMessage(@NotNull @PathVariable UUID id) {
-        this.messageService.delete(id);
+    @RequestMapping(value = "/{messageId}", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> deleteMessage(@NotNull @PathVariable UUID messageId) {
+        this.messageService.delete(messageId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 

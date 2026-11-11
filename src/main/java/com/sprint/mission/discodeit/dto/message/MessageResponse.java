@@ -6,21 +6,23 @@ import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
-public record MessageFindResponse(
+public record MessageResponse(
         UUID id,
-        UUID authorId,
-        UUID channelId,
-        String content,
+        Instant createdAt,
         Instant updatedAt,
+        String content,
+        UUID channelId,
+        UUID authorId,
         List<UUID> attachmentIds
 ) {
-    public static MessageFindResponse from(Message message) {
-        return new MessageFindResponse(
+    public static MessageResponse from(Message message) {
+        return new MessageResponse(
                 message.getId(),
-                message.getAuthorId(),
-                message.getChannelId(),
-                message.getContent(),
+                message.getCreatedAt(),
                 message.getUpdatedAt(),
+                message.getContent(),
+                message.getChannelId(),
+                message.getAuthorId(),
                 List.copyOf(message.getAttachmentIds())
         );
     }

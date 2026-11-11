@@ -7,14 +7,14 @@ import java.util.List;
 import java.util.UUID;
 
 public interface MessageService {
-    MessageCreateResponse create(MessageCreateRequest createRequest,
-                                 List<MultipartFile> attachments);
+    MessageResponse create(MessageCreateRequest createRequest,
+                           List<MultipartFile> attachments);
 
-    MessageUpdateResponse update(UUID id, MessageUpdateRequest updateRequest);
+    MessageResponse update(UUID id, MessageUpdateRequest updateRequest);
 
-    MessageFindResponse findById(UUID id);
+    MessageResponse findById(UUID id);
 
-    List<MessageFindResponse> findAllByChannelId(UUID channelId);
+    List<MessageResponse> findAllByChannelId(UUID channelId);
 
     void delete(UUID id);
 }
