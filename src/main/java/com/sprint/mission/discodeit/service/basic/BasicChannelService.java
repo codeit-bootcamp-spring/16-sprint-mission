@@ -7,16 +7,13 @@ import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequ
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.type.ChannelType;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.Channel;
 
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.ReadStatusRepository;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import org.springframework.stereotype.Service;
 import lombok.RequiredArgsConstructor;
@@ -33,6 +30,7 @@ public class BasicChannelService implements ChannelService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     @Override
     public ChannelDto createPublicChannel(PublicChannelCreateRequest request) {
@@ -167,11 +165,24 @@ public class BasicChannelService implements ChannelService {
         // 1. 삭제 대상 채널 존재 여부 확인
         findChannel(id);
 
-        // 2. 채널과 연관된 메시지 및 읽음 상태 삭제
+        // 2. 해당 채널의 모든 메시지 조회
+        List<Message> messages = messageRepository.findAllByChannelId(id);
+
+        // 3. 메시지에 연결된 첨부파일 ID 수집
+        List<UUID> attachmentIds = messages.stream()
+                .filter(message -> message.getAttachmentIds() != null)
+                .flatMap(message -> message.getAttachmentIds().stream())
+                .distinct()
+                .toList();
+
+        // 4. 첨부파일 삭제
+        attachmentIds.forEach(binaryContentRepository::deleteById);
+
+        // 5. 채널과 연관된 메시지 및 읽음 상태 삭제
         messageRepository.deleteByChannelId(id);
         readStatusRepository.deleteByChannelId(id);
 
-        // 3. 채널 삭제
+        // 6. 채널 삭제
         channelRepository.deleteByChannelId(id);
     }
 
