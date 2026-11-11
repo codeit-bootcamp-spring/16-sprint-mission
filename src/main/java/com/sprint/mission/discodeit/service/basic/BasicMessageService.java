@@ -5,10 +5,13 @@ import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +30,7 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     @Override
     public MessageDto create(MessageCreateRequest request) {
@@ -37,9 +41,16 @@ public class BasicMessageService implements MessageService {
         userRepository.findById(request.authorId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Not Found user id: " + request.authorId()));
-        channelRepository.findById(request.channelId())
+        Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Not Found channel id: " + request.channelId()));
+
+        if (channel.getType() == ChannelType.PRIVATE
+                && readStatusRepository.findByUserIdAndChannelId(
+                        request.authorId(), request.channelId()
+                ).isEmpty()) {
+            throw new IllegalArgumentException("비공개 채널 참여자만 메시지를 작성할 수 있습니다.");
+        }
 
         List<BinaryContent> attachments = new ArrayList<>();
         List<UUID> attachmentIds = new ArrayList<>();
