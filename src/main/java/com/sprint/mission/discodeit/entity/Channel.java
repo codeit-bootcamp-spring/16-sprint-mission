@@ -1,32 +1,48 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.HashSet;
-import java.util.Set;
+import com.sprint.mission.discodeit.dto.channel.ChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequest;
+import lombok.Getter;
+
+import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
-public class Channel extends BaseEntity {
+@Getter
+public class Channel implements Serializable {
 
-    private String channelName;
-    private Set<User> users = new HashSet<>();
-    private Set<Message> messages = new HashSet<>();
+    private static final long serialVersionUID = 1L;
+    private final UUID id;
+    private final Instant createdAt;
+    private Instant updatedAt;
+    private final ChannelType type;
+    private String name;
+    private String description;
 
-    public Channel(String channelName) {
-        super();
-        this.channelName = channelName;
+    public Channel(ChannelCreateRequest request) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+        this.type = request.type();
+        this.name = request.name();
+        this.description = request.description();
     }
 
-    public String getChannelName() {
-        return this.channelName;
+    public void update(String newName, String newDescription) {
+        boolean anyValueUpdated = false;
+        if (newName != null && !newName.isBlank() && !newName.equals(this.name)) {
+            this.name = newName;
+            anyValueUpdated = true;
+        }
+
+        if (newDescription != null && !newDescription.equals(this.description)) {
+            this.description = newDescription;
+            anyValueUpdated = true;
+        }
+
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
-
-    public void updateChannelName(String channelName) {
-        this.update();
-        this.channelName = channelName;
-    }
-
-    public void addUser(User user) { this.users.add(user); }
-
-    public void removeUser(User user) { this.users.remove(user); }
-
-    public Set<User> getUsers() { return this.users; }
 }

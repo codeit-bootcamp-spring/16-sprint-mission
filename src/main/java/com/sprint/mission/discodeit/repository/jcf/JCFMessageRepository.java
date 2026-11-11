@@ -2,47 +2,42 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.time.Instant;
+import java.util.*;
 
+@Repository
 public class JCFMessageRepository implements MessageRepository {
-    private final List<Message> messages;
+    private final Map<UUID, Message> data;
 
     public JCFMessageRepository() {
-        this.messages = new ArrayList<Message>();
+        this.data = new HashMap<>();
     }
 
     @Override
     public Message save(Message message) {
-        this.messages.removeIf(savedMessage -> savedMessage.getId().equals(message.getId()));
-        this.messages.add(message);
+        this.data.put(message.getId(), message);
         return message;
     }
 
     @Override
-    public List<Message> getMessages() {
-        return List.copyOf(this.messages);
+    public Optional<Message> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
-    public Message getMessage(UUID id) {
-        Message message = this.messages.stream()
-                .filter(m -> m.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException(
-                        "해당 ID의 메시지를 찾을 수 없습니다: " + id)
-                );
-
-        return message;
+    public List<Message> findAll() {
+        return this.data.values().stream().toList();
     }
 
     @Override
-    public void removeMessage(UUID id) {
-        Message message = this.getMessage(id);
-        this.messages.remove(message);
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
     }
 
+    @Override
+    public void deleteById(UUID id) {
+        this.data.remove(id);
+    }
 }

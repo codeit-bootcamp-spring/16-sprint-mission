@@ -2,78 +2,102 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.nio.file.Files;
-import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.UUID;
-import java.util.stream.Stream;
 
+// @Repository
 public class FileUserRepository implements UserRepository {
+    private final Path DIRECTORY;
+    private final String EXTENSION = ".ser";
+
+    public FileUserRepository() {
+        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), "file-data-map", User.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)) {
+            try {
+                Files.createDirectories(DIRECTORY);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private Path resolvePath(UUID id) {
+        return DIRECTORY.resolve(id + EXTENSION);
+    }
 
     @Override
     public User save(User user) {
-        String fileName = "./data/users/" + user.getId() + ".ser";
-
-        try (FileOutputStream fos = new FileOutputStream(fileName);
-             ObjectOutputStream oos = new ObjectOutputStream(fos);
+        Path path = resolvePath(user.getId());
+        try (
+                FileOutputStream fos = new FileOutputStream(path.toFile());
+                ObjectOutputStream oos = new ObjectOutputStream(fos)
         ) {
             oos.writeObject(user);
-        } catch (IOException exception) {
-            throw new UncheckedIOException("사용자 저장에 실패했습니다.", exception);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
         return user;
     }
 
     @Override
-    public List<User> getAllUsers() {
-        List<UUID> userIds;
-        List<User> users;
+    public Optional<User> findById(UUID id) {
+        User userNullable = null;
+        Path path = resolvePath(id);
+        if (Files.exists(path)) {
+            try (
+                    FileInputStream fis = new FileInputStream(path.toFile());
+                    ObjectInputStream ois = new ObjectInputStream(fis)
+            ) {
+                userNullable = (User) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return Optional.ofNullable(userNullable);
+    }
 
-        try (Stream<Path> files = Files.list(Path.of("./data/users/"))) {
-            userIds = files.filter(Files::isRegularFile)
-                    .map(path -> path.getFileName().toString())
-                    .filter(name -> name.endsWith(".ser"))
-                    .map(name -> name.substring(0, name.length() - 4))
-                    .map(UUID::fromString)
+    @Override
+    public List<User> findAll() {
+        try {
+            return Files.list(DIRECTORY)
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(path -> {
+                        try (
+                                FileInputStream fis = new FileInputStream(path.toFile());
+                                ObjectInputStream ois = new ObjectInputStream(fis)
+                        ) {
+                            return (User) ois.readObject();
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
                     .toList();
-        } catch (IOException exception) {
-            throw new UncheckedIOException("사용자 목록 조회에 실패했습니다.", exception);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        users = userIds.stream()
-                .map(this::getUser)
-                .toList();
-
-        return users;
     }
 
     @Override
-    public User getUser(UUID id) {
-        User user = null;
+    public boolean existsById(UUID id) {
+        Path path = resolvePath(id);
+        return Files.exists(path);
+    }
 
-        try (FileInputStream fis = new FileInputStream("./data/users/" + id + ".ser");
-             ObjectInputStream ois = new ObjectInputStream(fis)) {
-            user = (User) ois.readObject();
-        } catch (NoSuchFileException exception) {
-            throw new NoSuchElementException("사용자가 없습니다: " + id);
-        } catch (IOException exception) {
-            throw new UncheckedIOException("사용자 조회에 실패했습니다.", exception);
-        } catch(ClassNotFoundException exception) {
-            throw new IllegalStateException("사용자 역직렬화에 실패했습니다.", exception);
+    @Override
+    public void deleteById(UUID id) {
+        Path path = resolvePath(id);
+        try {
+            Files.delete(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        return user;
-    }
-
-    public void updateUser(User user) {
-    }
-
-    public void removeUser(UUID id) {
-
     }
 }

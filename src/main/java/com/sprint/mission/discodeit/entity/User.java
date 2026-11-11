@@ -1,35 +1,53 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.HashSet;
-import java.util.Set;
+import lombok.Getter;
 
-public class User extends BaseEntity {
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.UUID;
 
+@Getter
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private final UUID id;
+    private UUID profileId; // 프로필 이미지는 변경 될 수 있기 때문에 프로필 이미지의 id(profileId)는 불변이여서는 안됩니다.
+    private final Instant createdAt;
+    private Instant updatedAt;
     private String username;
-    // Spring 에서 컬렉션은 생성자를 통해 초기화하는것 보다, 필드 선언과 동시에 초기화하는 방식이 일반적입니다.
-    private Set<Message> messages = new HashSet<>();
-    private Set<Channel> channels = new HashSet<>();
+    private String email;
+    private String password;
 
-    public User(String username) {
-        super();
+    public User(String username, String email, String password, UUID profileId) {
+
+        this.id = UUID.randomUUID();
+        this.profileId = profileId;
+        this.createdAt = Instant.now();
+        this.updatedAt = createdAt;
         this.username = username;
+        this.email = email;
+        this.password = password;
     }
 
-    // 스프링에서 getXXX는 객체 자체를 반환하도록 설계하는것이 좋습니다. 단순 읽기(x), 객체 반환
-    public String getUsername() { return this.username; }
-
-    // 객체지향 설계에서는 필드를 무조건 Setter로 노출할 필요가 없습니다.
-    // 오히려 updateUsername()처럼 변경 의도를 명확히 표현하는 메서드가 캡슐화에 더 적합합니다.
-    public void updateUsername(String username) {
-        this.update(); // updateAt을 업데이트합니다.
-        this.username = username;
+    public void update(String newUsername, String newEmail, String newPassword, UUID newProfileId) {
+        boolean anyValueUpdated = false;
+        if (newUsername != null && !newUsername.equals(this.username)) {
+            this.username = newUsername;
+            anyValueUpdated = true;
+        }
+        if (newEmail != null && !newEmail.equals(this.email)) {
+            this.email = newEmail;
+            anyValueUpdated = true;
+        }
+        if (newPassword != null && !newPassword.equals(this.password)) {
+            this.password = newPassword;
+            anyValueUpdated = true;
+        }
+        if (newProfileId != null && !newProfileId.equals(this.profileId)) {
+            this.profileId = newProfileId;
+            anyValueUpdated = true;
+        }
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
-
-    public Set<Message> getMessages() { return this.messages; }
-
-    public Set<Channel> getChannels() { return this.channels; }
-
-    public void addChannel(Channel channel) { this.channels.add(channel); }
-
-    public void removeChannel(Channel channel) { this.channels.remove(channel); }
 }

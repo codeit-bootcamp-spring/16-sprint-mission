@@ -2,48 +2,41 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.UUID;
+import java.util.*;
 
+@Repository
 public class JCFChannelRepository implements ChannelRepository {
-
-    public List<Channel> channels;
+    private final Map<UUID, Channel> data;
 
     public JCFChannelRepository() {
-        this.channels = new ArrayList<Channel>();
+        this.data = new HashMap<>();
     }
 
     @Override
     public Channel save(Channel channel) {
-        this.channels.removeIf(saved -> saved.getId().equals(channel.getId()));
-        this.channels.add(channel);
-
+        this.data.put(channel.getId(), channel);
         return channel;
     }
 
     @Override
-    public List<Channel> getChannels() {
-        return List.copyOf(this.channels);
+    public Optional<Channel> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
-    public Channel getChannel(UUID id) {
-        Channel channel = this.channels.stream()
-                .filter(c -> c.getId().equals(id))
-                .findFirst()
-                .orElseThrow(() -> new NoSuchElementException(
-                        "해당 ID의 채널을 찾을 수 없습니다.: " + id
-                ));
-
-        return channel;
+    public List<Channel> findAll() {
+        return this.data.values().stream().toList();
     }
 
     @Override
-    public void removeChannel(UUID id) {
-        Channel channel = this.getChannel(id);
-        this.channels.remove(channel);
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        this.data.remove(id);
     }
 }
