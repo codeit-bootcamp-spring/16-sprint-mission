@@ -1,11 +1,13 @@
 package com.sprint.mission.discodeit.entity;
 
-//사용자들이 메시지를 주고받는 채널 정보
+import lombok.AccessLevel;
+import lombok.Getter;
 
+@Getter
 public class Channel extends BaseEntity{
     private static final long serialVersionUID = 1L;
 
-    // Channel field
+    @Getter(AccessLevel.NONE)
     private final ChannelType type;
     private String name;
     private String description;
@@ -25,22 +27,13 @@ public class Channel extends BaseEntity{
         this.description = description;
     }
 
-    public ChannelType getType() {
-        // ChannelType 필드가 추가되기 전 생성된 직렬화 파일에는 이 필드가 없으므로 PUBLIC으로 해석합니다.
-        return type == null ? ChannelType.PUBLIC : type;
-    }
-
-    public String getName() {
-        return name;
-    }
-    public String getDescription() {
-        return description;
-    }
-
     public void update(String name, String description) {
         this.name = name;
         this.description = description;
         updateUpdatedAt();
     }
-}
 
+    public ChannelType getType() {
+        return type == null ? ChannelType.PUBLIC : type;
+    }
+}

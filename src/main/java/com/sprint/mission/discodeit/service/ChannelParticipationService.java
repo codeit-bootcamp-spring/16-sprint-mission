@@ -12,9 +12,7 @@ public interface ChannelParticipationService {
 
     List<UUID> findChannelIds(UUID userId);
 
-    // 사용자가 참여 중인 모든 채널 관계를 제거
     void removeUserFromAllChannels(UUID userId);
 
-    // 채널의 모든 참여 관계를 제거
     void removeAllParticipants(UUID channelId);
 }
