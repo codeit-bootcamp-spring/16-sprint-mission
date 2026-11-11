@@ -1,42 +1,44 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.*;
+import lombok.Getter;
 
-public class Channel extends BaseEntity {
-    String name;
-    final Set<UUID> userId;
-    List<String> messageList;
+import java.io.Serializable;
+import java.time.Instant;
+import java.util.UUID;
 
-    public Channel() {
-        super();
-        this.userId=new HashSet<>();
-        messageList=new ArrayList<>();
-    }
-    public Channel(String name){
-        this();
-        this.name=name;
-    }
+@Getter
+public class Channel implements Serializable {
+    private static final long serialVersionUID = 1L;
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
 
-    public String getName() {
-        return name;
-    }
-    public Set<UUID> getUserId() { return userId; }
-    public List<String> getMessageList() {
-        return messageList;
-    }
+    private ChannelType type;
+    private String name;
+    private String description;
 
-    public void setName(String name) {
+    public Channel(ChannelType type, String name, String description) {
+        this.id = UUID.randomUUID();
+        Instant now= Instant.now();
+
+        this.type = type;
         this.name = name;
-        this.updateTime();
+        this.description = description;
     }
 
-    public void setMessageList(List<String> messageList) {
-        this.messageList = messageList;
-        this.updateTime();
+    public void update(String newName, String newDescription) {
+        boolean anyValueUpdated = false;
+        if (newName != null && !newName.equals(this.name)) {
+            this.name = newName;
+            anyValueUpdated = true;
+        }
+        if (newDescription != null && !newDescription.equals(this.description)) {
+            this.description = newDescription;
+            anyValueUpdated = true;
+        }
+
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
-    public void addUser(UUID userId) { this.userId.add(userId); }
-    public void removeUser(UUID userId) { this.userId.remove(userId);}
 }
-
-
-

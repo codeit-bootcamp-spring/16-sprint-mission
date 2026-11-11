@@ -2,21 +2,53 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class JCFUserRepository implements UserRepository {
-    final Map<UUID, User> data = new ConcurrentHashMap<>();
+    private final Map<UUID, User> data;
+
+    public JCFUserRepository() {
+        this.data = new HashMap<>();
+    }
 
     @Override
-    public void save(User user) {data.put(user.getId(),user);}
+    public User save(User user) {
+        this.data.put(user.getId(), user);
+        return user;
+    }
 
     @Override
-    public User findId(UUID id) {return data.get(id);}
+    public Optional<User> findById(UUID id) {
+        return Optional.ofNullable(this.data.get(id));
+    }
 
     @Override
-    public List<User> findAll() {return new ArrayList<>(data.values());}
+    public List<User> findAll() {
+        return this.data.values().stream().toList();
+    }
 
     @Override
-    public void deleteId(UUID id) {data.remove(id);}
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        this.data.remove(id);
+    }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        if (username == null) return false;
+        return this.data.values().stream()
+                .anyMatch(user -> username.equals(user.getUsername()));
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        if (email == null) return false;
+        return this.data.values().stream()
+                .anyMatch(user -> email.equals(user.getEmail()));
+    }
 }

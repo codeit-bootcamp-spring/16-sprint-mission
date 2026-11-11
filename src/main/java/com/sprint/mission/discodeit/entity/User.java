@@ -1,32 +1,56 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.HashSet;
-import java.util.Set;
+import lombok.Getter;
+
+import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
 
-public class User extends BaseEntity {
-    String name;
-    final Set<UUID> channels;
+@Getter
+public class User implements Serializable {
+    private static final long serialVersionUID = 1L;
 
-    public User(){
-        super();
-        this.channels=new HashSet<>();
-    }
-    public User(String name){
-         this();
-         this.name=name;
+    private UUID id;
+    private UUID profileId;
+    private Instant createdAt; // Long -> Instant
+    private Instant updatedAt; // Long -> Instant
+    //
+    private String username;
+    private String email;
+    private String password;
+
+    public User(String username, String email, String password) {
+        this.id = UUID.randomUUID();
+        Instant now = Instant.now();
+        this.createdAt = now;
+        this.updatedAt = now;
+        //
+        this.username = username;
+        this.email = email;
+        this.password = password;
     }
 
-    public String getName() {
-        return name;
-    }
-    public Set<UUID> getChannels() { return channels; }
+    public void update(String newUsername, String newEmail, String newPassword) {
+        boolean anyValueUpdated = false;
+        if (newUsername != null && !newUsername.equals(this.username)) {
+            this.username = newUsername;
+            anyValueUpdated = true;
+        }
+        if (newEmail != null && !newEmail.equals(this.email)) {
+            this.email = newEmail;
+            anyValueUpdated = true;
+        }
+        if (newPassword != null && !newPassword.equals(this.password)) {
+            this.password = newPassword;
+            anyValueUpdated = true;
+        }
 
-    public void setName(String name) {
-        this.name = name;
-        this.updateTime();
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
     }
-
-    public void joinChannel(UUID channelId) { this.channels.add(channelId); }
-    public void leaveChannel(UUID channelId){ this.channels.remove(channelId); }
+    public void updateProfile(UUID newProfileId) {
+        this.profileId = newProfileId;
+        this.updatedAt = Instant.now();
+    }
 }

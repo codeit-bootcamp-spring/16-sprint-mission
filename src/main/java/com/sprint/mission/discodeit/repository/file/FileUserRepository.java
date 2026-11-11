@@ -1,76 +1,113 @@
 package com.sprint.mission.discodeit.repository.file;
+
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
 import java.io.*;
-import java.nio.file.*;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 public class FileUserRepository implements UserRepository {
-    final Path PATH = Paths.get("users.dat");
-    Map<UUID, User> data = new ConcurrentHashMap<>();
+    private final Path DIRECTORY;
+    private final String EXTENSION = ".ser";
 
-    public FileUserRepository() {
-        loadFile();
+    public FileUserRepository(String baseDir) {
+        this.DIRECTORY = Paths.get(System.getProperty("user.dir"), baseDir, User.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)) {
+            try {
+                Files.createDirectories(DIRECTORY);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
+    private Path resolvePath(UUID id) {
+        return DIRECTORY.resolve(id + EXTENSION);
     }
 
     @Override
-    public void save(User user) {
-        if (user == null || user.getId() == null) {
-            throw new NullPointerException("유저 데이터가 올바르지 않거나 ID가 없습니다.");
+    public User save(User user) {
+        Path path = resolvePath(user.getId());
+        try (
+                FileOutputStream fos = new FileOutputStream(path.toFile());
+                ObjectOutputStream oos = new ObjectOutputStream(fos)
+        ) {
+            oos.writeObject(user);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
-
-        data.put(user.getId(), user);
-        saveFile();
+        return user;
     }
 
     @Override
-    public User findId(UUID id) {
-        if (id == null) {
-            throw new NullPointerException("조회하려는 유저 ID가 null입니다.");
+    public Optional<User> findById(UUID id) {
+        User userNullable = null;
+        Path path = resolvePath(id);
+        if (Files.exists(path)) {
+            try (
+                    FileInputStream fis = new FileInputStream(path.toFile());
+                    ObjectInputStream ois = new ObjectInputStream(fis)
+            ) {
+                userNullable = (User) ois.readObject();
+            } catch (IOException | ClassNotFoundException e) {
+                throw new RuntimeException(e);
+            }
         }
-
-        return data.get(id);
+        return Optional.ofNullable(userNullable);
     }
 
     @Override
     public List<User> findAll() {
-        return new ArrayList<>(data.values());
+        try {
+            return Files.list(DIRECTORY)
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(path -> {
+                        try (
+                                FileInputStream fis = new FileInputStream(path.toFile());
+                                ObjectInputStream ois = new ObjectInputStream(fis)
+                        ) {
+                            return (User) ois.readObject();
+                        } catch (IOException | ClassNotFoundException e) {
+                            throw new RuntimeException(e);
+                        }
+                    })
+                    .toList();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override
-    public void deleteId(UUID id) {
-        if (id == null) {
-            throw new NullPointerException("삭제하려는 유저 ID가 null입니다.");
-        }
-        data.remove(id);
-        saveFile();
+    public boolean existsById(UUID id) {
+        Path path = resolvePath(id);
+        return Files.exists(path);
+    }
+    @Override
+    public boolean existsByUsername(String username) {
+        if (username == null) return false;
+        return findAll().stream()
+                .anyMatch(user -> username.equals(user.getUsername()));
     }
 
-    private void saveFile() {
-        try (OutputStream os = Files.newOutputStream(PATH);
-                ObjectOutputStream oos = new ObjectOutputStream(os))
-         {
-             oos.reset(); //직렬화 캐시 초기화
-             oos.writeObject(data);
+    @Override
+    public boolean existsByEmail(String email) {
+        if (email == null) return false;
+        return findAll().stream()
+                .anyMatch(user -> email.equals(user.getEmail()));
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        Path path = resolvePath(id);
+        try {
+            Files.delete(path);
         } catch (IOException e) {
-            throw new RuntimeException("유저 파일 저장 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
-        }
-    }
-
-    private void loadFile() {
-        if (!Files.exists(PATH)) return; // 파일이 아예 없으면 무시하고 빈 맵 사용
-
-        try (InputStream is = Files.newInputStream(PATH);
-                ObjectInputStream ois = new ObjectInputStream(is))
-         {
-            this.data = (Map<UUID, User>) ois.readObject(); // 파일에서 Map 통째로 복원
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("유저 파일 로딩 중 치명적인 오류가 발생했습니다. 파일: " + PATH, e);
+            throw new RuntimeException(e);
         }
     }
 }
-
-
-
