@@ -39,3 +39,10 @@ build/
 # Local and IDE-specific files
 1-sprint-mission.iml
 app.txt
+
+# Local application data and backups
+.discodeit/
+data/
+data-backup/
+backup/
+Task
