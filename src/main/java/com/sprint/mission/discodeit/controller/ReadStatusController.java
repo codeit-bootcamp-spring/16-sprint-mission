@@ -16,23 +16,23 @@ import java.util.UUID;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/v1/read-status")
+@RequestMapping("api/readStatuses")
 public class ReadStatusController {
     private final ReadStatusService readStatusService;
 
-    @RequestMapping(value = "/users/{userId}", method = RequestMethod.GET)
-    public ResponseEntity<List<ReadStatusFindResponse>> findAllReadStatusByUserId(@NotNull @PathVariable UUID userId) {
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<ReadStatusResponse>> findAllReadStatusByUserId(@NotNull @RequestParam UUID userId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.readStatusService.findAllByUserId(userId));
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<ReadStatusCreateResponse> createReadStatus(@Valid @RequestBody ReadStatusCreateRequest createRequest) {
+    public ResponseEntity<ReadStatusResponse> createReadStatus(@Valid @RequestBody ReadStatusCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.readStatusService.create(createRequest));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
-    public ResponseEntity<ReadStatusUpdateResponse> updateReadStatus(@NotNull @PathVariable UUID id,
-                                                                     @Valid @RequestBody ReadStatusUpdateRequest updateRequest) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.readStatusService.update(id, updateRequest));
+    @RequestMapping(value = "/{readStatusId}", method = RequestMethod.PATCH)
+    public ResponseEntity<ReadStatusResponse> updateReadStatus(@NotNull @PathVariable UUID readStatusId,
+                                                               @Valid @RequestBody ReadStatusUpdateRequest updateRequest) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.readStatusService.update(readStatusId, updateRequest));
     }
 }

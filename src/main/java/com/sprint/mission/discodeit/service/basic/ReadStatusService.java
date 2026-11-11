@@ -22,7 +22,7 @@ public class ReadStatusService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
 
-    public ReadStatusCreateResponse create(ReadStatusCreateRequest createRequest) {
+    public ReadStatusResponse create(ReadStatusCreateRequest createRequest) {
         UUID userId = createRequest.userId();
         UUID channelId = createRequest.channelId();
 
@@ -41,31 +41,31 @@ public class ReadStatusService {
 
         ReadStatus readStatus = new ReadStatus(userId, channelId);
         this.readStatusRepository.save(readStatus);
-        return ReadStatusCreateResponse.from(readStatus);
+        return ReadStatusResponse.from(readStatus);
     }
 
-    public ReadStatusFindResponse findById(UUID id) {
+    public ReadStatusResponse findById(UUID id) {
         ReadStatus readStatus = this.readStatusRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("메세지 확인 기록이 존재하지 않습니다."));
-        return ReadStatusFindResponse.from(readStatus);
+        return ReadStatusResponse.from(readStatus);
     }
 
-    public List<ReadStatusFindResponse> findAllByUserId(UUID userId) {
+    public List<ReadStatusResponse> findAllByUserId(UUID userId) {
         return this.readStatusRepository.findAllByUserId(userId)
                 .stream()
-                .map((ReadStatusFindResponse::from))
+                .map((ReadStatusResponse::from))
                 .toList();
     }
 
-    public ReadStatusUpdateResponse update(UUID id, ReadStatusUpdateRequest updateRequest) {
-        Instant lastReadTime = updateRequest.lastReadTime();
+    public ReadStatusResponse update(UUID id, ReadStatusUpdateRequest updateRequest) {
+        Instant lastReadTime = updateRequest.newLastReadAt();
 
         ReadStatus readStatus = this.readStatusRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("메세지 확인 기록이 존재하지 않습니다."));
         readStatus.update(lastReadTime);
 
         this.readStatusRepository.update(id, readStatus);
-        return ReadStatusUpdateResponse.from(readStatus);
+        return ReadStatusResponse.from(readStatus);
     }
 
     public void delete(UUID id) {

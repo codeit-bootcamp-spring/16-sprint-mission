@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.dto.readStatus;
 
 import jakarta.validation.constraints.NotNull;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public record ReadStatusCreateRequest(
@@ -9,6 +10,9 @@ public record ReadStatusCreateRequest(
         UUID channelId,
 
         @NotNull
-        UUID userId
+        UUID userId,
+
+        @NotNull
+        Instant lastReadAt
 ) {
 }
