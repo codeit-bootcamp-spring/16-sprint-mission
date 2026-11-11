@@ -40,12 +40,12 @@ public class BasicMessageService implements MessageService {
         author.validateNotDeleted();
         channel.validateNotDeleted();
 
-        // 채널 가입 여부 확인
-        channel.getUsers()
-                .stream()
-                .filter(userId -> userId.equals(authorId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
+        // 채널 가입 여부 확인 - 아직 채널 가입 API는 미사용
+//        channel.getUsers()
+//                .stream()
+//                .filter(userId -> userId.equals(authorId))
+//                .findFirst()
+//                .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
 
         Message message = new Message(authorId, content, channelId);
 
