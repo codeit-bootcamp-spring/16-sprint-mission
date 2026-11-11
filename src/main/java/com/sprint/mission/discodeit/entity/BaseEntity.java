@@ -1,66 +1,61 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serial;
 import java.io.Serializable;
 import java.time.Instant;
+import java.util.Objects;
 import java.util.UUID;
 
+@Getter
 public abstract class BaseEntity implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
     private final UUID id;
-    private final Long createdAt;
-    private Long updatedAt;
-    private Long deletedAt;
+    private final Instant createdAt;
+    private Instant deletedAt;
     private EntityStatus status;
 
     protected BaseEntity() {
         this.id = UUID.randomUUID();
-        this.createdAt = Instant.now().toEpochMilli();
-        this.updatedAt = this.createdAt;
-        this.status = EntityStatus.ACTIVE;
-    }
-
-    public UUID getId() {
-        return this.id;
-    }
-
-    protected void update() {
-        this.updatedAt = Instant.now().toEpochMilli();
+        this.createdAt = Instant.now();
+        this.status = EntityStatus.NORMAL;
     }
 
     public void softDelete() {
         this.status = EntityStatus.DELETED;
-        this.deletedAt = Instant.now().toEpochMilli();
-    }
+        this.deletedAt = Instant.now();
 
-    protected void updateToDeleted(Long deletedAt) {
-        this.deletedAt = deletedAt;
-        this.status = EntityStatus.DELETED;
-    }
-
-    public Long getCreatedAt() {
-        return this.createdAt;
-    }
-
-    public Long getUpdatedAt() {
-        return this.updatedAt;
-    }
-
-    public Long getDeleteAt() {
-        return this.deletedAt;
-    }
-
-    public EntityStatus getStatus() {
-        return this.status;
+        // 수정 가능한 엔티티는 삭제 시 수정 시각 갱신
+        if (this instanceof Updatable) {
+            ((Updatable) this).update();
+        }
     }
 
     public boolean isDeleted() {
         return this.status == EntityStatus.DELETED;
     }
 
+    public void validateNotDeleted() {
+        if (this.isDeleted()) throw new IllegalStateException("개체가 삭제된 상태입니다.");
+    }
+
+    @Override
+    public boolean equals(Object other) {
+        if (this == other) return true;
+        if (other == null || this.getClass() != other.getClass()) return false;
+        BaseEntity entity = (BaseEntity) other;
+        return Objects.equals(this.getId(), entity.getId());
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(this.getId());
+    }
+
     public enum EntityStatus {
-        ACTIVE("활동 중"),
+        NORMAL("정상"),
         DELETED("삭제됨");
 
         private final String value;

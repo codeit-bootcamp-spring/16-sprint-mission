@@ -1,83 +1,79 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class Channel extends BaseEntity {
-    private Set<UUID> users;
-    private Set<UUID> messages;
-    private String name;
+@Getter
+public class Channel extends BaseEntity implements Updatable {
+    private final Set<UUID> users;
+    private final ChannelType type;
 
-    public Channel(String name) {
+    private Instant updatedAt;
+    private String name;
+    private String description;
+
+    public Channel(String name, String description, ChannelType type) {
         super();
+        this.updatedAt = this.getCreatedAt();
         this.name = name;
+        this.description = description;
+        this.type = type;
         this.users = new HashSet<>();
-        this.messages = new LinkedHashSet<>();
     }
 
-    public Channel update(Channel channel) {
-        this.name = channel.name;
-        this.users = channel.getUsers();
-        this.messages = channel.getMessages();
-        if (channel.isDeleted()) {
-            if (this.isDeleted()) throw new IllegalStateException("삭제된 채널은 갱신할 수 없습니다.");
-            this.updateToDeleted(channel.getDeleteAt());
+    public Channel(List<UUID> memberIds, ChannelType type) {
+        super();
+        if (type != ChannelType.PRIVATE) throw new IllegalArgumentException("비공개 채널만 이름과 설명을 생략할 수 있습니다.");
+        this.updatedAt = this.getCreatedAt();
+        this.type = type;
+        this.users = new HashSet<>(memberIds);
+    }
+
+    public Channel update(String newName, String newDescription) {
+        boolean updated = false;
+        if (newName != null && !newName.equals(this.name)) {
+            this.name = newName;
+            updated = true;
         }
-        super.update();
+
+        if (newDescription != null && !newDescription.equals(this.description)) {
+            this.description = newDescription;
+            updated = true;
+        }
+
+        if (updated) {
+            this.update();
+        }
+
         return this;
     }
 
-    public void validateNotDeleted() {
-        if (this.isDeleted()) throw new IllegalStateException("삭제된 채널입니다.");
+    @Override
+    public void update() {
+        this.updatedAt = Instant.now();
     }
 
     public void addUser(UUID userId) {
         this.users.add(userId);
-        super.update();
+        this.update();
     }
 
     public void removeUser(UUID userId) {
         this.users.remove(userId);
-        super.update();
-    }
-
-    public void addMessage(UUID messageId) {
-        this.messages.add(messageId);
-        super.update();
-    }
-
-    public void removeMessage(UUID messageId) {
-        this.messages.remove(messageId);
-        super.update();
-    }
-
-    public String getName() {
-        return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Set<UUID> getUsers() {
-        return this.users;
-    }
-
-    public Set<UUID> getMessages() {
-        return this.messages;
+        this.update();
     }
 
     @Override
     public String toString() {
-        String userStr = this.users.stream().map(uuid -> uuid.toString().substring(0, 4)).collect(Collectors.joining(
-                ", "));
-        String msgStr =
-                this.getMessages().stream().map(uuid -> uuid.toString().substring(0, 4)).collect(Collectors.joining(
-                        ", "));
-        return "이름: %s, id: %s, 가입 유저 (id): [ %s ], 메세지 내역 (id): [ %s ], 상태: %s".formatted(
+        String userStr = this.users
+                .stream()
+                .map(uuid -> uuid.toString().substring(0, 4))
+                .collect(Collectors.joining(", "));
+        return "이름: %s, id: %s, 가입 유저 (id): [ %s ]".formatted(
                 this.name,
-                this.getId().toString().substring(0, 4), userStr,
-                msgStr,
-                super.getStatus());
+                this.getId().toString().substring(0, 4), userStr);
     }
 }

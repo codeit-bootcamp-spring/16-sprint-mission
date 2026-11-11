@@ -1,56 +1,64 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
-public class Message extends BaseEntity {
-    private UUID sentFromId;
-    private UUID channelId;
+@Getter
+public class Message extends BaseEntity implements Updatable {
+    private final UUID authorId;
+    private final UUID channelId;
+    private final List<UUID> attachmentIds;
+    private Instant updatedAt;
     private String content;
 
-    public Message(UUID sentFromId, String content, UUID channelId) {
+    public Message(UUID authorId, String content, UUID channelId) {
         super();
-        this.sentFromId = sentFromId;
+        this.updatedAt = this.getCreatedAt();
+        this.authorId = authorId;
         this.content = content;
         this.channelId = channelId;
+        this.attachmentIds = new ArrayList<>();
     }
 
-    public Message update(Message message) {
-        this.sentFromId = message.sentFromId;
-        this.content = message.content;
-        this.channelId = message.channelId;
-        if (message.isDeleted()) {
-            if (this.isDeleted()) throw new IllegalStateException("삭제된 메세지는 갱신할 수 없습니다.");
-            this.updateToDeleted(message.getDeleteAt());
+    public Message update(String newContent) {
+        boolean updated = false;
+        if (newContent != null && !newContent.equals(this.content)) {
+            this.content = newContent;
+            updated = true;
         }
-        super.update();
+
+        if (updated) {
+            this.update();
+        }
+
         return this;
     }
 
-    public void validateNotDeleted() {
-        if (this.isDeleted()) throw new IllegalStateException("삭제된 메세지입니다.");
+    public void addAttachment(UUID attachmentId) {
+        this.attachmentIds.add(attachmentId);
+        this.update();
     }
 
-    public UUID getSentFromId() {
-        return this.sentFromId;
+    public void removeAttachment(UUID attachmentId) {
+        this.attachmentIds.remove(attachmentId);
+        this.update();
     }
 
-    public String getContent() {
-        return this.content;
-    }
-
-    public void setContent(String content) {
-        this.content = content;
-    }
-
-    public UUID getChannelId() {
-        return this.channelId;
+    @Override
+    public void update() {
+        this.updatedAt = Instant.now();
     }
 
     @Override
     public String toString() {
-        return "id: %s, 보낸 사람 (id): %s, 내용: %s, 채널 (id): %s, 상태: %s".formatted(
+        return "id: %s, 보낸 사람 (id): %s, 내용: %s, 채널 (id): %s".formatted(
                 this.getId().toString().substring(0, 4),
-                this.sentFromId.toString().substring(0, 4), this.content,
-                this.channelId.toString().substring(0, 4), super.getStatus());
+                this.authorId.toString().substring(0, 4),
+                this.content,
+                this.channelId.toString().substring(0, 4));
     }
 }

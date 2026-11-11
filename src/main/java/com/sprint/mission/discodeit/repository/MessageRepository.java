@@ -13,7 +13,13 @@ public interface MessageRepository {
 
     Optional<Message> findById(UUID id);
 
+    Optional<Message> findLastMessageOfChannel(UUID channelId);
+
+    Optional<Message> findByAttachmentId(UUID attachmentId);
+
     List<Message> findAll();
+
+    List<Message> findAllByChannelId(UUID channelId);
 
     void delete(UUID id);
 }

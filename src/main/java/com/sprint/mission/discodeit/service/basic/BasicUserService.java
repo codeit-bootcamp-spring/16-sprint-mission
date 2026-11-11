@@ -1,65 +1,146 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.User.*;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.service.MessageService;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+@RequiredArgsConstructor
+@Service
 public class BasicUserService implements UserService {
     private final UserRepository userRepository;
-    private final ChannelService channelService;
-    private final MessageService messageService;
-
-    public BasicUserService(UserRepository userRepository, ChannelService channelService, MessageService messageService) {
-        this.userRepository = userRepository;
-        this.channelService = channelService;
-        this.messageService = messageService;
-    }
+    private final ChannelRepository channelRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public User create(String name) {
-        User user = new User(name);
-        return this.userRepository.save(user);
-    }
+    public UserCreateResponse create(UserCreateRequest createRequest,
+                                     UserProfileImageCreateRequest imageCreateRequest) {
+        // TODO: 비밀번호 암호화
 
-    @Override
-    public Optional<User> findById(UUID id) {
-        return this.userRepository.findById(id);
-    }
+        String name = createRequest.name();
+        String email = createRequest.email();
 
-    @Override
-    public List<User> findAll() {
-        return this.userRepository.findAll();
-    }
+        this.userRepository.findByName(name).ifPresent((existingUser) -> {
+            throw new IllegalArgumentException("이미 같은 이름의 유저가 존재합니다. 이름: %s".formatted(existingUser.getName()));
+        });
+        this.userRepository.findByEmail(email).ifPresent((existingUser) -> {
+            throw new IllegalArgumentException("이미 같은 이메일의 유저가 존재합니다. 이메일: %s".formatted(existingUser.getEmail()));
+        });
 
-    @Override
-    public User update(UUID id, User newUser) {
-        User user = this.userRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
-        // 갱신할 유저 정보의 상태가 활동 중이면 현재 유저도 검사
-        if (!newUser.isDeleted()) {
-            user.validateNotDeleted();
+        User user = new User(name, email, createRequest.password());
+
+        this.userStatusRepository.save(new UserStatus(user.getId(), null));
+
+        if (imageCreateRequest != null) {
+            BinaryContentCreateRequest binaryContentCreateRequest = imageCreateRequest.binaryContentCreateRequest();
+            String fileName = binaryContentCreateRequest.fileName();
+            String extension = binaryContentCreateRequest.extension();
+            byte[] content = binaryContentCreateRequest.content();
+
+            BinaryContent binaryContent = new BinaryContent(fileName, extension, content);
+            user.assignProfileImage(binaryContent.getId());
+            this.binaryContentRepository.save(binaryContent);
         }
-        user.update(newUser);
-        return this.userRepository.update(id, user);
+        this.userRepository.save(user);
+
+        return UserCreateResponse.from(user);
+    }
+
+    @Override
+    public UserFindResponse findById(UUID id) {
+        User user = this.userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("유저가 존재하지 않습니다."));
+        UserStatus userStatus = this.userStatusRepository.findByUserId(id)
+                .orElseThrow(() -> new NoSuchElementException("유저의 접속 시간 정보가 존재하지 않습니다."));
+        return UserFindResponse.of(user, userStatus.isUserOnline());
+    }
+
+    @Override
+    public List<UserFindResponse> findAll() {
+        return this.userRepository.findAll()
+                .stream()
+                .map(user -> {
+                    UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
+                            .orElseThrow(() -> new NoSuchElementException("유저의 접속 시간 정보가 존재하지 않습니다"));
+                    return UserFindResponse.of(user, userStatus.isUserOnline());
+                })
+                .toList();
+    }
+
+    @Override
+    public UserUpdateResponse update(UserUpdateRequest updateRequest, UserProfileImageUpdateRequest imageUpdateRequest) {
+        UUID userId = updateRequest.userId();
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
+        user.validateNotDeleted();
+
+        String newName = updateRequest.name();
+        String newEmail = updateRequest.email();
+        String newPassword = updateRequest.password();
+
+        this.userRepository.findByName(newName).ifPresent((existingUser) -> {
+            throw new IllegalArgumentException("이미 수정할 이름과 같은 이름의 유저가 존재합니다. 이름: %s".formatted(existingUser.getName()));
+        });
+        this.userRepository.findByEmail(newEmail).ifPresent((existingUser) -> {
+            throw new IllegalArgumentException("이미 수정할 이메일과 같은 이메일의 유저가 존재합니다. 이메일: %s".formatted(existingUser.getEmail()));
+        });
+
+        user.update(newName, newEmail, newPassword);
+
+        if (imageUpdateRequest != null) {
+            UUID oldProfileId = user.getProfileId();
+            String fileName = imageUpdateRequest.fileName();
+            String extension = imageUpdateRequest.extension();
+            byte[] content = imageUpdateRequest.content();
+
+            BinaryContent binaryContent = new BinaryContent(fileName, extension, content);
+            this.binaryContentRepository.save(binaryContent);
+            user.assignProfileImage(binaryContent.getId());
+
+            if (oldProfileId != null) {
+                this.binaryContentRepository.delete(oldProfileId);
+            }
+        }
+        this.userRepository.update(userId, user);
+        return UserUpdateResponse.from(user);
     }
 
     @Override
     public void delete(UUID id) {
-        User user = this.userRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+        User user = this.userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
         user.validateNotDeleted();
 
-        // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
-        Set<UUID> channels = new HashSet<>(user.getChannels());
-        channels.forEach(channelId -> this.channelService.removeUserFromChannel(channelId, id));
+        // 유저 삭제 관련된 엔티티 처리
+        this.channelRepository.findAllByUserId(id).forEach(channel -> {
+            channel.removeUser(id);
+            this.channelRepository.update(channel.getId(), channel);
+        });
 
-        // 유저 삭제 시 메세지들도 삭제
-        Set<UUID> messages = new HashSet<>(user.getMessages());
-        messages.forEach(this.messageService::delete);
+        if (user.getProfileId() != null) {
+            this.binaryContentRepository.findById(user.getProfileId())
+                    .orElseThrow(() -> new IllegalStateException("삭제할 유저의 프로필 이미지가 없습니다."));
+            this.binaryContentRepository.delete(user.getProfileId());
+            user.assignProfileImage(null);
+            this.userRepository.update(id, user);
+        }
+
+        UserStatus userStatus = this.userStatusRepository.findByUserId(id)
+                .orElseThrow(() -> new NoSuchElementException("삭제할 유저의 접속 기록이 존재하지 않습니다."));
+        this.userStatusRepository.delete(userStatus.getId());
+
+        this.readStatusRepository.findAllByUserId(id).forEach(readStatus -> {
+            this.readStatusRepository.delete(readStatus.getId());
+        });
 
         this.userRepository.delete(id);
     }

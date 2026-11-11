@@ -1,48 +1,99 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.dto.Channel.*;
+import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.*;
 
+@RequiredArgsConstructor
+@Service
 public class BasicChannelService implements ChannelService {
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
+    private final ReadStatusRepository readStatusRepository;
+    private final MessageRepository messageRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
-    public BasicChannelService(ChannelRepository channelRepository, UserRepository userRepository) {
-        this.channelRepository = channelRepository;
-        this.userRepository = userRepository;
+    @Override
+    public ChannelPublicCreateResponse createPublic(ChannelPublicCreateRequest createRequest) {
+        String name = createRequest.name();
+        String description = createRequest.description();
+
+        Channel channel = new Channel(name, description, ChannelType.PUBLIC);
+        this.channelRepository.save(channel);
+
+        return ChannelPublicCreateResponse.from(channel);
     }
 
     @Override
-    public Channel create(String name) {
-        Channel channel = new Channel(name);
-        return this.channelRepository.save(channel);
+    public ChannelPrivateCreateResponse createPrivate(ChannelPrivateCreateRequest createRequest) {
+        List<UUID> memberIds = createRequest.memberIds();
+        Channel channel = new Channel(memberIds, ChannelType.PRIVATE);
+        List<UUID> distinctMemberIds = new ArrayList<>(new LinkedHashSet<>(memberIds));
+
+        distinctMemberIds.forEach(memberId -> {
+            this.userRepository.findById(memberId)
+                    .orElseThrow(() -> new NoSuchElementException("생성할 비공개 채널에 소속될 유저가 존재하지 않습니다."));
+            if (this.readStatusRepository.findByChannelIdAndUserId(channel.getId(), memberId).isPresent()) {
+                throw new IllegalStateException("이미 존재하는 메세지 확인 기록입니다.");
+            }
+        });
+
+        this.channelRepository.save(channel);
+
+        distinctMemberIds.forEach(memberId -> {
+            this.readStatusRepository.save(new ReadStatus(memberId, channel.getId()));
+        });
+
+        return ChannelPrivateCreateResponse.from(channel);
     }
 
     @Override
-    public Optional<Channel> findById(UUID id) {
-        return this.channelRepository.findById(id);
+    public ChannelFindResponse findById(UUID id) {
+        Channel channel = this.channelRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("존재하지 않는 채널입니다."));
+        Instant lastMessageTime = this.messageRepository.findLastMessageOfChannel(id)
+                .map(BaseEntity::getCreatedAt)
+                .orElse(null);
+        return ChannelFindResponse.of(channel, lastMessageTime);
     }
 
     @Override
-    public List<Channel> findAll() {
-        return this.channelRepository.findAll();
+    public List<ChannelFindResponse> findAllByUserId(UUID userId) {
+        return this.channelRepository.findAll()
+                .stream()
+                .filter(channel ->
+                        channel.getType() == ChannelType.PUBLIC
+                                || (channel.getType() == ChannelType.PRIVATE && channel.getUsers().contains(userId)))
+                .map(channel -> {
+                    Instant lastMessageTime = this.messageRepository.findLastMessageOfChannel(channel.getId())
+                            .map(BaseEntity::getCreatedAt)
+                            .orElse(null);
+                    return ChannelFindResponse.of(channel, lastMessageTime);
+                })
+                .toList();
     }
 
     @Override
-    public Channel update(UUID id, Channel newChannel) {
-        Channel channel = this.channelRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
-        // 갱신할 채널 정보의 상태가 활동 중이면 현재 채널도 검사
-        if (!newChannel.isDeleted()) {
-            channel.validateNotDeleted();
-        }
-        channel.update(newChannel);
-        return this.channelRepository.update(id, channel);
+    public ChannelUpdateResponse update(ChannelUpdateRequest updateRequest) {
+        UUID id = updateRequest.id();
+
+        Channel channel = this.channelRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
+        channel.validateNotDeleted();
+        if (channel.getType() == ChannelType.PRIVATE) throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
+
+        String newName = updateRequest.name();
+        String newDescription = updateRequest.description();
+
+        channel.update(newName, newDescription);
+        this.channelRepository.update(id, channel);
+        return ChannelUpdateResponse.from(channel);
     }
 
     @Override
@@ -51,32 +102,32 @@ public class BasicChannelService implements ChannelService {
                 .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));
         user.validateNotDeleted();
 
-        Channel channel = this.channelRepository.findById(channelId).orElseThrow(
-                () -> new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다."));
+        Channel channel = this.channelRepository.findById(channelId)
+                .orElseThrow(() -> new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
+
+        if (this.readStatusRepository.findByChannelIdAndUserId(channelId, userId).isPresent())
+            throw new IllegalStateException("메세지 확인 기록이 이미 존재합니다.");
+
+        this.readStatusRepository.save(new ReadStatus(userId, channelId));
 
         channel.addUser(user.getId());
         this.channelRepository.update(channelId, channel);
-
-        // 채널에 유저 추가 시 유저에도 채널 추가
-        user.addChannel(channel.getId());
-        this.userRepository.update(userId, user);
     }
 
     @Override
     public void removeUserFromChannel(UUID channelId, UUID userId) {
-        // 유저가 존재하는지 확인
-        User user = this.userRepository.findById(userId).orElseThrow(
-                () -> new NoSuchElementException("채널에서 탈퇴시킬 유저가 존재하지 않습니다."));
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("채널에서 탈퇴시킬 유저가 존재하지 않습니다."));
         user.validateNotDeleted();
 
-        Channel channel = this.channelRepository.findById(channelId).orElseThrow(
-                () -> new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다."));
+        Channel channel = this.channelRepository.findById(channelId)
+                .orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
 
-        // 채널의 유저 탈퇴 시 유저에도 채널 지우기
-        user.removeChannel(channelId);
-        this.userRepository.update(userId, user);
+        ReadStatus readStatus = this.readStatusRepository.findByChannelIdAndUserId(channelId, userId)
+                .orElseThrow(() -> new NoSuchElementException("메세지 확인 기록이 존재하지 않습니다."));
+        this.readStatusRepository.delete(readStatus.getId());
 
         channel.removeUser(userId);
         this.channelRepository.update(channelId, channel);
@@ -84,16 +135,24 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public void delete(UUID id) {
-        Channel channel = this.channelRepository.findById(id).orElseThrow(
-                () -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
+        Channel channel = this.channelRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("삭제할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
 
-        channel.getUsers().forEach(userId -> this.userRepository.findById(userId).ifPresent(user -> {
-            if (!user.isDeleted()) {
-                user.removeChannel(id);
-                this.userRepository.update(userId, user);
-            }
-        }));
+        // 채널 -> 메세지 -> 첨부 파일 삭제
+        this.messageRepository.findAllByChannelId(id).forEach(message -> {
+            List<UUID> distinctAttachmentIds = new ArrayList<>(new LinkedHashSet<>(message.getAttachmentIds()));
+
+            this.binaryContentRepository.findAllByIdIn(distinctAttachmentIds).forEach(binaryContent -> {
+                this.binaryContentRepository.delete(binaryContent.getId());
+            });
+            this.messageRepository.delete(message.getId());
+        });
+
+        this.readStatusRepository.findAllByChannelId(id).forEach(readStatus -> {
+            this.readStatusRepository.delete(readStatus.getId());
+        });
+
         this.channelRepository.delete(id);
     }
 }
