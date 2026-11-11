@@ -1,141 +1,303 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.dto.BinaryContentDto;
+import com.sprint.mission.discodeit.dto.user.UserCreateDto;
+import com.sprint.mission.discodeit.dto.user.UserDto;
+import com.sprint.mission.discodeit.dto.user.UserUpdateDto;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.repository.ChannelRepository;
-import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.validator.CommonValidator;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+import java.time.Instant;
 import java.util.List;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
+@Service
+@RequiredArgsConstructor
 public class BasicUserService implements UserService {
 
     private final UserRepository userRepository;
-    private final ChannelRepository channelRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final UserStatusRepository userStatusRepository;
     private final MessageRepository messageRepository;
-    public BasicUserService(UserRepository userRepository, ChannelRepository channelRepository, MessageRepository messageRepository) {
-        this.userRepository = userRepository;
-        this.channelRepository = channelRepository;
-        this.messageRepository = messageRepository;
-    }
+    private final ReadStatusRepository readStatusRepository;
+    private final CommonValidator validator;
 
     @Override
-    public User createUser(String name, int age) {
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("사용자 이름은 비어있을 수 없습니다");
+    public UserDto createUser(UserCreateDto dto) {
+        // 입력값 검증
+        validator.validateNotNull(
+                dto,
+                "사용자 생성 정보는 null일 수 없습니다."
+        );
+        validator.validateNotBlank(
+                dto.username(),
+                "사용자 이름은 비어있을 수 없습니다."
+        );
+        validator.validateNotBlank(
+                dto.email(),
+                "이메일은 비어있을 수 없습니다."
+        );
+        validator.validateNotBlank(
+                dto.password(),
+                "비밀번호는 비어있을 수 없습니다."
+        );
+        validator.validatePositiveOrZero(
+                dto.age(),
+                "나이는 0 이상이어야 합니다."
+        );
+
+        // 중복검사
+        if (userRepository.findByUsername(dto.username()).isPresent()) {
+            throw new IllegalArgumentException(
+                    "이미 존재하는 사용자 이름입니다."
+            );
         }
-        if (age < 0) {
-            throw new IllegalArgumentException("나이는 0 이상이어야 합니다.");
+        if (userRepository.findByEmail(dto.email()).isPresent()) {
+            throw new IllegalArgumentException(
+                    "이미 존재하는 이메일입니다."
+            );
         }
 
-        User user = new User(name, age);
-        return userRepository.save(user);
+        // profileID 저장
+        UUID profileId = null; // 기본 널 설정
+        if (dto.profile() != null) {
+            BinaryContentDto profile = dto.profile();
+
+            BinaryContent binaryContent = new BinaryContent( // DTO -> Entity 변환
+                    profile.filename(),
+                    profile.size(),
+                    profile.bytes()
+            );
+
+            BinaryContent saveProfile = binaryContentRepository.save(binaryContent);
+
+            profileId = saveProfile.getId();
+        }
+
+        // User 생성
+        User user = new User(
+                profileId,
+                dto.username(),
+                dto.age(),
+                dto.email(),
+                dto.password()
+        );
+        User savedUser = userRepository.save(user);
+        // UserStatus 같이 생성
+        UserStatus userStatus = new UserStatus(
+                savedUser.getId(),
+                Instant.now()
+        );
+        UserStatus savedStatus = userStatusRepository.save(userStatus);
+
+        return new UserDto(
+                savedUser.getUsername(),
+                savedUser.getAge(),
+                savedUser.getEmail(),
+                savedStatus.isOnline()
+        );
     }
 
     @Override
-    public Optional<User> findById(UUID id) {
-        return userRepository.findById(id);
-    }
+    public UserDto findById(UUID id) {
+        // 입력값 검증
+        validator.validateNotNull(
+                id,
+                "사용자 ID는 null일 수 없습니다."
+        );
 
-    @Override
-    public List<User> findByName(String name) {
-        return userRepository.findByName(name);
-    }
-
-    @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
-    }
-
-
-    @Override
-    public User updateUser(UUID id, String name, int age) {
-        User user = findById(id)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
+        // User 조회
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "사용자가 존재하지 않습니다."
+                        )
                 );
-        if (name == null || name.isBlank()) {
-            throw new IllegalArgumentException("사용자 이름은 비어있을 수 없습니다.");
+
+        return toDto(user);
+    }
+
+    @Override
+    public UserDto findByUsername(String username) {
+        validator.validateNotBlank(
+                username,
+                "사용자 이름은 비어있을 수 없습니다."
+        );
+
+        User user = userRepository.findByUsername(username)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "사용자가 존재하지 않습니다."
+                        )
+                );
+
+        return toDto(user);
+    }
+
+    @Override
+    public UserDto findByEmail(String email) {
+        validator.validateNotBlank(
+                email,
+                "이메일은 비어있을 수 없습니다."
+        );
+
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "사용자가 존재하지 않습니다."
+                        )
+                );
+
+        return toDto(user);
+    }
+
+    @Override
+    public List<UserDto> findAll() {
+        return userRepository.findAll() // 유저 전부 찾아와서
+                .stream() // 스트림파이프 열고
+                .map(this::toDto) // 하나씩 DTO로 바꾼다음
+                .toList(); // 다시 리스트로 묶기
+    }
+
+    @Override
+    public UserDto updateUser(UserUpdateDto dto) {
+        validator.validateNotNull(
+                dto,
+                "수정 정보는 null일 수 없습니다."
+        );
+        validator.validateNotNull(
+                dto.id(),
+                "사용자 ID는 null일 수 없습니다."
+        );
+
+        User user = userRepository.findById(dto.id())
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "사용자가 존재하지 않습니다."
+                        )
+                );
+
+        if (dto.username() != null){ // 아룸 중복 방지 로직
+            if (dto.username().equals(user.getUsername())) {
+                throw new IllegalArgumentException(
+                        "현재 사용자 이름과 동일합니다."
+                );
+            }
+            if (userRepository.findByUsername(dto.username()).isPresent()) {
+                throw new IllegalArgumentException(
+                        "이미 존재하는 사용자 이름입니다."
+                );
+            }
         }
-        if (age < 0) {
-            throw new IllegalArgumentException("나이는 0 이상이어야 합니다.");
+
+        if (dto.age() != null){
+            validator.validatePositiveOrZero(
+                    dto.age(),
+                    "나이는 0 이상이어야 합니다."
+            );
         }
 
-        user.update(name, age);
-        userRepository.save(user);
+        if (dto.password() != null){
+            validator.validateNotBlank(
+                    dto.password(),
+                    "비밀번호는 비어있을 수 없습니다."
+            );
+        }
 
-        channelRepository.findAllByUserId(id)
-                .forEach(channel -> {
-                    User channelUser = channel.getUsers().stream()
-                            .filter(u -> u.getId().equals(id))
-                            .findFirst()
-                            .orElseThrow(() ->
-                                    new IllegalStateException(
-                                            "채널에 사용자가 존재하지 않습니다."));
+        // 이름, 나이 변경
+        user.update(dto.username(), dto.age(), dto.password());
 
-                    channelUser.update(name, age);
-                    channelRepository.save(channel);
-                });
+        // 프로필 이미지 교체
+        if (dto.profile() != null) {
+            UUID oldProfileId = user.getProfileId(); // 기존 프로필 담아두기
+            BinaryContentDto profile = dto.profile();
 
-        messageRepository.findAllByUserId(id)
-                .forEach(message -> {
-                    message.getUser().update(name, age);
-                    messageRepository.save(message);
-                });
+            BinaryContent newProfile = new BinaryContent( // 새로 받은 프로필 정보 입력
+                    profile.filename(),
+                    profile.size(),
+                    profile.bytes()
+            );
 
-        return user;
+            BinaryContent saveProfile = binaryContentRepository.save(newProfile); // 저장
+            user.updateProfileId(saveProfile.getId()); // 유저 객체 업데이트
+
+            if (oldProfileId != null) { // 기존 프로필 제거
+                binaryContentRepository.findById(oldProfileId)
+                        .ifPresent(binaryContentRepository::delete);
+            }
+        }
+
+        User savedUser = userRepository.save(user); // 유저 저장
+        return toDto(savedUser); // dto변환 후 반환
     }
 
     @Override
     public void deleteUser(UUID id) {
-        User user = findById(id)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
+        validator.validateNotNull(
+                id,
+                "사용자 ID는 null일 수 없습니다."
+        );
+
+        User user = userRepository.findById(id)
+                .orElseThrow(() ->
+                        new NoSuchElementException(
+                                "사용자가 존재하지 않습니다."
+                        )
                 );
-        userRepository.delete(user);
+
+        // 유저가 작성한 메세지 삭제
+        List<Message> messages = messageRepository.findAllByUserId(id);
+
+        for (Message message : messages) {
+            // 메세지 속 첨부파일 삭제
+            for (UUID attachmentId : message.getAttachmentIds()) {
+                binaryContentRepository.findById(attachmentId)
+                        .ifPresent(binaryContentRepository::delete);
+            }
+
+            messageRepository.delete(message);
+        }
+
+        readStatusRepository.findAllByUserId(id) // ReadStatus 삭제
+                .forEach(readStatusRepository::delete);
+
+        userStatusRepository.findByUserId(id) // UserStatus 삭제
+                .ifPresent(userStatusRepository::delete);
+
+        if (user.getProfileId() != null) { // binary 삭제
+            binaryContentRepository
+                    .findById(user.getProfileId())
+                    .ifPresent(binaryContentRepository::delete);
+        }
+
+
+        userRepository.delete(user); // user 삭제
     }
 
-    @Override
-    public void addChannelToUser(UUID id, Channel channel) {
-        User user = findById(id)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다.")
-                );
-        user.addChannel(channel);
-        userRepository.save(user);
-    }
+    // User -> UserDto로 변환 하는 메서드
+    private UserDto toDto(User user) {
 
-    @Override
-    public void removeChannelFromUser(UUID id, Channel channel) {
-        User user = findById(id)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
-                );
-        user.removeChannel(channel);
-        userRepository.save(user);
-    }
+        UserStatus userStatus =
+                userStatusRepository.findByUserId(user.getId())
+                        .orElseThrow(() ->
+                                new NoSuchElementException(
+                                        "사용자 상태 정보가 존재하지 않습니다."
+                                )
+                        );
 
-    @Override
-    public void addMessageToUser(UUID id, Message message){
-        User user = findById(id)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
-                );
-        user.addMessage(message);
-        userRepository.save(user);
-    }
-
-    @Override
-    public void removeMessageFromUser(UUID id, Message message){
-        User user = findById(id)
-                .orElseThrow(
-                        () -> new IllegalArgumentException("존재하지 않는 사용자입니다")
-                );
-        user.removeMessage(message);
-        userRepository.save(user);
+        return new UserDto(
+                user.getUsername(),
+                user.getAge(),
+                user.getEmail(),
+                userStatus.isOnline()
+        );
     }
 }

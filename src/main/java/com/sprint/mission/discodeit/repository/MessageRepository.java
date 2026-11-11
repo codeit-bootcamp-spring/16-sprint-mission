@@ -14,7 +14,7 @@ public interface MessageRepository {
 
     List<Message> findAll();
 
-    List<Message> findAllByUserId(UUID userId);
+    List<Message> findAllByUserId(UUID authorId);
 
     List<Message> findAllByChannelId(UUID channelId);
 

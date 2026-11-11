@@ -11,11 +11,11 @@ public interface UserRepository {
 
     Optional<User> findById(UUID id);
 
-    List<User> findByName(String name);
+    Optional<User> findByUsername(String username);
+
+    Optional<User> findByEmail(String email);
 
     List<User> findAll();
-
-    List<User> findAllByChannelId(UUID channelId);
 
     void delete(User user);
 }

@@ -2,6 +2,9 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.nio.file.Files;
@@ -11,14 +14,22 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Repository
+@ConditionalOnProperty(
+        name = "discodeit.repository.type",
+        havingValue = "file"
+)
 public class FileChannelRepository implements ChannelRepository {
 
-    private static final Path DIRECTORY =
-            Paths.get(System.getProperty("user.dir"), "data", "channels");
+    private final Path directory;
 
-    public FileChannelRepository() {
+    public FileChannelRepository(
+            @Value("${discodeit.repository.file-directory:.discodeit}")
+            String fileDirectory
+    ) {
+        this.directory = Paths.get(fileDirectory, "channels");
         try {
-            Files.createDirectories(DIRECTORY);
+            Files.createDirectories(directory);
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -41,7 +52,7 @@ public class FileChannelRepository implements ChannelRepository {
     @Override
     public Channel save(Channel channel) {
         Path filePath =
-                DIRECTORY.resolve(channel.getId() + ".ser");
+                directory.resolve(channel.getId() + ".ser");
 
         try (
                 FileOutputStream fos =
@@ -60,7 +71,7 @@ public class FileChannelRepository implements ChannelRepository {
 
     @Override
     public Optional<Channel> findById(UUID id) {
-        Path filePath = DIRECTORY.resolve(id + ".ser");
+        Path filePath = directory.resolve(id + ".ser");
 
         if (!Files.exists(filePath)) {
             return Optional.empty();
@@ -70,16 +81,8 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public Optional<Channel> findByName(String name) {
-        return findAll().stream()
-                .filter(channel ->
-                        channel.getName().equals(name))
-                .findFirst();
-    }
-
-    @Override
     public List<Channel> findAll() {
-        try (var paths = Files.list(DIRECTORY)) {
+        try (var paths = Files.list(directory)) {
 
             return paths
                     .filter(Files::isRegularFile)
@@ -94,19 +97,9 @@ public class FileChannelRepository implements ChannelRepository {
     }
 
     @Override
-    public List<Channel> findAllByUserId(UUID userId) {
-        return findAll().stream()
-                .filter(channel ->
-                        channel.getUsers().stream()
-                                .anyMatch(user ->
-                                        user.getId().equals(userId)))
-                .toList();
-    }
-
-    @Override
     public void delete(Channel channel) {
         Path filePath =
-                DIRECTORY.resolve(channel.getId() + ".ser");
+                directory.resolve(channel.getId() + ".ser");
 
         try {
             Files.delete(filePath);

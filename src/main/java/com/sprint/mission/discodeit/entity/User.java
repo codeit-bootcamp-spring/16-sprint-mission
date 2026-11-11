@@ -1,86 +1,39 @@
 package com.sprint.mission.discodeit.entity;
 
-import java.util.ArrayList;
-import java.util.List;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
-public class User extends Base{
-    private String name;
+import java.time.Instant;
+import java.util.UUID;
+
+@Getter
+@AllArgsConstructor
+public class User extends Base {
+    private UUID profileId;
+    private String username;
     private int age;
-    private final List<Channel> channels;
-    private final List<Message> messages;
+    private final String email;
+    private String password;
 
-    public User(String name, int age) {
-        this.name = name;
-        this.age = age;
-        this.channels = new ArrayList<>();
-        this.messages = new ArrayList<>();
+    public void update(String username, Integer age, String password) {
+        if (username != null)
+            this.username = username;
+        if (age != null)
+            this.age = age;
+        if (password != null)
+            this.password = password;
+        updateUpdatedAt();
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public int getAge() {
-        return age;
-    }
-
-    public List<Channel> getChannels() {
-        return List.copyOf(channels);
-    }
-
-    public List<Message> getMessages() {
-        return List.copyOf(messages);
-    }
-
-    public void addChannel(Channel channel) {
-        if (channel == null) {
-            throw new IllegalArgumentException("채널이 존재하지 않습니다.");
-        }
-        boolean exists = channels.stream()
-                        .anyMatch(existsChannel -> existsChannel.getId().equals(channel.getId()));
-
-        if (exists) {
-            throw new IllegalArgumentException("이미 참여하고 있는 채널입니다.");
-        }
-        channels.add(channel);
-        updateUpdatedAt(System.currentTimeMillis());
-    }
-
-    public void removeChannel(Channel channel) {
-        if (channel == null) {
-            throw new IllegalArgumentException("채널이 존재하지 않습니다.");
-        }
-        boolean exists = channels.stream()
-                        .anyMatch(existsChannel -> existsChannel.getId().equals(channel.getId()));
-        if (!exists) {
-            throw new IllegalArgumentException("참여하고 있지 않은 채널입니다.");
-        }
-        channels.removeIf(existsChannel ->
-                existsChannel.getId().equals(channel.getId()));
-        updateUpdatedAt(System.currentTimeMillis());
-    }
-
-    public void addMessage(Message message) {
-        messages.add(message);
-        updateUpdatedAt(System.currentTimeMillis());
-    }
-
-    public void removeMessage(Message message) {
-        messages.removeIf(existsMessage ->
-                existsMessage.getId().equals(message.getId()));
-        updateUpdatedAt(System.currentTimeMillis());
-    }
-
-    public void update(String name, int age) {
-        this.name = name;
-        this.age = age;
-        updateUpdatedAt(System.currentTimeMillis());
+    public void updateProfileId(UUID profileId) {
+        this.profileId = profileId;
+        updateUpdatedAt();
     }
 
     @Override
     public String toString() {
         return "User {" +
-                "name='" + name + '\'' +
+                "name='" + username + '\'' +
                 ", age=" + age +
                 '}';
     }

@@ -1,39 +1,32 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+
+import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
+@Getter
+@AllArgsConstructor
 public class Message extends Base{
     private String content;
-    private final User user;
-    private final Channel channel;
-
-    public Message(String content, User user, Channel channel) {
-        this.content = content;
-        this.user = user;
-        this.channel = channel;
-    }
-
-    public String getContent() {
-        return content;
-    }
-
-    public User getUser() {
-        return user;
-    }
-
-    public Channel getChannel() {
-        return channel;
-    }
+    private final UUID authorId;
+    private final UUID channelId;
+    private List<UUID> attachmentIds;
 
     public void update(String content) {
         this.content = content;
-        updateUpdatedAt(System.currentTimeMillis());
+        updateUpdatedAt();
     }
 
     @Override
     public String toString() {
         return "Message{" +
-                "content=" + content +
+                "attachmentIds=" + attachmentIds +
+                ", content='" + content + '\'' +
+                ", authorId=" + authorId +
+                ", channelId=" + channelId +
                 '}';
     }
 }
