@@ -1,45 +1,47 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.io.Serializable;
+import java.time.Instant;
 import java.util.UUID;
+import java.util.ArrayList;
+import java.util.List;
 
-public class Message extends BaseEntity implements Serializable {
-
-    private final UUID channelId;
-    private final UUID senduser;
-    private String content;
-    private boolean bookmarked;
+@Getter
+public class Message implements Serializable {
     private static final long serialVersionUID = 1L;
 
+    private UUID id;
+    private Instant createdAt;
+    private Instant updatedAt;
+    //
+    private String content;
 
-    public Message(UUID channelId, UUID senduser, String content) {
-    super();
-    this.channelId = channelId;
-    this.senduser = senduser;
-    this.content = content;
-    this.bookmarked = false;
-}
+    private UUID channelId;
+    private UUID authorId;
 
-public UUID getChannelId() {
-    return channelId;
-}
-public UUID getSenduser() {
-    return senduser;
-}
-public String getContent() {
-    return content;
-}
+    private List<UUID> attachmentIds;
 
-public boolean isBookmarked() {
-    return bookmarked;
-    }
-
-    public void update(String content) {
+    public Message(String content, UUID channelId, UUID authorId, List<UUID> attachmentIds) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        //
         this.content = content;
-        updateTimestamp();
+        this.channelId = channelId;
+        this.authorId = authorId;
+        this.attachmentIds = attachmentIds;
     }
-    public void toggleBookmark() {
-        this.bookmarked = !this.bookmarked;
-        updateTimestamp();
+
+    public void update(String newContent) {
+        boolean anyValueUpdated = false;
+        if (newContent != null && !newContent.equals(this.content)) {
+            this.content = newContent;
+            anyValueUpdated = true;
         }
+
+        if (anyValueUpdated) {
+            this.updatedAt = Instant.now();
+        }
+    }
 }
