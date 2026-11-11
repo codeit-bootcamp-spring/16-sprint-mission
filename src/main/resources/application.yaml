@@ -1,0 +1,5 @@
+# application.yaml
+discodeit:
+  repository:
+    type: jcf # jcf 나 file
+    file-directory: .discodeit

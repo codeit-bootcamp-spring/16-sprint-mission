@@ -19,21 +19,22 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
+    implementation 'org.springframework:spring-tx'
+
+    // 비밀번호 암호화 기능
+    implementation 'org.springframework.security:spring-security-crypto'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
     testImplementation 'org.springframework.boot:spring-boot-starter-webmvc-test'
+
     testCompileOnly 'org.projectlombok:lombok'
     testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     testAnnotationProcessor 'org.projectlombok:lombok'
-//    testImplementation platform('org.junit:junit-bom:6.0.0')
-//    testImplementation 'org.junit.jupiter:junit-jupiter'
-//    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 tasks.named('test') {
     useJUnitPlatform()
 }
-
-//test {
-//    useJUnitPlatform()
-//}
