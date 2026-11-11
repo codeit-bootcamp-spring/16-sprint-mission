@@ -1,0 +1,11 @@
+spring:
+  application:
+    name: discodeit
+
+server:
+  port: 9080
+
+discodeit:
+  repository:
+    type: file
+    file-directory: .discodeit-test

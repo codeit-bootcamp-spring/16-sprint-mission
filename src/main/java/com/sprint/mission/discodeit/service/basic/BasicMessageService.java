@@ -1,89 +1,89 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.dto.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
+import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+@Service
+@RequiredArgsConstructor
 public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
-
-    public BasicMessageService(MessageRepository messageRepository, UserRepository userRepository, ChannelRepository channelRepository) {
-        this.messageRepository = messageRepository;
-        this.userRepository = userRepository;
-        this.channelRepository = channelRepository;
-    }
+    private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public Message create(String comment, UUID userId, UUID channelId) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-
-        User user = entities.getUsers().stream().filter(u -> u.getId().equals(userId)).findFirst().orElseThrow(() ->
+    public Message create(MessageCreateRequest request,List<BinaryContentRequest> attachments) {
+        userRepository.findById(request.authorId()).orElseThrow(()->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
-
-        Channel channel = entities.getChannels().stream().filter(c -> c.getId().equals(channelId)).findFirst().orElseThrow(() ->
+        channelRepository.findById(request.channelId()).orElseThrow(()->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
-        Message message = new Message(comment, user, channel);
-        entities.getMessages().add(message);
-        entities.saveAll();
+        List<UUID> attachmentIds = new ArrayList<>();
+
+        for(BinaryContentRequest binaryContentRequest : attachments){
+            BinaryContent binaryContent = new BinaryContent(binaryContentRequest.fileName(),binaryContentRequest.contentType(),binaryContentRequest.bytes());
+            binaryContentRepository.save(binaryContent);
+            attachmentIds.add(binaryContent.getId());
+        }
+
+        Message message = new Message(request.comment(), request.authorId(),request.channelId(),attachmentIds);
+        messageRepository.save(message);
         return message;
     }
 
     @Override
     public Message findById(UUID id) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-
-        return entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
+        return messageRepository.findById(id).orElseThrow(() ->
                 new IllegalArgumentException("메시지를 찾을 수 없음"));
     }
 
     @Override
-    public List<Message> findAll() {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-        return entities.getMessages();
+    public List<Message> findAllByChannelId(UUID channelId) {
+        List<Message> messages = messageRepository.findAll();
+        return messages.stream().filter(m->m.getChannelId().equals(channelId)).collect(Collectors.toList());
     }
 
     @Override
-    public Message update(UUID id, String comment) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
+    public Message update(MessageUpdateRequest request) {
 
-        Message message = entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
+        Message message =  messageRepository.findById(request.messageId()).orElseThrow(()->
                 new IllegalArgumentException("메시지를 찾을 수 없음"));
-
-        entities.getUsers().stream().filter(u -> u.getId().equals(message.getUser().getId())).findFirst().orElseThrow(() ->
+        userRepository.findById(message.getAuthorId()).orElseThrow(()->
                 new IllegalArgumentException("사용자를 찾을 수 없음"));
-
-        entities.getChannels().stream().filter(c -> c.getId().equals(message.getChannel().getId())).findFirst().orElseThrow(() ->
+        channelRepository.findById(message.getChannelId()).orElseThrow(()->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
-        message.update(comment);
-        entities.saveAll();
+        message.update(request.comment());
+        messageRepository.save(message);
         return message;
     }
 
     @Override
     public void delete(UUID id) {
-        BasicEntityService entities = new BasicEntityService(userRepository, channelRepository, messageRepository);
-
-        Message message = entities.getMessages().stream().filter(m -> m.getId().equals(id)).findFirst().orElseThrow(() ->
+        Message message =  messageRepository.findById(id).orElseThrow(()->
                 new IllegalArgumentException("메시지를 찾을 수 없음"));
-
-        entities.getUsers().stream().filter(u -> u.getId().equals(message.getUser().getId())).findFirst().orElseThrow(() ->
-                new IllegalArgumentException("사용자를 찾을 수 없음"));
-
-        entities.getChannels().stream().filter(c -> c.getId().equals(message.getChannel().getId())).findFirst().orElseThrow(() ->
+        channelRepository.findById(message.getChannelId()).orElseThrow(()->
                 new IllegalArgumentException("채널을 찾을 수 없음"));
 
-        entities.getMessages().remove(message);
-        entities.saveAll();
+        for(UUID attachmentId : message.getAttachmentIds()){
+            binaryContentRepository.deleteById(attachmentId);
+        }
+
+        messageRepository.deleteById(id);
     }
 }
