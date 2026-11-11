@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
@@ -28,7 +29,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public Message create(MessageCreateRequest request) {
+    public MessageDto create(MessageCreateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Message create request cannot be null.");
         }
@@ -65,13 +66,25 @@ public class BasicMessageService implements MessageService {
         try {
             attachments.forEach(binaryContentRepository::save);
             messageRepository.save(message);
-            return message;
+            return toDto(message);
         } catch (RuntimeException exception) {
             attachments.forEach(attachment ->
                     binaryContentRepository.deleteById(attachment.getId())
             );
             throw exception;
         }
+    }
+
+    private MessageDto toDto(Message message) {
+        return new MessageDto(
+                message.getId(),
+                message.getContent(),
+                message.getAuthorId(),
+                message.getChannelId(),
+                message.getAttachmentIds(),
+                message.getCreatedAt(),
+                message.getUpdatedAt()
+        );
     }
 
     @Override

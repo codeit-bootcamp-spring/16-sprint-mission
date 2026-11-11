@@ -4,7 +4,9 @@ import com.sprint.mission.discodeit.dto.AuthLoginRequest;
 import com.sprint.mission.discodeit.dto.AuthUserDto;
 import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.PublicChannelCreateRequest;
@@ -15,7 +17,6 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserUpdateRequest;
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
@@ -105,9 +106,9 @@ public class DiscodeitApplication {
                 context.getBean(ReadStatusRepository.class);
         BinaryContentRepository binaryContentRepository =
                 context.getBean(BinaryContentRepository.class);
-        Channel channel = setupChannel(channelService);
-        logData("ReadStatus/메시지 검증용 공개 채널", "channelId=" + channel.getId()
-                + ", type=" + channel.getType());
+        ChannelDto channel = setupChannel(channelService);
+        logData("ReadStatus/메시지 검증용 공개 채널", "channelId=" + channel.id()
+                + ", type=" + channel.type());
 
         verifyReadStatusService(
                 context.getBean(ReadStatusService.class),
@@ -151,7 +152,7 @@ public class DiscodeitApplication {
 		return userService.create(request);
 	}
 
-	static Channel setupChannel(ChannelService channelService) {
+	static ChannelDto setupChannel(ChannelService channelService) {
 		return channelService.createPublic(
 				new PublicChannelCreateRequest("공지", "공지 채널입니다.")
 		);
@@ -289,7 +290,7 @@ public class DiscodeitApplication {
 	private static void verifyReadStatusService(
 			ReadStatusService readStatusService,
 			UserDto user,
-			Channel channel,
+			ChannelDto channel,
 			ReadStatusRepository readStatusRepository
 	) {
 		UUID createdReadStatusId = null;
@@ -297,17 +298,17 @@ public class DiscodeitApplication {
 			startSection("ReadStatusService | 생성과 관계 확인");
 			Instant initialReadAt = Instant.now().minusSeconds(30);
 			ReadStatusCreateRequest createRequest = new ReadStatusCreateRequest(
-					user.id(), channel.getId(), initialReadAt
+					user.id(), channel.id(), initialReadAt
 			);
 			ReadStatus created = readStatusService.create(createRequest);
 			createdReadStatusId = created.getId();
 			UUID verifiedReadStatusId = createdReadStatusId;
             logData("ReadStatus 생성", "readStatusId=" + verifiedReadStatusId
                     + ", userId=" + user.id()
-                    + ", channelId=" + channel.getId()
+                    + ", channelId=" + channel.id()
                     + ", lastReadAt=" + created.getLastReadAt());
 			check(created.getUserId().equals(user.id())
-					&& created.getChannelId().equals(channel.getId())
+					&& created.getChannelId().equals(channel.id())
 					&& created.getLastReadAt().equals(initialReadAt),
 					"사용자·채널·읽은 시각으로 ReadStatus 생성");
 			expectIllegalArgument(
@@ -317,10 +318,10 @@ public class DiscodeitApplication {
 
 			UUID missingUserId = UUID.randomUUID();
 			logData("미존재 사용자와 연결한 생성 요청", "userId=" + missingUserId
-					+ ", channelId=" + channel.getId());
+					+ ", channelId=" + channel.id());
 			expectIllegalArgument(
 					() -> readStatusService.create(new ReadStatusCreateRequest(
-							missingUserId, channel.getId(), Instant.now())),
+							missingUserId, channel.id(), Instant.now())),
 					"존재하지 않는 사용자와 연결된 생성 거부"
 			);
 			UUID missingChannelId = UUID.randomUUID();
@@ -361,14 +362,14 @@ public class DiscodeitApplication {
 
 	static void messageCreateTest(
 			MessageService messageService,
-			Channel channel,
+			ChannelDto channel,
 			UserDto author
 	) {
-		Message message = messageService.create(
-				new MessageCreateRequest("안녕하세요.", channel.getId(), author.id(), null)
+		MessageDto message = messageService.create(
+				new MessageCreateRequest("안녕하세요.", channel.id(), author.id(), null)
 		);
-            System.out.println("[완료] 메시지 생성: id=" + message.getId()
-                    + ", channelId=" + channel.getId()
+            System.out.println("[완료] 메시지 생성: id=" + message.id()
+                    + ", channelId=" + channel.id()
                     + ", authorId=" + author.id());
 	}
 
@@ -376,12 +377,12 @@ public class DiscodeitApplication {
 	private static void verifyMessageService(
 			MessageService messageService,
 			UserDto author,
-			Channel channel,
+			ChannelDto channel,
 			ChannelService channelService,
 			BinaryContentRepository binaryContentRepository
 	) {
 		String runId = UUID.randomUUID().toString().substring(0, 8);
-		Channel otherChannel = channelService.createPublic(
+		ChannelDto otherChannel = channelService.createPublic(
 				new PublicChannelCreateRequest("메시지검증-" + runId, "채널별 조회 검증")
 		);
 		UUID attachedMessageId = null;
@@ -389,45 +390,45 @@ public class DiscodeitApplication {
 
 		try {
 			startSection("MessageService | 첨부파일 선택 등록");
-			Message attachedMessage = messageService.create(new MessageCreateRequest(
+			MessageDto attachedMessage = messageService.create(new MessageCreateRequest(
 					"첨부파일 두 개가 있는 메시지",
-					channel.getId(),
+					channel.id(),
 					author.id(),
 					Arrays.asList(
 							new BinaryContentCreateRequest("first.txt", "text/plain", new byte[]{1, 2}),
 							new BinaryContentCreateRequest("second.png", "image/png", new byte[]{3, 4})
 					)
 			));
-			attachedMessageId = attachedMessage.getId();
+			attachedMessageId = attachedMessage.id();
 			UUID verifiedAttachedMessageId = attachedMessageId;
             logData("첨부 메시지", "messageId=" + verifiedAttachedMessageId
-                    + ", channelId=" + channel.getId()
+                    + ", channelId=" + channel.id()
                     + ", authorId=" + author.id()
-                    + ", attachmentIds=" + attachedMessage.getAttachmentIds());
-			check(attachedMessage.getAttachmentIds().size() == 2,
+                    + ", attachmentIds=" + attachedMessage.attachmentIds());
+			check(attachedMessage.attachmentIds().size() == 2,
 					"메시지에 여러 첨부파일 ID 연결");
-			check(attachedMessage.getAttachmentIds().stream()
+			check(attachedMessage.attachmentIds().stream()
 					.allMatch(id -> binaryContentRepository.findById(id).isPresent()),
 					"첨부파일 데이터 저장");
 
-			Message plainMessage = messageService.create(new MessageCreateRequest(
+			MessageDto plainMessage = messageService.create(new MessageCreateRequest(
 					"첨부파일 없는 메시지",
-					otherChannel.getId(),
+					otherChannel.id(),
 					author.id(),
 					null
 			));
-			plainMessageId = plainMessage.getId();
+			plainMessageId = plainMessage.id();
 			UUID verifiedPlainMessageId = plainMessageId;
             logData("일반 메시지", "messageId=" + verifiedPlainMessageId
-                    + ", channelId=" + otherChannel.getId()
+                    + ", channelId=" + otherChannel.id()
                     + ", authorId=" + author.id()
-                    + ", attachmentCount=" + plainMessage.getAttachmentIds().size());
-			check(plainMessage.getAttachmentIds().isEmpty(), "첨부파일 없이 메시지 생성");
+                    + ", attachmentCount=" + plainMessage.attachmentIds().size());
+			check(plainMessage.attachmentIds().isEmpty(), "첨부파일 없이 메시지 생성");
 
 			startSection("MessageService | 채널별 조회");
 			List<Message> selectedChannelMessages =
-					messageService.findAllByChannelId(channel.getId());
-            logData("조회 조건 및 결과", "channelId=" + channel.getId()
+                    messageService.findAllByChannelId(channel.id());
+            logData("조회 조건 및 결과", "channelId=" + channel.id()
                     + ", returnedMessageIds=" + selectedChannelMessages.stream()
                     .map(Message::getId).toList());
 			check(selectedChannelMessages.stream()
@@ -446,15 +447,15 @@ public class DiscodeitApplication {
 
 			startSection("MessageService | 메시지와 첨부파일 삭제");
             logData("삭제 대상 메시지와 첨부파일", "messageId=" + attachedMessageId
-                    + ", attachmentIds=" + attachedMessage.getAttachmentIds());
-			List<UUID> attachmentIds = attachedMessage.getAttachmentIds();
+                    + ", attachmentIds=" + attachedMessage.attachmentIds());
+			List<UUID> attachmentIds = attachedMessage.attachmentIds();
 			messageService.delete(attachedMessageId);
 			attachedMessageId = null;
 			check(attachmentIds.stream()
 					.allMatch(id -> binaryContentRepository.findById(id).isEmpty()),
 					"메시지 삭제 시 연결된 첨부파일도 삭제");
-			check(messageService.findAllByChannelId(channel.getId()).stream()
-					.noneMatch(message -> message.getId().equals(attachedMessage.getId())),
+			check(messageService.findAllByChannelId(channel.id()).stream()
+					.noneMatch(message -> message.getId().equals(attachedMessage.id())),
 					"삭제된 메시지는 채널 조회에서 제외");
 			messageService.delete(plainMessageId);
 			plainMessageId = null;
@@ -465,7 +466,7 @@ public class DiscodeitApplication {
 			if (plainMessageId != null) {
 				cleanupMessage(messageService, plainMessageId);
 			}
-			channelService.delete(otherChannel.getId());
+			channelService.delete(otherChannel.id());
 		}
 	}
 
@@ -497,14 +498,14 @@ public class DiscodeitApplication {
 
 		try {
 			startSection("ChannelService | 채널 생성");
-			Channel publicChannel = channelService.createPublic(
+			ChannelDto publicChannel = channelService.createPublic(
 					new PublicChannelCreateRequest("공개-" + runId, "공개 채널 검증")
 			);
-			publicChannelId = publicChannel.getId();
+			publicChannelId = publicChannel.id();
 			UUID verifiedPublicChannelId = publicChannelId;
 			logData("정상 PUBLIC 채널 생성", "channelId=" + publicChannelId
-					+ ", name=" + publicChannel.getName()
-					+ ", description=" + publicChannel.getDescription());
+					+ ", name=" + publicChannel.name()
+					+ ", description=" + publicChannel.description());
 
 			startSection("ChannelService | PRIVATE 참여자 검증");
 			int channelCountBeforeInvalidRequest = channelRepository.findAll().size();
@@ -547,19 +548,19 @@ public class DiscodeitApplication {
 					readStatusCountBeforeInvalidRequest, readStatusCountAfterMissingUser
 			);
 
-			Channel privateChannel = channelService.createPrivate(
+			ChannelDto privateChannel = channelService.createPrivate(
 					new PrivateChannelCreateRequest(
 							Arrays.asList(firstUser.id(), secondUser.id())
 					)
 			);
-			privateChannelId = privateChannel.getId();
+			privateChannelId = privateChannel.id();
 			UUID verifiedPrivateChannelId = privateChannelId;
 			logData("정상 PRIVATE 채널 생성", "channelId=" + privateChannelId
 					+ ", participantUserIds=" + Arrays.asList(firstUser.id(), secondUser.id()));
-			check(publicChannel.getType() == ChannelType.PUBLIC, "PUBLIC 채널 생성");
-			check(privateChannel.getType() == ChannelType.PRIVATE
-					&& privateChannel.getName() == null
-					&& privateChannel.getDescription() == null,
+			check(publicChannel.type() == ChannelType.PUBLIC, "PUBLIC 채널 생성");
+			check(privateChannel.type() == ChannelType.PRIVATE
+					&& privateChannel.name() == null
+					&& privateChannel.description() == null,
 					"PRIVATE 채널은 이름과 설명 없이 생성");
 			check(readStatusRepository.findByUserIdAndChannelId(firstUser.id(), privateChannelId).isPresent()
 					&& readStatusRepository.findByUserIdAndChannelId(secondUser.id(), privateChannelId).isPresent(),
@@ -628,12 +629,12 @@ public class DiscodeitApplication {
 							verifiedPrivateChannelId, "수정 시도", "수정 불가 확인")),
 					"PRIVATE 채널 수정 거부"
 			);
-			logData("삭제 대상 PRIVATE 채널", privateChannel.getId());
+			logData("삭제 대상 PRIVATE 채널", privateChannel.id());
 			channelService.delete(privateChannelId);
 			privateChannelId = null;
-			check(channelRepository.findById(privateChannel.getId()).isEmpty(), "채널 삭제");
-			check(readStatusRepository.findByUserIdAndChannelId(firstUser.id(), privateChannel.getId()).isEmpty()
-					&& readStatusRepository.findByUserIdAndChannelId(secondUser.id(), privateChannel.getId()).isEmpty(),
+			check(channelRepository.findById(privateChannel.id()).isEmpty(), "채널 삭제");
+			check(readStatusRepository.findByUserIdAndChannelId(firstUser.id(), privateChannel.id()).isEmpty()
+					&& readStatusRepository.findByUserIdAndChannelId(secondUser.id(), privateChannel.id()).isEmpty(),
 					"채널 삭제 시 관련 ReadStatus도 삭제");
 
 			logData("PUBLIC 채널 삭제 전 저장 상태",
@@ -642,7 +643,7 @@ public class DiscodeitApplication {
 					+ ", attachmentExists=" + binaryContentRepository.findById(latestMessageAttachmentId).isPresent());
 			channelService.delete(publicChannelId);
 			publicChannelId = null;
-			boolean channelStillExists = channelRepository.findById(publicChannel.getId()).isPresent();
+			boolean channelStillExists = channelRepository.findById(publicChannel.id()).isPresent();
 			boolean messageStillExists = messageRepository.findById(latestMessage.getId()).isPresent();
 			boolean attachmentStillExists =
 					binaryContentRepository.findById(latestMessageAttachmentId).isPresent();
