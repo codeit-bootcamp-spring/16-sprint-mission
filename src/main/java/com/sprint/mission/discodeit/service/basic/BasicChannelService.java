@@ -20,19 +20,19 @@ public class BasicChannelService implements ChannelService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public ChannelPublicCreateResponse createPublic(ChannelPublicCreateRequest createRequest) {
+    public ChannelResponse createPublic(PublicChannelCreateRequest createRequest) {
         String name = createRequest.name();
         String description = createRequest.description();
 
         Channel channel = new Channel(name, description, ChannelType.PUBLIC);
         this.channelRepository.save(channel);
 
-        return ChannelPublicCreateResponse.from(channel);
+        return ChannelResponse.from(channel);
     }
 
     @Override
-    public ChannelPrivateCreateResponse createPrivate(ChannelPrivateCreateRequest createRequest) {
-        List<UUID> memberIds = createRequest.memberIds();
+    public ChannelResponse createPrivate(PrivateChannelCreateRequest createRequest) {
+        List<UUID> memberIds = createRequest.participantIds();
         Channel channel = new Channel(memberIds, ChannelType.PRIVATE);
         List<UUID> distinctMemberIds = new ArrayList<>(new LinkedHashSet<>(memberIds));
 
@@ -50,7 +50,7 @@ public class BasicChannelService implements ChannelService {
             this.readStatusRepository.save(new ReadStatus(memberId, channel.getId()));
         });
 
-        return ChannelPrivateCreateResponse.from(channel);
+        return ChannelResponse.from(channel);
     }
 
     @Override
@@ -80,18 +80,18 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelUpdateResponse update(UUID id, ChannelUpdateRequest updateRequest) {
+    public ChannelResponse update(UUID id, PublicChannelUpdateRequest updateRequest) {
         Channel channel = this.channelRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
         if (channel.getType() == ChannelType.PRIVATE) throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
 
-        String newName = updateRequest.name();
-        String newDescription = updateRequest.description();
+        String newName = updateRequest.newName();
+        String newDescription = updateRequest.newDescription();
 
         channel.update(newName, newDescription);
         this.channelRepository.update(id, channel);
-        return ChannelUpdateResponse.from(channel);
+        return ChannelResponse.from(channel);
     }
 
     @Override

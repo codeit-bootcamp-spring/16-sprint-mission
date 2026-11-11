@@ -16,17 +16,17 @@ import java.util.UUID;
 @Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/v1/channels")
+@RequestMapping("api/channels")
 public class ChannelController {
     private final ChannelService channelService;
 
     @RequestMapping(value = "/public", method = RequestMethod.POST)
-    public ResponseEntity<ChannelPublicCreateResponse> createPublicChannel(@Valid @RequestBody ChannelPublicCreateRequest createRequest) {
+    public ResponseEntity<ChannelResponse> createPublicChannel(@Valid @RequestBody PublicChannelCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.channelService.createPublic(createRequest));
     }
 
     @RequestMapping(value = "/private", method = RequestMethod.POST)
-    public ResponseEntity<ChannelPrivateCreateResponse> createPrivateChannel(@Valid @RequestBody ChannelPrivateCreateRequest createRequest) {
+    public ResponseEntity<ChannelResponse> createPrivateChannel(@Valid @RequestBody PrivateChannelCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.channelService.createPrivate(createRequest));
     }
 
@@ -45,10 +45,10 @@ public class ChannelController {
     }
 
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.PATCH)
-    public ResponseEntity<ChannelUpdateResponse> updatePublicChannel(@NotNull @PathVariable UUID id,
-                                                                     @Valid @RequestBody ChannelUpdateRequest updateRequest) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.channelService.update(id, updateRequest));
+    @RequestMapping(value = "/{channelId}", method = RequestMethod.PATCH)
+    public ResponseEntity<ChannelResponse> updatePublicChannel(@NotNull @PathVariable UUID channelId,
+                                                               @Valid @RequestBody PublicChannelUpdateRequest updateRequest) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.channelService.update(channelId, updateRequest));
     }
 
     @RequestMapping(method = RequestMethod.GET)
@@ -56,9 +56,9 @@ public class ChannelController {
         return ResponseEntity.status(HttpStatus.OK).body(this.channelService.findAllByUserId(userId));
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteChannel(@NotNull @PathVariable UUID id) {
-        this.channelService.delete(id);
+    @RequestMapping(value = "/{channelId}", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> deleteChannel(@NotNull @PathVariable UUID channelId) {
+        this.channelService.delete(channelId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 }

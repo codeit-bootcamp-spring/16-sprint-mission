@@ -2,7 +2,7 @@ package com.sprint.mission.discodeit.dto.channel;
 
 import jakarta.validation.constraints.NotBlank;
 
-public record ChannelPublicCreateRequest(
+public record PublicChannelCreateRequest(
         @NotBlank String name,
         @NotBlank String description
 ) {

@@ -9,22 +9,20 @@ import java.util.UUID;
 
 public record ChannelFindResponse(
         UUID id,
+        ChannelType type,
         String name,
         String description,
-        ChannelType type,
-        Instant lastMessageTime,
-        List<UUID> memberIds
+        List<UUID> participantIds,
+        Instant lastMessageAt
 ) {
-    public static ChannelFindResponse of(Channel channel, Instant lastMessageTime) {
-        List<UUID> memberIds = channel.getType() == ChannelType.PRIVATE
-                ? List.copyOf(channel.getUsers())
-                : null;
+    public static ChannelFindResponse of(Channel channel, Instant lastMessageAt) {
         return new ChannelFindResponse(
                 channel.getId(),
+                channel.getType(),
                 channel.getName(),
                 channel.getDescription(),
-                channel.getType(),
-                lastMessageTime,
-                memberIds);
+                List.copyOf(channel.getUsers()),
+                lastMessageAt
+        );
     }
 }
