@@ -8,6 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
+import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.util.ArrayList;
+
 
 import java.util.List;
 
@@ -18,15 +27,45 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    @PostMapping
+
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public Message create(@RequestBody MessageCreateRequest request) {
-        return messageService.create(request, List.of());
+    public Message create(
+            @RequestPart("request") MessageCreateRequest request,
+            @RequestPart(value = "attachments", required = false)
+            List<MultipartFile> attachments
+    ) throws IOException {
+
+        List<BinaryContentCreateRequest> files = new ArrayList<>();
+
+        if (attachments != null) {
+            for (MultipartFile attachment : attachments) {
+                if (!attachment.isEmpty()) {
+                    files.add(new BinaryContentCreateRequest(
+                            attachment.getOriginalFilename(),
+                            attachment.getContentType(),
+                            attachment.getBytes()
+                    ));
+                }
+            }
+        }
+
+        return messageService.create(request, files);
     }
+
 
     @GetMapping
     public List<Message> findAll(@RequestParam("channelId") UUID channelId) {
         return messageService.findAllByChannelId(channelId);
     }
+
+    @PatchMapping("/{messageId}")
+    public Message update(
+            @PathVariable UUID messageId,
+            @RequestBody MessageUpdateRequest request
+    ) {
+        return messageService.update(messageId, request);
+    }
+
 
 }

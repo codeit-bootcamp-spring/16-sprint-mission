@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
 import java.util.UUID;
+import java.util.List;
+import org.springframework.web.bind.annotation.RequestParam;
 
 @RestController
 @RequiredArgsConstructor
@@ -47,6 +49,12 @@ public class ChannelController {
     public void delete(@PathVariable UUID channelId) {
         channelService.delete(channelId);
     }
+
+    @RequestMapping(method = RequestMethod.GET)
+    public List<ChannelDto> findAll(@RequestParam("userId") UUID userId) {
+        return channelService.findAllByUserId(userId);
+    }
+
 
 
 }
