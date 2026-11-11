@@ -13,6 +13,8 @@ import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -66,6 +68,13 @@ public class MessageController {
     ) {
         return messageService.update(messageId, request);
     }
+
+    @DeleteMapping("/{messageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void delete(@PathVariable UUID messageId) {
+        messageService.delete(messageId);
+    }
+
 
 
 }
