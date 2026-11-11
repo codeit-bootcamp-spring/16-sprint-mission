@@ -19,10 +19,10 @@ public class AuthService {
     private final UserStatusRepository userStatusRepository;
 
     public AuthUserResponse login(AuthUserRequest authRequest) {
-        String email = authRequest.email();
+        String name = authRequest.username();
         String password = authRequest.password();
 
-        User user = this.userRepository.findByEmail(email).orElseThrow(
+        User user = this.userRepository.findByName(name).orElseThrow(
                 () -> new NoSuchElementException("존재하지 않는 유저 이름입니다."));
         if (!user.getPassword().equals(password)) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
