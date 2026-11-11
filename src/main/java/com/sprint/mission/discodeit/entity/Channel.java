@@ -1,41 +1,31 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
 import java.util.Collections;
 import java.util.LinkedHashSet;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
+@Getter
 public class Channel extends BaseEntity {
+
     private final ChannelType type;
     private String name;
     private String description;
 
-    private final Set<UUID> memberIds;
-    private final Set<UUID> messageIds;
+    private final Set<UUID> memberIds = new LinkedHashSet<>();
+    private final Set<UUID> messageIds = new LinkedHashSet<>();
 
     public Channel(String name, String description) {
         this(ChannelType.PUBLIC, name, description);
     }
 
     public Channel(ChannelType type, String name, String description) {
-        super();
-        this.type = type;
+        this.type = Objects.requireNonNull(type);
         this.name = name;
         this.description = description;
-        this.memberIds = new LinkedHashSet<>();
-        this.messageIds = new LinkedHashSet<>();
-    }
-
-    public ChannelType getType() {
-        return type;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
     }
 
     public Set<UUID> getMemberIds() {

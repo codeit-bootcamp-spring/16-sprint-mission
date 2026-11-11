@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -9,11 +10,8 @@ import java.util.Map;
 import java.util.UUID;
 
 public class JCFMessageRepository implements MessageRepository {
-    private final Map<UUID, Message> data;
 
-    public JCFMessageRepository() {
-        this.data = new LinkedHashMap<>();
-    }
+    private final Map<UUID, Message> data = new LinkedHashMap<>();
 
     @Override
     public Message save(Message entity) {

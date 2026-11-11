@@ -1,91 +1,313 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.CreateUserRequest;
+import com.sprint.mission.discodeit.dto.UpdateUserRequest;
+import com.sprint.mission.discodeit.dto.UserResponse;
+
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
+
+import com.sprint.mission.discodeit.exception.FileStorageException;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ChannelRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
+
 import com.sprint.mission.discodeit.service.UserService;
+
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
+import java.time.Instant;
 import java.util.List;
+import java.util.Locale;
 import java.util.UUID;
 
+@Service
+@RequiredArgsConstructor
 public class BasicUserService implements UserService {
+
     private final UserRepository userRepository;
-
-    public BasicUserService(UserRepository userRepository) {
-        this.userRepository = userRepository;
-    }
-
-    @Override
-    public User create(String username, String email, String password) {
-        validateUser(username, email, password, null);
-        return userRepository.save(new User(username, email.trim(), password));
-    }
+    private final UserStatusRepository userStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final ReadStatusRepository readStatusRepository;
+    private final ChannelRepository channelRepository;
 
     @Override
-    public User findById(UUID id) {
-        User user = userRepository.findById(id);
-
-        if (user == null) {
-            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+    public UserResponse create(
+            CreateUserRequest request,
+            MultipartFile profile
+    ) {
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "사용자 생성 정보가 없습니다."
+            );
         }
 
-        return user;
+        validateUser(
+                request.username(),
+                request.email(),
+                request.password(),
+                null
+        );
+
+        BinaryContent profileContent = null;
+
+        if (profile != null) {
+            profileContent = convertProfile(profile);
+        }
+
+        User user = new User(
+                request.username().trim(),
+                request.email().trim(),
+                request.password()
+        );
+
+        if (profileContent != null) {
+            BinaryContent savedProfile =
+                    binaryContentRepository.save(profileContent);
+
+            user.changeProfile(savedProfile.getId());
+        }
+
+        User savedUser = userRepository.save(user);
+
+        UserStatus userStatus = new UserStatus(
+                savedUser.getId(),
+                Instant.now()
+        );
+
+        userStatusRepository.save(userStatus);
+
+        return toResponse(savedUser);
     }
 
     @Override
-    public List<User> findAll() {
-        return userRepository.findAll();
+    public UserResponse findById(UUID id) {
+        User user = requireUser(id);
+
+        return toResponse(user);
     }
 
     @Override
-    public User update(UUID id, String username, String email, String password) {
-        User user = findById(id);
-        validateUser(username, email, password, id);
-        user.update(username, email.trim(), password);
-        return userRepository.save(user);
+    public List<UserResponse> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::toResponse)
+                .toList();
+    }
+
+    @Override
+    public UserResponse update(
+            UpdateUserRequest request,
+            MultipartFile profile
+    ) {
+        if (request == null) {
+            throw new IllegalArgumentException(
+                    "사용자 수정 정보가 없습니다."
+            );
+        }
+
+        User user = requireUser(request.id());
+
+        validateUser(
+                request.username(),
+                request.email(),
+                request.password(),
+                request.id()
+        );
+
+        BinaryContent newProfile = null;
+
+        if (profile != null) {
+            newProfile = convertProfile(profile);
+        }
+
+        UUID oldProfileId = user.getProfileId();
+        UUID newProfileId = null;
+
+        if (newProfile != null) {
+            BinaryContent savedProfile =
+                    binaryContentRepository.save(newProfile);
+
+            newProfileId = savedProfile.getId();
+        }
+
+        user.update(
+                request.username().trim(),
+                request.email().trim(),
+                request.password()
+        );
+
+        if (newProfileId != null) {
+            user.changeProfile(newProfileId);
+        }
+
+        User updatedUser = userRepository.save(user);
+
+        if (newProfileId != null && oldProfileId != null) {
+            binaryContentRepository.delete(oldProfileId);
+        }
+
+        return toResponse(updatedUser);
     }
 
     @Override
     public void delete(UUID id) {
-        User user = findById(id);
+        User user = requireUser(id);
 
-        if (!user.getMessageIds().isEmpty()) {
-            throw new IllegalStateException("작성한 메시지가 남아 있어 사용자를 삭제할 수 없습니다.");
+        for (ReadStatus readStatus :
+                readStatusRepository.findAllByUserId(id)) {
+
+            readStatusRepository.delete(readStatus.getId());
         }
 
-        if (!user.getChannelIds().isEmpty()) {
-            throw new IllegalStateException("참여 중인 채널이 있어 사용자를 삭제할 수 없습니다.");
+        for (Channel channel : channelRepository.findAll()) {
+            if (channel.getMemberIds().contains(id)) {
+                channel.removeMember(id);
+                channelRepository.save(channel);
+            }
+        }
+
+        UserStatus userStatus =
+                userStatusRepository.findByUserId(id);
+
+        if (userStatus != null) {
+            userStatusRepository.delete(userStatus.getId());
+        }
+
+        if (user.getProfileId() != null) {
+            binaryContentRepository.delete(user.getProfileId());
         }
 
         userRepository.delete(id);
     }
 
-    @Override
-    public void save(User user) {
-        if (user == null) {
-            throw new IllegalArgumentException("사용자 정보가 없습니다.");
+    private BinaryContent convertProfile(
+            MultipartFile profile
+    ) {
+        if (profile.isEmpty()) {
+            throw new IllegalArgumentException(
+                    "빈 프로필 파일은 등록할 수 없습니다."
+            );
         }
 
-        findById(user.getId());
-        validateUser(user.getUsername(), user.getEmail(), user.getPassword(), user.getId());
-        userRepository.save(user);
+        String fileName = profile.getOriginalFilename();
+
+        if (fileName == null || fileName.isBlank()) {
+            throw new IllegalArgumentException(
+                    "프로필 파일 이름이 없습니다."
+            );
+        }
+
+        String contentType = profile.getContentType();
+
+        if (contentType == null
+                || !contentType.toLowerCase(Locale.ROOT)
+                .startsWith("image/")) {
+
+            throw new IllegalArgumentException(
+                    "프로필은 이미지 파일만 등록할 수 있습니다."
+            );
+        }
+
+        try {
+            return new BinaryContent(
+                    fileName,
+                    contentType,
+                    profile.getBytes()
+            );
+        } catch (IOException exception) {
+            throw new FileStorageException(
+                    "프로필 파일을 읽는 중 오류가 발생했습니다.",
+                    exception
+            );
+        }
     }
 
-    private void validateUser(String username, String email, String password, UUID excludeId) {
-        if (username == null || username.isBlank()) {
-            throw new IllegalArgumentException("사용자 이름을 입력해야 합니다.");
+    private User requireUser(UUID id) {
+        if (id == null) {
+            throw new IllegalArgumentException(
+                    "사용자 ID가 없습니다."
+            );
         }
 
-        if (email == null || email.isBlank() || !email.contains("@")) {
-            throw new IllegalArgumentException("올바른 이메일을 입력해야 합니다.");
+        User user = userRepository.findById(id);
+
+        if (user == null) {
+            throw new ResourceNotFoundException(
+                    "사용자를 찾을 수 없습니다. ID: " + id
+            );
         }
 
-        if (password == null || password.isBlank()) {
-            throw new IllegalArgumentException("비밀번호를 입력해야 합니다.");
+        return user;
+    }
+
+    private UserResponse toResponse(User user) {
+        UserStatus userStatus =
+                userStatusRepository.findByUserId(user.getId());
+
+        boolean online = userStatus != null
+                && userStatus.isOnline();
+
+        return new UserResponse(
+                user.getId(),
+                user.getUsername(),
+                user.getEmail(),
+                online,
+                user.getProfileId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt()
+        );
+    }
+
+    private void validateUser(
+            String username,
+            String email,
+            String password,
+            UUID excludeId
+    ) {
+        if (username == null
+                || username.isBlank()
+                || email == null
+                || email.isBlank()
+                || !email.contains("@")
+                || password == null
+                || password.isBlank()) {
+
+            throw new IllegalArgumentException(
+                    "사용자 이름, 이메일, 비밀번호를 확인하세요."
+            );
         }
 
-        for (User user : userRepository.findAll()) {
-            if (!user.getId().equals(excludeId)
-                    && user.getEmail().equalsIgnoreCase(email.trim())) {
-                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+        for (User existing : userRepository.findAll()) {
+            if (existing.getId().equals(excludeId)) {
+                continue;
+            }
+
+            if (existing.getUsername()
+                    .equalsIgnoreCase(username.trim())) {
+
+                throw new IllegalStateException(
+                        "이미 사용 중인 사용자 이름입니다."
+                );
+            }
+
+            if (existing.getEmail()
+                    .equalsIgnoreCase(email.trim())) {
+
+                throw new IllegalStateException(
+                        "이미 사용 중인 이메일입니다."
+                );
             }
         }
     }
