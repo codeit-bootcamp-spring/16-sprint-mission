@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -111,5 +112,12 @@ public class FileMessageRepository implements MessageRepository {
                 .filter(message -> message.getSenderId().equals(userId))
                 .filter(message -> message.getChannelId().equals(channelId))
                 .toList();
+    }
+
+    @Override
+    public Optional<Instant> findLatestCreatedAtByChannelId(UUID channelId) {
+        return findByChannelId(channelId).stream()
+                .map(Message::getCreatedAt)
+                .max(Instant::compareTo);
     }
 }

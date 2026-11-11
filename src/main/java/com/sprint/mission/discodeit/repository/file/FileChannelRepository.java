@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
 import java.io.IOException;
@@ -101,6 +102,15 @@ public class FileChannelRepository implements ChannelRepository {
     public List<Channel> findByParticipantId(UUID userId) {
         return findAll().stream()
                 .filter(channel -> channel.getParticipantIds().contains(userId))
+                .toList();
+    }
+
+    @Override
+    public List<Channel> findAccessibleByUserId(UUID userId) {
+        return findAll().stream()
+                .filter(channel ->
+                        channel.getType() == ChannelType.PUBLIC
+                                || channel.getParticipantIds().contains(userId))
                 .toList();
     }
 }

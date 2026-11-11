@@ -29,4 +29,40 @@ public class JCFUserRepository implements UserRepository {
     public void deleteById(UUID userId) {
         users.remove(userId);
     }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return users.values().stream()
+                .anyMatch(user -> user.getUsername().equals(username));
+    }
+
+    @Override
+    public boolean existsByUsernameAndIdNot(String username, UUID userId) {
+        return users.values().stream()
+                .anyMatch(user ->
+                        user.getUsername().equals(username)
+                                && !user.getId().equals(userId));
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+
+        return users.values().stream()
+                .anyMatch(user -> email.equals(user.getEmail()));
+    }
+
+    @Override
+    public boolean existsByEmailAndIdNot(String email, UUID userId) {
+        if (email == null) {
+            return false;
+        }
+
+        return users.values().stream()
+                .anyMatch(user ->
+                        email.equals(user.getEmail())
+                                && !user.getId().equals(userId));
+    }
 }

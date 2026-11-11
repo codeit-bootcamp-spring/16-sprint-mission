@@ -90,25 +90,29 @@ public class User extends BaseEntity {
 
     public void removeChannelId(UUID channelId) {
         Validation.validateNull(channelId, "channelId");
-        if (!myChannelIds.remove(channelId)) {
-            throw new IllegalArgumentException("해당 채널에 참여하고 있지 않습니다.");
+        if (myChannelIds.remove(channelId)) {
+            super.update();
         }
-        super.update();
     }
 
     public void removeMessageId(UUID messageId) {
         Validation.validateNull(messageId, "messageId");
-        myMessageIds.remove(messageId);
-        super.update();
+        if (myMessageIds.remove(messageId)) {
+            super.update();
+        }
     }
 
     public void deleteEmail() {
-        this.email = null;
-        super.update();
+        if (this.email != null) {
+            this.email = null;
+            super.update();
+        }
     }
 
     public void deleteProfileId() {
-        this.profileId = null;
-        super.update();
+        if (this.profileId != null) {
+            this.profileId = null;
+            super.update();
+        }
     }
 }

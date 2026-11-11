@@ -19,4 +19,6 @@ public interface ChannelRepository {
     List<Channel> findByCreatorId(UUID creatorId);
 
     List<Channel> findByParticipantId(UUID userId);
+
+    List<Channel> findAccessibleByUserId(UUID userId);
 }

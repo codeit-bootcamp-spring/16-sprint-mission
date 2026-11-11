@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.MessageType;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 
+import java.time.Instant;
 import java.util.*;
 
 public class JCFMessageRepository implements MessageRepository {
@@ -55,5 +56,12 @@ public class JCFMessageRepository implements MessageRepository {
                 .filter(message -> message.getSenderId().equals(userId))
                 .filter(message -> message.getChannelId().equals(channelId))
                 .toList();
+    }
+
+    @Override
+    public Optional<Instant> findLatestCreatedAtByChannelId(UUID channelId) {
+        return findByChannelId(channelId).stream()
+                .map(Message::getCreatedAt)
+                .max(Instant::compareTo);
     }
 }
