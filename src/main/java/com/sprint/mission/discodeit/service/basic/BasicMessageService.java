@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -111,6 +112,7 @@ public class BasicMessageService implements MessageService {
                         "Not Found channel id: " + channelId));
         return messageRepository.findAll().stream()
                 .filter(message -> message.getChannelId().equals(channelId))
+                .sorted(Comparator.comparing(Message::getCreatedAt))
                 .toList();
     }
 
