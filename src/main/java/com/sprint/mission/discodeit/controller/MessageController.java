@@ -16,6 +16,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 
+
 import java.io.IOException;
 import java.util.ArrayList;
 
@@ -65,7 +66,8 @@ public class MessageController {
     public Message update(
             @PathVariable UUID messageId,
             @RequestBody MessageUpdateRequest request
-    ) {
+    )
+    {
         return messageService.update(messageId, request);
     }
 
@@ -73,7 +75,14 @@ public class MessageController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID messageId) {
         messageService.delete(messageId);
+
     }
+
+    @GetMapping("/{messageId}")
+    public Message find(@PathVariable UUID messageId) {
+        return messageService.find(messageId);
+    }
+
 
 
 
