@@ -2,11 +2,19 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
+@Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "jcf",
+        matchIfMissing = true
+)
 public class JCFMessageRepository implements MessageRepository {
-
     private final Map<UUID, Message> data;
 
     public JCFMessageRepository() {
@@ -14,39 +22,28 @@ public class JCFMessageRepository implements MessageRepository {
     }
 
     @Override
-    public Message create(Message message) {
-        data.put(message.getId(), message);
+    public Message save(Message message) {
+        this.data.put(message.getId(), message);
         return message;
     }
 
     @Override
     public Optional<Message> findById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+        return Optional.ofNullable(this.data.get(id));
     }
 
     @Override
     public List<Message> findAll() {
-        return new ArrayList<>(data.values());
+        return this.data.values().stream().toList();
     }
 
     @Override
-    public Message update(Message message) {
-        if (!data.containsKey(message.getId())) {
-            throw new NoSuchElementException("존재하지 않는 Message입니다.");
-        }
-        data.put(message.getId(), message);
-        return message;
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
     }
 
     @Override
-    public void updateAll(List<Message> messages) {
-        messages.forEach(this::update);
-    }
-
-    @Override
-    public void delete(UUID id) {
-        if (data.remove(id) == null) {
-            throw new NoSuchElementException("존재하지 않는 Message입니다.");
-        }
+    public void deleteById(UUID id) {
+        this.data.remove(id);
     }
 }

@@ -1,40 +1,131 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
+import com.sprint.mission.discodeit.dto.request.CreateUserRequest;
+import com.sprint.mission.discodeit.dto.request.UpdateUserRequest;
+import com.sprint.mission.discodeit.dto.response.UserResponse;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.*;
+import com.sprint.mission.discodeit.service.UserService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-import java.util.Scanner;
-import java.util.UUID;
+import java.util.*;
 
-public interface BasicUserService {
+import static com.sprint.mission.discodeit.dto.response.UserResponse.*;
 
-    void signUp(Scanner scanner);
+@Service
+@RequiredArgsConstructor
+public class BasicUserService implements UserService {
+    private final UserRepository userRepository;
+    private final UserStatusRepository userStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
+    private final ReadStatusRepository readStatusRepository;
 
-    Optional<User> login(Scanner scanner);
+    @Override
+    public UserResponse create(CreateUserRequest newUser) {
+        boolean duplicated = userRepository.findAll().stream()
+                .anyMatch(other ->
+                        newUser.username().equals(other.getUsername())
+                                || newUser.email().equals(other.getEmail()));
 
-    void logout(User user);
+        if (duplicated) {
+            throw new IllegalStateException("중복된 유저명 또는 이메일");
+        }
 
-    void modifyUserInfo(User user, Scanner scanner);
+        User user = new User(newUser.username(), newUser.email(), newUser.password());
+        if (newUser.profile() != null) {
+            BinaryContent binaryContent = createBinaryContent(newUser.profile());
+            user.setProfileId(binaryContent.getId());
+            binaryContentRepository.save(binaryContent);
+        }
 
-    // 아래 메서드는 다른 서비스에서 User가 보관 중인 Channel/Message 목록과 복사본을 맞추고 저장할 때 사용한다.
-    // 이미 저장된 User(userId)의 채널 목록에 Channel을 추가한다. 이미 있으면 추가하지 않는다.
-    void addChannel(UUID userId, Channel channel);
+        User savedUser = userRepository.save(user);
+        UserStatus userStatus = new UserStatus(savedUser.getId());
+        userStatusRepository.save(userStatus);
+        return from(savedUser, userStatus);
+    }
 
-    // 이미 저장된 User(userId)의 채널 목록에서 해당 Channel만 제거한다.
-    void removeChannel(UUID userId, UUID channelId);
+    @Override
+    public UserResponse find(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("해당 id를 가진 유저를 찾을 수 없음"));
+        return from(user, getUserStatus(user));
+    }
 
-    // 모든 User의 채널 목록에서 해당 Channel을 제거한다.
-    void removeChannel(UUID channelId);
+    @Override
+    public List<UserResponse> findAll() {
+        return userRepository.findAll().stream()
+                .map(user -> from(user, getUserStatus(user)))
+                .toList();
+    }
 
-    void refreshChannel(Channel channel);
+    @Override
+    public UserResponse update(UUID id, UpdateUserRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new NoSuchElementException("해당 id를 가진 유저를 찾을 수 없음"));
 
-    // Message를 작성한 User의 메시지 목록에 Message를 추가한다. 이미 있으면 추가하지 않는다.
-    void addMessage(Message message);
+        // 변경하지 않는 필드(null)는 중복 검사에서 제외
+        boolean duplicated = userRepository.findAll().stream()
+                .filter(other -> !other.getId().equals(id))
+                .anyMatch(other ->
+                        (request.username() != null
+                                && request.username().equals(other.getUsername()))
+                                || (request.email() != null
+                                && request.email().equals(other.getEmail())));
 
-    void removeMessage(UUID messageId);
+        if (duplicated) {
+            throw new IllegalStateException("중복된 유저명 또는 이메일");
+        }
 
-    void refreshMessage(Message message);
+        UUID oldProfileId = user.getProfileId();
+        UUID newProfileId = Optional.ofNullable(request.profile())
+                .map(this::createBinaryContent)
+                .map(binaryContentRepository::save)
+                .map(BinaryContent::getId)
+                .orElse(null);
+
+        // 새 프로필로 교체된 경우에만 기존 프로필 삭제
+        if (newProfileId != null && oldProfileId != null) {
+            binaryContentRepository.deleteById(oldProfileId);
+        }
+        user.update(request.username(), request.email(), request.password(), newProfileId);
+        User updatedUser = userRepository.save(user);
+        UserStatus status = getUserStatus(updatedUser);
+
+        return from(updatedUser, status);
+    }
+
+    @Override
+    public void delete(UUID userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new NoSuchElementException("해당 id를 가진 유저를 찾을 수 없음"));
+
+        userRepository.deleteById(userId);
+        // 프로필 이미지가 있으면 삭제
+        if (user.getProfileId() != null) {
+            binaryContentRepository.deleteById(user.getProfileId());
+        }
+        userStatusRepository.findByUserId(userId)
+                .ifPresent(userStatus -> userStatusRepository.deleteById(userStatus.getId()));
+
+        readStatusRepository.findAll().stream()
+                .filter(status -> userId.equals(status.getUserId()))
+                .forEach(status -> readStatusRepository.deleteById(status.getId()));
+
+
+    }
+
+    private BinaryContent createBinaryContent(BinaryContentRequest profile) {
+        return new BinaryContent(profile.filename(), profile.size(),
+                profile.contentType(), profile.bytes());
+    }
+
+    private UserStatus getUserStatus(User user) {
+        return userStatusRepository.findByUserId(user.getId())
+                .orElseThrow(() -> new NoSuchElementException("해당 id의 유저 상태를 찾을 수 없음"));
+    }
 
 }

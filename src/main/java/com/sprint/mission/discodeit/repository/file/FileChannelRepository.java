@@ -2,79 +2,104 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 
+@Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileChannelRepository implements ChannelRepository {
+    private final Path DIRECTORY;
+    private final String EXTENSION = ".ser";
 
-    private static final String FILE_PATH = "temp/channels.ser";
-
-    private final Map<UUID, Channel> data;
-
-    public FileChannelRepository() throws IOException {
-        this.data = new HashMap<>();
-
-        Path path = Path.of(FILE_PATH);
-        Files.createDirectories(path.getParent());
-        if (Files.notExists(path)) {
-            return;
-        }
-
-        try (FileInputStream fis = new FileInputStream(FILE_PATH);
-             ObjectInputStream ois = new ObjectInputStream(fis)
-        ) {
-            Object findObject = ois.readObject();
-            Map<UUID, Channel> loaded = (Map<UUID, Channel>) findObject;
-            data.putAll(loaded);
-        } catch (IOException | ClassNotFoundException e) {
-            throw new IOException("사용자 데이터 형식이 올바르지 않습니다.", e);
+    public FileChannelRepository(
+            @Value("${discodeit.repository.file-directory:.discodeit}") String fileDirectory
+    ) {
+        this.DIRECTORY = Paths.get(fileDirectory, Channel.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)) {
+            try {
+                Files.createDirectories(DIRECTORY);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
-    public Channel create(Channel channel) {
-        data.put(channel.getId(), channel);
-        save();
+    public Channel save(Channel channel) {
+        Path path = resolvePath(channel.getId());
+        try (
+                FileOutputStream fos = new FileOutputStream(path.toFile());
+                ObjectOutputStream oos = new ObjectOutputStream(fos)
+        ) {
+            oos.writeObject(channel);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return channel;
     }
 
     @Override
     public Optional<Channel> findById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+        Path path = resolvePath(id);
+        if (Files.notExists(path)) {
+            return Optional.empty();
+        }
+        return Optional.of(readFromPath(path));
     }
 
     @Override
     public List<Channel> findAll() {
-        return new ArrayList<>(data.values());
-    }
-
-    @Override
-    public Channel update(Channel channel) {
-        if (!data.containsKey(channel.getId())) {
-            throw new NoSuchElementException("존재하지 않는 Channel입니다.");
-        }
-        data.put(channel.getId(), channel);
-        save();
-        return channel;
-    }
-
-    @Override
-    public void delete(UUID id) {
-        if (data.remove(id) == null) {
-            throw new NoSuchElementException("존재하지 않는 Channel입니다.");
-        }
-        save();
-    }
-
-    private void save() {
-        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)
-        ) {
-            oos.writeObject(data);
+        try (Stream<Path> paths = Files.list(DIRECTORY)) {
+            return paths
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(this::readFromPath)
+                    .toList();
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        Path path = resolvePath(id);
+        return Files.exists(path);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        Path path = resolvePath(id);
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Path resolvePath(UUID id) {
+        return DIRECTORY.resolve(id + EXTENSION);
+    }
+
+    private Channel readFromPath(Path path) {
+        try (
+                FileInputStream fis = new FileInputStream(path.toFile());
+                ObjectInputStream ois = new ObjectInputStream(fis)
+        ) {
+            return (Channel) ois.readObject();
+        } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e);
         }
     }

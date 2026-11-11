@@ -2,89 +2,104 @@ package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.*;
+import java.nio.file.Paths;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.stream.Stream;
 
+@Repository
+@ConditionalOnProperty(
+        prefix = "discodeit.repository",
+        name = "type",
+        havingValue = "file"
+)
 public class FileMessageRepository implements MessageRepository {
+    private final Path DIRECTORY;
+    private final String EXTENSION = ".ser";
 
-    private static final String FILE_PATH = "temp/messages.ser";
-
-    private final Map<UUID, Message> data;
-
-    public FileMessageRepository() throws IOException {
-        this.data = new HashMap<>();
-
-        Path path = Path.of(FILE_PATH);
-        Files.createDirectories(path.getParent());
-        if (Files.notExists(path)) {
-            return;
-        }
-
-        try (FileInputStream fis = new FileInputStream(FILE_PATH);
-             ObjectInputStream ois = new ObjectInputStream(fis)
-        ) {
-            Object findObject = ois.readObject();
-            Map<UUID, Message> loaded = (Map<UUID, Message>) findObject;
-            data.putAll(loaded);
-        } catch (IOException | ClassNotFoundException e) {
-            throw new IOException("사용자 데이터 형식이 올바르지 않습니다.", e);
+    public FileMessageRepository(
+            @Value("${discodeit.repository.file-directory:.discodeit}") String fileDirectory
+    ) {
+        this.DIRECTORY = Paths.get(fileDirectory, Message.class.getSimpleName());
+        if (Files.notExists(DIRECTORY)) {
+            try {
+                Files.createDirectories(DIRECTORY);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
     @Override
-    public Message create(Message message) {
-        data.put(message.getId(), message);
-        save();
+    public Message save(Message message) {
+        Path path = resolvePath(message.getId());
+        try (
+                FileOutputStream fos = new FileOutputStream(path.toFile());
+                ObjectOutputStream oos = new ObjectOutputStream(fos)
+        ) {
+            oos.writeObject(message);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
         return message;
     }
 
     @Override
     public Optional<Message> findById(UUID id) {
-        return Optional.ofNullable(data.get(id));
+        Path path = resolvePath(id);
+        if (Files.notExists(path)) {
+            return Optional.empty();
+        }
+        return Optional.of(readFromPath(path));
     }
 
     @Override
     public List<Message> findAll() {
-        return new ArrayList<>(data.values());
-    }
-
-    @Override
-    public Message update(Message message) {
-        if (!data.containsKey(message.getId())) {
-            throw new NoSuchElementException("존재하지 않는 Message입니다.");
-        }
-        data.put(message.getId(), message);
-        save();
-        return message;
-    }
-
-    @Override
-    public void updateAll(List<Message> messages) {
-        if (!messages.stream().allMatch(message -> data.containsKey(message.getId()))) {
-            throw new NoSuchElementException("존재하지 않는 Message입니다.");
-        }
-
-        messages.forEach(message -> data.put(message.getId(), message));
-        save();
-    }
-
-    @Override
-    public void delete(UUID id) {
-        if (data.remove(id) == null) {
-            throw new NoSuchElementException("존재하지 않는 Message입니다.");
-        }
-        save();
-    }
-
-    private void save() {
-        try (FileOutputStream fos = new FileOutputStream(FILE_PATH);
-             ObjectOutputStream oos = new ObjectOutputStream(fos)
-        ) {
-            oos.writeObject(data);
+        try (Stream<Path> paths = Files.list(DIRECTORY)) {
+            return paths
+                    .filter(path -> path.toString().endsWith(EXTENSION))
+                    .map(this::readFromPath)
+                    .toList();
         } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public boolean existsById(UUID id) {
+        Path path = resolvePath(id);
+        return Files.exists(path);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        Path path = resolvePath(id);
+        try {
+            Files.deleteIfExists(path);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    private Path resolvePath(UUID id) {
+        return DIRECTORY.resolve(id + EXTENSION);
+    }
+
+    private Message readFromPath(Path path) {
+        try (
+                FileInputStream fis = new FileInputStream(path.toFile());
+                ObjectInputStream ois = new ObjectInputStream(fis)
+        ) {
+            return (Message) ois.readObject();
+        } catch (ClassNotFoundException | IOException e) {
             throw new RuntimeException(e);
         }
     }
