@@ -1,30 +1,36 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindAllByIdInRequest;
-import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindResponse;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentResponse;
 import com.sprint.mission.discodeit.service.basic.BinaryContentService;
-import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.UUID;
 
+@Validated
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("api/v1/files")
+@RequestMapping("api/binaryContents")
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
     @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<List<BinaryContentFindResponse>> findAllFilesByIds(@Valid @RequestBody BinaryContentFindAllByIdInRequest findRequest) {
-        return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAllByIdIn(findRequest));
+    public ResponseEntity<List<BinaryContentResponse>> findAllFilesByIds(@RequestParam(name = "binaryContentIds") List<@NotNull UUID> binaryContentIds) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAllByIdIn(binaryContentIds));
     }
 
+    @RequestMapping(value = "/{binaryContentId}", method = RequestMethod.GET)
+    public ResponseEntity<BinaryContentResponse> findById(@NotNull @PathVariable UUID binaryContentId) {
+        return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findById(binaryContentId));
+    }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<BinaryContentFindResponse>> findAllFiles() {
+    public ResponseEntity<List<BinaryContentResponse>> findAllFiles() {
         return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAll());
     }
 }

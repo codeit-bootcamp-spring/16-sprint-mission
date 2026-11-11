@@ -1,16 +1,15 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateResponse;
-import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindAllByIdInRequest;
-import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindResponse;
+import com.sprint.mission.discodeit.dto.binaryContent.*;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -20,30 +19,38 @@ public class BinaryContentService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
 
-    public BinaryContentCreateResponse create(BinaryContentCreateRequest createRequest) {
-        String fileName = createRequest.fileName();
-        byte[] content = createRequest.content();
+    public BinaryContentResponse create(MultipartFile createRequest) {
+        String fileName = createRequest.getOriginalFilename();
+        Long size = createRequest.getSize();
+        String contentType = createRequest.getContentType();
+        byte[] content = null;
 
-        BinaryContent binaryContent = new BinaryContent(fileName, content);
+        try {
+            content = createRequest.getBytes();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        BinaryContent binaryContent = new BinaryContent(fileName, content, size, contentType);
         this.binaryContentRepository.save(binaryContent);
-        return BinaryContentCreateResponse.from(binaryContent);
+        return BinaryContentResponse.from(binaryContent);
     }
 
-    public BinaryContentFindResponse findById(UUID id) {
+    public BinaryContentResponse findById(UUID id) {
         BinaryContent binaryContent = this.binaryContentRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("바이너리 데이터가 존재하지 않습니다."));
-        return BinaryContentFindResponse.from(binaryContent);
+        return BinaryContentResponse.from(binaryContent);
     }
 
-    public List<BinaryContentFindResponse> findAll() {
+    public List<BinaryContentResponse> findAll() {
         return this.binaryContentRepository.findAll()
                 .stream()
-                .map(BinaryContentFindResponse::from)
+                .map(BinaryContentResponse::from)
                 .toList();
     }
 
-    public List<BinaryContentFindResponse> findAllByIdIn(BinaryContentFindAllByIdInRequest findRequest) {
-        List<UUID> distinctIds = new ArrayList<>(new LinkedHashSet<>(findRequest.ids()));
+    public List<BinaryContentResponse> findAllByIdIn(List<UUID> binaryContentIds) {
+        List<UUID> distinctIds = new ArrayList<>(new LinkedHashSet<>(binaryContentIds));
 
         List<BinaryContent> binaryContents = binaryContentRepository.findAllByIdIn(distinctIds);
         if (binaryContents.size() != distinctIds.size())
@@ -51,7 +58,7 @@ public class BinaryContentService {
 
         return binaryContents
                 .stream()
-                .map(BinaryContentFindResponse::from)
+                .map(BinaryContentResponse::from)
                 .toList();
     }
 

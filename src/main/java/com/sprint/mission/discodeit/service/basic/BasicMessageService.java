@@ -52,14 +52,17 @@ public class BasicMessageService implements MessageService {
         if (attachments != null && !attachments.isEmpty()) {
             attachments.forEach(attachment -> {
                 String fileName = attachment.getOriginalFilename();
+                Long size = attachment.getSize();
+                String contentType = attachment.getContentType();
                 byte[] fileContent = null;
+
                 try {
                     fileContent = attachment.getBytes();
                 } catch (IOException e) {
                     throw new RuntimeException(e);
                 }
 
-                BinaryContent binaryContent = new BinaryContent(fileName, fileContent);
+                BinaryContent binaryContent = new BinaryContent(fileName, fileContent, size, contentType);
                 this.binaryContentRepository.save(binaryContent);
                 message.addAttachment(binaryContent.getId());
             });
