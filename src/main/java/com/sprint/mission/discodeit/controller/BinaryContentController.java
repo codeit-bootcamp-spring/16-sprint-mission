@@ -1,8 +1,8 @@
-package com.sprint.mission.discodeit.controller.otherController;
+package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
-import com.sprint.mission.discodeit.service.otherService.BinaryContentService;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;

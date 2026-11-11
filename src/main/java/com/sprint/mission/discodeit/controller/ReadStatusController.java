@@ -1,9 +1,9 @@
-package com.sprint.mission.discodeit.controller.otherController;
+package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.request.status.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.status.ReadStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
-import com.sprint.mission.discodeit.service.otherService.ReadStatusService;
+import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.service.ReadStatusService;
 
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;

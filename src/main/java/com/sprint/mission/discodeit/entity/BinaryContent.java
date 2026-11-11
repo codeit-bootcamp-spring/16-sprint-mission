@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.entity.newDomain;
+package com.sprint.mission.discodeit.entity;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import lombok.Getter;

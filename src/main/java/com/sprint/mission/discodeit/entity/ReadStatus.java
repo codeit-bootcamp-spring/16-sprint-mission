@@ -1,6 +1,5 @@
-package com.sprint.mission.discodeit.entity.newDomain;
+package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.entity.BaseEntity;
 import lombok.Getter;
 
 import java.time.Instant;

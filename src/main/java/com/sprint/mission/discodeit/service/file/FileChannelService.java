@@ -10,12 +10,12 @@ import com.sprint.mission.discodeit.type.ChannelType;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
+import com.sprint.mission.discodeit.entity.ReadStatus;
 
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.otherRepository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 

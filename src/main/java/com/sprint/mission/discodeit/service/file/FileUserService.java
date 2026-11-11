@@ -8,13 +8,13 @@ import com.sprint.mission.discodeit.dto.UserDto;
 import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 
-import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
-import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
 import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
-import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 
 import org.springframework.security.crypto.password.PasswordEncoder;

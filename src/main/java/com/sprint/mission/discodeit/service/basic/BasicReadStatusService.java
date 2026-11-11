@@ -2,13 +2,13 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.status.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.status.ReadStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
+import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.otherRepository.ReadStatusRepository;
-import com.sprint.mission.discodeit.service.otherService.ReadStatusService;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.service.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

@@ -1,8 +1,8 @@
-package com.sprint.mission.discodeit.service.otherService;
+package com.sprint.mission.discodeit.service;
 
 import com.sprint.mission.discodeit.dto.request.status.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.status.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
+import com.sprint.mission.discodeit.entity.UserStatus;
 
 import java.time.Instant;
 import java.util.List;

@@ -1,6 +1,6 @@
-package com.sprint.mission.discodeit.repository.otherRepository;
+package com.sprint.mission.discodeit.repository;
 
-import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
+import com.sprint.mission.discodeit.entity.UserStatus;
 
 import java.util.List;
 import java.util.Optional;

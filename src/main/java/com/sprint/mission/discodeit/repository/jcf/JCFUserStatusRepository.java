@@ -1,7 +1,7 @@
-package com.sprint.mission.discodeit.repository.jcf.otherJCF;
+package com.sprint.mission.discodeit.repository.jcf;
 
-import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
-import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 

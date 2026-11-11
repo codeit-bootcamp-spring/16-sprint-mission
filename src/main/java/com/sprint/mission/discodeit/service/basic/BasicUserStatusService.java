@@ -2,12 +2,12 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.status.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.status.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
-import com.sprint.mission.discodeit.service.otherService.UserStatusService;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

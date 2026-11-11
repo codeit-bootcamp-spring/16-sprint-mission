@@ -1,9 +1,8 @@
-package com.sprint.mission.discodeit.repository.jcf.otherJCF;
+package com.sprint.mission.discodeit.repository.jcf;
 
-import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
-import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
