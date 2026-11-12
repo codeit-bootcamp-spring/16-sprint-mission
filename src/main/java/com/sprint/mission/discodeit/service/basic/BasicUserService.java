@@ -13,7 +13,10 @@ import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.validator.CommonValidator;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -31,7 +34,7 @@ public class BasicUserService implements UserService {
     private final CommonValidator validator;
 
     @Override
-    public UserDto createUser(UserCreateDto dto) {
+    public UserDto createUser(UserCreateDto dto, MultipartFile profile) {
         // 입력값 검증
         validator.validateNotNull(
                 dto,
@@ -68,18 +71,22 @@ public class BasicUserService implements UserService {
 
         // profileID 저장
         UUID profileId = null; // 기본 널 설정
-        if (dto.profile() != null) {
-            BinaryContentDto profile = dto.profile();
 
-            BinaryContent binaryContent = new BinaryContent( // DTO -> Entity 변환
-                    profile.filename(),
-                    profile.size(),
-                    profile.bytes()
+        if (profile != null && !profile.isEmpty()) {
+            byte[] bytes;
+            try {
+                bytes = profile.getBytes();
+            } catch (IOException e) {
+                throw new UncheckedIOException("프로필 파일을 읽을 수 없습니다.", e);
+            }
+
+            BinaryContent binaryContent = new BinaryContent(
+                    profile.getOriginalFilename(),
+                    profile.getSize(),
+                    bytes
             );
 
-            BinaryContent saveProfile = binaryContentRepository.save(binaryContent);
-
-            profileId = saveProfile.getId();
+            profileId = binaryContentRepository.save(binaryContent).getId();
         }
 
         // User 생성
@@ -99,9 +106,11 @@ public class BasicUserService implements UserService {
         UserStatus savedStatus = userStatusRepository.save(userStatus);
 
         return new UserDto(
+                savedUser.getId(),
                 savedUser.getUsername(),
                 savedUser.getAge(),
                 savedUser.getEmail(),
+                savedUser.getProfileId(),
                 savedStatus.isOnline()
         );
     }
@@ -168,7 +177,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserDto updateUser(UserUpdateDto dto) {
+    public UserDto updateUser(UserUpdateDto dto, MultipartFile profile) {
         validator.validateNotNull(
                 dto,
                 "수정 정보는 null일 수 없습니다."
@@ -186,6 +195,10 @@ public class BasicUserService implements UserService {
                 );
 
         if (dto.username() != null){ // 아룸 중복 방지 로직
+            validator.validateNotBlank(
+                    dto.username(),
+                    "사용자 이름은 비어있을 수 없습니다."
+            );
             if (dto.username().equals(user.getUsername())) {
                 throw new IllegalArgumentException(
                         "현재 사용자 이름과 동일합니다."
@@ -212,31 +225,40 @@ public class BasicUserService implements UserService {
             );
         }
 
-        // 이름, 나이 변경
-        user.update(dto.username(), dto.age(), dto.password());
+        UUID oldProfileId = user.getProfileId();
+        UUID newProfileId = null;
 
-        // 프로필 이미지 교체
-        if (dto.profile() != null) {
-            UUID oldProfileId = user.getProfileId(); // 기존 프로필 담아두기
-            BinaryContentDto profile = dto.profile();
+        if (profile != null && !profile.isEmpty()) {
+            byte[] bytes;
+            try{
+                bytes = profile.getBytes();
+            } catch (IOException e) {
+                throw new UncheckedIOException("프로필 파일을 읽을 수 없습니다.", e);
+            }
 
-            BinaryContent newProfile = new BinaryContent( // 새로 받은 프로필 정보 입력
-                    profile.filename(),
-                    profile.size(),
-                    profile.bytes()
+            BinaryContent newProfile = new BinaryContent(
+                    profile.getOriginalFilename(),
+                    profile.getSize(),
+                    bytes
             );
 
-            BinaryContent saveProfile = binaryContentRepository.save(newProfile); // 저장
-            user.updateProfileId(saveProfile.getId()); // 유저 객체 업데이트
-
-            if (oldProfileId != null) { // 기존 프로필 제거
-                binaryContentRepository.findById(oldProfileId)
-                        .ifPresent(binaryContentRepository::delete);
-            }
+            newProfileId = binaryContentRepository.save(newProfile).getId();
         }
 
-        User savedUser = userRepository.save(user); // 유저 저장
-        return toDto(savedUser); // dto변환 후 반환
+        user.update(dto.username(), dto.age(), dto.password());
+
+        if (newProfileId != null) {
+            user.updateProfileId(newProfileId);
+        }
+
+        User savedUser = userRepository.save(user);
+
+        if (newProfileId != null && oldProfileId != null) {
+            binaryContentRepository.findById(oldProfileId)
+                    .ifPresent(binaryContentRepository::delete);
+        }
+
+        return toDto(savedUser);
     }
 
     @Override
@@ -294,9 +316,11 @@ public class BasicUserService implements UserService {
                         );
 
         return new UserDto(
+                user.getId(),
                 user.getUsername(),
                 user.getAge(),
                 user.getEmail(),
+                user.getProfileId(),
                 userStatus.isOnline()
         );
     }
