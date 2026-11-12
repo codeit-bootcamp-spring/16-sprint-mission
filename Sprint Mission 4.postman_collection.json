@@ -1,0 +1,642 @@
+{
+  "info": {
+    "_postman_id": "e57b9003-ca8c-4de7-b765-56a4bb56cf35",
+    "name": "Sprint Mission 4",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "59451772"
+  },
+  "item": [
+    {
+      "name": "회원 기능",
+      "item": [
+        {
+          "name": "회원가입",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "request",
+                  "value": "\n{\n  \"username\": \"profileTest2\",\n  \"email\": \"profiletest2@example.com\",\n  \"password\": \"test1234\"\n}\n",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "profile",
+                  "type": "file",
+                  "src": [
+                    "/Users/jiseop/Pictures/그림1.png"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "회원 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "특정 사용자 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/94c45e0a-ffdf-4e61-a7d4-524d036777d3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "94c45e0a-ffdf-4e61-a7d4-524d036777d3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "사용자 정보 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"newUsername\": \"sprint4updated\",\n  \"newEmail\": \"sprint4updated@example.com\",\n  \"newPassword\": \"changed1234\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users/94c45e0a-ffdf-4e61-a7d4-524d036777d3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "94c45e0a-ffdf-4e61-a7d4-524d036777d3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "사용자 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/users/94c45e0a-ffdf-4e61-a7d4-524d036777d3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "94c45e0a-ffdf-4e61-a7d4-524d036777d3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "접속 상태 갱신",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"newLastActiveAt\": \"{{$isoTimestamp}}\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users/eb13bde5-576f-4e6c-b334-4e0fb71b2dba/status",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "eb13bde5-576f-4e6c-b334-4e0fb71b2dba",
+                "status"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "로그인 인증",
+      "item": [
+        {
+          "name": "로그인 확인",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"username\": \"sprint4user\",\n  \"password\": \"test1234\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "채널 기능",
+      "item": [
+        {
+          "name": "공개 채널 개설",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"name\": \"sprint4-공지\",\n  \"description\": \"Sprint 4 API 테스트용 공개 채널\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/channels/public",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "public"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "비공개 채널 개설",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"participantIds\": [\n    \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\"\n  ]\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/channels/private",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "private"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "공개 채널 정보 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"newName\": \"sprint4-개발공지\",\n  \"newDescription\": \"공개 채널 정보 수정 테스트 완료\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/channels/5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "채널 삭제 테스트",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/channels/5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "내 채널 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/channels?userId=eb13bde5-576f-4e6c-b334-4e0fb71b2dba",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "eb13bde5-576f-4e6c-b334-4e0fb71b2dba"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "공개 채널 개설",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "메시지 기능",
+      "item": [
+        {
+          "name": "메시지 작성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "request",
+                  "value": "\n{\n  \"content\": \"사진 첨부 테스트 메시지입니다.\",\n  \"channelId\": \"0d9df64a-a726-49bb-8f80-5195ec50c094\",\n  \"authorId\": \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\"\n}\n",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "attachments",
+                  "type": "file",
+                  "src": [
+                    "/Users/jiseop/Pictures/그림1.png"
+                  ]
+                },
+                {
+                  "key": "attachments",
+                  "type": "file",
+                  "src": [
+                    "/Users/jiseop/Pictures/그림2.png"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/messages",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "채널 메시지 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/messages?channelId=0d9df64a-a726-49bb-8f80-5195ec50c094",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "channelId",
+                  "value": "0d9df64a-a726-49bb-8f80-5195ec50c094"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "메시지 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/messages/ab90fd5f-7759-477e-a7ff-79fb78f332b7",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages",
+                "ab90fd5f-7759-477e-a7ff-79fb78f332b7"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "메시지 내용 변경",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"newContent\": \"변경된 메시지.\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/messages/2f6db3fe-74a2-4546-933f-817981baad4a",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages",
+                "2f6db3fe-74a2-4546-933f-817981baad4a"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "메시지 상세 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": ""
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "읽음 기록",
+      "item": [
+        {
+          "name": "읽음 기록 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"userId\": \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\",\n  \"channelId\": \"0d9df64a-a726-49bb-8f80-5195ec50c094\",\n  \"lastReadAt\": \"2026-11-11T09:00:00Z\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/read-statuses",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "read-statuses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "사용자별 읽음 기록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/read-statuses?userId=eb13bde5-576f-4e6c-b334-4e0fb71b2dba",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "read-statuses"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "eb13bde5-576f-4e6c-b334-4e0fb71b2dba"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "읽음 기록 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"newLastReadAt\": \"2026-11-11T10:30:00Z\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/read-statuses/9c8bdfed-93e6-4122-8802-93eaac3cd601",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "read-statuses",
+                "9c8bdfed-93e6-4122-8802-93eaac3cd601"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "읽음 기록 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n{\n  \"userId\": \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\",\n  \"channelId\": \"d8b39ab8-0470-4d17-b0e4-adc0a0086ee2\",\n  \"lastReadAt\": \"2026-11-12T08:00:00Z\"\n}\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/read-statuses",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "read-statuses"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "바이너리 파일 다운로드",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/binaryContents/e7dc9c40-d426-4863-bb1f-b8e291a8d558",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "binaryContents",
+            "e7dc9c40-d426-4863-bb1f-b8e291a8d558"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
