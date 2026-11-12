@@ -2,24 +2,21 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.data.UserDto;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
-import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.service.UserStatusService;
-import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+
 import java.io.IOException;
-
-
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -32,8 +29,10 @@ public class UserController {
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     @ResponseStatus(HttpStatus.CREATED)
     public UserDto create(
             @RequestPart("request") UserCreateRequest request,
@@ -55,7 +54,6 @@ public class UserController {
         User user = userService.create(request, profileRequest);
         return userService.find(user.getId());
     }
-
 
     @RequestMapping(method = RequestMethod.GET)
     public List<UserDto> findAll() {
@@ -89,6 +87,4 @@ public class UserController {
     ) {
         return userStatusService.updateByUserId(userId, request);
     }
-
-
 }

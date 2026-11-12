@@ -1,27 +1,21 @@
 
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.*;
-import java.util.UUID;
-import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
-import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestPart;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-
 
 import java.io.IOException;
 import java.util.ArrayList;
-
-
 import java.util.List;
+import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
@@ -30,8 +24,10 @@ public class MessageController {
 
     private final MessageService messageService;
 
-
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @RequestMapping(
+            method = RequestMethod.POST,
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     @ResponseStatus(HttpStatus.CREATED)
     public Message create(
             @RequestPart("request") MessageCreateRequest request,
@@ -56,34 +52,38 @@ public class MessageController {
         return messageService.create(request, files);
     }
 
-
-    @GetMapping
-    public List<Message> findAll(@RequestParam("channelId") UUID channelId) {
+    @RequestMapping(method = RequestMethod.GET)
+    public List<Message> findAll(
+            @RequestParam("channelId") UUID channelId
+    ) {
         return messageService.findAllByChannelId(channelId);
     }
 
-    @PatchMapping("/{messageId}")
+    @RequestMapping(
+            value = "/{messageId}",
+            method = RequestMethod.PATCH
+    )
     public Message update(
             @PathVariable UUID messageId,
             @RequestBody MessageUpdateRequest request
-    )
-    {
+    ) {
         return messageService.update(messageId, request);
     }
 
-    @DeleteMapping("/{messageId}")
+    @RequestMapping(
+            value = "/{messageId}",
+            method = RequestMethod.DELETE
+    )
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(@PathVariable UUID messageId) {
         messageService.delete(messageId);
-
     }
 
-    @GetMapping("/{messageId}")
+    @RequestMapping(
+            value = "/{messageId}",
+            method = RequestMethod.GET
+    )
     public Message find(@PathVariable UUID messageId) {
         return messageService.find(messageId);
     }
-
-
-
-
 }

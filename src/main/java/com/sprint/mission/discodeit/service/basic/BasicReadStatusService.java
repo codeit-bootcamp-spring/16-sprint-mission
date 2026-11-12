@@ -10,10 +10,13 @@ import com.sprint.mission.discodeit.service.ReadStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.UUID;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
 @Service
@@ -33,10 +36,19 @@ public class BasicReadStatusService implements ReadStatusService {
         if (!channelRepository.existsById(channelId)) {
             throw new NoSuchElementException("Channel with id " + channelId + " does not exist");
         }
+
         if (readStatusRepository.findAllByUserId(userId).stream()
                 .anyMatch(readStatus -> readStatus.getChannelId().equals(channelId))) {
-            throw new IllegalArgumentException("ReadStatus with userId " + userId + " and channelId " + channelId + " already exists");
+
+            throw new ResponseStatusException(
+                    HttpStatus.CONFLICT,
+                    "ReadStatus with userId " + userId
+                            + " and channelId " + channelId
+                            + " already exists"
+            );
         }
+
+
 
         Instant lastReadAt = request.lastReadAt();
         ReadStatus readStatus = new ReadStatus(userId, channelId, lastReadAt);
