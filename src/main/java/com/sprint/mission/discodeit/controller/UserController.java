@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequestDto;
 import com.sprint.mission.discodeit.dto.user.UserDto;
+import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequestDto;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponseDto;
 import com.sprint.mission.discodeit.service.UserService;
@@ -29,7 +30,7 @@ public class UserController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(
+    public UserResponseDto create(
             @Valid @RequestPart("userCreateRequest") UserCreateRequestDto request,
             @RequestPart(value = "profile", required = false)
             MultipartFile profile
@@ -43,7 +44,7 @@ public class UserController {
     }
 
     @PatchMapping("/{userId}")
-    public UserDto update(
+    public UserResponseDto update(
             @PathVariable UUID userId,
             @Valid @RequestBody UserUpdateRequestDto request
     ) {

@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequestDto;
 import com.sprint.mission.discodeit.dto.user.UserDto;
+import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequestDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -41,7 +42,7 @@ public class BasicUserService implements UserService {
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserDto createUser(
+    public UserResponseDto createUser(
             UserCreateRequestDto dto,
             MultipartFile profile
     ) throws IOException {
@@ -80,7 +81,7 @@ public class BasicUserService implements UserService {
     @Override
     public UserDto findUser(UUID userId) {
         User user = findUserEntity(userId);
-        return toResponseDto(user);
+        return toUserDto(user);
     }
 
     @Override
@@ -89,14 +90,14 @@ public class BasicUserService implements UserService {
         List<UserDto> result = new ArrayList<>();
 
         for (User user : users) {
-            result.add(toResponseDto(user));
+            result.add(toUserDto(user));
         }
 
         return result;
     }
 
     @Override
-    public UserDto updateUser(
+    public UserResponseDto updateUser(
             UUID userId,
             UserUpdateRequestDto dto
     ) {
@@ -295,7 +296,19 @@ public class BasicUserService implements UserService {
         }
     }
 
-    private UserDto toResponseDto(User user) {
+    private UserResponseDto toResponseDto(User user) {
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
+                .username(user.getUsername())
+                .email(user.getEmail())
+                .password(user.getPassword())
+                .profileId(user.getProfileId())
+                .build();
+    }
+
+    private UserDto toUserDto(User user) {
         boolean online = userStatusRepository.findByUserId(user.getId())
                 .map(UserStatus::isOnline)
                 .orElse(false);
