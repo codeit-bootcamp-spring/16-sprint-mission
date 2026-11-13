@@ -143,20 +143,20 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelDto update(ChannelUpdateRequest request) {
+    public ChannelDto update(UUID channelId, ChannelUpdateRequest request) {
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
+
         if (request == null) {
             throw new IllegalArgumentException("채널 수정 요청은 필수입니다.");
         }
 
-        if (request.id() == null) {
-            throw new IllegalArgumentException("채널 ID는 필수입니다.");
-        }
-
-        if (request.name() == null || request.name().isBlank()) {
+        if (request.newName() == null || request.newName().isBlank()) {
             throw new IllegalArgumentException("채널 이름은 필수입니다.");
         }
 
-        Channel channel = channelRepository.findById(request.id())
+        Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("존재하지 않는 채널입니다.")
                 );
@@ -169,14 +169,14 @@ public class BasicChannelService implements ChannelService {
                 .anyMatch(other ->
                         !other.getId().equals(channel.getId())
                                 && other.getType() == ChannelType.PUBLIC
-                                && Objects.equals(other.getName(), request.name())
+                                && Objects.equals(other.getName(), request.newName())
                 );
 
         if (duplicate) {
             throw new IllegalArgumentException("이미 사용 중인 채널 이름입니다.");
         }
 
-        channel.update(request.name(), request.description());
+        channel.update(request.newName(), request.newDescription());
 
         return toDto(channelRepository.save(channel));
     }

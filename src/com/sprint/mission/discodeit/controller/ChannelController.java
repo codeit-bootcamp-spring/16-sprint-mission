@@ -5,12 +5,15 @@ import com.sprint.mission.discodeit.dto.request.channel.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
 import com.sprint.mission.discodeit.service.ChannelService;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
@@ -23,10 +26,7 @@ public class ChannelController {
     private final ChannelService channelService;
 
     // 공개 채널 생성
-    @RequestMapping(
-            value = "/public",
-            method = RequestMethod.POST
-    )
+    @RequestMapping(value = "/public", method = RequestMethod.POST)
     public ResponseEntity<ChannelDto> createPublic(
             @RequestBody ChannelCreateRequest request
     ) {
@@ -38,10 +38,7 @@ public class ChannelController {
     }
 
     // 비공개 채널 생성
-    @RequestMapping(
-            value = "/private",
-            method = RequestMethod.POST
-    )
+    @RequestMapping(value = "/private", method = RequestMethod.POST)
     public ResponseEntity<ChannelDto> createPrivate(
             @RequestBody PrivateChannelCreateRequest request
     ) {
@@ -53,12 +50,9 @@ public class ChannelController {
     }
 
     // 특정 사용자가 볼 수 있는 채널 목록 조회
-    @RequestMapping(
-            value = "/users/{userId}",
-            method = RequestMethod.GET
-    )
+    @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ChannelDto>> findAllByUserId(
-            @PathVariable UUID userId
+            @RequestParam UUID userId
     ) {
         return ResponseEntity.ok(
                 channelService.findAllByUserId(userId)
@@ -66,30 +60,23 @@ public class ChannelController {
     }
 
     // 공개 채널 정보 수정
-    @RequestMapping(
-            value = "/{channelId}",
-            method = RequestMethod.PATCH
-    )
+    @RequestMapping(value = "/{channelId}", method = RequestMethod.PATCH)
     public ResponseEntity<ChannelDto> update(
             @PathVariable UUID channelId,
             @RequestBody ChannelUpdateRequest request
     ) {
         ChannelUpdateRequest updateRequest = new ChannelUpdateRequest(
-                channelId,
-                request.name(),
-                request.description()
+                request.newName(),
+                request.newDescription()
         );
 
         return ResponseEntity.ok(
-                channelService.update(updateRequest)
+                channelService.update(channelId, updateRequest)
         );
     }
 
     // 채널 삭제
-    @RequestMapping(
-            value = "/{channelId}",
-            method = RequestMethod.DELETE
-    )
+    @RequestMapping(value = "/{channelId}", method = RequestMethod.DELETE)
     public ResponseEntity<Void> delete(
             @PathVariable UUID channelId
     ) {
