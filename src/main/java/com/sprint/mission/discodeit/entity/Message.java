@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.entity;
 import lombok.Getter;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +42,11 @@ public class Message extends BaseEntity {
                 : new ArrayList<>(attachmentIds);
     }
 
+    // 첨부파일 ID 목록을 외부에서 직접 변경하지 못하도록 한다.
+    public List<UUID> getAttachmentIds() {
+        return Collections.unmodifiableList(attachmentIds);
+    }
+
     // 전달받은 메시지 내용으로 현재 객체의 내용을 변경한다.
     public void changeContent(String content){
         // 메시지 내용이 null 이거나 공백이면 예외 처리한다.
@@ -53,7 +59,14 @@ public class Message extends BaseEntity {
 
     @Override
     public String toString() {
-        return "Message{id:'" + getId() + "'},{" + "content:'" + content + "'}, {createdAt: "
-                + getCreatedAt() + " },{updatedAt: " + getUpdatedAt() + " }\n";
+        return "Message{" +
+                "id=" + getId() +
+                ", content='" + content + '\'' +
+                ", userId=" + userId +
+                ", channelId=" + channelId +
+                ", attachmentIds=" + attachmentIds +
+                ", createdAt=" + getCreatedAt() +
+                ", updatedAt=" + getUpdatedAt() +
+                '}';
     }
 }
