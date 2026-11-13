@@ -7,11 +7,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
-public class Channel extends BaseEntity implements Updatable {
+public class Channel extends UpdatableEntity {
     private final Set<UUID> users;
     private final ChannelType type;
 
-    private Instant updatedAt;
     private String name;
     private String description;
 
@@ -50,12 +49,7 @@ public class Channel extends BaseEntity implements Updatable {
 
         return this;
     }
-
-    @Override
-    public void update() {
-        this.updatedAt = Instant.now();
-    }
-
+    
     public void addUser(UUID userId) {
         this.users.add(userId);
         this.update();
@@ -64,6 +58,10 @@ public class Channel extends BaseEntity implements Updatable {
     public void removeUser(UUID userId) {
         this.users.remove(userId);
         this.update();
+    }
+
+    public List<UUID> getUsers() {
+        return List.copyOf(this.users);
     }
 
     @Override

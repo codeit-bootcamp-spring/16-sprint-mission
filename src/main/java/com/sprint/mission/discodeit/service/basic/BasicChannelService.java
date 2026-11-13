@@ -39,9 +39,6 @@ public class BasicChannelService implements ChannelService {
         distinctMemberIds.forEach(memberId -> {
             this.userRepository.findById(memberId)
                     .orElseThrow(() -> new NoSuchElementException("생성할 비공개 채널에 소속될 유저가 존재하지 않습니다."));
-            if (this.readStatusRepository.findByChannelIdAndUserId(channel.getId(), memberId).isPresent()) {
-                throw new IllegalStateException("이미 존재하는 메세지 확인 기록입니다.");
-            }
         });
 
         this.channelRepository.save(channel);

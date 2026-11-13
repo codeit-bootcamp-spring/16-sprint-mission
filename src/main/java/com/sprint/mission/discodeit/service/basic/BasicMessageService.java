@@ -108,10 +108,10 @@ public class BasicMessageService implements MessageService {
 
         List<UUID> attachmentIds = new ArrayList<>(new LinkedHashSet<>(message.getAttachmentIds()));
         attachmentIds.forEach(attachmentId -> {
-            if (this.binaryContentRepository.findById(attachmentId).isEmpty())
-                throw new IllegalStateException("삭제할 메세지의 첨부 파일이 없습니다.");
-            this.binaryContentRepository.delete(attachmentId);
-            message.removeAttachment(attachmentId);
+            if (this.binaryContentRepository.findById(attachmentId).isPresent()) {
+                this.binaryContentRepository.delete(attachmentId);
+                message.removeAttachment(attachmentId);
+            }
         });
 
         this.messageRepository.delete(id);

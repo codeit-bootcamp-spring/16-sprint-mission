@@ -7,10 +7,9 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-public class UserStatus extends BaseEntity implements Updatable {
+public class UserStatus extends UpdatableEntity {
     private final UUID userId;
     private Instant lastActiveTime;
-    private Instant updatedAt;
 
     public UserStatus(UUID userId, Instant lastActiveTime) {
         super();
@@ -32,10 +31,5 @@ public class UserStatus extends BaseEntity implements Updatable {
 
         // 최근 5분 이내 활동했으면 활동 중.
         return duration.getSeconds() < 60 * 5;
-    }
-
-    @Override
-    public void update() {
-        this.updatedAt = Instant.now();
     }
 }
