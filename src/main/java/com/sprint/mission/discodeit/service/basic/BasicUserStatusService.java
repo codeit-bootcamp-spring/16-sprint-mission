@@ -6,7 +6,9 @@ import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -58,8 +60,8 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusResponseDto updateUserStatus(UUID userStatusId) {
         UserStatus userStatus = userStatusRepository.findById(userStatusId)
-                        .orElseThrow(() ->
-                                new IllegalArgumentException("존재하지 않는 사용자 상태입니다."));
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 사용자 상태입니다."));
 
         userStatus.updateLastActiveAt();
 
@@ -93,10 +95,10 @@ public class BasicUserStatusService implements UserStatusService {
     private UserStatusResponseDto toResponseDto(UserStatus userStatus) {
         return UserStatusResponseDto.builder()
                 .id(userStatus.getId())
-                .userId(userStatus.getUserId())
-                .lastActiveAt(userStatus.getLastActiveAt())
                 .createdAt(userStatus.getCreatedAt())
                 .updatedAt(userStatus.getUpdatedAt())
+                .userId(userStatus.getUserId())
+                .lastActiveAt(userStatus.getLastActiveAt())
                 .online(userStatus.isOnline())
                 .build();
     }

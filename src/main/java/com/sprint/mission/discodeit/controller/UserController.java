@@ -46,9 +46,11 @@ public class UserController {
     @PatchMapping("/{userId}")
     public UserResponseDto update(
             @PathVariable UUID userId,
-            @Valid @RequestBody UserUpdateRequestDto request
-    ) {
-        return userService.updateUser(userId, request);
+            @Valid @RequestPart("userUpdateRequest") UserUpdateRequestDto request,
+            @RequestPart(value = "profile", required = false)
+            MultipartFile profile
+    ) throws IOException {
+        return userService.updateUser(userId, request, profile);
     }
 
     @DeleteMapping("/{userId}")

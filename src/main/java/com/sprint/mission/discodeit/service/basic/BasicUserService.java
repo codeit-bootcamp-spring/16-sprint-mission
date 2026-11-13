@@ -99,8 +99,9 @@ public class BasicUserService implements UserService {
     @Override
     public UserResponseDto updateUser(
             UUID userId,
-            UserUpdateRequestDto dto
-    ) {
+            UserUpdateRequestDto dto,
+            MultipartFile profile
+    ) throws IOException {
         User user = findUserEntity(userId);
 
         if (dto.getNewUsername() != null) {
@@ -117,7 +118,24 @@ public class BasicUserService implements UserService {
             user.changePassword(dto.getNewPassword());
         }
 
+        UUID oldProfileId = user.getProfileId();
+
+        if (profile != null && !profile.isEmpty()) {
+            BinaryContent newProfile = new BinaryContent(
+                    profile.getOriginalFilename(),
+                    profile.getContentType(),
+                    profile.getBytes()
+            );
+
+            BinaryContent savedProfile = binaryContentRepository.save(newProfile);
+            user.changeProfileId(savedProfile.getId());
+        }
+
         User savedUser = userRepository.save(user);
+
+        if (profile != null && !profile.isEmpty() && oldProfileId != null) {
+            binaryContentRepository.deleteById(oldProfileId);
+        }
 
         return toResponseDto(savedUser);
     }

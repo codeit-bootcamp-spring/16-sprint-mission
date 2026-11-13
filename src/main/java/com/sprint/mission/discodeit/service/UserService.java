@@ -22,7 +22,11 @@ public interface UserService {
 
     List<UserDto> findAllUsers();
 
-    UserResponseDto updateUser(UUID userId, UserUpdateRequestDto dto);
+    UserResponseDto updateUser(
+            UUID userId,
+            UserUpdateRequestDto dto,
+            MultipartFile profile
+    ) throws IOException;
 
     void deleteUser(UUID userId);
 }
