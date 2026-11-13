@@ -12,49 +12,32 @@ public class Message extends BaseEntity {
     @Serial
     private static final long serialVersionUID = 2L;
 
-    private final MessageType type;
     private String content;
-    private final UUID senderId;
     private final UUID channelId;
+    private final UUID authorId;
     private final List<UUID> attachmentIds;
+    private final MessageType type;
 
     public Message(
             String content,
-            UUID senderId,
-            UUID channelId
-    ) {
-        this(content, senderId, channelId, MessageType.USER, List.of());
-    }
-
-    public Message(
-            String content,
-            UUID senderId,
             UUID channelId,
+            UUID authorId,
+            List<UUID> attachmentIds,
             MessageType type
-    ) {
-        this(content, senderId, channelId, type, List.of());
-    }
-
-    public Message(
-            String content,
-            UUID senderId,
-            UUID channelId,
-            MessageType type,
-            List<UUID> attachmentIds
     ) {
         super();
 
         Validation.validateBlank(content, "content");
-        Validation.validateNull(senderId, "senderId");
         Validation.validateNull(channelId, "channelId");
-        Validation.validateNull(type, "type");
+        Validation.validateNull(authorId, "authorId");
         Validation.validateNull(attachmentIds, "attachmentIds");
+        Validation.validateNull(type, "type");
 
         this.content = content;
-        this.senderId = senderId;
         this.channelId = channelId;
-        this.type = type;
+        this.authorId = authorId;
         this.attachmentIds = List.copyOf(attachmentIds);
+        this.type = type;
     }
 
     public void updateContent(String content) {
