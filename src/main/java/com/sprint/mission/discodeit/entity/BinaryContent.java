@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.entity;
 
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+
 import lombok.Getter;
 
 import java.io.Serial;
@@ -8,6 +10,14 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
+@JsonPropertyOrder({
+        "id",
+        "createdAt",
+        "fileName",
+        "size",
+        "contentType",
+        "bytes"
+})
 public class BinaryContent implements Serializable {
 
     @Serial
