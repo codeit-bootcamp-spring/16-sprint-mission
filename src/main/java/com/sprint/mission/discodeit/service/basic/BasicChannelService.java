@@ -170,7 +170,7 @@ public class BasicChannelService implements ChannelService {
                 messageRepository.findByChannelId(channelId);
 
         for (Message message : messages) {
-            User sender = findUserEntity(message.getSenderId());
+            User sender = findUserEntity(message.getAuthorId());
 
             sender.removeMessageId(message.getId());
             userRepository.save(sender);

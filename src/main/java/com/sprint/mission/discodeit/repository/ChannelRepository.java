@@ -16,8 +16,6 @@ public interface ChannelRepository {
 
     void deleteById(UUID channelId);
 
-    List<Channel> findByCreatorId(UUID creatorId);
-
     List<Channel> findByParticipantId(UUID userId);
 
     List<Channel> findAccessibleByUserId(UUID userId);
