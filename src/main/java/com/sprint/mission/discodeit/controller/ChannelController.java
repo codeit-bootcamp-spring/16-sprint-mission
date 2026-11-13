@@ -23,14 +23,14 @@ public class ChannelController {
     @PostMapping("/public")
     @ResponseStatus(HttpStatus.CREATED)
     public ChannelResponseDto createPublic(
-            @RequestBody @Valid PublicChannelCreateRequestDto request
+            @Valid @RequestBody PublicChannelCreateRequestDto request
     ) {
         return channelService.createPublicChannel(request);
     }
 
     @PostMapping("/private")
     public ChannelResponseDto createPrivate(
-            @RequestBody @Valid PrivateChannelCreateRequestDto request
+            @Valid @RequestBody PrivateChannelCreateRequestDto request
     ) {
         return channelService.createPrivateChannel(request);
     }

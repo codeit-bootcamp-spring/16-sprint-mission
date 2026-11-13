@@ -9,6 +9,8 @@ import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
@@ -139,8 +141,8 @@ public class BasicChannelService implements ChannelService {
         Channel channel = findChannelEntity(channelId);
 
         if (channel.getType() == ChannelType.PRIVATE) {
-            throw new IllegalStateException(
-                    "비공개 채널은 수정할 수 없습니다."
+            throw new BusinessLogicException(
+                    ExceptionCode.PRIVATE_CHANNEL_CANNOT_BE_UPDATED
             );
         }
 
@@ -196,14 +198,18 @@ public class BasicChannelService implements ChannelService {
 
     private Channel findChannelEntity(UUID channelId) {
         return channelRepository.findById(channelId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다: " + channelId));
+                .orElseThrow(() -> new BusinessLogicException(
+                        ExceptionCode.CHANNEL_NOT_FOUND,
+                        channelId
+                ));
     }
 
     private User findUserEntity(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId));
+                .orElseThrow(() -> new BusinessLogicException(
+                        ExceptionCode.USER_NOT_FOUND,
+                        userId
+                ));
     }
 
     private void createReadStatusIfAbsent(

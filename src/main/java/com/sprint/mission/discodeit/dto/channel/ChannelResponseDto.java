@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.dto.channel;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,7 +18,11 @@ public class ChannelResponseDto {
     private Instant createdAt;
     private Instant updatedAt;
     private ChannelType type;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String name;
+
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     private String description;
 
     // 가장 최근 메시지의 시간 정보
