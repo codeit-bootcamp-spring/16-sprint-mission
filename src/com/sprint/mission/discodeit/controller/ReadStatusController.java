@@ -4,24 +4,27 @@ import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusCreateReque
 import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.readstatus.ReadStatusDto;
 import com.sprint.mission.discodeit.service.ReadStatusService;
-
 import lombok.RequiredArgsConstructor;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/read-status")
+@RequestMapping("/api/readStatuses")
 @RequiredArgsConstructor
 public class ReadStatusController {
 
     private final ReadStatusService readStatusService;
 
-    // 메시지 수신 정보 생성
+    // 읽음 상태 생성
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ReadStatusDto> create(
             @RequestBody ReadStatusCreateRequest request
@@ -33,20 +36,17 @@ public class ReadStatusController {
                 .body(readStatusDto);
     }
 
-    // 특정 사용자의 메시지 수신 정보 조회
-    @RequestMapping(
-            value = "/users/{userId}",
-            method = RequestMethod.GET
-    )
+    // 특정 사용자의 읽음 상태 조회
+    @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<ReadStatusDto>> findAllByUserId(
-            @PathVariable UUID userId
+            @RequestParam UUID userId
     ) {
         return ResponseEntity.ok(
                 readStatusService.findAllByUserId(userId)
         );
     }
 
-    // 메시지 수신 정보 수정
+    // 읽음 상태 수정
     @RequestMapping(
             value = "/{readStatusId}",
             method = RequestMethod.PATCH
@@ -55,13 +55,8 @@ public class ReadStatusController {
             @PathVariable UUID readStatusId,
             @RequestBody ReadStatusUpdateRequest request
     ) {
-        ReadStatusUpdateRequest updateRequest = new ReadStatusUpdateRequest(
-                readStatusId,
-                request.lastReadAt()
-        );
-
         return ResponseEntity.ok(
-                readStatusService.update(updateRequest)
+                readStatusService.update(readStatusId, request)
         );
     }
 }

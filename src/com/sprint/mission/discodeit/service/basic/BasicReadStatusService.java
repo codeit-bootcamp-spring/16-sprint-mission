@@ -10,7 +10,6 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -94,25 +93,28 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     @Override
-    public ReadStatusDto update(ReadStatusUpdateRequest request) {
+    public ReadStatusDto update(
+            UUID readStatusId,
+            ReadStatusUpdateRequest request
+    ) {
+        if (readStatusId == null) {
+            throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
+        }
+
         if (request == null) {
             throw new IllegalArgumentException("읽음 상태 수정 정보는 필수입니다.");
         }
 
-        if (request.id() == null) {
-            throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
-        }
-
-        if (request.lastReadAt() == null) {
+        if (request.newLastReadAt() == null) {
             throw new IllegalArgumentException("마지막 읽음 시간은 필수입니다.");
         }
 
-        ReadStatus readStatus = readStatusRepository.findById(request.id())
+        ReadStatus readStatus = readStatusRepository.findById(readStatusId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("읽음 상태를 찾을 수 없습니다.")
                 );
 
-        readStatus.updateLastReadAt(request.lastReadAt());
+        readStatus.updateLastReadAt(request.newLastReadAt());
 
         ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
         return toDto(savedReadStatus);
