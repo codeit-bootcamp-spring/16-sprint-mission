@@ -14,6 +14,7 @@ public enum ExceptionCode {
     MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다. %s"),
     READ_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "읽음 상태를 찾을 수 없습니다."),
     BINARY_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "바이너리 콘텐츠를 찾을 수 없습니다. %s"),
+    USER_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "사용자 상태를 찾을 수 없습니다."),
 
     PRIVATE_CHANNEL_CANNOT_BE_UPDATED(
             HttpStatus.BAD_REQUEST,
@@ -38,6 +39,11 @@ public enum ExceptionCode {
     EMAIL_ALREADY_EXISTS(
             HttpStatus.BAD_REQUEST,
             "이미 사용 중인 이메일입니다."
+    ),
+
+    INVALID_LOGIN(
+            HttpStatus.BAD_REQUEST,
+            "아이디 또는 비밀번호가 일치하지 않습니다."
     );
 
     private final HttpStatus status;
