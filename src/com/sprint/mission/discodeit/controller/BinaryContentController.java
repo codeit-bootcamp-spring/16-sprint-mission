@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.UUID;
 
 @RestController
@@ -40,7 +41,7 @@ public class BinaryContentController {
         BinaryContentDto binaryContent = binaryContentService
                 .findById(binaryContentId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NoSuchElementException(
                                 "첨부파일 정보를 찾을 수 없습니다."
                         )
                 );

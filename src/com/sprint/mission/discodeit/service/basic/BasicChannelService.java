@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -86,7 +87,7 @@ public class BasicChannelService implements ChannelService {
         for (UUID participantId : participantIds) {
             userRepository.findById(participantId)
                     .orElseThrow(() ->
-                            new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                            new NoSuchElementException("존재하지 않는 사용자입니다.")
                     );
         }
 
@@ -128,7 +129,7 @@ public class BasicChannelService implements ChannelService {
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                        new NoSuchElementException("존재하지 않는 사용자입니다.")
                 );
 
         return channelRepository.findAll().stream()
@@ -158,7 +159,7 @@ public class BasicChannelService implements ChannelService {
 
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         if (channel.getType() == ChannelType.PRIVATE) {
@@ -189,7 +190,7 @@ public class BasicChannelService implements ChannelService {
 
         channelRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         List<Message> messagesToDelete = messageRepository.findAll().stream()
@@ -228,12 +229,12 @@ public class BasicChannelService implements ChannelService {
 
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                        new NoSuchElementException("존재하지 않는 사용자입니다.")
                 );
 
         if (channel.getType() == ChannelType.PUBLIC) {
@@ -260,12 +261,12 @@ public class BasicChannelService implements ChannelService {
 
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                        new NoSuchElementException("존재하지 않는 사용자입니다.")
                 );
 
         if (channel.getType() == ChannelType.PUBLIC) {

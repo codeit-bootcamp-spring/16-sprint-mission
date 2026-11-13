@@ -14,6 +14,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -41,12 +42,12 @@ public class BasicReadStatusService implements ReadStatusService {
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다.")
+                        new NoSuchElementException("채널을 찾을 수 없습니다.")
                 );
 
         Optional<ReadStatus> existingStatus =
@@ -111,7 +112,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         ReadStatus readStatus = readStatusRepository.findById(readStatusId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("읽음 상태를 찾을 수 없습니다.")
+                        new NoSuchElementException("읽음 상태를 찾을 수 없습니다.")
                 );
 
         readStatus.updateLastReadAt(request.newLastReadAt());
@@ -128,7 +129,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         readStatusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("읽음 상태를 찾을 수 없습니다.")
+                        new NoSuchElementException("읽음 상태를 찾을 수 없습니다.")
                 );
 
         readStatusRepository.deleteById(id);

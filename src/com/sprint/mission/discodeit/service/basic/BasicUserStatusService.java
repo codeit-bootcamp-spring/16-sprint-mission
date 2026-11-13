@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,7 +34,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         Optional<UserStatus> existingStatus =
@@ -85,7 +86,7 @@ public class BasicUserStatusService implements UserStatusService {
 
         UserStatus userStatus = userStatusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NoSuchElementException(
                                 "사용자 접속 상태를 찾을 수 없습니다."
                         )
                 );
@@ -114,12 +115,12 @@ public class BasicUserStatusService implements UserStatusService {
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NoSuchElementException(
                                 "사용자 접속 상태를 찾을 수 없습니다."
                         )
                 );
@@ -131,7 +132,7 @@ public class BasicUserStatusService implements UserStatusService {
     public void delete(UUID id) {
         userStatusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NoSuchElementException(
                                 "사용자 접속 상태를 찾을 수 없습니다."
                         )
                 );

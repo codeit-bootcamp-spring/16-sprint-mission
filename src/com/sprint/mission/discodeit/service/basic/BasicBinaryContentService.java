@@ -12,6 +12,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -133,7 +134,7 @@ public class BasicBinaryContentService implements BinaryContentService {
 
         binaryContentRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("첨부파일 정보를 찾을 수 없습니다.")
+                        new NoSuchElementException("첨부파일 정보를 찾을 수 없습니다.")
                 );
 
         binaryContentRepository.deleteById(id);

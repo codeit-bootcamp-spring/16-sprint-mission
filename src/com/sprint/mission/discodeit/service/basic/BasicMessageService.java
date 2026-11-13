@@ -21,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -61,11 +62,11 @@ public class BasicMessageService implements MessageService {
 
         User author = userRepository.findById(request.authorId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new NoSuchElementException("사용자를 찾을 수 없습니다."));
 
         Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+                        new NoSuchElementException("채널을 찾을 수 없습니다."));
 
         Message message = new Message(
                 request.content(),
@@ -141,7 +142,7 @@ public class BasicMessageService implements MessageService {
 
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("메시지를 찾을 수 없습니다."));
+                        new NoSuchElementException("메시지를 찾을 수 없습니다."));
 
         message.update(request.newContent());
 
@@ -158,7 +159,7 @@ public class BasicMessageService implements MessageService {
 
         Message message = messageRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("메시지를 찾을 수 없습니다."));
+                        new NoSuchElementException("메시지를 찾을 수 없습니다."));
 
         for (UUID attachmentId : message.getAttachmentIds()) {
             binaryContentService.deleteById(attachmentId);

@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -103,7 +104,7 @@ public class BasicUserService implements UserService {
 
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         String username = request.newUsername() == null
@@ -155,7 +156,7 @@ public class BasicUserService implements UserService {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         for (Message message : messageRepository.findAll()) {
@@ -198,12 +199,12 @@ public class BasicUserService implements UserService {
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다.")
+                        new NoSuchElementException("채널을 찾을 수 없습니다.")
                 );
 
         if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
@@ -225,7 +226,7 @@ public class BasicUserService implements UserService {
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         ReadStatus readStatus = readStatusRepository

@@ -32,19 +32,11 @@ public class UserController {
     private final UserStatusService userStatusService;
 
     // 사용자 등록
-    @RequestMapping(
-            method = RequestMethod.POST,
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<UserDto> create(
-            @RequestPart("userCreateRequest") UserCreateRequest request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
-    ) {
+    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserDto> create(@RequestPart("userCreateRequest") UserCreateRequest request, @RequestPart(value = "profile", required = false) MultipartFile profile) {
         UserDto userDto = userService.create(request, profile);
 
-        return ResponseEntity
-                .status(HttpStatus.CREATED)
-                .body(userDto);
+        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
     }
 
     // 모든 사용자 조회
@@ -54,49 +46,23 @@ public class UserController {
     }
 
     // 사용자 정보 수정
-    @RequestMapping(
-            value = "/{userId}",
-            method = RequestMethod.PATCH,
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<UserDto> update(
-            @PathVariable UUID userId,
-            @RequestPart("userUpdateRequest") UserUpdateRequest request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
-    ) {
-        return ResponseEntity.ok(
-                userService.update(userId, request, profile)
-        );
+    @RequestMapping(value = "/{userId}", method = RequestMethod.PATCH, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<UserDto> update(@PathVariable UUID userId, @RequestPart("userUpdateRequest") UserUpdateRequest request, @RequestPart(value = "profile", required = false) MultipartFile profile) {
+        return ResponseEntity.ok(userService.update(userId, request, profile));
     }
 
     // 사용자 삭제
-    @RequestMapping(
-            value = "/{userId}",
-            method = RequestMethod.DELETE
-    )
-    public ResponseEntity<Void> delete(
-            @PathVariable UUID userId
-    ) {
+    @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
+    public ResponseEntity<Void> delete(@PathVariable UUID userId) {
         userService.deleteById(userId);
 
         return ResponseEntity.noContent().build();
     }
 
     // 사용자 온라인 상태 업데이트
-    @RequestMapping(
-            value = "/{userId}/userStatus",
-            method = RequestMethod.PATCH,
-            consumes = MediaType.APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<UserStatusDto> updateStatus(
-            @PathVariable UUID userId,
-            @org.springframework.web.bind.annotation.RequestBody
-            UserStatusUpdateRequest request
-    ) {
-        UserStatusDto statusDto = userStatusService.updateByUserId(
-                userId,
-                request
-        );
+    @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH, consumes = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<UserStatusDto> updateStatus(@PathVariable UUID userId, @org.springframework.web.bind.annotation.RequestBody UserStatusUpdateRequest request) {
+        UserStatusDto statusDto = userStatusService.updateByUserId(userId, request);
 
         return ResponseEntity.ok(statusDto);
     }
