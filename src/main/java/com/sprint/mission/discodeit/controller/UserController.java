@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.UserApi;
 import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
@@ -22,12 +23,13 @@ import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
-public class UserController {
+@RequestMapping("/api/users")
+public class UserController implements UserApi {
   private final UserService userService;
   private final UserStatusService userStatusService;
 
-  @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @Override
+  @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserDto> create(
       @RequestPart("userCreateRequest") UserCreateRequest request,
       @RequestPart(value = "profile", required = false) MultipartFile profile) {
@@ -48,10 +50,8 @@ public class UserController {
     }
   }
 
-  @RequestMapping(
-      value = "/{userId}",
-      method = RequestMethod.PATCH,
-      consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @Override
+  @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserDto> update(
       @PathVariable UUID userId,
       @RequestPart("userUpdateRequest") UserUpdateRequest request,
@@ -59,19 +59,22 @@ public class UserController {
     return ResponseEntity.ok(userService.update(userId, request, toBinaryContentRequest(profile)));
   }
 
-  @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
+  @Override
+  @DeleteMapping(value = "/{userId}")
   public ResponseEntity<Void> delete(@PathVariable UUID userId) {
     userService.delete(userId);
     return ResponseEntity.noContent().build();
   }
 
-  @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+  @Override
+  @GetMapping
   public ResponseEntity<List<UserDto>> findAll() {
     return ResponseEntity.ok(userService.findAll());
   }
 
-  @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
-  public ResponseEntity<UserStatusDto> updateOnline(
+  @Override
+  @PatchMapping(value = "/{userId}/userStatus")
+  public ResponseEntity<UserStatusDto> updateUserStatusByUserId(
       @PathVariable UUID userId, @RequestBody UserStatusUpdateRequest request) {
     return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
   }
