@@ -15,15 +15,20 @@ public class BinaryContent implements Serializable {
 
     private final UUID id;
     private final Instant createdAt;
+    private final String fileName;
+    private final Long size;
     private final String contentType;
     private final byte[] bytes;
 
-    public BinaryContent(String contentType, byte[] bytes) {
+    public BinaryContent(String fileName, String contentType, byte[] bytes) {
+        Validation.validateNull(fileName, "fileName");
         Validation.validateNull(contentType, "contentType");
         Validation.validateNull(bytes, "bytes");
 
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
+        this.fileName = fileName;
+        this.size = (long) bytes.length;
         this.contentType = contentType;
         this.bytes = bytes.clone();
     }

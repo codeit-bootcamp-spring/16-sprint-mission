@@ -58,6 +58,7 @@ public class BasicUserService implements UserService {
         if (profile != null) {
             BinaryContent binaryContent =
                     new BinaryContent(
+                            profile.getOriginalFilename(),
                             profile.getContentType(),
                             profile.getBytes()
                     );

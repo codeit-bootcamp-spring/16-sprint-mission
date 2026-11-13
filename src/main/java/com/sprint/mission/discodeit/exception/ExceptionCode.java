@@ -13,6 +13,7 @@ public enum ExceptionCode {
     CHANNEL_NOT_FOUND(HttpStatus.NOT_FOUND, "채널을 찾을 수 없습니다. %s"),
     MESSAGE_NOT_FOUND(HttpStatus.NOT_FOUND, "메시지를 찾을 수 없습니다. %s"),
     READ_STATUS_NOT_FOUND(HttpStatus.NOT_FOUND, "읽음 상태를 찾을 수 없습니다."),
+    BINARY_CONTENT_NOT_FOUND(HttpStatus.NOT_FOUND, "바이너리 콘텐츠를 찾을 수 없습니다. %s"),
 
     PRIVATE_CHANNEL_CANNOT_BE_UPDATED(
             HttpStatus.BAD_REQUEST,
