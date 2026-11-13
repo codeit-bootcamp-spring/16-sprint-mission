@@ -41,9 +41,9 @@ public enum ExceptionCode {
             "이미 사용 중인 이메일입니다."
     ),
 
-    INVALID_LOGIN(
+    INVALID_PASSWORD(
             HttpStatus.BAD_REQUEST,
-            "아이디 또는 비밀번호가 일치하지 않습니다."
+            "비밀번호가 일치하지 않습니다."
     );
 
     private final HttpStatus status;
