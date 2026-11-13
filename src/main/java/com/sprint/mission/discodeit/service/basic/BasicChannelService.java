@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelUpdateRequestDto;
 import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequestDto;
@@ -13,7 +14,9 @@ import com.sprint.mission.discodeit.exception.BusinessLogicException;
 import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -125,11 +128,11 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public List<ChannelResponseDto> findAccessibleChannelsByUserId(UUID userId) {
+    public List<ChannelDto> findAccessibleChannelsByUserId(UUID userId) {
         findUserEntity(userId);
 
         return channelRepository.findAccessibleByUserId(userId).stream()
-                .map(this::toResponseDto)
+                .map(this::toChannelDto)
                 .toList();
     }
 
@@ -226,10 +229,6 @@ public class BasicChannelService implements ChannelService {
     }
 
     private ChannelResponseDto toResponseDto(Channel channel) {
-        Instant lastMessageAt = messageRepository
-                .findLatestCreatedAtByChannelId(channel.getId())
-                .orElse(null);
-
         return ChannelResponseDto.builder()
                 .id(channel.getId())
                 .createdAt(channel.getCreatedAt())
@@ -237,8 +236,21 @@ public class BasicChannelService implements ChannelService {
                 .type(channel.getType())
                 .name(channel.getName())
                 .description(channel.getDescription())
-                .lastMessageAt(lastMessageAt)
+                .build();
+    }
+
+    private ChannelDto toChannelDto(Channel channel) {
+        Instant lastMessageAt = messageRepository
+                .findLatestCreatedAtByChannelId(channel.getId())
+                .orElse(null);
+
+        return ChannelDto.builder()
+                .id(channel.getId())
+                .type(channel.getType())
+                .name(channel.getName())
+                .description(channel.getDescription())
                 .participantIds(channel.getParticipantIds())
+                .lastMessageAt(lastMessageAt)
                 .build();
     }
 }

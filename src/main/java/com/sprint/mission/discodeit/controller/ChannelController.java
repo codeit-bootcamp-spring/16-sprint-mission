@@ -1,12 +1,15 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.dto.channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelUpdateRequestDto;
 import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequestDto;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequestDto;
 import com.sprint.mission.discodeit.service.ChannelService;
+
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
@@ -36,7 +39,7 @@ public class ChannelController {
     }
 
     @GetMapping
-    public List<ChannelResponseDto> findAccessible(
+    public List<ChannelDto> findAccessible(
             @RequestHeader("USER-UUID") UUID userId
     ) {
         return channelService.findAccessibleChannelsByUserId(userId);
@@ -51,6 +54,7 @@ public class ChannelController {
     }
 
     @DeleteMapping("/{channelId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
             @PathVariable UUID channelId
     ) {

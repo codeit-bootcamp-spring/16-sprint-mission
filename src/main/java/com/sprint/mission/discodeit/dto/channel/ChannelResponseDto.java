@@ -2,32 +2,20 @@ package com.sprint.mission.discodeit.dto.channel;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.sprint.mission.discodeit.entity.ChannelType;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
-@Getter
-@AllArgsConstructor
+import lombok.Builder;
+
 @Builder
-public class ChannelResponseDto {
-    private UUID id;
-    private Instant createdAt;
-    private Instant updatedAt;
-    private ChannelType type;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String name;
-
-    @JsonInclude(JsonInclude.Include.NON_NULL)
-    private String description;
-
-    // 가장 최근 메시지의 시간 정보
-    private Instant lastMessageAt;
-
-    // 참여한 User의 id 정보
-    private List<UUID> participantIds;
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record ChannelResponseDto(
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        ChannelType type,
+        String name,
+        String description
+) {
 }
