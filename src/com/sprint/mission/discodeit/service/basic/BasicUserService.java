@@ -5,7 +5,6 @@ import com.sprint.mission.discodeit.dto.request.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.user.UserDto;
 import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
 
-import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -41,13 +40,11 @@ public class BasicUserService implements UserService {
     private final ChannelRepository channelRepository;
     private final ReadStatusRepository readStatusRepository;
 
-    // 기존 방식의 회원가입
     @Override
     public UserDto create(UserCreateRequest request) {
         return create(request, null);
     }
 
-    // MultipartFile을 이용한 회원가입
     @Override
     public UserDto create(UserCreateRequest request, MultipartFile profile) {
         if (request == null) {
@@ -66,7 +63,6 @@ public class BasicUserService implements UserService {
                 request.password()
         );
 
-        // 프로필 이미지가 전달된 경우 파일 저장
         if (profile != null && !profile.isEmpty()) {
             BinaryContentDto image = binaryContentService.create(profile);
             user.updateProfileImage(image.id());
@@ -96,45 +92,43 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserDto update(UserUpdateRequest request) {
-        if (request == null || request.id() == null) {
+    public UserDto update(
+            UUID userId,
+            UserUpdateRequest request,
+            MultipartFile profile
+    ) {
+        if (userId == null || request == null) {
             throw new IllegalArgumentException("수정할 사용자 정보는 필수입니다.");
         }
 
-        User user = userRepository.findById(request.id())
+        User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                );
 
-        validateRequired(request.username(), "사용자 이름");
-        validateRequired(request.email(), "이메일");
+        String username = request.newUsername() == null
+                ? user.getUsername()
+                : request.newUsername();
 
-        String password = request.password() == null
+        String email = request.newEmail() == null
+                ? user.getEmail()
+                : request.newEmail();
+
+        String password = request.newPassword() == null
                 ? user.getPassword()
-                : request.password();
+                : request.newPassword();
 
+        validateRequired(username, "사용자 이름");
+        validateRequired(email, "이메일");
         validateRequired(password, "비밀번호");
-        validateUnique(request.username(), request.email(), request.id());
 
-        // 기존 회원 수정 방식의 프로필 이미지 처리 유지
-        boolean hasImage = validateImageFields(
-                request.profileImageName(),
-                request.profileImageContentType(),
-                request.profileImageSize(),
-                request.profileImageData()
-        );
+        validateUnique(username, email, userId);
 
-        if (hasImage) {
-            UUID oldImageId = user.getProfileImageId();
+        UUID oldImageId = user.getProfileImageId();
 
-            BinaryContent newImage = new BinaryContent(
-                    request.profileImageName(),
-                    request.profileImageContentType(),
-                    request.profileImageSize(),
-                    request.profileImageData()
-            );
-
-            binaryContentRepository.save(newImage);
-            user.updateProfileImage(newImage.getId());
+        if (profile != null && !profile.isEmpty()) {
+            BinaryContentDto newImage = binaryContentService.create(profile);
+            user.updateProfileImage(newImage.id());
 
             if (oldImageId != null) {
                 binaryContentRepository.deleteById(oldImageId);
@@ -142,8 +136,8 @@ public class BasicUserService implements UserService {
         }
 
         user.update(
-                request.username(),
-                request.email(),
+                username,
+                email,
                 password,
                 user.getProfileImageId()
         );
@@ -161,12 +155,11 @@ public class BasicUserService implements UserService {
 
         User user = userRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                );
 
-        // 1. 사용자가 작성한 메시지와 첨부파일 삭제
         for (Message message : messageRepository.findAll()) {
             if (id.equals(message.getAuthorId())) {
-
                 for (UUID attachmentId : message.getAttachmentIds()) {
                     binaryContentRepository.deleteById(attachmentId);
                 }
@@ -175,24 +168,21 @@ public class BasicUserService implements UserService {
             }
         }
 
-        // 2. 사용자의 읽음 상태 삭제
         for (ReadStatus readStatus : readStatusRepository.findAllByUserId(id)) {
             readStatusRepository.deleteById(readStatus.getId());
         }
 
-        // 3. 프로필 이미지 삭제
         UUID profileImageId = user.getProfileImageId();
 
         if (profileImageId != null) {
             binaryContentRepository.deleteById(profileImageId);
         }
 
-        // 4. 사용자 상태 삭제
         userStatusRepository.findByUserId(id)
                 .ifPresent(status ->
-                        userStatusRepository.deleteById(status.getId()));
+                        userStatusRepository.deleteById(status.getId())
+                );
 
-        // 5. 사용자 삭제
         userRepository.deleteById(id);
     }
 
@@ -208,11 +198,13 @@ public class BasicUserService implements UserService {
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                );
 
         channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+                        new IllegalArgumentException("채널을 찾을 수 없습니다.")
+                );
 
         if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
             throw new IllegalArgumentException("이미 참여 중인 채널입니다.");
@@ -233,14 +225,16 @@ public class BasicUserService implements UserService {
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                );
 
         ReadStatus readStatus = readStatusRepository
                 .findByUserIdAndChannelId(userId, channelId)
                 .orElseThrow(() ->
                         new IllegalArgumentException(
                                 "참여하지 않은 채널에서는 나갈 수 없습니다."
-                        ));
+                        )
+                );
 
         readStatusRepository.deleteById(readStatus.getId());
     }
@@ -270,7 +264,8 @@ public class BasicUserService implements UserService {
                 .stream()
                 .anyMatch(existing ->
                         !existing.getId().equals(excludedUserId)
-                                && existing.getUsername().equals(username));
+                                && existing.getUsername().equals(username)
+                );
 
         if (usernameExists) {
             throw new IllegalArgumentException(
@@ -282,41 +277,14 @@ public class BasicUserService implements UserService {
                 .stream()
                 .anyMatch(existing ->
                         !existing.getId().equals(excludedUserId)
-                                && existing.getEmail().equals(email));
+                                && existing.getEmail().equals(email)
+                );
 
         if (emailExists) {
             throw new IllegalArgumentException(
                     "이미 사용 중인 이메일입니다."
             );
         }
-    }
-
-    private boolean validateImageFields(
-            String name,
-            String contentType,
-            Long size,
-            byte[] data
-    ) {
-        boolean allAbsent = name == null
-                && contentType == null
-                && size == null
-                && data == null;
-
-        if (allAbsent) {
-            return false;
-        }
-
-        if (name == null || name.isBlank()
-                || contentType == null || contentType.isBlank()
-                || size == null || size < 0
-                || data == null
-                || size != data.length) {
-            throw new IllegalArgumentException(
-                    "프로필 이미지 정보가 올바르지 않습니다."
-            );
-        }
-
-        return true;
     }
 
     private void validateRequired(String value, String fieldName) {
