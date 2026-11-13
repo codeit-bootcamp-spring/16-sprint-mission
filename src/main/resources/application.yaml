@@ -6,3 +6,12 @@ discodeit:
   repository:
     type: file
     file-directory: '${DISCODEIT_REPOSITORY_FILE_DIRECTORY:.discodeit}'
+
+springdoc:
+  swagger-ui:
+    urls:
+      - name: 현재 구현
+        url: /v3/api-docs
+      - name: 과제 명세
+        url: /assignment-api-docs.json
+    urls-primary-name: 현재 구현
