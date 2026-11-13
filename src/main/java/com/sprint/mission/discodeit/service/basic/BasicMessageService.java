@@ -100,9 +100,8 @@ public class BasicMessageService implements MessageService {
   }
 
   @Override
-  public void delete(UUID id, UUID requesterId) {
+  public void delete(UUID id) {
     Message message = getMessageOrThrow(id);
-    requireAuthor(message, requesterId, "메시지 삭제 권한이 없습니다.");
 
     message.getAttachmentIds().forEach(binaryContentRepository::deleteById);
 

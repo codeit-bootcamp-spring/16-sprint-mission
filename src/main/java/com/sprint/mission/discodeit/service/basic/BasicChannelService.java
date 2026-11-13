@@ -108,9 +108,8 @@ public class BasicChannelService implements ChannelService {
   }
 
   @Override
-  public void delete(UUID id, UUID requesterId) {
+  public void delete(UUID id) {
     Channel channel = getChannelOrThrow(id);
-    requireOwner(channel, requesterId, "채널 삭제 권한이 없습니다.");
 
     List<Message> messages = messageRepository.findAllByChannelId(id);
     for (Message message : messages) {

@@ -19,5 +19,5 @@ public interface MessageService {
 
   MessageDto update(UUID id, MessageUpdateRequest request);
 
-  void delete(UUID id, UUID requesterId);
+  void delete(UUID id);
 }
