@@ -5,6 +5,11 @@ import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.message.MessageDto;
 import com.sprint.mission.discodeit.service.MessageService;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
@@ -20,6 +25,7 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @RestController
@@ -30,6 +36,16 @@ public class MessageController {
     private final MessageService messageService;
 
     // 메시지 생성
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "메시지 생성 성공"),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Channel 또는 Author를 찾을 수 없음",
+                    content = @Content(
+                            schema = @Schema(implementation = Map.class)
+                    )
+            )
+    })
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -49,6 +65,7 @@ public class MessageController {
     }
 
     // 특정 채널의 메시지 목록 조회
+    @ApiResponse(responseCode = "200", description = "메시지 목록 조회 성공")
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<MessageDto>> findAllByChannelId(
             @RequestParam UUID channelId
@@ -59,6 +76,16 @@ public class MessageController {
     }
 
     // 메시지 수정
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "메시지 수정 성공"),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Message를 찾을 수 없음",
+                    content = @Content(
+                            schema = @Schema(implementation = Map.class)
+                    )
+            )
+    })
     @RequestMapping(
             value = "/{messageId}",
             method = RequestMethod.PATCH,
@@ -74,6 +101,16 @@ public class MessageController {
     }
 
     // 메시지 삭제
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "메시지 삭제 성공"),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "Message를 찾을 수 없음",
+                    content = @Content(
+                            schema = @Schema(implementation = Map.class)
+                    )
+            )
+    })
     @RequestMapping(
             value = "/{messageId}",
             method = RequestMethod.DELETE
