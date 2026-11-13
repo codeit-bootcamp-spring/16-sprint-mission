@@ -9,35 +9,38 @@ import java.util.UUID;
 
 @Getter
 public class UserStatus implements Serializable {
-    private static final long serialVersionUID = 1L;
-    private static final Duration ONLINE_TIMEOUT = Duration.ofMinutes(5);
 
-    private UUID id;
-    private UUID userId;
-    private Instant createdAt;
-    private Instant updatedAt;
+  private static final long serialVersionUID = 1L;
+  private UUID id;
+  private Instant createdAt;
+  private Instant updatedAt;
+  //
+  private UUID userId;
+  private Instant lastActiveAt;
 
-    public UserStatus(UUID userId) {
-        this.id = UUID.randomUUID();
-        this.userId = userId;
-        Instant now = Instant.now();
-        this.createdAt = now;
-        this.updatedAt = now;
+  public UserStatus(UUID userId, Instant lastActiveAt) {
+    this.id = UUID.randomUUID();
+    this.createdAt = Instant.now();
+    //
+    this.userId = userId;
+    this.lastActiveAt = lastActiveAt;
+  }
+
+  public void update(Instant lastActiveAt) {
+    boolean anyValueUpdated = false;
+    if (lastActiveAt != null && !lastActiveAt.equals(this.lastActiveAt)) {
+      this.lastActiveAt = lastActiveAt;
+      anyValueUpdated = true;
     }
 
-    public void update(Instant lastActiveAt) {
-        this.updatedAt = lastActiveAt;
+    if (anyValueUpdated) {
+      this.updatedAt = Instant.now();
     }
+  }
 
-    public boolean isOnline() {
-        if (updatedAt == null) {
-            return false;
-        }
-        return Duration.between(updatedAt, Instant.now())
-                .compareTo(ONLINE_TIMEOUT) <= 0;
-    }
+  public Boolean isOnline() {
+    Instant instantFiveMinutesAgo = Instant.now().minus(Duration.ofMinutes(5));
 
-    public void updateLastAccess() {
-        this.updatedAt = Instant.now();
-    }
+    return lastActiveAt.isAfter(instantFiveMinutesAgo);
+  }
 }
