@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.userStatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userStatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.basic.UserStatusService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -34,7 +36,8 @@ public class UserController {
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserResponse> createUser(@Valid @RequestPart("userCreateRequest") UserCreateRequest createRequest,
+    public ResponseEntity<UserResponse> createUser(@Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+                                                   @Valid @RequestPart("userCreateRequest") UserCreateRequest createRequest,
                                                    @RequestPart(name = "profile", required = false) MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.create(createRequest, profileImage));
     }
@@ -44,6 +47,7 @@ public class UserController {
             method = RequestMethod.PATCH,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> updateUser(@NotNull @PathVariable UUID userId,
+                                                   @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
                                                    @Valid @RequestPart("userUpdateRequest") UserUpdateRequest updateRequest,
                                                    @RequestPart(name = "profile", required = false) MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.update(userId, updateRequest, profileImage));

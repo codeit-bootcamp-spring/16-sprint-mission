@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.message.*;
 import com.sprint.mission.discodeit.service.MessageService;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -31,6 +33,7 @@ public class MessageController {
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageResponse> createMessage(@RequestPart(name = "attachments", required = false) List<MultipartFile> attachments,
+                                                         @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
                                                          @Valid @RequestPart("messageCreateRequest") MessageCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.messageService.create(createRequest, attachments));
     }
