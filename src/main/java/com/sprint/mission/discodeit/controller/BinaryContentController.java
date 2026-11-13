@@ -19,18 +19,13 @@ import java.util.UUID;
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
-    @RequestMapping(method = RequestMethod.POST)
-    public ResponseEntity<List<BinaryContentResponse>> findAllFilesByIds(@RequestParam(name = "binaryContentIds") List<@NotNull UUID> binaryContentIds) {
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<BinaryContentResponse>> findAllFilesByIds(@RequestParam("binaryContentIds") List<@NotNull UUID> binaryContentIds) {
         return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAllByIdIn(binaryContentIds));
     }
 
     @RequestMapping(value = "/{binaryContentId}", method = RequestMethod.GET)
     public ResponseEntity<BinaryContentResponse> findById(@NotNull @PathVariable UUID binaryContentId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findById(binaryContentId));
-    }
-
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<BinaryContentResponse>> findAllFiles() {
-        return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAll());
     }
 }
