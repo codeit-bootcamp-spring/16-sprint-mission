@@ -1,4 +1,3 @@
 package com.sprint.mission.discodeit.controller;
 
-public class UserStatusController {
-}
+public class UserStatusController {}
