@@ -6,7 +6,11 @@ import com.sprint.mission.discodeit.dto.user.UserUpdateRequestDto;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponseDto;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -17,43 +21,46 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/user")
+@RequestMapping("/api/users")
 public class UserController {
 
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    @RequestMapping(method = RequestMethod.POST)
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public UserDto create(
-            @RequestPart("request") UserCreateRequestDto request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
+            @Valid @RequestPart("userCreateRequest") UserCreateRequestDto request,
+            @RequestPart(value = "profile", required = false)
+            MultipartFile profile
     ) throws IOException {
         return userService.createUser(request, profile);
     }
 
-    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+    @GetMapping
     public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userService.findAllUsers());
     }
 
-    @RequestMapping(method = RequestMethod.PATCH)
+    @PatchMapping("/{userId}")
     public UserDto update(
-            @RequestHeader("USER-UUID") UUID userId,
-            @RequestBody UserUpdateRequestDto request
+            @PathVariable UUID userId,
+            @Valid @RequestBody UserUpdateRequestDto request
     ) {
         return userService.updateUser(userId, request);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE)
+    @DeleteMapping("/{userId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
-            @RequestHeader("USER-UUID") UUID userId
+            @PathVariable UUID userId
     ) {
         userService.deleteUser(userId);
     }
 
-    @RequestMapping(value = "/online", method = RequestMethod.PATCH)
+    @PatchMapping("/{userId}/userStatus")
     public UserStatusResponseDto online(
-            @RequestHeader("USER-UUID") UUID userId
+            @PathVariable UUID userId
     ) {
         return userStatusService.updateUserStatusByUserId(userId);
     }

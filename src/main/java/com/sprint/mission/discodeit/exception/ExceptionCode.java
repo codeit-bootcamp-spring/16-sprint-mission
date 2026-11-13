@@ -27,6 +27,16 @@ public enum ExceptionCode {
     USER_NOT_PARTICIPANT(
             HttpStatus.BAD_REQUEST,
             "사용자가 해당 채널에 참여하고 있지 않습니다."
+    ),
+
+    USERNAME_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "이미 사용 중인 사용자 이름입니다."
+    ),
+
+    EMAIL_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "이미 사용 중인 이메일입니다."
     );
 
     private final HttpStatus status;

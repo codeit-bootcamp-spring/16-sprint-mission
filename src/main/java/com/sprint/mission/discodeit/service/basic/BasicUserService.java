@@ -9,6 +9,8 @@ import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -16,7 +18,9 @@ import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -97,37 +101,18 @@ public class BasicUserService implements UserService {
     ) {
         User user = findUserEntity(userId);
 
-        if (dto.getUsername() != null) {
-            validateUsernameDuplicate(dto.getUsername(), userId);
-            user.changeUsername(dto.getUsername());
+        if (dto.getNewUsername() != null) {
+            validateUsernameDuplicate(dto.getNewUsername(), userId);
+            user.changeUsername(dto.getNewUsername());
         }
 
-        if (dto.getPassword() != null) {
-            user.changePassword(dto.getPassword());
+        if (dto.getNewEmail() != null) {
+            validateEmailDuplicate(dto.getNewEmail(), userId);
+            user.changeEmail(dto.getNewEmail());
         }
 
-        if (dto.getEmail() != null) {
-            validateEmailDuplicate(dto.getEmail(), userId);
-            user.changeEmail(dto.getEmail());
-        }
-
-        if (dto.getProfileRequest() != null) {
-            UUID oldProfileId = user.getProfileId();
-
-            BinaryContent newContent =
-                    new BinaryContent(
-                            dto.getProfileRequest().getContentType(),
-                            dto.getProfileRequest().getBytes()
-                    );
-
-            BinaryContent savedContent =
-                    binaryContentRepository.save(newContent);
-
-            user.changeProfileId(savedContent.getId());
-
-            if (oldProfileId != null) {
-                binaryContentRepository.deleteById(oldProfileId);
-            }
+        if (dto.getNewPassword() != null) {
+            user.changePassword(dto.getNewPassword());
         }
 
         User savedUser = userRepository.save(user);
@@ -139,7 +124,7 @@ public class BasicUserService implements UserService {
     public void deleteUser(UUID userId) {
         User user = findUserEntity(userId);
 
-        // 1. 사용자가 참여한 채널을 복사해 순회
+        // 1. 참여 채널 정리
         List<UUID> channelIds = new ArrayList<>(
                 user.getMyChannelIds()
         );
@@ -153,60 +138,47 @@ public class BasicUserService implements UserService {
                 continue;
             }
 
-            // 내가 만든 채널이면 채널 전체 삭제
-            if (channel.getCreatorId().equals(userId)) {
+            // 사용자 메시지 삭제
+            List<Message> messages =
+                    messageRepository.findByUserIdAndChannelId(
+                            userId,
+                            channelId
+                    );
+
+            for (Message message : messages) {
+                deleteMessageData(message);
+            }
+
+            // 채널 탈퇴
+            channel.leaveChannel(userId);
+            user.removeChannelId(channelId);
+
+            // 읽음 상태 삭제
+            readStatusRepository.findByUserIdAndChannelId(userId, channelId)
+                    .ifPresent(status ->
+                            readStatusRepository.deleteById(status.getId())
+                    );
+
+            // 참여자가 없으면 채널 삭제
+            if (channel.getParticipantIds().isEmpty()) {
                 deleteChannelData(channel);
             } else {
-                // 다른 사람이 만든 채널이면
-                // 해당 채널에 있는 내 메시지만 삭제
-                List<Message> messages =
-                        messageRepository.findByUserIdAndChannelId(
-                                userId,
-                                channelId
-                        );
-
-                for (Message message : messages) {
-                    deleteMessageData(message);
-                }
-
-                // 채널에서 나가기
-                if (channel.getParticipantIds().contains(userId)) {
-                    channel.leaveChannel(userId);
-                    channelRepository.save(channel);
-                }
-
-                // 사용자 참여 채널 ID 정리
-                user.removeChannelId(channelId);
-
-                // 해당 사용자의 읽음 상태 삭제
-                readStatusRepository
-                        .findByUserIdAndChannelId(userId, channelId)
-                        .ifPresent(status ->
-                                readStatusRepository.deleteById(
-                                        status.getId()
-                                )
-                        );
+                channelRepository.save(channel);
             }
         }
 
-        // 2. 남아 있는 메시지 ID도 정리
-        // (채널 목록과 별도로 등록된 메시지가 있을 경우 대비)
+        // 2. 남은 사용자 메시지 정리
         List<UUID> messageIds = new ArrayList<>(
                 user.getMyMessageIds()
         );
 
         for (UUID messageId : messageIds) {
-            Message message = messageRepository.findById(messageId)
-                    .orElse(null);
-
-            if (message != null) {
-                deleteMessageData(message);
-            } else {
-                user.removeMessageId(messageId);
-            }
+            messageRepository.findById(messageId)
+                    .ifPresentOrElse(
+                            this::deleteMessageData,
+                            () -> user.removeMessageId(messageId)
+                    );
         }
-
-        userRepository.save(user);
 
         // 3. 프로필 이미지 삭제
         UUID profileId = user.getProfileId();
@@ -230,7 +202,7 @@ public class BasicUserService implements UserService {
         UUID messageId = message.getId();
 
         // 작성자의 메시지 목록에서 제거
-        userRepository.findById(message.getSenderId())
+        userRepository.findById(message.getAuthorId())
                 .ifPresent(sender -> {
                     sender.removeMessageId(messageId);
                     userRepository.save(sender);
@@ -288,7 +260,7 @@ public class BasicUserService implements UserService {
     private User findUserEntity(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다: " + userId)
+                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, userId)
                 );
     }
 
@@ -301,7 +273,7 @@ public class BasicUserService implements UserService {
                 : userRepository.existsByUsernameAndIdNot(username, excludeUserId);
 
         if (duplicated) {
-            throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
+            throw new BusinessLogicException(ExceptionCode.USERNAME_ALREADY_EXISTS);
         }
     }
 
@@ -318,7 +290,7 @@ public class BasicUserService implements UserService {
                 : userRepository.existsByEmailAndIdNot(email, excludeUserId);
 
         if (duplicated) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
+            throw new BusinessLogicException(ExceptionCode.EMAIL_ALREADY_EXISTS);
         }
     }
 
@@ -329,11 +301,11 @@ public class BasicUserService implements UserService {
 
         return UserDto.builder()
                 .id(user.getId())
+                .createdAt(user.getCreatedAt())
+                .updatedAt(user.getUpdatedAt())
                 .username(user.getUsername())
                 .email(user.getEmail())
                 .profileId(user.getProfileId())
-                .createdAt(user.getCreatedAt())
-                .updatedAt(user.getUpdatedAt())
                 .online(online)
                 .build();
     }
