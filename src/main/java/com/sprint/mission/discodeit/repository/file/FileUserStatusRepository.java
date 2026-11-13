@@ -156,11 +156,11 @@ public class FileUserStatusRepository implements UserStatusRepository {
                 userStatus -> userStatus.getUserId().equals(userId));
 
         if (!removed) {
-            throw new IllegalArgumentException("삭제할 유저 상태를 찾을 수 없습니다.");
+            saveData(updatedData);
+            data = updatedData;
+            // throw new IllegalArgumentException("삭제할 유저 상태를 찾을 수 없습니다.");
         }
 
-        saveData(updatedData);
-        data = updatedData;
     }
 
     // ID로 UserStatus 삭제

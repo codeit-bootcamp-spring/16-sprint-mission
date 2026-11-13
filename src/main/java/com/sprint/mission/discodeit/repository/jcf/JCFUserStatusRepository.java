@@ -54,12 +54,14 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     @Override
     public void deleteByUserId(UUID userId) {
         // 유저 ID가 일치하는 UserStatus를 삭제한다.
-        UserStatus removed = data.remove(userId);
+        // (변경) 이미 삭제되었거나 존재하지 않아도 예외를 발생시키지 않는다.
+//        UserStatus removed =
+        data.remove(userId);
 
-        // 삭제된 데이터가 없으면 예외를 발생시킨다.
-        if (removed == null) {
-            throw new IllegalArgumentException("삭제할 UserStatus를 찾을 수 없습니다.");
-        }
+//        // 삭제된 데이터가 없으면 예외를 발생시킨다.
+//        if (removed == null) {
+//            throw new IllegalArgumentException("삭제할 UserStatus를 찾을 수 없습니다.");
+//        }
     }
 
     // ID로 UserStatus 삭제

@@ -97,12 +97,13 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     @Override
     public void deleteByUserId(UUID userId) {
         // 유저 ID가 일치하는 읽음 상태들을 삭제한다.
+        // (변경) 삭제할 읽음 상태가 없어도 예외를 발생시키지 않는다.
         boolean removed = data.values().removeIf(
                 readStatus -> readStatus.getUserId().equals(userId));
 
-        // 삭제된 읽음 상태가 없으면 예외를 발생시킨다.
-        if (!removed) {
-            throw new IllegalArgumentException("삭제할 읽음 상태를 찾을 수 없습니다.");
-        }
+//        // 삭제된 읽음 상태가 없으면 예외를 발생시킨다.
+//        if (!removed) {
+//            throw new IllegalArgumentException("삭제할 읽음 상태를 찾을 수 없습니다.");
+//        }
     }
 }

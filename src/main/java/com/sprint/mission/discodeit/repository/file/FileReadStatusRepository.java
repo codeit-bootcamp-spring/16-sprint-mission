@@ -203,7 +203,7 @@ public class FileReadStatusRepository implements ReadStatusRepository {
     public void deleteByUserId(UUID userId) {
 
         deleteIfExists(readStatus ->
-                readStatus.getUserId().equals(userId), true);
+                readStatus.getUserId().equals(userId), false);
     }
 
     // 조건에 해당하는 읽음 상태를 삭제하고 파일에 저장한다.
