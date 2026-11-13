@@ -10,6 +10,21 @@ import java.io.IOException;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
+    @ExceptionHandler(BusinessLogicException.class)
+    public ResponseEntity<ErrorResponse> handleBusinessLogicException(
+            BusinessLogicException e) {
+        ExceptionCode exceptionCode = e.getExceptionCode();
+
+        ErrorResponse errorResponse = new ErrorResponse(
+                exceptionCode.getStatus().value(),
+                e.getMessage()
+        );
+
+        return ResponseEntity
+                .status(exceptionCode.getStatus())
+                .body(errorResponse);
+    }
+
     @ExceptionHandler(IOException.class)
     public ResponseEntity<String> handleIOException(IOException e) {
         return ResponseEntity
