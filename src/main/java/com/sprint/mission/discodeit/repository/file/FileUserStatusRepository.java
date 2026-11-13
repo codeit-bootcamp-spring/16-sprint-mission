@@ -13,16 +13,17 @@ public class FileUserStatusRepository implements UserStatusRepository {
   private final FileStore<UserStatus> store;
 
   public FileUserStatusRepository(
-      @Value("${discodeit.repository.file-directory:data}") String directory) {
-    this.store = new FileStore<>(directory, "userStatuses.ser");
+      @Value("${discodeit.repository.file-directory:data}") String directory,
+      FileLockProvider lockProvider) {
+    this.store = new FileStore<>(directory, "userStatuses.ser", lockProvider);
   }
 
   @Override
   public UserStatus save(UserStatus userStatus) {
-    Map<UUID, UserStatus> data = store.load(); // 1. 읽기
-    data.put(userStatus.getId(), userStatus); // 2. 넣기 (같은 id면 덮어쓰기)
-    store.write(data); // 3. 쓰기
-    return userStatus;
+    return store.update(data -> {
+      data.put(userStatus.getId(), userStatus); // 2. 넣기 (같은 id면 덮어쓰기)
+      return userStatus;
+    }); // 3. 쓰기
   }
 
   @Override
@@ -42,15 +43,11 @@ public class FileUserStatusRepository implements UserStatusRepository {
 
   @Override
   public void deleteById(UUID id) {
-    Map<UUID, UserStatus> data = store.load();
-    data.remove(id);
-    store.write(data);
+    store.update(data -> data.remove(id));
   }
 
   @Override
   public void deleteByUserId(UUID userId) {
-    Map<UUID, UserStatus> data = store.load();
-    data.values().removeIf(us -> us.getUserId().equals(userId));
-    store.write(data);
+    store.update(data -> data.values().removeIf(us -> us.getUserId().equals(userId)));
   }
 }

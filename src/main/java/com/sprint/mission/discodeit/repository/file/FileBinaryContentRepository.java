@@ -13,16 +13,17 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
   private final FileStore<BinaryContent> store;
 
   public FileBinaryContentRepository(
-      @Value("${discodeit.repository.file-directory:data}") String directory) {
-    this.store = new FileStore<>(directory, "binaryContents.ser");
+      @Value("${discodeit.repository.file-directory:data}") String directory,
+      FileLockProvider lockProvider) {
+    this.store = new FileStore<>(directory, "binaryContents.ser", lockProvider);
   }
 
   @Override
   public BinaryContent save(BinaryContent binaryContent) {
-    Map<UUID, BinaryContent> data = store.load(); // 1. 읽기
-    data.put(binaryContent.getId(), binaryContent); // 2. 넣기 (같은 id면 덮어쓰기)
-    store.write(data); // 3. 쓰기
-    return binaryContent;
+    return store.update(data -> {
+      data.put(binaryContent.getId(), binaryContent); // 2. 넣기 (같은 id면 덮어쓰기)
+      return binaryContent;
+    }); // 3. 쓰기
   }
 
   @Override
@@ -38,8 +39,6 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
 
   @Override
   public void deleteById(UUID id) {
-    Map<UUID, BinaryContent> data = store.load();
-    data.remove(id);
-    store.write(data);
+    store.update(data -> data.remove(id));
   }
 }

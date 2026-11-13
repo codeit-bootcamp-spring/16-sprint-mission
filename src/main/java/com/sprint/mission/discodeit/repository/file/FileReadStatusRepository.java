@@ -13,16 +13,17 @@ public class FileReadStatusRepository implements ReadStatusRepository {
   private final FileStore<ReadStatus> store;
 
   public FileReadStatusRepository(
-      @Value("${discodeit.repository.file-directory:data}") String directory) {
-    this.store = new FileStore<>(directory, "readStatuses.ser");
+      @Value("${discodeit.repository.file-directory:data}") String directory,
+      FileLockProvider lockProvider) {
+    this.store = new FileStore<>(directory, "readStatuses.ser", lockProvider);
   }
 
   @Override
   public ReadStatus save(ReadStatus readStatus) {
-    Map<UUID, ReadStatus> data = store.load(); // 1. 읽기
-    data.put(readStatus.getId(), readStatus); // 2. 넣기 (같은 id면 덮어쓰기)
-    store.write(data); // 3. 쓰기
-    return readStatus;
+    return store.update(data -> {
+      data.put(readStatus.getId(), readStatus); // 2. 넣기 (같은 id면 덮어쓰기)
+      return readStatus;
+    }); // 3. 쓰기
   }
 
   @Override
@@ -51,22 +52,16 @@ public class FileReadStatusRepository implements ReadStatusRepository {
 
   @Override
   public void deleteById(UUID id) {
-    Map<UUID, ReadStatus> data = store.load();
-    data.remove(id);
-    store.write(data);
+    store.update(data -> data.remove(id));
   }
 
   @Override
   public void deleteAllByUserId(UUID userId) {
-    Map<UUID, ReadStatus> data = store.load();
-    data.values().removeIf(rs -> rs.getUserId().equals(userId));
-    store.write(data);
+    store.update(data -> data.values().removeIf(rs -> rs.getUserId().equals(userId)));
   }
 
   @Override
   public void deleteAllByChannelId(UUID channelId) {
-    Map<UUID, ReadStatus> data = store.load();
-    data.values().removeIf(rs -> rs.getChannelId().equals(channelId));
-    store.write(data);
+    store.update(data -> data.values().removeIf(rs -> rs.getChannelId().equals(channelId)));
   }
 }

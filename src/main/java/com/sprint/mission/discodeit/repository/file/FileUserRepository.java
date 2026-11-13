@@ -13,16 +13,17 @@ public class FileUserRepository implements UserRepository {
   private final FileStore<User> store;
 
   public FileUserRepository(
-      @Value("${discodeit.repository.file-directory:data}") String directory) {
-    this.store = new FileStore<>(directory, "users.ser");
+      @Value("${discodeit.repository.file-directory:data}") String directory,
+      FileLockProvider lockProvider) {
+    this.store = new FileStore<>(directory, "users.ser", lockProvider);
   }
 
   @Override
   public User save(User user) {
-    Map<UUID, User> data = store.load(); // 1. 읽기
-    data.put(user.getId(), user); // 2. 넣기 (같은 id면 덮어쓰기)
-    store.write(data); // 3. 쓰기
-    return user;
+    return store.update(data -> {
+      data.put(user.getId(), user); // 2. 넣기 (같은 id면 덮어쓰기)
+      return user;
+    }); // 3. 쓰기
   }
 
   @Override
@@ -57,8 +58,6 @@ public class FileUserRepository implements UserRepository {
 
   @Override
   public void deleteById(UUID id) {
-    Map<UUID, User> data = store.load();
-    data.remove(id);
-    store.write(data);
+    store.update(data -> data.remove(id));
   }
 }
