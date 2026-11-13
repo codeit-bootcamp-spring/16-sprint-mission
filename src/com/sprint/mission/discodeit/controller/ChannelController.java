@@ -5,7 +5,9 @@ import com.sprint.mission.discodeit.dto.request.channel.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
 import com.sprint.mission.discodeit.service.ChannelService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -65,13 +67,8 @@ public class ChannelController {
             @PathVariable UUID channelId,
             @RequestBody ChannelUpdateRequest request
     ) {
-        ChannelUpdateRequest updateRequest = new ChannelUpdateRequest(
-                request.newName(),
-                request.newDescription()
-        );
-
         return ResponseEntity.ok(
-                channelService.update(channelId, updateRequest)
+                channelService.update(channelId, request)
         );
     }
 
