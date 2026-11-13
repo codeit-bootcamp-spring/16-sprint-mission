@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 
@@ -31,18 +32,21 @@ public class FileUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
     private final PasswordEncoder passwordEncoder;
 
     // 생성자 의존성 주입
     public FileUserService(
-                    UserRepository userRepository,
-                    BinaryContentRepository binaryContentRepository,
-                    UserStatusRepository userStatusRepository,
-                    PasswordEncoder passwordEncoder) {
+            UserRepository userRepository,
+            BinaryContentRepository binaryContentRepository,
+            UserStatusRepository userStatusRepository,
+            ReadStatusRepository readStatusRepository,
+            PasswordEncoder passwordEncoder) {
 
         this.userRepository = userRepository;
         this.binaryContentRepository = binaryContentRepository;
         this.userStatusRepository = userStatusRepository;
+        this.readStatusRepository = readStatusRepository;
         this.passwordEncoder = passwordEncoder;
     }
 
@@ -146,21 +150,21 @@ public class FileUserService implements UserService {
     }
 
     @Override
-    public UserDto updateUser(UserUpdateRequest request, MultipartFile profile) {
+    public UserDto updateUser(UUID userId, UserUpdateRequest request, MultipartFile profile) {
 
         // 수정 대상 사용자 조회
-        User targetUser = userRepository.findByUserId(request.userId())
+        User targetUser = userRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("수정할 유저를 찾을 수 없습니다."));
 
         // 사용자 이름 변경 시 중복 검사
-        String username = request.username() != null
-                ? request.username() : targetUser.getUsername();
+        String username = request.newUsername() != null
+                ? request.newUsername() : targetUser.getUsername();
 
         if (!targetUser.getUsername().equals(username)) {
             boolean duplicatedUsername = userRepository.findAll().stream()
                     .anyMatch(otherUser ->
-                            !otherUser.getId().equals(request.userId())
+                            !otherUser.getId().equals(userId)
                                     && otherUser.getUsername().equals(username));
 
             if (duplicatedUsername) {
@@ -169,13 +173,13 @@ public class FileUserService implements UserService {
         }
 
         // 이메일 변경 시 중복 검사
-        String email = request.email() != null
-                ? request.email() : targetUser.getEmail();
+        String email = request.newEmail() != null
+                ? request.newEmail() : targetUser.getEmail();
 
         if (!targetUser.getEmail().equals(email)) {
             boolean duplicatedEmail = userRepository.findAll().stream()
                     .anyMatch(otherUser ->
-                            !otherUser.getId().equals(request.userId())
+                            !otherUser.getId().equals(userId)
                                     && otherUser.getEmail().equals(email));
 
             if (duplicatedEmail) {
@@ -195,8 +199,8 @@ public class FileUserService implements UserService {
         }
 
         // 전달되지 않은 수정 항목은 기존 값 유지
-        String password = request.password() != null
-                ? passwordEncoder.encode(request.password()) : targetUser.getPassword();
+        String password = request.newPassword() != null
+                ? passwordEncoder.encode(request.newPassword()) : targetUser.getPassword();
 
         // 수정된 사용자 생성 및 저장
         User updatedUser = new User(
@@ -216,7 +220,7 @@ public class FileUserService implements UserService {
 
         // 기존 사용자 상태를 조회하여 DTO로 변환한다.
         UserStatus userStatus = userStatusRepository
-                .findByUserId(request.userId())
+                .findByUserId(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
@@ -231,11 +235,12 @@ public class FileUserService implements UserService {
                 .orElseThrow(() ->
                         new ResourceNotFoundException("삭제할 유저를 찾을 수 없습니다."));
 
-        // 사용자 상태 삭제
-        userStatusRepository.deleteByUserId(id);
-
         // 프로필 이미지가 존재하는 경우 삭제
         UUID profileId = targetUser.getProfileId();
+
+        // 사용자 상태와 읽음 상태 삭제
+        userStatusRepository.deleteByUserId(id);
+        readStatusRepository.deleteByUserId(id);
 
         if (profileId != null) {
             binaryContentRepository.deleteById(profileId);

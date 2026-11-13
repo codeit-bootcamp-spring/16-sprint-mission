@@ -3,7 +3,9 @@ package com.sprint.mission.discodeit.controller;
 import com.sprint.mission.discodeit.dto.request.binary.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,7 +16,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/binaryContent")
+@RequestMapping("/api/binaryContents")
 @RequiredArgsConstructor
 public class BinaryContentController {
 
@@ -48,13 +50,15 @@ public class BinaryContentController {
     // 변경 코드는 UUID를 요청 파라미터로 전달받고, ResponseEntity로 HTTP 응답을 직접 제어한다.
     // static 파일에서 전달하는, binaryContentId라는 요청 파라미터로 프로필 이미지를 조회한다.
     @RequestMapping(value = "/find", method = RequestMethod.GET)
-    public ResponseEntity<BinaryContent> getBinaryContent(@RequestParam("binaryContentId") UUID id) {
+    public ResponseEntity<BinaryContent> getBinaryContent(
+            @RequestParam("binaryContentId") UUID id) {
         return ResponseEntity.ok(binaryContentService.find(id));
     }
 
     // 바이너리 콘텐츠 다건 조회(GET)
     @RequestMapping(method = RequestMethod.GET)
-    public List<BinaryContent> getAllBinaryContent(@RequestParam List<UUID> ids) {
+    public List<BinaryContent> getAllBinaryContent(
+            @RequestParam("binaryContentIds") List<UUID> ids) {
         return binaryContentService.findAllByIdIn(ids);
     }
 }

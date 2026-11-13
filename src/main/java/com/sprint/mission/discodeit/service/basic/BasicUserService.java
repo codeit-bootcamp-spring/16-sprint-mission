@@ -20,6 +20,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+
 import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
@@ -144,28 +145,28 @@ public class BasicUserService implements UserService {
     // 단, 현재 File/JCF 기반 Repository의 변경 사항은 자동으로 롤백되지 않는다.
     @Transactional
     @Override
-    public UserDto updateUser(UserUpdateRequest request, MultipartFile profile) {
+    public UserDto updateUser(UUID userId, UserUpdateRequest request, MultipartFile profile) {
 
         // 1. 수정 대상 사용자 조회
-        User targetUser = userRepository.findByUserId(request.userId())
+        User targetUser = userRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 전달되지 않은 항목은 기존 값을 유지한다.
-        String username = request.username() != null
-                ? request.username() : targetUser.getUsername();
+        String username = request.newUsername() != null
+                ? request.newUsername() : targetUser.getUsername();
 
-        String email = request.email() != null
-                ? request.email() : targetUser.getEmail();
+        String email = request.newEmail() != null
+                ? request.newEmail() : targetUser.getEmail();
 
         // 새 비밀번호가 전달된 경우 암호화하고, 그렇지 않으면 기존 비밀번호를 유지한다.
-        String password = request.password() != null
-                ? passwordEncoder.encode(request.password()) : targetUser.getPassword();
+        String password = request.newPassword() != null
+                ? passwordEncoder.encode(request.newPassword()) : targetUser.getPassword();
 
         // 2. 사용자 이름 중복 검사 (본인 제외)
         boolean duplicatedUsername = userRepository.findAll().stream()
                 .anyMatch(otherUser ->
-                        !otherUser.getId().equals(request.userId())
+                        !otherUser.getId().equals(userId)
                                 && otherUser.getUsername().equals(username));
 
         if (duplicatedUsername) {
@@ -175,7 +176,7 @@ public class BasicUserService implements UserService {
         // 3. 이메일 중복 검사 (본인 제외)
         boolean duplicatedEmail = userRepository.findAll().stream()
                 .anyMatch(otherUser ->
-                        !otherUser.getId().equals(request.userId())
+                        !otherUser.getId().equals(userId)
                                 && otherUser.getEmail().equals(email));
 
         if (duplicatedEmail) {
@@ -213,7 +214,7 @@ public class BasicUserService implements UserService {
         }
 
         // 8. 사용자 상태 조회 및 DTO 반환
-        UserStatus userStatus = userStatusRepository.findByUserId(request.userId())
+        UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
