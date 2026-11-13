@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.MessageDto;
 import com.sprint.mission.discodeit.service.MessageService;
 import java.io.IOException;
+import java.io.UncheckedIOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -26,22 +27,31 @@ public class MessageController implements MessageApi {
   @Override
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<MessageDto> create(
-      @RequestPart("messageCreateRequest") MessageCreateRequest request,
-      @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments)
-      throws IOException {
-    List<BinaryContentCreateRequest> attachmentRequests = new ArrayList<>();
-    if (attachments != null) {
-      for (MultipartFile file : attachments) {
-        if (!file.isEmpty()) {
-          attachmentRequests.add(
-              new BinaryContentCreateRequest(
-                  file.getOriginalFilename(), file.getContentType(), file.getBytes()));
-        }
+      @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
+      @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+    MessageDto message =
+        messageService.create(messageCreateRequest, toBinaryContentRequests(attachments));
+    return ResponseEntity.status(HttpStatus.CREATED).body(message);
+  }
+
+  private List<BinaryContentCreateRequest> toBinaryContentRequests(List<MultipartFile> files) {
+    List<BinaryContentCreateRequest> requests = new ArrayList<>();
+    if (files == null) {
+      return requests;
+    }
+    for (MultipartFile file : files) {
+      if (file.isEmpty()) {
+        continue;
+      }
+      try {
+        requests.add(
+            new BinaryContentCreateRequest(
+                file.getOriginalFilename(), file.getContentType(), file.getBytes()));
+      } catch (IOException e) {
+        throw new UncheckedIOException(e);
       }
     }
-
-    MessageDto message = messageService.create(request, attachmentRequests);
-    return ResponseEntity.status(HttpStatus.CREATED).body(message);
+    return requests;
   }
 
   @Override
