@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.PublicChannelCreateRequest;
-import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.service.ChannelService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -29,8 +28,7 @@ public class ChannelController {
     public ResponseEntity<ChannelDto> createChannel(
             @RequestBody PublicChannelCreateRequest request
     ) {
-        Channel channel = channelService.createPublic(request);
-        ChannelDto result = channelService.findById(channel.getId());
+        ChannelDto result = channelService.createPublic(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }
@@ -43,8 +41,7 @@ public class ChannelController {
     public ResponseEntity<ChannelDto> createPrivate(
             @RequestBody PrivateChannelCreateRequest request
     ) {
-         Channel channel = channelService.createPrivate(request);
-        ChannelDto result = channelService.findById(channel.getId());
+        ChannelDto result = channelService.createPrivate(request);
 
         return ResponseEntity.status(HttpStatus.CREATED).body(result);
     }

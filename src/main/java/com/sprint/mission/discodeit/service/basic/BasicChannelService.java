@@ -36,7 +36,7 @@ public class BasicChannelService implements ChannelService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public Channel createPublic(PublicChannelCreateRequest request) {
+    public ChannelDto createPublic(PublicChannelCreateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("공개 채널 생성 요청은 null일 수 없습니다.");
         }
@@ -48,11 +48,11 @@ public class BasicChannelService implements ChannelService {
         );
 
         saveChannel(channel);
-        return channel;
+        return toDto(channel);
     }
 
     @Override
-    public Channel createPrivate(PrivateChannelCreateRequest request) {
+    public ChannelDto createPrivate(PrivateChannelCreateRequest request) {
         if (request == null
                 || request.participantUserIds() == null
                 || request.participantUserIds().isEmpty()) {
@@ -81,7 +81,7 @@ public class BasicChannelService implements ChannelService {
                         new ReadStatus(userId, channel.getId(), createdAt)
                 ));
 
-        return channel;
+        return toDto(channel);
     }
 
     private void saveChannel(Channel channel) {

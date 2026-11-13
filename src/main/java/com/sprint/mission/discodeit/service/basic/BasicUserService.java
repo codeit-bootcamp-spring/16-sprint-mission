@@ -188,12 +188,6 @@ public class BasicUserService implements UserService {
         userRepository.deleteById(id);
     }
 
-    private boolean isEmailDuplicate(String email, UUID excludedUserId) {
-        return userRepository.findAll().stream()
-                .anyMatch(user -> user.getEmail().equalsIgnoreCase(email)
-                        && !user.getId().equals(excludedUserId));
-    }
-
     private void validateEmail(String email) {
         if (email == null || email.isBlank()) {
             throw new IllegalArgumentException("이메일은 비어 있을 수 없습니다.");

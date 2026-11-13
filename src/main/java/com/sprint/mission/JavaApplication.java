@@ -1,7 +1,7 @@
 package com.sprint.mission;
 
-import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.dto.ChannelDto;
+import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -52,7 +52,7 @@ public class JavaApplication {
         return userService.create(request);
     }
 
-    static Channel setupChannel(ChannelService channelService) {
+    static ChannelDto setupChannel(ChannelService channelService) {
         return channelService.createPublic(
                 new PublicChannelCreateRequest("공지", "공지 채널입니다.")
         );
@@ -60,13 +60,13 @@ public class JavaApplication {
 
     static void messageCreateTest(
             MessageService messageService,
-            Channel channel,
+            ChannelDto channel,
             UserDto author
     ) {
-        Message message = messageService.create(
-                new MessageCreateRequest("안녕하세요.", channel.getId(), author.id(), null)
+        MessageDto message = messageService.create(
+                new MessageCreateRequest("안녕하세요.", channel.id(), author.id(), null)
         );
-        System.out.println("메시지 생성: " + message.getId());
+        System.out.println("메시지 생성: " + message.id());
     }
 
     public static void main(String[] args) {
@@ -89,7 +89,7 @@ public class JavaApplication {
                 ),
                 new BasicMessageService(
                         jcfMessageRepository, jcfUserRepository, jcfChannelRepository,
-                        jcfBinaryContentRepository
+                        jcfBinaryContentRepository, jcfReadStatusRepository
                 )
         );
 
@@ -125,7 +125,7 @@ public class JavaApplication {
                 ),
                 new BasicMessageService(
                         fileMessageRepository, fileUserRepository, fileChannelRepository,
-                        fileBinaryContentRepository
+                        fileBinaryContentRepository, fileReadStatusRepository
                 )
         );
     }
@@ -141,9 +141,9 @@ public class JavaApplication {
                 "채널 생성 전 사용자가 볼 수 있는 채널 수: "
                         + channelService.findAllByUserId(user.id()).size()
         );
-        Channel channel = setupChannel(channelService);
+        ChannelDto channel = setupChannel(channelService);
         System.out.println("실행 전 채널 메시지 수: "
-                + messageService.findAllByChannelId(channel.getId()).size());
+                + messageService.findAllByChannelId(channel.id()).size());
         messageCreateTest(messageService, channel, user);
 
         System.out.println("실행 후 사용자 수: " + userService.findAll().size());
@@ -152,6 +152,6 @@ public class JavaApplication {
                         + channelService.findAllByUserId(user.id()).size()
         );
         System.out.println("실행 후 채널 메시지 수: "
-                + messageService.findAllByChannelId(channel.getId()).size());
+                + messageService.findAllByChannelId(channel.id()).size());
     }
 }

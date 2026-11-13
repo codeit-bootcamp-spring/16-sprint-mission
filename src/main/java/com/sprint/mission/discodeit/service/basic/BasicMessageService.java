@@ -2,18 +2,23 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,9 +30,10 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public Message create(MessageCreateRequest request) {
+    public MessageDto create(MessageCreateRequest request) {
         if (request == null) {
             throw new IllegalArgumentException("Message create request cannot be null.");
         }
@@ -35,9 +41,16 @@ public class BasicMessageService implements MessageService {
         userRepository.findById(request.authorId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Not Found user id: " + request.authorId()));
-        channelRepository.findById(request.channelId())
+        Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() -> new IllegalArgumentException(
                         "Not Found channel id: " + request.channelId()));
+
+        if (channel.getType() == ChannelType.PRIVATE
+                && readStatusRepository.findByUserIdAndChannelId(
+                        request.authorId(), request.channelId()
+                ).isEmpty()) {
+            throw new IllegalArgumentException("비공개 채널 참여자만 메시지를 작성할 수 있습니다.");
+        }
 
         List<BinaryContent> attachments = new ArrayList<>();
         List<UUID> attachmentIds = new ArrayList<>();
@@ -64,13 +77,25 @@ public class BasicMessageService implements MessageService {
         try {
             attachments.forEach(binaryContentRepository::save);
             messageRepository.save(message);
-            return message;
+            return toDto(message);
         } catch (RuntimeException exception) {
             attachments.forEach(attachment ->
                     binaryContentRepository.deleteById(attachment.getId())
             );
             throw exception;
         }
+    }
+
+    private MessageDto toDto(Message message) {
+        return new MessageDto(
+                message.getId(),
+                message.getContent(),
+                message.getAuthorId(),
+                message.getChannelId(),
+                message.getAttachmentIds(),
+                message.getCreatedAt(),
+                message.getUpdatedAt()
+        );
     }
 
     @Override
@@ -86,6 +111,7 @@ public class BasicMessageService implements MessageService {
                         "Not Found channel id: " + channelId));
         return messageRepository.findAll().stream()
                 .filter(message -> message.getChannelId().equals(channelId))
+                .sorted(Comparator.comparing(Message::getCreatedAt))
                 .toList();
     }
 
