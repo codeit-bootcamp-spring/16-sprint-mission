@@ -14,12 +14,11 @@ import java.util.UUID;
 @Builder
 public class ChannelResponseDto {
     private UUID id;
-    private ChannelType type;
-    private String channelName;
-    private String description;
-    private UUID creatorId;
     private Instant createdAt;
     private Instant updatedAt;
+    private ChannelType type;
+    private String name;
+    private String description;
 
     // 가장 최근 메시지의 시간 정보
     private Instant lastMessageAt;

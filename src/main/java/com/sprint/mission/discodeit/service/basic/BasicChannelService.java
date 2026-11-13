@@ -29,48 +29,30 @@ public class BasicChannelService implements ChannelService {
 
     private final BinaryContentRepository binaryContentRepository;
 
-    // 공개 채널 생성
     @Override
     public ChannelResponseDto createPublicChannel(
-            UUID creatorId,
             PublicChannelCreateRequestDto dto
     ) {
-        User creator = findUserEntity(creatorId);
-
         Channel channel = new Channel(
                 ChannelType.PUBLIC,
-                dto.getChannelName(),
-                dto.getDescription(),
-                creatorId
+                dto.getName(),
+                dto.getDescription()
         );
 
-        channel.joinChannel(creatorId);
         Channel savedChannel = channelRepository.save(channel);
-
-        creator.addChannelId(savedChannel.getId());
-        userRepository.save(creator);
-
-        createReadStatusIfAbsent(creatorId, savedChannel.getId());
 
         return toResponseDto(savedChannel);
     }
 
-    // 비공개 채널 생성
     @Override
     public ChannelResponseDto createPrivateChannel(
-            UUID creatorId,
             PrivateChannelCreateRequestDto dto
     ) {
-        findUserEntity(creatorId);
-
         Channel channel = new Channel(
                 ChannelType.PRIVATE,
                 null,
-                null,
-                creatorId
+                null
         );
-
-        channel.joinChannel(creatorId);
 
         if (dto.getParticipantIds() != null) {
             for (UUID participantId : dto.getParticipantIds()) {
@@ -140,7 +122,6 @@ public class BasicChannelService implements ChannelService {
         return toResponseDto(channel);
     }
 
-    // 사용자가 볼 수 있는 채널 목록 조회
     @Override
     public List<ChannelResponseDto> findAccessibleChannelsByUserId(UUID userId) {
         findUserEntity(userId);
@@ -157,19 +138,18 @@ public class BasicChannelService implements ChannelService {
     ) {
         Channel channel = findChannelEntity(channelId);
 
-        // 비공개 채널은 수정 불가
         if (channel.getType() == ChannelType.PRIVATE) {
             throw new IllegalStateException(
                     "비공개 채널은 수정할 수 없습니다."
             );
         }
 
-        if (dto.getChannelName() != null) {
-            channel.changeChannelName(dto.getChannelName());
+        if (dto.getNewName() != null) {
+            channel.changeName(dto.getNewName());
         }
 
-        if (dto.getDescription() != null) {
-            channel.changeDescription(dto.getDescription());
+        if (dto.getNewDescription() != null) {
+            channel.changeDescription(dto.getNewDescription());
         }
 
         Channel savedChannel = channelRepository.save(channel);
@@ -246,12 +226,11 @@ public class BasicChannelService implements ChannelService {
 
         return ChannelResponseDto.builder()
                 .id(channel.getId())
-                .type(channel.getType())
-                .channelName(channel.getChannelName())
-                .description(channel.getDescription())
-                .creatorId(channel.getCreatorId())
                 .createdAt(channel.getCreatedAt())
                 .updatedAt(channel.getUpdatedAt())
+                .type(channel.getType())
+                .name(channel.getName())
+                .description(channel.getDescription())
                 .lastMessageAt(lastMessageAt)
                 .participantIds(channel.getParticipantIds())
                 .build();

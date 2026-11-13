@@ -13,35 +13,31 @@ public class Channel extends BaseEntity {
     @Serial
     private static final long serialVersionUID = 2L;
 
-    private String channelName;
+    private String name;
     private String description;
     private final ChannelType type;
     private final List<UUID> participantIds;
     private final List<UUID> messageIds;
-    private final UUID creatorId;
 
     public Channel(
             ChannelType type,
-            String channelName,
-            String description,
-            UUID creatorId
+            String name,
+            String description
     ) {
         super();
 
         Validation.validateNull(type, "type");
-        Validation.validateNull(creatorId, "creatorId");
 
         if (type == ChannelType.PUBLIC) {
-            Validation.validateBlank(channelName, "channelName");
+            Validation.validateBlank(name, "name");
         } else {
-            channelName = null;
+            name = null;
             description = null;
         }
 
         this.type = type;
-        this.channelName = channelName;
+        this.name = name;
         this.description = description;
-        this.creatorId = creatorId;
         this.participantIds = new ArrayList<>();
         this.messageIds = new ArrayList<>();
     }
@@ -54,14 +50,14 @@ public class Channel extends BaseEntity {
         return new ArrayList<>(messageIds);
     }
 
-    public void changeChannelName(String channelName) {
+    public void changeName(String name) {
         if (type == ChannelType.PRIVATE) {
             throw new IllegalStateException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
-        Validation.validateBlank(channelName, "channelName");
+        Validation.validateBlank(name, "name");
 
-        this.channelName = channelName;
+        this.name = name;
 
         super.update();
     }
@@ -91,10 +87,6 @@ public class Channel extends BaseEntity {
     public void leaveChannel(UUID userId) {
         Validation.validateNull(userId, "userId");
 
-        if (creatorId.equals(userId)) {
-            throw new IllegalArgumentException("채널 생성자는 나갈 수 없습니다.");
-        }
-
         if (!participantIds.remove(userId)) {
             throw new IllegalArgumentException("해당 유저는 채널에 참여하고 있지 않습니다.");
         }
@@ -116,6 +108,7 @@ public class Channel extends BaseEntity {
 
     public void removeMessageId(UUID messageId) {
         Validation.validateNull(messageId, "messageId");
+
         if (messageIds.remove(messageId)) {
             super.update();
         }

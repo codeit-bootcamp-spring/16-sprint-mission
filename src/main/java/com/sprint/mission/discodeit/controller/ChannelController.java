@@ -5,7 +5,9 @@ import com.sprint.mission.discodeit.dto.channel.ChannelUpdateRequestDto;
 import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequestDto;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequestDto;
 import com.sprint.mission.discodeit.service.ChannelService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,56 +20,40 @@ public class ChannelController {
 
     private final ChannelService channelService;
 
-    @RequestMapping(value = "/public", method = RequestMethod.POST)
+    @PostMapping("/public")
+    @ResponseStatus(HttpStatus.CREATED)
     public ChannelResponseDto createPublic(
-            @RequestHeader("USER-UUID") UUID userId,
-            @RequestBody PublicChannelCreateRequestDto request
+            @RequestBody @Valid PublicChannelCreateRequestDto request
     ) {
-        return channelService.createPublicChannel(userId, request);
+        return channelService.createPublicChannel(request);
     }
 
-    @RequestMapping(value = "/private", method = RequestMethod.POST)
+    @PostMapping("/private")
     public ChannelResponseDto createPrivate(
-            @RequestHeader("USER-UUID") UUID userId,
-            @RequestBody PrivateChannelCreateRequestDto request
+            @RequestBody @Valid PrivateChannelCreateRequestDto request
     ) {
-        return channelService.createPrivateChannel(userId, request);
+        return channelService.createPrivateChannel(request);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public List<ChannelResponseDto> findAccessible(
             @RequestHeader("USER-UUID") UUID userId
     ) {
         return channelService.findAccessibleChannelsByUserId(userId);
     }
 
-    @RequestMapping(method = RequestMethod.PATCH)
+    @PatchMapping("/{channelId}")
     public ChannelResponseDto update(
-            @RequestHeader("CHANNEL-UUID") UUID channelId,
+            @PathVariable UUID channelId,
             @RequestBody ChannelUpdateRequestDto request
     ) {
         return channelService.updateChannel(channelId, request);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE)
+    @DeleteMapping("/{channelId}")
     public void delete(
-            @RequestHeader("CHANNEL-UUID") UUID channelId
+            @PathVariable UUID channelId
     ) {
         channelService.deleteChannel(channelId);
-    }
-
-    @RequestMapping(value = "/join", method = RequestMethod.POST)
-    public ChannelResponseDto join(
-            @RequestHeader("CHANNEL-UUID") UUID channelId,
-            @RequestHeader("USER-UUID") UUID userId
-    ) {
-        return channelService.joinChannel(channelId, userId);
-    }
-
-    @RequestMapping(value = "/leave", method = RequestMethod.DELETE)
-    public void leave(
-            @RequestHeader("CHANNEL-UUID") UUID channelId,
-            @RequestHeader("USER-UUID") UUID userId) {
-        channelService.leaveChannel(channelId, userId);
     }
 }
