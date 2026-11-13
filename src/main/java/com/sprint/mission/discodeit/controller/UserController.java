@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -26,6 +27,7 @@ import java.util.UUID;
 @Controller
 @ResponseBody
 @RequestMapping("/api/users")
+@Tag(name = "User", description = "User API")
 public class UserController {
 
   private final UserService userService;
@@ -33,31 +35,37 @@ public class UserController {
 
 
   @PostMapping(consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public ResponseEntity<User> create(
+  public ResponseEntity<UserDto> create(
       @RequestPart("userCreateRequest") UserCreateRequest userCreateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
   ) {
     Optional<BinaryContentCreateRequest> profileRequest = Optional.ofNullable(profile)
         .flatMap(this::resolveProfileRequest);
-    User createdUser = userService.create(userCreateRequest, profileRequest);
+    UserDto userDto = userService.create(userCreateRequest, profileRequest);
     return ResponseEntity
         .status(HttpStatus.CREATED)
-        .body(createdUser);
+        .body(userDto);
+  }
+
+  @GetMapping("/{user-id}")
+  public ResponseEntity<UserDto> find(@PathVariable("user-id") UUID userId) {
+    UserDto userDto = userService.find(userId);
+    return ResponseEntity.ok(userDto);
   }
 
 
   @PatchMapping(value = "/{user-id}", consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public ResponseEntity<User> update(
+  public ResponseEntity<UserDto> update(
       @PathVariable("user-id") UUID userId,
       @RequestPart("userUpdateRequest") UserUpdateRequest userUpdateRequest,
       @RequestPart(value = "profile", required = false) MultipartFile profile
   ) {
     Optional<BinaryContentCreateRequest> profileRequest = Optional.ofNullable(profile)
         .flatMap(this::resolveProfileRequest);
-    User updatedUser = userService.update(userId, userUpdateRequest, profileRequest);
+    UserDto userDto = userService.update(userId, userUpdateRequest, profileRequest);
     return ResponseEntity
         .status(HttpStatus.OK)
-        .body(updatedUser);
+        .body(userDto);
   }
 
   @DeleteMapping("/{user-id}")
@@ -76,7 +84,7 @@ public class UserController {
         .body(users);
   }
 
-  @PatchMapping("/{user-id}")
+  @PatchMapping("/online/{user-id}")
   public ResponseEntity<UserStatus> updateUserStatusByUserId(@PathVariable("user-id") UUID userId,
       @RequestBody UserStatusUpdateRequest request) {
     UserStatus updatedUserStatus = userStatusService.updateByUserId(userId, request);

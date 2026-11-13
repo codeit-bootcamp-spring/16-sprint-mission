@@ -20,6 +20,8 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
+import static java.time.Instant.now;
+
 @RequiredArgsConstructor
 @Service
 public class BasicUserService implements UserService {
@@ -30,8 +32,8 @@ public class BasicUserService implements UserService {
   private final UserStatusRepository userStatusRepository;
 
   @Override
-  public User create(UserCreateRequest userCreateRequest,
-      Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
+  public UserDto create(UserCreateRequest userCreateRequest,
+                        Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
     String username = userCreateRequest.username();
     String email = userCreateRequest.email();
 
@@ -57,11 +59,11 @@ public class BasicUserService implements UserService {
     User user = new User(username, email, password, nullableProfileId);
     User createdUser = userRepository.save(user);
 
-    Instant now = Instant.now();
+    Instant now = now();
     UserStatus userStatus = new UserStatus(createdUser.getId(), now);
     userStatusRepository.save(userStatus);
 
-    return createdUser;
+    return this.toDto(user);
   }
 
   @Override
@@ -80,8 +82,8 @@ public class BasicUserService implements UserService {
   }
 
   @Override
-  public User update(UUID userId, UserUpdateRequest userUpdateRequest,
-      Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
+  public UserDto update(UUID userId, UserUpdateRequest userUpdateRequest,
+                        Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
     User user = userRepository.findById(userId)
         .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
 
@@ -110,8 +112,11 @@ public class BasicUserService implements UserService {
 
     String newPassword = userUpdateRequest.newPassword();
     user.update(newUsername, newEmail, newPassword, nullableProfileId);
+    UserStatus userStatus = userStatusRepository.findByUserId(user.getId()).
+            orElseThrow(() -> new NoSuchElementException("UserStatus from " + user.getId() + " not found"));
 
-    return userRepository.save(user);
+    userRepository.save(user);
+    return this.toDto(user);
   }
 
   @Override
