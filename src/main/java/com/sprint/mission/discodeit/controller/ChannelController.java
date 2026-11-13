@@ -47,7 +47,7 @@ public class ChannelController {
 
     @RequestMapping(value = "/{channelId}", method = RequestMethod.PATCH)
     public ResponseEntity<ChannelResponse> updatePublicChannel(@NotNull @PathVariable UUID channelId,
-                                                               @Valid @RequestBody PublicChannelUpdateRequest updateRequest) {
+                                                               @RequestBody PublicChannelUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.channelService.update(channelId, updateRequest));
     }
 
