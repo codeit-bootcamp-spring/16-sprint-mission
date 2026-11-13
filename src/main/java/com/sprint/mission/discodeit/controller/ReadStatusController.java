@@ -8,10 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -19,12 +16,12 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Controller
 @ResponseBody
-@RequestMapping("/api/readStatus")
+@RequestMapping("/api/readStatuses")
 public class ReadStatusController {
 
   private final ReadStatusService readStatusService;
 
-  @RequestMapping(path = "create")
+  @PostMapping
   public ResponseEntity<ReadStatus> create(@RequestBody ReadStatusCreateRequest request) {
     ReadStatus createdReadStatus = readStatusService.create(request);
     return ResponseEntity
@@ -32,8 +29,8 @@ public class ReadStatusController {
         .body(createdReadStatus);
   }
 
-  @RequestMapping(path = "update")
-  public ResponseEntity<ReadStatus> update(@RequestParam("readStatusId") UUID readStatusId,
+  @PatchMapping("/{readstatus-id}")
+  public ResponseEntity<ReadStatus> update(@PathVariable("readstatus-id") UUID readStatusId,
       @RequestBody ReadStatusUpdateRequest request) {
     ReadStatus updatedReadStatus = readStatusService.update(readStatusId, request);
     return ResponseEntity
@@ -41,8 +38,8 @@ public class ReadStatusController {
         .body(updatedReadStatus);
   }
 
-  @RequestMapping(path = "findAllByUserId")
-  public ResponseEntity<List<ReadStatus>> findAllByUserId(@RequestParam("userId") UUID userId) {
+  @GetMapping("/{user-id}")
+  public ResponseEntity<List<ReadStatus>> findAllByUserId(@PathVariable("user-id") UUID userId) {
     List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
     return ResponseEntity
         .status(HttpStatus.OK)
