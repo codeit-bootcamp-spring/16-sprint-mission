@@ -10,10 +10,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
@@ -28,13 +29,15 @@ public class MessageController {
 
     private final MessageService messageService;
 
-    // 메시지 전송 (첨부파일 선택 가능)
+    // 메시지 생성
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public ResponseEntity<MessageDto> create(
-            @RequestPart("request") MessageCreateRequest request,
+            @RequestPart("messageCreateRequest")
+            MessageCreateRequest request,
+
             @RequestPart(value = "attachments", required = false)
             List<MultipartFile> attachments
     ) {
@@ -46,12 +49,9 @@ public class MessageController {
     }
 
     // 특정 채널의 메시지 목록 조회
-    @RequestMapping(
-            value = "/channels/{channelId}",
-            method = RequestMethod.GET
-    )
+    @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<MessageDto>> findAllByChannelId(
-            @PathVariable UUID channelId
+            @RequestParam UUID channelId
     ) {
         return ResponseEntity.ok(
                 messageService.findAllByChannelId(channelId)
@@ -61,19 +61,15 @@ public class MessageController {
     // 메시지 수정
     @RequestMapping(
             value = "/{messageId}",
-            method = RequestMethod.PATCH
+            method = RequestMethod.PATCH,
+            consumes = MediaType.APPLICATION_JSON_VALUE
     )
     public ResponseEntity<MessageDto> update(
             @PathVariable UUID messageId,
             @RequestBody MessageUpdateRequest request
     ) {
-        MessageUpdateRequest updateRequest = new MessageUpdateRequest(
-                messageId,
-                request.content()
-        );
-
         return ResponseEntity.ok(
-                messageService.update(updateRequest)
+                messageService.update(messageId, request)
         );
     }
 

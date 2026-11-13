@@ -12,10 +12,8 @@ import java.util.UUID;
 
 public interface MessageService {
 
-    // 기존 방식 유지
     MessageDto create(MessageCreateRequest request);
 
-    // MultipartFile을 이용한 메시지 생성
     MessageDto create(
             MessageCreateRequest request,
             List<MultipartFile> attachments
@@ -25,7 +23,7 @@ public interface MessageService {
 
     List<MessageDto> findAllByChannelId(UUID channelId);
 
-    MessageDto update(MessageUpdateRequest request);
+    MessageDto update(UUID messageId, MessageUpdateRequest request);
 
     void delete(UUID id);
 }

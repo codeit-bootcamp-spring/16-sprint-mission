@@ -33,13 +33,11 @@ public class BasicMessageService implements MessageService {
     private final ChannelRepository channelRepository;
     private final BinaryContentService binaryContentService;
 
-    // 기존 방식의 메시지 생성
     @Override
     public MessageDto create(MessageCreateRequest request) {
         return create(request, List.of());
     }
 
-    // MultipartFile을 이용한 메시지 생성
     @Override
     public MessageDto create(
             MessageCreateRequest request,
@@ -75,21 +73,17 @@ public class BasicMessageService implements MessageService {
                 channel.getId()
         );
 
-        // 첨부파일이 전달되지 않았다면 빈 목록으로 처리
         List<MultipartFile> files = attachments == null
                 ? List.of()
                 : attachments;
 
-        // 실제 파일을 저장하고 파일 ID만 메시지에 연결
         for (MultipartFile file : files) {
-
             if (file == null) {
                 throw new IllegalArgumentException(
                         "첨부파일은 null일 수 없습니다."
                 );
             }
 
-            // 비어 있는 파일은 건너뜀
             if (file.isEmpty()) {
                 continue;
             }
@@ -128,24 +122,28 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public MessageDto update(MessageUpdateRequest request) {
+    public MessageDto update(
+            UUID messageId,
+            MessageUpdateRequest request
+    ) {
+        if (messageId == null) {
+            throw new IllegalArgumentException("메시지 ID는 필수입니다.");
+        }
+
         if (request == null) {
             throw new IllegalArgumentException("메시지 수정 정보는 필수입니다.");
         }
 
-        if (request.id() == null) {
-            throw new IllegalArgumentException("메시지 ID는 필수입니다.");
-        }
-
-        if (request.content() == null || request.content().isBlank()) {
+        if (request.newContent() == null
+                || request.newContent().isBlank()) {
             throw new IllegalArgumentException("메시지 내용은 필수입니다.");
         }
 
-        Message message = messageRepository.findById(request.id())
+        Message message = messageRepository.findById(messageId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
-        message.update(request.content());
+        message.update(request.newContent());
 
         Message savedMessage = messageRepository.save(message);
 
@@ -162,7 +160,6 @@ public class BasicMessageService implements MessageService {
                 .orElseThrow(() ->
                         new IllegalArgumentException("메시지를 찾을 수 없습니다."));
 
-        // 메시지에 연결된 첨부파일 삭제
         for (UUID attachmentId : message.getAttachmentIds()) {
             binaryContentService.deleteById(attachmentId);
         }
@@ -170,7 +167,6 @@ public class BasicMessageService implements MessageService {
         messageRepository.deleteById(id);
     }
 
-    // Message 엔티티를 MessageDto로 변환
     private MessageDto toDto(Message message) {
         return new MessageDto(
                 message.getId(),
