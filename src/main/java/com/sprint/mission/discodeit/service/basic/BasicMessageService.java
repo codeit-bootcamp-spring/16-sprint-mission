@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.Message.*;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.message.*;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
@@ -13,7 +13,9 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.*;
 
 @RequiredArgsConstructor
@@ -26,7 +28,7 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public MessageCreateResponse create(MessageCreateRequest createRequest,
-                                        MessageAttachmentsCreateRequest attachmentsCreateRequest) {
+                                        List<MultipartFile> attachments) {
         UUID authorId = createRequest.authorId();
         UUID channelId = createRequest.channelId();
         String content = createRequest.content();
@@ -48,15 +50,17 @@ public class BasicMessageService implements MessageService {
 
         Message message = new Message(authorId, content, channelId);
 
-        if (attachmentsCreateRequest != null) {
-            List<BinaryContentCreateRequest> files = attachmentsCreateRequest.files();
+        if (attachments != null && !attachments.isEmpty()) {
+            attachments.forEach(attachment -> {
+                String fileName = attachment.getOriginalFilename();
+                byte[] fileContent = null;
+                try {
+                    fileContent = attachment.getBytes();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
 
-            files.forEach(binaryContentCreateRequest -> {
-                String fileName = binaryContentCreateRequest.fileName();
-                String extension = binaryContentCreateRequest.extension();
-                byte[] fileContent = binaryContentCreateRequest.content();
-
-                BinaryContent binaryContent = new BinaryContent(fileName, extension, fileContent);
+                BinaryContent binaryContent = new BinaryContent(fileName, fileContent);
                 this.binaryContentRepository.save(binaryContent);
                 message.addAttachment(binaryContent.getId());
             });
@@ -67,8 +71,7 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public MessageUpdateResponse update(MessageUpdateRequest updateRequest) {
-        UUID id = updateRequest.id();
+    public MessageUpdateResponse update(UUID id, MessageUpdateRequest updateRequest) {
         String newContent = updateRequest.content();
 
         Message message = this.messageRepository.findById(id)

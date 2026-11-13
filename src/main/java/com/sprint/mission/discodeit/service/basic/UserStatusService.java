@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.UserStatus.*;
+import com.sprint.mission.discodeit.dto.userStatus.*;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -52,8 +52,7 @@ public class UserStatusService {
                 .toList();
     }
 
-    public UserStatusUpdateResponse update(UserStatusUpdateRequest updateRequest) {
-        UUID id = updateRequest.id();
+    public UserStatusUpdateResponse update(UUID id, UserStatusUpdateRequest updateRequest) {
         Instant lastActiveTime = updateRequest.lastActiveTime();
 
         UserStatus userStatus = this.userStatusRepository.findById(id)
@@ -66,8 +65,7 @@ public class UserStatusService {
         return UserStatusUpdateResponse.from(userStatus);
     }
 
-    public UserStatusUpdateResponse updateByUserId(UserStatusUpdateByUserIdRequest updateRequest) {
-        UUID userId = updateRequest.userId();
+    public UserStatusUpdateResponse updateByUserId(UUID userId, UserStatusUpdateRequest updateRequest) {
         Instant lastActiveTime = updateRequest.lastActiveTime();
 
         this.userRepository.findById(userId)
