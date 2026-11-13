@@ -23,9 +23,9 @@ public class AuthService {
         String password = authRequest.password();
 
         User user = this.userRepository.findByName(name).orElseThrow(
-                () -> new NoSuchElementException("존재하지 않는 유저 이름입니다."));
+                () -> new NoSuchElementException("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요."));
         if (!user.getPassword().equals(password)) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new IllegalArgumentException("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요.");
         }
 
         UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
