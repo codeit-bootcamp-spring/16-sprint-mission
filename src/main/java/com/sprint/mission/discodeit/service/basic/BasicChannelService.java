@@ -222,7 +222,7 @@ public class BasicChannelService implements ChannelService {
         readStatusRepository
                 .findByUserIdAndChannelId(userId, channelId)
                 .orElseGet(() -> {
-                    ReadStatus readStatus = new ReadStatus(userId, channelId);
+                    ReadStatus readStatus = new ReadStatus(userId, channelId, null);
 
                     return readStatusRepository.save(readStatus);
                 });

@@ -12,11 +12,8 @@ public class BusinessLogicException extends RuntimeException {
         this.exceptionCode = exceptionCode;
     }
 
-    public BusinessLogicException(
-            ExceptionCode exceptionCode,
-            Object... args) {
+    public BusinessLogicException(ExceptionCode exceptionCode, Object... args) {
         super(String.format(exceptionCode.getMessage(), args));
         this.exceptionCode = exceptionCode;
     }
-
 }

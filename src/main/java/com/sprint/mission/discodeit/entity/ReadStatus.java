@@ -16,7 +16,7 @@ public class ReadStatus extends BaseEntity {
     private final UUID channelId;
     private Instant lastReadAt;
 
-    public ReadStatus(UUID userId, UUID channelId) {
+    public ReadStatus(UUID userId, UUID channelId, Instant lastReadAt) {
         super();
 
         Validation.validateNull(userId, "userId");
@@ -24,11 +24,11 @@ public class ReadStatus extends BaseEntity {
 
         this.userId = userId;
         this.channelId = channelId;
-        this.lastReadAt = Instant.now();
+        this.lastReadAt = lastReadAt != null ? lastReadAt : Instant.now();
     }
 
-    public void markAsRead() {
-        this.lastReadAt = Instant.now();
+    public void updateLastReadAt(Instant newLastReadAt) {
+        this.lastReadAt = newLastReadAt;
         super.update();
     }
 }

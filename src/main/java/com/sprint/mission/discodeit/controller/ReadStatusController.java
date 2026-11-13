@@ -2,8 +2,13 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequestDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponseDto;
+import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequestDto;
 import com.sprint.mission.discodeit.service.ReadStatusService;
+
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -11,28 +16,30 @@ import java.util.UUID;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/read-status")
+@RequestMapping("/api/readStatuses")
 public class ReadStatusController {
 
     private final ReadStatusService readStatusService;
 
-    @RequestMapping(method = RequestMethod.POST)
+    @PostMapping
+    @ResponseStatus(HttpStatus.CREATED)
     public ReadStatusResponseDto create(
-            @RequestBody ReadStatusCreateRequestDto request
+            @Valid @RequestBody ReadStatusCreateRequestDto request
     ) {
-        return  readStatusService.createReadStatus(request);
+        return readStatusService.createReadStatus(request);
     }
 
-    @RequestMapping(method = RequestMethod.PATCH)
+    @PatchMapping("/{readStatusId}")
     public ReadStatusResponseDto update(
-            @RequestHeader("READ-STATUS-UUID") UUID readStatusId
+            @PathVariable UUID readStatusId,
+            @RequestBody ReadStatusUpdateRequestDto request
     ) {
-        return readStatusService.updateReadStatus(readStatusId);
+        return readStatusService.updateReadStatus(readStatusId, request);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @GetMapping
     public List<ReadStatusResponseDto> findAllUserReadStatuses(
-            @RequestHeader("USER-UUID") UUID userId
+            @RequestParam UUID userId
     ) {
         return readStatusService.findAllReadStatusesByUserId(userId);
     }
