@@ -10,21 +10,19 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserMapper {
-    private final UserStatusRepository userStatusRepository;
+  private final UserStatusRepository userStatusRepository;
 
-    public UserDto toDto(User user) {
-        boolean online = userStatusRepository.findByUserId(user.getId())
-                .map(UserStatus::isOnline)
-                .orElse(false);
+  public UserDto toDto(User user) {
+    boolean online =
+        userStatusRepository.findByUserId(user.getId()).map(UserStatus::isOnline).orElse(false);
 
-        return new UserDto(
-                user.getId(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getProfileId(),
-                online
-        );
-    }
+    return new UserDto(
+        user.getId(),
+        user.getCreatedAt(),
+        user.getUpdatedAt(),
+        user.getUsername(),
+        user.getEmail(),
+        user.getProfileId(),
+        online);
+  }
 }
