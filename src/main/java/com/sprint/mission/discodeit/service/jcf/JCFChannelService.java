@@ -1,22 +1,24 @@
 package com.sprint.mission.discodeit.service.jcf;
 
 import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelUpdateRequest;
+
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import com.sprint.mission.discodeit.type.ChannelType;
+
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.type.ChannelType;
 
 import java.time.Instant;
 import java.util.*;
@@ -48,14 +50,14 @@ public class JCFChannelService implements ChannelService {
         boolean duplicated = data.stream()
                 .anyMatch(channel ->
                         channel.getType() == ChannelType.PUBLIC
-                                && channel.getName().equals(request.channelName()));
+                                && channel.getName().equals(request.name()));
 
         if (duplicated) {
             throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
         Channel channel = new Channel(
-                request.channelName(), request.description()
+                request.name(), request.description()
         );
 
         data.add(channel);
@@ -67,19 +69,19 @@ public class JCFChannelService implements ChannelService {
     public ChannelDto createPrivateChannel(PrivateChannelCreateRequest request) {
 
         // 참여자 목록이 비어 있는지 확인
-        if (request.memberIds() == null || request.memberIds().isEmpty()) {
+        if (request.participantIds() == null || request.participantIds().isEmpty()) {
             throw new IllegalArgumentException("참여자가 필요합니다.");
         }
 
         // 모든 참여자의 존재 여부 확인
-        for (UUID userId : request.memberIds()) {
+        for (UUID userId : request.participantIds()) {
             if (userRepository.findByUserId(userId).isEmpty()) {
                 throw new ResourceNotFoundException("존재하지 않는 사용자입니다.");
             }
         }
 
         // 검증 완료 후 PRIVATE 채널 생성
-        Channel channel = new Channel(request.memberIds());
+        Channel channel = new Channel(request.participantIds());
         data.add(channel);
 
         return toDto(channel);
@@ -121,11 +123,11 @@ public class JCFChannelService implements ChannelService {
         }
 
         // 수정할 채널 이름과 설명을 결정한다.
-        String newChannelName = request.channelName() != null
-                ? request.channelName() : targetChannel.getName();
+        String newChannelName = request.newName() != null
+                ? request.newName() : targetChannel.getName();
 
-        String newDescription = request.description() != null
-                ? request.description() : targetChannel.getDescription();
+        String newDescription = request.newDescription() != null
+                ? request.newDescription() : targetChannel.getDescription();
 
         // 다른 PUBLIC 채널에서 동일한 이름을 사용하는지 확인
         boolean duplicated = data.stream()
@@ -252,8 +254,7 @@ public class JCFChannelService implements ChannelService {
 
     // Channel 객체를 ChannelDto로 변환한다.
     private ChannelDto toDto(Channel channel) {
-        // Set<UUID> memberIds = channel.getMemberIds();
-        Set<UUID> memberIds = channel.getType() == ChannelType.PRIVATE
+        Set<UUID> participantIds = channel.getType() == ChannelType.PRIVATE
                 ? channel.getMemberIds() : Set.of();
 
         return new ChannelDto(
@@ -261,7 +262,7 @@ public class JCFChannelService implements ChannelService {
                 channel.getType(),
                 channel.getName(),
                 channel.getDescription(),
-                memberIds,
+                participantIds,
                 channel.getCreatedAt(),
                 channel.getUpdatedAt(),
                 findLastMessageAt(channel.getId())

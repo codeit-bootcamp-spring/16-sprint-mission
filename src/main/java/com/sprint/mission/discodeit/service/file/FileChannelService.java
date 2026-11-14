@@ -1,25 +1,25 @@
 package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelUpdateRequest;
+
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import com.sprint.mission.discodeit.type.ChannelType;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
-import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
+import com.sprint.mission.discodeit.type.ChannelType;
 
 import java.time.Instant;
 import java.util.Comparator;
@@ -58,14 +58,14 @@ public class FileChannelService implements ChannelService {
         // PUBLIC 채널 이름 중복 검사
         boolean duplicated = channelRepository.findAll().stream()
                 .filter(channel -> channel.getType() == ChannelType.PUBLIC)
-                .anyMatch(channel -> channel.getName().equals(request.channelName()));
+                .anyMatch(channel -> channel.getName().equals(request.name()));
 
         if (duplicated) {
             throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
         // PUBLIC 채널 생성 및 저장
-        Channel channel = new Channel(request.channelName(), request.description());
+        Channel channel = new Channel(request.name(), request.description());
         channelRepository.save(channel);
 
         return toDto(channel);
@@ -75,15 +75,15 @@ public class FileChannelService implements ChannelService {
     @Override
     public ChannelDto createPrivateChannel(PrivateChannelCreateRequest request) {
 
-        List<UUID> memberIds = request.memberIds();
+        List<UUID> participantIds = request.participantIds();
 
         // 참여자 목록 유효성 검사
-        if (memberIds == null || memberIds.isEmpty()) {
+        if (participantIds == null || participantIds.isEmpty()) {
             throw new IllegalArgumentException("참여자가 필요합니다.");
         }
 
         // 모든 참여자의 존재 여부 확인
-        for (UUID userId : memberIds) {
+        for (UUID userId : participantIds) {
             userRepository.findByUserId(userId)
                     .orElseThrow(() ->
                             new ResourceNotFoundException("유저를 찾을 수 없습니다.")
@@ -91,7 +91,7 @@ public class FileChannelService implements ChannelService {
         }
 
         // PRIVATE 채널 생성 및 저장
-        Channel channel = new Channel(memberIds);
+        Channel channel = new Channel(participantIds);
         channelRepository.save(channel);
 
         return toDto(channel);
@@ -142,11 +142,11 @@ public class FileChannelService implements ChannelService {
         }
 
         // 수정할 채널 이름과 설명을 결정한다.
-        String newChannelName = request.channelName() != null
-                ? request.channelName() : channel.getName();
+        String newChannelName = request.newName() != null
+                ? request.newName() : channel.getName();
 
-        String newDescription = request.description() != null
-                ? request.description() : channel.getDescription();
+        String newDescription = request.newDescription() != null
+                ? request.newDescription() : channel.getDescription();
 
         // 다른 PUBLIC 채널에서 동일한 이름을 사용하는지 확인
         boolean duplicated = channelRepository.findAll().stream()
@@ -270,7 +270,7 @@ public class FileChannelService implements ChannelService {
 
     // Channel 객체를 ChannelDto로 변환한다.
     private ChannelDto toDto(Channel channel) {
-        Set<UUID> memberIds = channel.getType() == ChannelType.PRIVATE
+        Set<UUID> participantIds = channel.getType() == ChannelType.PRIVATE
                 ? channel.getMemberIds() : Set.of();
 
         return new ChannelDto(
@@ -278,7 +278,7 @@ public class FileChannelService implements ChannelService {
                 channel.getType(),
                 channel.getName(),
                 channel.getDescription(),
-                memberIds,
+                participantIds,
                 channel.getCreatedAt(),
                 channel.getUpdatedAt(),
                 findLastMessageAt(channel.getId())

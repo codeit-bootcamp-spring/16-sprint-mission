@@ -43,12 +43,6 @@ public class ChannelController {
         return ResponseEntity.status(HttpStatus.CREATED).body(channel);
     }
 
-    // 채널 단건 조회(GET)
-    @RequestMapping(value = "/{channelId}", method = RequestMethod.GET)
-    public ChannelDto getChannel(@PathVariable UUID channelId) {
-        return channelService.readChannel(channelId);
-    }
-
     // 특정 사용자가 볼 수 있는 모든 채널 조회(GET)
     // Query Parameter: userId
     @RequestMapping(method = RequestMethod.GET)

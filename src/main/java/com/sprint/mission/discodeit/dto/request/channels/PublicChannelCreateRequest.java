@@ -4,6 +4,8 @@ import jakarta.validation.constraints.NotBlank; // null, 빈 문자열, 공백 �
 
 public record PublicChannelCreateRequest(
         @NotBlank(message = "채널 이름은 필수입니다.")
-        String channelName,
+        String name,
 
-        String description) { }
+        String description
+) {
+}
