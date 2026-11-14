@@ -16,10 +16,13 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.type.ChannelType;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import com.sprint.mission.discodeit.service.MessageService;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -44,18 +47,18 @@ public class BasicMessageService implements MessageService {
                                     List<MultipartFile> attachments) {
 
         // 작성자가 실제로 존재하는지 확인한다.
-        User user = userRepository.findByUserId(request.userId())
+        User user = userRepository.findByUserId(request.authorId())
                 .orElseThrow(() ->
                         new ResourceNotFoundException("사용자를 찾을 수 없습니다."));
 
         // 메시지가 작성될 채널이 존재하는지 확인한다.
         Channel channel = channelRepository.findByChannelId(request.channelId())
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("채널을 찾을 수 없습니다"));
+                        new ResourceNotFoundException("채널을 찾을 수 없습니다."));
 
         // PRIVATE 채널은 참여자만 메시지를 보낼 수 있습니다.
         if (channel.getType() == ChannelType.PRIVATE
-                && !channel.hasMember(request.userId())) {
+                && !channel.hasMember(request.authorId())) {
 
             throw new ForbiddenOperationException(
                     "비공개 채널 참여자만 메시지를 보낼 수 있습니다."
@@ -115,7 +118,7 @@ public class BasicMessageService implements MessageService {
         // ID에 해당하는 메시지를 조회하고, 없으면 예외를 발생시킨다.
         Message message = messageRepository.findByMessageId(id)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("메시지를 찾을 수 없습니다"));
+                        new ResourceNotFoundException("메시지를 찾을 수 없습니다."));
 
         return toDto(message);
     }
@@ -143,52 +146,32 @@ public class BasicMessageService implements MessageService {
     }
 
     @Override
-    public MessageDto updateMessage(MessageUpdateRequest request) {
+    public MessageDto updateMessage(UUID messageId, MessageUpdateRequest request) {
 
         // 수정 대상 메시지 조회
-        Message targetMessage = messageRepository.findByMessageId(request.messageId())
+        Message targetMessage = messageRepository.findByMessageId(messageId)
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("메시지를 찾을 수 없습니다"));
-
-        // 요청자가 실제로 존재하는지 확인한다.
-        userRepository.findByUserId(request.requesterId())
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("요청자를 찾을 수 없습니다."));
-
-        // 메시지 작성자 권한 확인
-        if (!targetMessage.getUserId().equals(request.requesterId())) {
-            throw new ForbiddenOperationException("메시지 작성자만 수정할 수 있습니다.");
-        }
+                        new ResourceNotFoundException("메시지를 찾을 수 없습니다."));
 
         // 기존 메시지 내용과 동일한지 확인
-        if (Objects.equals(targetMessage.getContent(), request.content())) {
+        if (Objects.equals(targetMessage.getContent(), request.newContent())) {
             throw new IllegalArgumentException("기존 메시지 내용과 동일합니다.");
         }
 
         // 메시지 내용 변경 및 저장
-        targetMessage.changeContent(request.content());
+        targetMessage.changeContent(request.newContent());
         messageRepository.save(targetMessage);
 
         return toDto(targetMessage);
     }
 
     @Override
-    public void deleteMessage(UUID id, UUID requesterId) {
+    public void deleteMessage(UUID id) {
 
         // 삭제 대상 메시지 조회
         Message targetMessage = messageRepository.findByMessageId(id)
                 .orElseThrow(() ->
                         new ResourceNotFoundException("삭제할 메시지를 찾을 수 없습니다."));
-
-        // 삭제 요청자가 실제로 존재하는지 확인한다.
-        userRepository.findByUserId(requesterId)
-                .orElseThrow(() ->
-                        new ResourceNotFoundException("요청자를 찾을 수 없습니다."));
-
-        // 메시지 작성자와 삭제 요청자가 일치하는지 확인
-        if (!targetMessage.getUserId().equals(requesterId)) {
-            throw new ForbiddenOperationException("메시지 작성자만 삭제할 수 있습니다.");
-        }
 
         // 메시지에 연결된 첨부파일 삭제
         if (targetMessage.getAttachmentIds() != null) {
@@ -206,7 +189,7 @@ public class BasicMessageService implements MessageService {
         return new MessageDto(
                 message.getId(),
                 message.getContent(),
-                message.getUserId(),
+                message.getUserId(), // DTO의 authorId에 전달
                 message.getChannelId(),
                 message.getAttachmentIds(),
                 message.getCreatedAt(),
