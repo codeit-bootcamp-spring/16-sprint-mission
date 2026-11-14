@@ -3,10 +3,12 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.AuthUserDto;
 import com.sprint.mission.discodeit.exceptions.AuthenticationFailedException;
 import com.sprint.mission.discodeit.service.AuthService;
-import com.sprint.mission.discodeit.dto.request.authlogin.AuthLoginRequest;
+import com.sprint.mission.discodeit.dto.request.auth.AuthLoginRequest;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.repository.UserRepository;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +29,7 @@ public class BasicAuthService implements AuthService {
                 .orElseThrow(() ->
                         new AuthenticationFailedException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
-        if(!passwordEncoder.matches(request.password(), user.getPassword())){
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
             throw new AuthenticationFailedException("아이디 또는 비밀번호가 일치하지 않습니다.");
         }
 
