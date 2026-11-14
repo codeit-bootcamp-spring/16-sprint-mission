@@ -1,20 +1,31 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
-import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.MessageType;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.DataCleanupService;
 import com.sprint.mission.discodeit.service.MessageService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,90 +36,67 @@ public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
+    private final ReadStatusRepository readStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
-
-    @Override
-    public MessageResponseDto createMessage(MessageCreateRequestDto dto) {
-        return createMessage(dto, null);
-    }
+    private final DataCleanupService dataCleanupService;
 
     @Override
     public MessageResponseDto createMessage(
             MessageCreateRequestDto dto,
-            List<BinaryContentCreateRequestDto> attachments
-    ) {
-        if (dto.getContent() == null || dto.getContent().isBlank()) {
-            throw new IllegalArgumentException("메시지 내용은 필수입니다.");
+            List<MultipartFile> attachments
+    ) throws IOException {
+        User user = findUserEntity(dto.getAuthorId());
+        Channel channel = findChannelEntity(dto.getChannelId());
+
+        if (channel.getType() == ChannelType.PRIVATE
+                && readStatusRepository.findByUserIdAndChannelId(user.getId(), channel.getId()).isEmpty()) {
+            throw new BusinessLogicException(ExceptionCode.USER_NOT_PARTICIPANT);
         }
 
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다."));
-
-        Channel channel = channelRepository.findById(dto.getChannelId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다."));
-
-        // 첨부 파일 확인
-        List<UUID> attachmentIds = new ArrayList<>(
-                dto.getAttachmentIds() == null
-                        ? List.of()
-                        : dto.getAttachmentIds()
-        );
-
-        for (UUID attachmentId : attachmentIds) {
-            binaryContentRepository.findById(attachmentId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("존재하지 않는 첨부 파일입니다."));
-        }
+        List<UUID> attachmentIds = new ArrayList<>();
 
         if (attachments != null) {
-            for (BinaryContentCreateRequestDto attachment : attachments) {
-                BinaryContent saved = binaryContentRepository.save(
-                        new BinaryContent(attachment.getData())
-                );
+            for (MultipartFile attachment : attachments) {
+                BinaryContent binaryContent =
+                        new BinaryContent(
+                                attachment.getOriginalFilename(),
+                                attachment.getContentType(),
+                                attachment.getBytes()
+                        );
 
-                attachmentIds.add(saved.getId());
+                BinaryContent savedAttachment =
+                        binaryContentRepository.save(binaryContent);
+
+                attachmentIds.add(savedAttachment.getId());
             }
         }
 
         Message message = new Message(
                 dto.getContent(),
-                user.getId(),
                 channel.getId(),
-                MessageType.USER,
-                attachmentIds
+                user.getId(),
+                attachmentIds,
+                MessageType.USER
         );
 
         Message savedMessage = messageRepository.save(message);
-
-        user.addMessageId(savedMessage.getId());
-        channel.addMessageId(savedMessage.getId());
-
-        userRepository.save(user);
-        channelRepository.save(channel);
 
         return toResponseDto(savedMessage);
     }
 
     @Override
     public MessageResponseDto findMessage(UUID messageId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+        Message message = findMessageEntity(messageId);
 
         return toResponseDto(message);
     }
 
     @Override
     public List<MessageResponseDto> findAllMessagesByChannelId(UUID channelId) {
-        channelRepository.findById(channelId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다."));
+        findChannelEntity(channelId);
 
         return messageRepository.findByChannelId(channelId)
                 .stream()
-                .sorted(Comparator.comparing(Message::getCreatedAt))
                 .map(this::toResponseDto)
                 .toList();
     }
@@ -118,11 +106,9 @@ public class BasicMessageService implements MessageService {
             UUID messageId,
             MessageUpdateRequestDto dto
     ) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+        Message message = findMessageEntity(messageId);
 
-        message.updateContent(dto.getContent());
+        message.updateContent(dto.getNewContent());
 
         Message updatedMessage = messageRepository.save(message);
 
@@ -131,42 +117,36 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public void deleteMessage(UUID messageId) {
+        dataCleanupService.deleteMessageData(messageId);
+    }
 
-        Message message = messageRepository.findById(messageId)
+    private Message findMessageEntity(UUID messageId) {
+        return messageRepository.findById(messageId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+                        new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND, messageId));
+    }
 
-        User user = userRepository.findById(message.getSenderId())
+    private Channel findChannelEntity(UUID channelId) {
+        return channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("메시지 작성자를 찾을 수 없습니다."));
+                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND, channelId));
+    }
 
-        Channel channel = channelRepository.findById(message.getChannelId())
+    private User findUserEntity(UUID userId) {
+        return userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("메시지가 속한 채널을 찾을 수 없습니다."));
-
-        user.removeMessageId(messageId);
-        channel.removeMessageId(messageId);
-
-        userRepository.save(user);
-        channelRepository.save(channel);
-
-        for (UUID attachmentId : message.getAttachmentIds()) {
-            binaryContentRepository.deleteById(attachmentId);
-        }
-
-        messageRepository.deleteById(messageId);
+                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, userId));
     }
 
     private MessageResponseDto toResponseDto(Message message) {
         return MessageResponseDto.builder()
                 .id(message.getId())
-                .type(message.getType())
-                .content(message.getContent())
-                .senderId(message.getSenderId())
-                .channelId(message.getChannelId())
-                .attachmentIds(message.getAttachmentIds())
                 .createdAt(message.getCreatedAt())
                 .updatedAt(message.getUpdatedAt())
+                .content(message.getContent())
+                .channelId(message.getChannelId())
+                .authorId(message.getAuthorId())
+                .attachmentIds(message.getAttachmentIds())
                 .build();
     }
 }

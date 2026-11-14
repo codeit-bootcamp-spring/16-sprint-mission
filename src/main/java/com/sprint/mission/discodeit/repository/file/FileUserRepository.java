@@ -93,4 +93,40 @@ public class FileUserRepository implements UserRepository {
             throw new RuntimeException("사용자 파일 삭제에 실패했습니다.", e);
         }
     }
+
+    @Override
+    public boolean existsByUsername(String username) {
+        return findAll().stream()
+                .anyMatch(user -> user.getUsername().equals(username));
+    }
+
+    @Override
+    public boolean existsByUsernameAndIdNot(String username, UUID userId) {
+        return findAll().stream()
+                .anyMatch(user ->
+                        user.getUsername().equals(username)
+                                && !user.getId().equals(userId));
+    }
+
+    @Override
+    public boolean existsByEmail(String email) {
+        if (email == null) {
+            return false;
+        }
+
+        return findAll().stream()
+                .anyMatch(user -> email.equals(user.getEmail()));
+    }
+
+    @Override
+    public boolean existsByEmailAndIdNot(String email, UUID userId) {
+        if (email == null) {
+            return false;
+        }
+
+        return findAll().stream()
+                .anyMatch(user ->
+                        email.equals(user.getEmail())
+                                && !user.getId().equals(userId));
+    }
 }

@@ -9,6 +9,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Stream;
 
@@ -93,14 +94,14 @@ public class FileMessageRepository implements MessageRepository {
     public List<Message> findByUserId(UUID userId) {
         return findAll().stream()
                 .filter(message -> message.getType() == MessageType.USER)
-                .filter(message -> message.getSenderId().equals(userId))
+                .filter(message -> userId.equals(message.getAuthorId()))
                 .toList();
     }
 
     @Override
     public List<Message> findByChannelId(UUID channelId) {
         return findAll().stream()
-                .filter(message -> message.getChannelId().equals(channelId))
+                .filter(message -> channelId.equals(message.getChannelId()))
                 .toList();
     }
 
@@ -108,8 +109,15 @@ public class FileMessageRepository implements MessageRepository {
     public List<Message> findByUserIdAndChannelId(UUID userId, UUID channelId) {
         return findAll().stream()
                 .filter(message -> message.getType() == MessageType.USER)
-                .filter(message -> message.getSenderId().equals(userId))
-                .filter(message -> message.getChannelId().equals(channelId))
+                .filter(message -> userId.equals(message.getAuthorId()))
+                .filter(message -> channelId.equals(message.getChannelId()))
                 .toList();
+    }
+
+    @Override
+    public Optional<Instant> findLatestCreatedAtByChannelId(UUID channelId) {
+        return findByChannelId(channelId).stream()
+                .map(Message::getCreatedAt)
+                .max(Instant::compareTo);
     }
 }

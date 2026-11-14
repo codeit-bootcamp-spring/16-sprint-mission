@@ -11,6 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class ChannelUpdateRequestDto {
 
-    private String channelName;
-    private String description;
+    private String newName;
+    private String newDescription;
 }

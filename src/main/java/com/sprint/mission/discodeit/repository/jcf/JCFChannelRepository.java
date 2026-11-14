@@ -29,18 +29,4 @@ public class JCFChannelRepository implements ChannelRepository {
     public void deleteById(UUID channelId) {
         channels.remove(channelId);
     }
-
-    @Override
-    public List<Channel> findByCreatorId(UUID creatorId) {
-        return channels.values().stream()
-                .filter(channel -> channel.getCreatorId().equals(creatorId))
-                .toList();
-    }
-
-    @Override
-    public List<Channel> findByParticipantId(UUID userId) {
-        return channels.values().stream()
-                .filter(channel -> channel.getParticipantIds().contains(userId))
-                .toList();
-    }
 }

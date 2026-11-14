@@ -89,18 +89,4 @@ public class FileChannelRepository implements ChannelRepository {
             throw new RuntimeException("채널 파일 삭제에 실패했습니다.", e);
         }
     }
-
-    @Override
-    public List<Channel> findByCreatorId(UUID creatorId) {
-        return findAll().stream()
-                .filter(channel -> channel.getCreatorId().equals(creatorId))
-                .toList();
-    }
-
-    @Override
-    public List<Channel> findByParticipantId(UUID userId) {
-        return findAll().stream()
-                .filter(channel -> channel.getParticipantIds().contains(userId))
-                .toList();
-    }
 }

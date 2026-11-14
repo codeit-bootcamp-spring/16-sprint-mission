@@ -2,12 +2,20 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequestDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponseDto;
+import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequestDto;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exception.BusinessLogicException;
+import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -23,22 +31,33 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatusResponseDto createReadStatus(ReadStatusCreateRequestDto dto) {
-        UUID userId = dto.getUserId();
-        UUID channelId = dto.getChannelId();
+        UUID userId = dto.userId();
+        UUID channelId = dto.channelId();
 
-        userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        findUserEntity(userId);
+        Channel channel = findChannelEntity(channelId);
 
-        channelRepository.findById(channelId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
-
-        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
-            throw new IllegalArgumentException("이미 해당 사용자의 채널 읽음 상태가 존재합니다.");
+        if (channel.getType() == ChannelType.PRIVATE
+                && readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .isEmpty()
+        ) {
+            throw new BusinessLogicException(ExceptionCode.USER_NOT_PARTICIPANT);
         }
 
-        ReadStatus readStatus = new ReadStatus(userId, channelId);
+        if (readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .isPresent()
+        ) {
+            throw new BusinessLogicException(ExceptionCode.READ_STATUS_ALREADY_EXISTS);
+        }
+
+        ReadStatus readStatus = new ReadStatus(
+                userId,
+                channelId,
+                dto.lastReadAt()
+        );
+
         ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
 
         return toResponseDto(savedReadStatus);
@@ -46,18 +65,14 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public ReadStatusResponseDto findReadStatus(UUID readStatusId) {
-        ReadStatus readStatus = readStatusRepository.findById(readStatusId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("읽음 상태를 찾을 수 없습니다."));
+        ReadStatus readStatus = findReadStatusEntity(readStatusId);
 
         return toResponseDto(readStatus);
     }
 
     @Override
     public List<ReadStatusResponseDto> findAllReadStatusesByUserId(UUID userId) {
-        userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다."));
+        findUserEntity(userId);
 
         return readStatusRepository.findByUserId(userId)
                 .stream()
@@ -66,12 +81,13 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     @Override
-    public ReadStatusResponseDto updateReadStatus(UUID readStatusId) {
-        ReadStatus readStatus = readStatusRepository.findById(readStatusId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("읽음 상태를 찾을 수 없습니다."));
+    public ReadStatusResponseDto updateReadStatus(
+            UUID readStatusId,
+            ReadStatusUpdateRequestDto dto
+    ) {
+        ReadStatus readStatus = findReadStatusEntity(readStatusId);
 
-        readStatus.markAsRead();
+        readStatus.updateLastReadAt(dto.newLastReadAt());
 
         ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
 
@@ -80,21 +96,37 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public void deleteReadStatus(UUID readStatusId) {
-        readStatusRepository.findById(readStatusId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("읽음 상태를 찾을 수 없습니다."));
+        findReadStatusEntity(readStatusId);
 
         readStatusRepository.deleteById(readStatusId);
+    }
+
+    private User findUserEntity(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, userId));
+    }
+
+    private Channel findChannelEntity(UUID channelId) {
+        return channelRepository.findById(channelId)
+                .orElseThrow(() ->
+                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND, channelId));
+    }
+
+    private ReadStatus findReadStatusEntity(UUID readStatusId) {
+        return readStatusRepository.findById(readStatusId)
+                .orElseThrow(() ->
+                        new BusinessLogicException(ExceptionCode.READ_STATUS_NOT_FOUND));
     }
 
     private ReadStatusResponseDto toResponseDto(ReadStatus readStatus) {
         return ReadStatusResponseDto.builder()
                 .id(readStatus.getId())
+                .createdAt(readStatus.getCreatedAt())
+                .updatedAt(readStatus.getUpdatedAt())
                 .userId(readStatus.getUserId())
                 .channelId(readStatus.getChannelId())
                 .lastReadAt(readStatus.getLastReadAt())
-                .createdAt(readStatus.getCreatedAt())
-                .updatedAt(readStatus.getUpdatedAt())
                 .build();
     }
 }

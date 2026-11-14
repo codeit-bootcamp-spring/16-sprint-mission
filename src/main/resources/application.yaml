@@ -2,11 +2,15 @@ spring:
   application:
     name: discodeit
 
-#discodeit:
-#  repository:
-#    type: file
-#    file-directory: .discodeit
-
 discodeit:
   repository:
-    type: jcf
+    type: file
+    file-directory: .discodeit
+
+#discodeit:
+#  repository:
+#    type: jcf
+
+#server:
+#  servlet:
+#    context-path: /api

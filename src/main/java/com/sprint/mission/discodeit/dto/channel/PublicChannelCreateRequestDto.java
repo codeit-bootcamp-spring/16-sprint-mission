@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 public class PublicChannelCreateRequestDto {
 
     @NotBlank(message = "채널 이름은 필수입니다.")
-    private String channelName;
+    private String name;
 
     private String description;
 }
