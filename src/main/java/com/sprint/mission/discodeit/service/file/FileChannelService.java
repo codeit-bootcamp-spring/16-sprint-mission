@@ -4,8 +4,10 @@ import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.channels.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelUpdateRequest;
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.type.ChannelType;
 
 import com.sprint.mission.discodeit.entity.Channel;
@@ -22,6 +24,7 @@ import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import java.time.Instant;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -32,17 +35,20 @@ public class FileChannelService implements ChannelService {
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     // 생성자 의존성 주입
     public FileChannelService(ChannelRepository channelRepository,
                               UserRepository userRepository,
                               MessageRepository messageRepository,
-                              ReadStatusRepository readStatusRepository) {
+                              ReadStatusRepository readStatusRepository,
+                              BinaryContentRepository binaryContentRepository) {
 
         this.channelRepository = channelRepository;
         this.userRepository = userRepository;
         this.messageRepository = messageRepository;
         this.readStatusRepository = readStatusRepository;
+        this.binaryContentRepository = binaryContentRepository;
     }
 
     // PUBLIC 채널 생성
@@ -88,14 +94,6 @@ public class FileChannelService implements ChannelService {
         Channel channel = new Channel(memberIds);
         channelRepository.save(channel);
 
-        // 참여자별 읽음 상태 생성 및 저장
-        for (UUID userId : channel.getMemberIds()) {
-            ReadStatus readStatus =
-                    new ReadStatus(userId, channel.getId(), Instant.now());
-
-            readStatusRepository.save(readStatus);
-        }
-
         return toDto(channel);
     }
 
@@ -104,13 +102,6 @@ public class FileChannelService implements ChannelService {
 
         // ID에 해당하는 채널 조회
         return toDto(findChannel(id));
-    }
-
-    @Override
-    public List<ChannelDto> findAll() {
-        return channelRepository.findAll().stream()
-                .map(this::toDto)
-                .toList();
     }
 
     @Override
@@ -140,35 +131,45 @@ public class FileChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelDto updateChannel(ChannelUpdateRequest request) {
+    public ChannelDto updateChannel(UUID channelId, PublicChannelUpdateRequest request) {
 
-        // 수정 대상 채널 조회
-        Channel channel = findChannel(request.channelId());
+        // 수정할 채널 조회
+        Channel channel = findChannel(channelId);
 
-        // PRIVATE 채널 수정 제한
+        // PRIVATE 채널 수정 방지
         if (channel.getType() == ChannelType.PRIVATE) {
-            throw new ForbiddenOperationException("PRIVATE 채널은 수정할 수 없습니다.");
+            throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
-        // 기존 채널 이름과 변경할 이름이 동일한지 확인
-        if (channel.getName().equals(request.channelName())) {
-            throw new IllegalArgumentException("기존 채널명과 동일합니다.");
-        }
+        // 수정할 채널 이름과 설명을 결정한다.
+        String newChannelName = request.channelName() != null
+                ? request.channelName() : channel.getName();
 
-        // 다른 PUBLIC 채널의 이름과 중복되는지 확인
+        String newDescription = request.description() != null
+                ? request.description() : channel.getDescription();
+
+        // 다른 PUBLIC 채널에서 동일한 이름을 사용하는지 확인
         boolean duplicated = channelRepository.findAll().stream()
                 .filter(otherChannel -> otherChannel.getType() == ChannelType.PUBLIC)
                 .anyMatch(otherChannel ->
-                        !otherChannel.getId().equals(request.channelId())
-                            && otherChannel.getName().equals(request.channelName()));
+                        !otherChannel.getId().equals(channelId)
+                                && otherChannel.getName().equals(newChannelName));
 
         // 중복된 채널 이름이 있으면 예외를 발생시킨다.
         if (duplicated) {
             throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
-        // 채널 이름 변경 및 저장
-        channel.changeName(request.channelName());
+        // 변경 사항이 있는지 확인한다.
+        if (Objects.equals(channel.getName(), newChannelName)
+                && Objects.equals(channel.getDescription(), newDescription)) {
+            throw new IllegalArgumentException("기존 채널명과 내용에는 변경사항이 없습니다");
+        }
+
+        // 채널 이름과 설명을 변경하고 저장한다.
+        channel.changeName(newChannelName);
+        channel.changeDescription(newDescription);
+
         channelRepository.save(channel);
 
         return toDto(channel);
@@ -181,7 +182,20 @@ public class FileChannelService implements ChannelService {
         // 삭제 대상 채널 존재 여부 확인
         findChannel(id);
 
-        // 채널과 연관된 데이터를 먼저 삭제한다.
+        // 해당 채널의 모든 메시지 조회
+        List<Message> messages = messageRepository.findAllByChannelId(id);
+
+        // 메시지에 연결된 첨부파일 ID 수집
+        List<UUID> attachmentIds = messages.stream()
+                .filter(message -> message.getAttachmentIds() != null)
+                .flatMap(message -> message.getAttachmentIds().stream())
+                .distinct()
+                .toList();
+
+        // 첨부파일 삭제
+        attachmentIds.forEach(binaryContentRepository::deleteById);
+
+        // 채널과 연관된 메시지 및 읽음 상태 삭제
         messageRepository.deleteByChannelId(id);
         readStatusRepository.deleteByChannelId(id);
 
@@ -201,12 +215,12 @@ public class FileChannelService implements ChannelService {
 
         // PRIVATE 채널은 기존 참여자만 이용 가능하다.
         if (channel.getType() == ChannelType.PRIVATE
-                && !channel.hasMember(userId)){
+                && !channel.hasMember(userId)) {
             throw new ForbiddenOperationException("PRIVATE 채널에 참여할 수 없습니다.");
         }
 
         // 이미 참여 중인 사용자는 추가 작업 없이 종료
-        if (channel.hasMember(userId)){
+        if (channel.hasMember(userId)) {
             return;
         }
 
@@ -215,7 +229,7 @@ public class FileChannelService implements ChannelService {
         channelRepository.save(channel);
 
         // 기존 읽음 상태가 없는 경우 생성 및 저장
-        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isEmpty()){
+        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isEmpty()) {
             readStatusRepository.save(
                     new ReadStatus(userId, channelId, Instant.now()));
         }
