@@ -3,7 +3,12 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
-import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
+import com.sprint.mission.discodeit.entity.Message;
+import com.sprint.mission.discodeit.entity.MessageType;
+import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.BusinessLogicException;
 import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
@@ -11,6 +16,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.DataCleanupService;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +38,7 @@ public class BasicMessageService implements MessageService {
     private final UserRepository userRepository;
     private final ReadStatusRepository readStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
+    private final DataCleanupService dataCleanupService;
 
     @Override
     public MessageResponseDto createMessage(
@@ -110,13 +117,7 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public void deleteMessage(UUID messageId) {
-        Message message = findMessageEntity(messageId);
-
-        for (UUID attachmentId : message.getAttachmentIds()) {
-            binaryContentRepository.deleteById(attachmentId);
-        }
-
-        messageRepository.deleteById(messageId);
+        dataCleanupService.deleteMessageData(messageId);
     }
 
     private Message findMessageEntity(UUID messageId) {

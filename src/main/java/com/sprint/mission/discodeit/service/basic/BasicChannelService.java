@@ -7,13 +7,13 @@ import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequestDto;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequestDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
-import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.BusinessLogicException;
 import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.service.DataCleanupService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -32,7 +32,7 @@ public class BasicChannelService implements ChannelService {
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
-    private final BinaryContentRepository binaryContentRepository;
+    private final DataCleanupService dataCleanupService;
 
     @Override
     public ChannelResponseDto createPublicChannel(
@@ -169,27 +169,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public void deleteChannel(UUID channelId) {
-        findChannelEntity(channelId);
-
-        List<Message> messages =
-                messageRepository.findByChannelId(channelId);
-
-        for (Message message : messages) {
-            for (UUID attachmentId : message.getAttachmentIds()) {
-                binaryContentRepository.deleteById(attachmentId);
-            }
-
-            messageRepository.deleteById(message.getId());
-        }
-
-        List<ReadStatus> readStatuses =
-                readStatusRepository.findByChannelId(channelId);
-
-        for (ReadStatus readStatus : readStatuses) {
-            readStatusRepository.deleteById(readStatus.getId());
-        }
-
-        channelRepository.deleteById(channelId);
+        dataCleanupService.deleteChannelData(channelId);
     }
 
     private Channel findChannelEntity(UUID channelId) {
