@@ -174,18 +174,14 @@ public class BasicChannelService implements ChannelService {
 
     private Channel findChannelEntity(UUID channelId) {
         return channelRepository.findById(channelId)
-                .orElseThrow(() -> new BusinessLogicException(
-                        ExceptionCode.CHANNEL_NOT_FOUND,
-                        channelId
-                ));
+                .orElseThrow(() ->
+                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND, channelId));
     }
 
     private User findUserEntity(UUID userId) {
         return userRepository.findById(userId)
-                .orElseThrow(() -> new BusinessLogicException(
-                        ExceptionCode.USER_NOT_FOUND,
-                        userId
-                ));
+                .orElseThrow(()
+                        -> new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, userId));
     }
 
     private void createReadStatusIfAbsent(

@@ -37,7 +37,7 @@ public class BasicDataCleanupService implements DataCleanupService {
     public void deleteUserData(UUID userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, userId));
 
         // 사용자가 작성한 메시지 삭제
         List<Message> messages = messageRepository.findByUserId(userId);
@@ -83,7 +83,7 @@ public class BasicDataCleanupService implements DataCleanupService {
     public void deleteMessageData(UUID messageId) {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND, messageId));
 
         deleteMessage(message);
     }
@@ -92,7 +92,7 @@ public class BasicDataCleanupService implements DataCleanupService {
     public void deleteChannelData(UUID channelId) {
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND, channelId));
 
         deleteChannel(channel);
     }

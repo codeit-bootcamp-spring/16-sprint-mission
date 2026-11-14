@@ -32,6 +32,7 @@ public class ChannelController {
     }
 
     @PostMapping("/private")
+    @ResponseStatus(HttpStatus.CREATED)
     public ChannelResponseDto createPrivate(
             @Valid @RequestBody PrivateChannelCreateRequestDto request
     ) {
@@ -40,7 +41,7 @@ public class ChannelController {
 
     @GetMapping
     public List<ChannelDto> findAccessible(
-            @RequestHeader("USER-UUID") UUID userId
+            @RequestParam UUID userId
     ) {
         return channelService.findAccessibleChannelsByUserId(userId);
     }

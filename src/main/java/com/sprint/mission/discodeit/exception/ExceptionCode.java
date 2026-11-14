@@ -41,6 +41,11 @@ public enum ExceptionCode {
             "이미 사용 중인 이메일입니다."
     ),
 
+    USER_STATUS_ALREADY_EXISTS(
+            HttpStatus.BAD_REQUEST,
+            "이미 해당 사용자의 상태가 존재합니다."
+    ),
+
     INVALID_PASSWORD(
             HttpStatus.BAD_REQUEST,
             "비밀번호가 일치하지 않습니다."

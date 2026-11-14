@@ -123,19 +123,19 @@ public class BasicMessageService implements MessageService {
     private Message findMessageEntity(UUID messageId) {
         return messageRepository.findById(messageId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.MESSAGE_NOT_FOUND, messageId));
     }
 
     private Channel findChannelEntity(UUID channelId) {
         return channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND, channelId));
     }
 
     private User findUserEntity(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, userId));
     }
 
     private MessageResponseDto toResponseDto(Message message) {

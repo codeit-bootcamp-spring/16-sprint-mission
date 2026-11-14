@@ -94,14 +94,14 @@ public class FileMessageRepository implements MessageRepository {
     public List<Message> findByUserId(UUID userId) {
         return findAll().stream()
                 .filter(message -> message.getType() == MessageType.USER)
-                .filter(message -> message.getAuthorId().equals(userId))
+                .filter(message -> userId.equals(message.getAuthorId()))
                 .toList();
     }
 
     @Override
     public List<Message> findByChannelId(UUID channelId) {
         return findAll().stream()
-                .filter(message -> message.getChannelId().equals(channelId))
+                .filter(message -> channelId.equals(message.getChannelId()))
                 .toList();
     }
 
@@ -109,8 +109,8 @@ public class FileMessageRepository implements MessageRepository {
     public List<Message> findByUserIdAndChannelId(UUID userId, UUID channelId) {
         return findAll().stream()
                 .filter(message -> message.getType() == MessageType.USER)
-                .filter(message -> message.getAuthorId().equals(userId))
-                .filter(message -> message.getChannelId().equals(channelId))
+                .filter(message -> userId.equals(message.getAuthorId()))
+                .filter(message -> channelId.equals(message.getChannelId()))
                 .toList();
     }
 

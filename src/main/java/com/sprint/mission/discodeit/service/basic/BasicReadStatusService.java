@@ -104,13 +104,13 @@ public class BasicReadStatusService implements ReadStatusService {
     private User findUserEntity(UUID userId) {
         return userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, userId));
     }
 
     private Channel findChannelEntity(UUID channelId) {
         return channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.CHANNEL_NOT_FOUND, channelId));
     }
 
     private ReadStatus findReadStatusEntity(UUID readStatusId) {
