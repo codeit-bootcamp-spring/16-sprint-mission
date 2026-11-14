@@ -1,23 +1,29 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.otherRequest.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.userRequest.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 
-import com.sprint.mission.discodeit.repository.otherRepository.BinaryContentRepository;
-import com.sprint.mission.discodeit.repository.otherRepository.UserStatusRepository;
+import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.FileProcessingException;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.entity.newDomain.BinaryContent;
-import com.sprint.mission.discodeit.entity.newDomain.UserStatus;
+import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.service.UserService;
 
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
 import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -30,6 +36,7 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
 
     // 비밀번호 암호화 및 검증을 위한 객체
     private final PasswordEncoder passwordEncoder;
@@ -38,7 +45,7 @@ public class BasicUserService implements UserService {
     // 단, 현재 File/JCF 기반 Repository의 변경 사항은 자동으로 롤백되지 않는다.
     @Transactional
     @Override
-    public UserDto createUser(UserCreateRequest request) {
+    public UserDto createUser(UserCreateRequest request, MultipartFile profile) {
 
         // 1. 사용자 이름 중복 검사
         boolean duplicatedUsername = userRepository.findAll().stream()
@@ -57,27 +64,24 @@ public class BasicUserService implements UserService {
         }
 
         // 3. 프로필 이미지가 전달된 경우 저장
-        BinaryContentCreateRequest profileRequest = request.profile();
-        BinaryContent profile = null;
+        BinaryContent profileContent = null;
 
-        if (profileRequest != null) {
-            profile = new BinaryContent(
-                    profileRequest.fileName(),
-                    profileRequest.contentType(),
-                    profileRequest.size(),
-                    profileRequest.bytes()
-            );
-
-            binaryContentRepository.save(profile);
+        if (profile != null && !profile.isEmpty()) {
+            profileContent = createBinaryContent(profile);
+            binaryContentRepository.save(profileContent);
         }
 
-        UUID profileId = profile != null ? profile.getId() : null;
+        UUID profileId = profileContent != null ? profileContent.getId() : null;
 
         // 4. 비밀번호를 BCrypt 방식으로 암호화하고 사용자 생성
         String encodedPassword = passwordEncoder.encode(request.password());
+
         User user = new User(
-                request.username(), request.email(),
-                encodedPassword, profileId);
+                request.username(),
+                request.email(),
+                encodedPassword,
+                profileId
+        );
 
         userRepository.save(user);
 
@@ -89,18 +93,33 @@ public class BasicUserService implements UserService {
         return toDto(user, userStatus);
     }
 
+    // MultipartFile을 BinaryContent 객체로 변환한다.
+    private BinaryContent createBinaryContent(MultipartFile file) {
+
+        try {
+            return new BinaryContent(
+                    file.getOriginalFilename(),
+                    file.getContentType(),
+                    file.getSize(),
+                    file.getBytes()
+            );
+        } catch (IOException ioException) {
+            throw new FileProcessingException("프로필 파일을 읽을 수 없습니다.", ioException);
+        }
+    }
+
     @Override
     public UserDto readUser(UUID id) {
 
         // 1. 사용자 조회
         User user = userRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 2. 사용자 상태 조회
         UserStatus userStatus = userStatusRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
         // 3. 조회 결과를 DTO로 변환하여 반환
         return toDto(user, userStatus);
@@ -115,7 +134,7 @@ public class BasicUserService implements UserService {
                     UserStatus userStatus = userStatusRepository
                             .findByUserId(user.getId())
                             .orElseThrow(() ->
-                                    new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                                    new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
                     return toDto(user, userStatus);
                 })
@@ -126,28 +145,28 @@ public class BasicUserService implements UserService {
     // 단, 현재 File/JCF 기반 Repository의 변경 사항은 자동으로 롤백되지 않는다.
     @Transactional
     @Override
-    public UserDto updateUser(UserUpdateRequest request) {
+    public UserDto updateUser(UUID userId, UserUpdateRequest request, MultipartFile profile) {
 
         // 1. 수정 대상 사용자 조회
-        User targetUser = userRepository.findByUserId(request.userId())
+        User targetUser = userRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 전달되지 않은 항목은 기존 값을 유지한다.
-        String username = request.username() != null
-                ? request.username() : targetUser.getUsername();
+        String username = request.newUsername() != null
+                ? request.newUsername() : targetUser.getUsername();
 
-        String email = request.email() != null
-                ? request.email() : targetUser.getEmail();
+        String email = request.newEmail() != null
+                ? request.newEmail() : targetUser.getEmail();
 
         // 새 비밀번호가 전달된 경우 암호화하고, 그렇지 않으면 기존 비밀번호를 유지한다.
-        String password = request.password() != null
-                ? passwordEncoder.encode(request.password()) : targetUser.getPassword();
+        String password = request.newPassword() != null
+                ? passwordEncoder.encode(request.newPassword()) : targetUser.getPassword();
 
         // 2. 사용자 이름 중복 검사 (본인 제외)
         boolean duplicatedUsername = userRepository.findAll().stream()
                 .anyMatch(otherUser ->
-                        !otherUser.getId().equals(request.userId())
+                        !otherUser.getId().equals(userId)
                                 && otherUser.getUsername().equals(username));
 
         if (duplicatedUsername) {
@@ -157,7 +176,7 @@ public class BasicUserService implements UserService {
         // 3. 이메일 중복 검사 (본인 제외)
         boolean duplicatedEmail = userRepository.findAll().stream()
                 .anyMatch(otherUser ->
-                        !otherUser.getId().equals(request.userId())
+                        !otherUser.getId().equals(userId)
                                 && otherUser.getEmail().equals(email));
 
         if (duplicatedEmail) {
@@ -166,20 +185,12 @@ public class BasicUserService implements UserService {
 
         // 4. 기존 프로필 이미지 ID 유지
         UUID oldProfileId = targetUser.getProfileId();
-        UUID profileId = targetUser.getProfileId();
+        UUID profileId = oldProfileId;
 
         // 5. 새 프로필 이미지가 전달된 경우 저장하고 ID 갱신
-        if (request.profile() != null) {
+        if (profile != null && !profile.isEmpty()) {
 
-            BinaryContentCreateRequest profileRequest = request.profile();
-
-            BinaryContent newProfile = new BinaryContent(
-                    profileRequest.fileName(),
-                    profileRequest.contentType(),
-                    profileRequest.size(),
-                    profileRequest.bytes()
-            );
-
+            BinaryContent newProfile = createBinaryContent(profile);
             binaryContentRepository.save(newProfile);
 
             profileId = newProfile.getId();
@@ -198,14 +209,14 @@ public class BasicUserService implements UserService {
         userRepository.save(updatedUser);
 
         // 새 프로필로 교체된 경우 기존 프로필 이미지 삭제
-        if (request.profile() != null && oldProfileId != null) {
+        if (profile != null && !profile.isEmpty() && oldProfileId != null) {
             binaryContentRepository.deleteById(oldProfileId);
         }
 
         // 8. 사용자 상태 조회 및 DTO 반환
-        UserStatus userStatus = userStatusRepository.findByUserId(request.userId())
+        UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저 상태를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저 상태를 찾을 수 없습니다."));
 
         return toDto(updatedUser, userStatus);
     }
@@ -219,13 +230,16 @@ public class BasicUserService implements UserService {
         // 1. 삭제 대상 사용자 조회
         User user = userRepository.findByUserId(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("유저를 찾을 수 없습니다."));
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
 
         // 2. 프로필 이미지 ID 확인
         UUID profileId = user.getProfileId();
 
         // 3. 사용자 상태 삭제
         userStatusRepository.deleteByUserId(id);
+
+        // 4. 사용자의 읽음 상태 삭제
+        readStatusRepository.deleteByUserId(id);
 
         // 4. 프로필 이미지가 존재하면 삭제
         if (profileId != null) {

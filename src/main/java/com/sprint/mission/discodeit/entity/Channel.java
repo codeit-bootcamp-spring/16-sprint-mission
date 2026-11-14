@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.type.ChannelType;
+import com.sprint.mission.discodeit.type.ChannelType;
 import lombok.Getter;
 
 import java.util.*;
@@ -12,13 +12,12 @@ public class Channel extends BaseEntity {
     @Getter
     private final ChannelType type;
 
-    // 현재 name은 final이므로 변경할 수 없어.
-    // 따라서 아래 코드에서 final을 제거해야 해.
+    // 채널 이름은 수정할 수 있도록 final을 사용하지 않는다.
     @Getter
     private String name;
 
     @Getter
-    private final String description;
+    private String description;
 
     // 채널 참가된 유저들을 순서대로 받기위해 LinkedHashSet 으로 묶는다.
     private final Set<UUID> memberIds = new LinkedHashSet<>();
@@ -58,8 +57,9 @@ public class Channel extends BaseEntity {
         return new LinkedHashSet<>(memberIds);
     }
 
+    // 유저를 채널에 참가시킨다.
     public void addMember(UUID userId){
-        // 유저를 채널에 참가시킨다.
+
         if (userId == null){
             throw new IllegalArgumentException("유저 ID는 필수입니다.");
         }
@@ -72,9 +72,14 @@ public class Channel extends BaseEntity {
 
     // 유저를 채널에 퇴장시킨다.
     public void exitMember(UUID userId){
+
+        if (userId == null) {
+            throw new IllegalArgumentException("유저 ID는 필수입니다.");
+        }
         if(!memberIds.remove(userId)){
             throw new IllegalArgumentException("채널에 참여중인 유저가 아닙니다.");
         }
+
         touch();
     }
 
@@ -96,6 +101,16 @@ public class Channel extends BaseEntity {
 
         this.name = name;
         touch(); // 수정 시각(updateAt)을 현재 시각으로 갱신한다.
+    }
+
+    // 전달받은 설명으로 현재 객체의 설명을 변경한다.
+    public void changeDescription(String description) {
+        if (type == ChannelType.PRIVATE) {
+            throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
+        }
+
+        this.description = description;
+        touch();
     }
 
     @Override

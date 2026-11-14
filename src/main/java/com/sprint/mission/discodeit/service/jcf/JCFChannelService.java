@@ -1,17 +1,24 @@
 package com.sprint.mission.discodeit.service.jcf;
 
-import com.sprint.mission.discodeit.dto.request.channelRequest.PrivateChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.channelRequest.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.channelRequest.ChannelUpdateRequest;
-import com.sprint.mission.discodeit.dto.type.ChannelType;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.request.channels.PublicChannelUpdateRequest;
+
+import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
+import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
+
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
-import com.sprint.mission.discodeit.entity.newDomain.ReadStatus;
+import com.sprint.mission.discodeit.entity.ReadStatus;
+
+import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
-import com.sprint.mission.discodeit.repository.otherRepository.ReadStatusRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+import com.sprint.mission.discodeit.type.ChannelType;
 
 import java.time.Instant;
 import java.util.*;
@@ -22,17 +29,19 @@ public class JCFChannelService implements ChannelService {
     private final UserRepository userRepository;
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
+    private final BinaryContentRepository binaryContentRepository;
 
     // 의존성 주입 및 데이터 저장소 초기화
-    public JCFChannelService(
-                    UserRepository userRepository,
-                    ReadStatusRepository readStatusRepository,
-                    MessageRepository messageRepository) {
+    public JCFChannelService(UserRepository userRepository,
+                             ReadStatusRepository readStatusRepository,
+                             MessageRepository messageRepository,
+                             BinaryContentRepository binaryContentRepository) {
 
         this.data = new ArrayList<>();
         this.userRepository = userRepository;
         this.readStatusRepository = readStatusRepository;
         this.messageRepository = messageRepository;
+        this.binaryContentRepository = binaryContentRepository;
     }
 
     // PUBLIC 채널 생성
@@ -41,14 +50,14 @@ public class JCFChannelService implements ChannelService {
         boolean duplicated = data.stream()
                 .anyMatch(channel ->
                         channel.getType() == ChannelType.PUBLIC
-                                && channel.getName().equals(request.channelName()));
+                                && channel.getName().equals(request.name()));
 
         if (duplicated) {
-            throw new IllegalArgumentException("중복된 채널 이름입니다.");
+            throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
         Channel channel = new Channel(
-                request.channelName(), request.description()
+                request.name(), request.description()
         );
 
         data.add(channel);
@@ -60,29 +69,20 @@ public class JCFChannelService implements ChannelService {
     public ChannelDto createPrivateChannel(PrivateChannelCreateRequest request) {
 
         // 참여자 목록이 비어 있는지 확인
-        if (request.memberIds() == null || request.memberIds().isEmpty()) {
+        if (request.participantIds() == null || request.participantIds().isEmpty()) {
             throw new IllegalArgumentException("참여자가 필요합니다.");
         }
 
         // 모든 참여자의 존재 여부 확인
-        for (UUID userId : request.memberIds()) {
+        for (UUID userId : request.participantIds()) {
             if (userRepository.findByUserId(userId).isEmpty()) {
-                throw new IllegalArgumentException("존재하지 않는 유저입니다.");
+                throw new ResourceNotFoundException("존재하지 않는 사용자입니다.");
             }
         }
 
         // 검증 완료 후 PRIVATE 채널 생성
-        Channel channel = new Channel(request.memberIds());
-
+        Channel channel = new Channel(request.participantIds());
         data.add(channel);
-
-        // 참여자별 ReadStatus 생성 및 저장
-        for (UUID userId : channel.getMemberIds()) {
-            ReadStatus readStatus = new ReadStatus(
-                    userId, channel.getId(), Instant.now());
-
-            readStatusRepository.save(readStatus);
-        }
 
         return toDto(channel);
     }
@@ -96,6 +96,13 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
+
+        // 사용자가 존재하는지 확인한다.
+        userRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("사용자를 찾을 수 없습니다.")
+                );
+
         return data.stream()
                 .filter(channel ->
                         channel.getType() == ChannelType.PUBLIC
@@ -105,33 +112,47 @@ public class JCFChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelDto updateChannel(ChannelUpdateRequest request) {
+    public ChannelDto updateChannel(UUID channelId, PublicChannelUpdateRequest request) {
 
         // 수정할 채널 조회
-        Channel targetChannel = findChannel(request.channelId());
+        Channel targetChannel = findChannel(channelId);
 
         // PRIVATE 채널 수정 방지
         if (targetChannel.getType() == ChannelType.PRIVATE) {
             throw new IllegalArgumentException("PRIVATE 채널은 수정할 수 없습니다.");
         }
 
-        // 기존 채널명과 변경할 채널명이 같은지 확인
-        if (targetChannel.getName().equals(request.channelName())) {
-            throw new IllegalArgumentException("기존 채널명과 동일합니다.");
-        }
+        // 수정할 채널 이름과 설명을 결정한다.
+        String newChannelName = request.newName() != null
+                ? request.newName() : targetChannel.getName();
+
+        String newDescription = request.newDescription() != null
+                ? request.newDescription() : targetChannel.getDescription();
 
         // 다른 PUBLIC 채널에서 동일한 이름을 사용하는지 확인
         boolean duplicated = data.stream()
-                .anyMatch(otherChannel -> otherChannel.getType() == ChannelType.PUBLIC
-                        && otherChannel != targetChannel
-                        && otherChannel.getName().equals(request.channelName()));
+                .filter(otherChannel -> otherChannel.getType() == ChannelType.PUBLIC)
+                .anyMatch(otherChannel ->
+                        !otherChannel.getId().equals(channelId)
+                                && otherChannel.getName().equals(newChannelName));
 
         // 중복된 채널 이름이 있으면 예외를 발생시킨다.
         if (duplicated) {
-            throw new IllegalArgumentException("중복된 채널 이름입니다.");
+            throw new DuplicateResourceException("중복된 채널 이름입니다.");
         }
 
-        targetChannel.changeName(request.channelName()); // 이름을 변경하고 수정 시각을 갱신한다.
+        // 변경 사항이 있는지 확인한다.
+        if (Objects.equals(targetChannel.getName(), newChannelName)
+                && Objects.equals(targetChannel.getDescription(), newDescription)) {
+            throw new IllegalArgumentException("기존 채널 이름과 내용에는 변경사항이 없습니다.");
+        }
+
+        // 채널 이름과 설명을 변경한다.
+        targetChannel.changeName(newChannelName);
+        targetChannel.changeDescription(newDescription);
+
+        // sava() 호출하지 않는 이유는 JCF 메모리의 data 리스트에 객체를 직접 보관하기 때문이다.
+
         return toDto(targetChannel); // 수정한 채널을 DTO로 변환하여 반환한다.
     }
 
@@ -140,9 +161,24 @@ public class JCFChannelService implements ChannelService {
     public void deleteChannel(UUID id) {
         Channel targetChannel = findChannel(id);
 
+        // 해당 채널의 모든 메시지 조회
+        List<Message> messages = messageRepository.findAllByChannelId(id);
+
+        // 메시지에 연결된 첨부파일 ID 수집
+        List<UUID> attachmentIds = messages.stream()
+                .filter(message -> message.getAttachmentIds() != null)
+                .flatMap(message -> message.getAttachmentIds().stream())
+                .distinct()
+                .toList();
+
+        // 첨부파일 삭제
+        attachmentIds.forEach(binaryContentRepository::deleteById);
+
         // 채널에 연결된 메시지와 읽음 상태를 삭제한 후 채널 삭제
         messageRepository.deleteByChannelId(id);
         readStatusRepository.deleteByChannelId(id);
+
+        // 채널 삭제
         data.remove(targetChannel);
     }
 
@@ -152,26 +188,25 @@ public class JCFChannelService implements ChannelService {
 
         // 참여하려는 유저의 존재 여부 확인
         if (userRepository.findByUserId(userId).isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 유저입니다.");
+            throw new ResourceNotFoundException("존재하지 않는 유저입니다.");
         }
 
         // PRIVATE 채널은 생성 당시 지정된 참여자만 입장 허용
         if (channel.getType() == ChannelType.PRIVATE
                 && !channel.hasMember(userId)) {
-            throw new IllegalArgumentException("PRIVATE 채널의 참여자가 아닙니다.");
+            throw new ForbiddenOperationException("PRIVATE 채널의 참여자가 아닙니다.");
         }
 
-        // 아직 참여하지 않은 유저라면 채널에 추가
-        if (!channel.hasMember(userId)) {
-            channel.addMember(userId);
+        // 이미 참여 중인 사용자는 추가 작업 없이 종료
+        if (channel.hasMember(userId)) {
+            return;
         }
 
-        // 기존 ReadStatus가 없으면 새로 생성하여 저장
-        boolean exists = readStatusRepository
-                .findByUserIdAndChannelId(userId, channelId)
-                .isPresent();
+        // 채널에 사용자 추가
+        channel.addMember(userId);
 
-        if (!exists) {
+        // 기존 ReadStatus가 없는 경우 생성 및 저장
+        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isEmpty()) {
             readStatusRepository.save(
                     new ReadStatus(userId, channelId, Instant.now())
             );
@@ -180,6 +215,13 @@ public class JCFChannelService implements ChannelService {
 
     @Override
     public void leaveChannel(UUID channelId, UUID userId) {
+
+        // 퇴장 요청자의 존재 여부 확인
+        userRepository.findByUserId(userId)
+                .orElseThrow(() ->
+                        new ResourceNotFoundException("유저를 찾을 수 없습니다.")
+                );
+
         Channel channel = findChannel(channelId);
 
         // 채널에서 유저를 제외하고 해당 유저의 읽음 상태 삭제
@@ -199,7 +241,7 @@ public class JCFChannelService implements ChannelService {
                 .filter(channel -> channel.getId().equals(id))
                 .findFirst()
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다."));
+                        new ResourceNotFoundException("채널을 찾을 수 없습니다."));
     }
 
     // 해당 채널의 가장 최근 메시지 시간 조회
@@ -212,15 +254,18 @@ public class JCFChannelService implements ChannelService {
 
     // Channel 객체를 ChannelDto로 변환한다.
     private ChannelDto toDto(Channel channel) {
-        Set<UUID> memberIds = channel.getMemberIds();
-//        Set<UUID> memberIds = channel.getType() == ChannelType.PRIVATE
-//                ? channel.getMemberIds() : Set.of();
+        Set<UUID> participantIds = channel.getType() == ChannelType.PRIVATE
+                ? channel.getMemberIds() : Set.of();
 
         return new ChannelDto(
-                channel.getId(), channel.getType(),
-                channel.getName(), channel.getDescription(),
-                memberIds, channel.getCreatedAt(),
-                channel.getUpdatedAt(), findLastMessageAt(channel.getId())
+                channel.getId(),
+                channel.getType(),
+                channel.getName(),
+                channel.getDescription(),
+                participantIds,
+                channel.getCreatedAt(),
+                channel.getUpdatedAt(),
+                findLastMessageAt(channel.getId())
         );
     }
 }

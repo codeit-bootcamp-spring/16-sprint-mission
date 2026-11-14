@@ -6,6 +6,8 @@ build/
 .kotlin
 testbytest.rtf
 .gitattributes
+.discodeit/
+intellij-java-google-style.xml
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
