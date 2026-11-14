@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.service.UserService;
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -32,15 +33,17 @@ public class UserController {
     }
 
     /* 사용자 등록(POST) */
+    // 생성 성공 시 201 Created 반환
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public UserDto postUser(
+    public ResponseEntity<UserDto> postUser(
             @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
             @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
-        return userService.createUser(request, profile);
+        UserDto user = userService.createUser(request, profile);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
     /* 사용자 정보 수정(PATCH) */
