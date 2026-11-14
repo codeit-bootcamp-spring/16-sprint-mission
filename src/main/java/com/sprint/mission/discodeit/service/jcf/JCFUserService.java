@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.jcf;
 
-
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.FileProcessingException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
@@ -59,7 +58,7 @@ public class JCFUserService implements UserService {
                         targetUser.getUsername().equals(request.username()));
 
         if (duplicatedUsername) {
-            throw new DuplicateResourceException("중복된 이름입니다.");
+            throw new IllegalArgumentException("중복된 이름입니다.");
         }
 
         // 이메일 중복 검사
@@ -68,7 +67,7 @@ public class JCFUserService implements UserService {
                         targetUser.getEmail().equals(request.email()));
 
         if (duplicatedEmail) {
-            throw new DuplicateResourceException("중복된 이메일입니다.");
+            throw new IllegalArgumentException("중복된 이메일입니다.");
         }
 
         // 프로필 이미지가 전달된 경우 BinaryContent로 변환하여 저장한다.
@@ -167,7 +166,7 @@ public class JCFUserService implements UserService {
                                     && otherUser.getUsername().equals(username));
 
             if (duplicatedUsername) {
-                throw new DuplicateResourceException("중복된 이름입니다.");
+                throw new IllegalArgumentException("중복된 이름입니다.");
             }
         }
 
@@ -182,7 +181,7 @@ public class JCFUserService implements UserService {
                                     && otherUser.getEmail().equals(email));
 
             if (duplicatedEmail) {
-                throw new DuplicateResourceException("중복된 이메일입니다.");
+                throw new IllegalArgumentException("중복된 이메일입니다.");
             }
         }
 

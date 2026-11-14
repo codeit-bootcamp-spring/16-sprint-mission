@@ -59,7 +59,7 @@ public class FileUserService implements UserService {
                         targetUser.getUsername().equals(request.username()));
 
         if (duplicatedUsername) {
-            throw new DuplicateResourceException("중복된 이름입니다.");
+            throw new IllegalArgumentException("중복된 이름입니다.");
         }
 
         // 이메일 중복 검사
@@ -68,7 +68,7 @@ public class FileUserService implements UserService {
                         targetUser.getEmail().equals(request.email()));
 
         if (duplicatedEmail) {
-            throw new DuplicateResourceException("중복된 이메일입니다.");
+            throw new IllegalArgumentException("중복된 이메일입니다.");
         }
 
         // 프로필 이미지가 전달된 경우 저장
@@ -168,7 +168,7 @@ public class FileUserService implements UserService {
                                     && otherUser.getUsername().equals(username));
 
             if (duplicatedUsername) {
-                throw new DuplicateResourceException("중복된 이름입니다.");
+                throw new IllegalArgumentException("중복된 이름입니다.");
             }
         }
 
@@ -183,7 +183,7 @@ public class FileUserService implements UserService {
                                     && otherUser.getEmail().equals(email));
 
             if (duplicatedEmail) {
-                throw new DuplicateResourceException("중복된 이메일입니다.");
+                throw new IllegalArgumentException("중복된 이메일입니다.");
             }
         }
 

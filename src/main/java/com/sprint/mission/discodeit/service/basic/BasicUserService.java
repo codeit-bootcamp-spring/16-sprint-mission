@@ -52,7 +52,7 @@ public class BasicUserService implements UserService {
                 .anyMatch(user -> user.getUsername().equals(request.username()));
 
         if (duplicatedUsername) {
-            throw new DuplicateResourceException("중복된 이름입니다.");
+            throw new IllegalArgumentException("중복된 이름입니다.");
         }
 
         // 2. 이메일 중복 검사
@@ -60,7 +60,7 @@ public class BasicUserService implements UserService {
                 .anyMatch(user -> user.getEmail().equals(request.email()));
 
         if (duplicatedEmail) {
-            throw new DuplicateResourceException("중복된 이메일입니다.");
+            throw new IllegalArgumentException("중복된 이메일입니다.");
         }
 
         // 3. 프로필 이미지가 전달된 경우 저장
@@ -170,7 +170,7 @@ public class BasicUserService implements UserService {
                                 && otherUser.getUsername().equals(username));
 
         if (duplicatedUsername) {
-            throw new DuplicateResourceException("중복된 사용자 이름입니다.");
+            throw new IllegalArgumentException("중복된 사용자 이름입니다.");
         }
 
         // 3. 이메일 중복 검사 (본인 제외)
@@ -180,7 +180,7 @@ public class BasicUserService implements UserService {
                                 && otherUser.getEmail().equals(email));
 
         if (duplicatedEmail) {
-            throw new DuplicateResourceException("중복된 이메일입니다.");
+            throw new IllegalArgumentException("중복된 이메일입니다.");
         }
 
         // 4. 기존 프로필 이미지 ID 유지
