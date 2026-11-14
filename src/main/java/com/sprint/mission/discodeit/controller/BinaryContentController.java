@@ -46,13 +46,11 @@ public class BinaryContentController {
     }
 
     // 바이너리 콘텐츠 단건 조회(GET)
-    // 기존 코드는 UUID를 URL 경로로 전달받아 바이너리 콘텐츠를 반환했다면,
-    // 변경 코드는 UUID를 요청 파라미터로 전달받고, ResponseEntity로 HTTP 응답을 직접 제어한다.
-    // static 파일에서 전달하는, binaryContentId라는 요청 파라미터로 프로필 이미지를 조회한다.
-    @RequestMapping(value = "/find", method = RequestMethod.GET)
+    @RequestMapping(value = "/{binaryContentId}", method = RequestMethod.GET)
     public ResponseEntity<BinaryContent> getBinaryContent(
-            @RequestParam("binaryContentId") UUID id) {
-        return ResponseEntity.ok(binaryContentService.find(id));
+            @PathVariable UUID binaryContentId) {
+
+        return ResponseEntity.ok(binaryContentService.find(binaryContentId));
     }
 
     // 바이너리 콘텐츠 다건 조회(GET)

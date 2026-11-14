@@ -28,7 +28,7 @@ async function fetchAndRenderUsers() {
 async function fetchUserProfile(profileId) {
     try {
         const response = await fetch(
-            `${ENDPOINTS.BINARY_CONTENT}/find?binaryContentId=${profileId}`);
+            `${ENDPOINTS.BINARY_CONTENT}/${profileId}`);
         if (!response.ok) {
             throw new Error('Failed to fetch profile');
         }
