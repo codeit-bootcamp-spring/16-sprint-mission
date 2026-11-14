@@ -7,6 +7,9 @@ import com.sprint.mission.discodeit.service.ReadStatusService;
 
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,20 +24,25 @@ public class ReadStatusController {
 
     // 특정 채널의 메시지 수신 정보 생성(POST)
     @RequestMapping(method = RequestMethod.POST)
-    public ReadStatus postReadStatus(@RequestBody ReadStatusCreateRequest request) {
-        return readStatusService.create(request);
-    }
+    public ResponseEntity<ReadStatus> postReadStatus(
+            @RequestBody ReadStatusCreateRequest request) {
 
-    // 특정 채널의 메시지 수신 정보 수정(PUT)
-    @RequestMapping(value = "/{id}", method = RequestMethod.PUT)
-    public ReadStatus putReadStatus(@PathVariable UUID id,
-                                    @Valid @RequestBody ReadStatusUpdateRequest request) {
-        return readStatusService.update(id, request);
+        ReadStatus readStatus = readStatusService.create(request);
+        return ResponseEntity.status(HttpStatus.CREATED).body(readStatus);
     }
 
     // 특정 사용자의 메시지 수신 정보 조회(GET)
     @RequestMapping(method = RequestMethod.GET)
-    public List<ReadStatus> getAllByUserId(@RequestParam UUID userID) {
-        return readStatusService.findAllByUserId(userID);
+    public List<ReadStatus> getAllByUserId(@RequestParam UUID userId) {
+        return readStatusService.findAllByUserId(userId);
+    }
+
+    // 메시지 읽음 상태 수정(PATCH)
+    @RequestMapping(value = "/{readStatusId}", method = RequestMethod.PATCH)
+    public ReadStatus putReadStatus(
+            @PathVariable UUID readStatusId,
+            @Valid @RequestBody ReadStatusUpdateRequest request) {
+
+        return readStatusService.update(readStatusId, request);
     }
 }

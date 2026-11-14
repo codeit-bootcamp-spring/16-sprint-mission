@@ -9,7 +9,9 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -41,7 +43,7 @@ public class BasicReadStatusService implements ReadStatusService {
         readStatusRepository.findByUserIdAndChannelId(
                 request.userId(), request.channelId()
         ).ifPresent(readStatus -> {
-            throw new DuplicateResourceException("이미 존재하는 읽음 상태입니다.");
+            throw new IllegalArgumentException("이미 존재하는 읽음 상태입니다.");
         });
 
         ReadStatus readStatus = new ReadStatus(
