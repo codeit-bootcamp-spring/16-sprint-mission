@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.exception.ExceptionCode;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 
@@ -29,6 +30,7 @@ public class BasicMessageService implements MessageService {
     private final MessageRepository messageRepository;
     private final ChannelRepository channelRepository;
     private final UserRepository userRepository;
+    private final ReadStatusRepository readStatusRepository;
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
@@ -39,7 +41,8 @@ public class BasicMessageService implements MessageService {
         User user = findUserEntity(dto.getAuthorId());
         Channel channel = findChannelEntity(dto.getChannelId());
 
-        if (!channel.getParticipantIds().contains(user.getId())) {
+        if (channel.getType() == ChannelType.PRIVATE
+                && readStatusRepository.findByUserIdAndChannelId(user.getId(), channel.getId()).isEmpty()) {
             throw new BusinessLogicException(ExceptionCode.USER_NOT_PARTICIPANT);
         }
 
@@ -70,12 +73,6 @@ public class BasicMessageService implements MessageService {
         );
 
         Message savedMessage = messageRepository.save(message);
-
-        user.addMessageId(savedMessage.getId());
-        channel.addMessageId(savedMessage.getId());
-
-        userRepository.save(user);
-        channelRepository.save(channel);
 
         return toResponseDto(savedMessage);
     }
@@ -114,15 +111,6 @@ public class BasicMessageService implements MessageService {
     @Override
     public void deleteMessage(UUID messageId) {
         Message message = findMessageEntity(messageId);
-
-        User user = findUserEntity(message.getAuthorId());
-        Channel channel = findChannelEntity(message.getChannelId());
-
-        user.removeMessageId(messageId);
-        channel.removeMessageId(messageId);
-
-        userRepository.save(user);
-        channelRepository.save(channel);
 
         for (UUID attachmentId : message.getAttachmentIds()) {
             binaryContentRepository.deleteById(attachmentId);

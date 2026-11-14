@@ -15,8 +15,4 @@ public interface ChannelRepository {
     Channel save(Channel channel);
 
     void deleteById(UUID channelId);
-
-    List<Channel> findByParticipantId(UUID userId);
-
-    List<Channel> findAccessibleByUserId(UUID userId);
 }

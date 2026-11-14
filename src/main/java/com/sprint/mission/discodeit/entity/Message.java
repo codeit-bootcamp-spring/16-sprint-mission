@@ -41,6 +41,8 @@ public class Message extends BaseEntity {
     }
 
     public void updateContent(String content) {
+
+
         Validation.validateBlank(content, "content");
         this.content = content;
         super.update();

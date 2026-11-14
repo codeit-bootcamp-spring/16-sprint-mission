@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequestDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponseDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequestDto;
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.BusinessLogicException;
@@ -34,17 +35,20 @@ public class BasicReadStatusService implements ReadStatusService {
         UUID channelId = dto.channelId();
 
         findUserEntity(userId);
-        findChannelEntity(channelId);
+        Channel channel = findChannelEntity(channelId);
 
-        boolean isParticipant = channelRepository.findByParticipantId(userId)
-                .stream()
-                .anyMatch(participantChannel -> participantChannel.getId().equals(channelId));
-
-        if (!isParticipant) {
+        if (channel.getType() == ChannelType.PRIVATE
+                && readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .isEmpty()
+        ) {
             throw new BusinessLogicException(ExceptionCode.USER_NOT_PARTICIPANT);
         }
 
-        if (readStatusRepository.findByUserIdAndChannelId(userId, channelId).isPresent()) {
+        if (readStatusRepository
+                .findByUserIdAndChannelId(userId, channelId)
+                .isPresent()
+        ) {
             throw new BusinessLogicException(ExceptionCode.READ_STATUS_ALREADY_EXISTS);
         }
 

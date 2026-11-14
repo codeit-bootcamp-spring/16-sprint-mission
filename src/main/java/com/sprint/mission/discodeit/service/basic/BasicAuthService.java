@@ -25,15 +25,19 @@ public class BasicAuthService implements AuthService {
     public UserResponseDto login(AuthLoginRequestDto dto) {
         User user = userRepository.findAll().stream()
                 .filter(u -> u.getUsername().equals(dto.getUsername()))
-                .filter(u -> u.getPassword().equals(dto.getPassword()))
                 .findFirst()
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.INVALID_LOGIN)
+                        new BusinessLogicException(ExceptionCode.USER_NOT_FOUND, dto.getUsername())
                 );
+
+        if (!user.getPassword().equals(dto.getPassword())) {
+            throw new BusinessLogicException(ExceptionCode.INVALID_PASSWORD);
+        }
 
         UserStatus userStatus = userStatusRepository.findByUserId(user.getId())
                 .orElseThrow(() ->
-                        new BusinessLogicException(ExceptionCode.USER_STATUS_NOT_FOUND));
+                        new BusinessLogicException(ExceptionCode.USER_STATUS_NOT_FOUND)
+                );
 
         userStatus.updateLastActiveAt();
         userStatusRepository.save(userStatus);

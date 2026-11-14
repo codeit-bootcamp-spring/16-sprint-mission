@@ -20,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -31,7 +32,6 @@ public class BasicChannelService implements ChannelService {
     private final ReadStatusRepository readStatusRepository;
     private final MessageRepository messageRepository;
     private final UserRepository userRepository;
-
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
@@ -59,26 +59,17 @@ public class BasicChannelService implements ChannelService {
                 null
         );
 
+        Channel savedChannel = channelRepository.save(channel);
+
         if (dto.getParticipantIds() != null) {
             for (UUID participantId : dto.getParticipantIds()) {
                 findUserEntity(participantId);
 
-                // 중복 참여 방지
-                if (!channel.getParticipantIds().contains(participantId)) {
-                    channel.joinChannel(participantId);
-                }
+                createReadStatusIfAbsent(
+                        participantId,
+                        savedChannel.getId()
+                );
             }
-        }
-
-        Channel savedChannel = channelRepository.save(channel);
-
-        for (UUID participantId : channel.getParticipantIds()) {
-            User participant = findUserEntity(participantId);
-
-            participant.addChannelId(savedChannel.getId());
-            userRepository.save(participant);
-
-            createReadStatusIfAbsent(participantId, savedChannel.getId());
         }
 
         return toResponseDto(savedChannel);
@@ -86,38 +77,32 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelResponseDto joinChannel(UUID channelId, UUID userId) {
-        User user = findUserEntity(userId);
+        findUserEntity(userId);
         Channel channel = findChannelEntity(channelId);
 
         if (channel.getType() == ChannelType.PRIVATE) {
             throw new IllegalStateException("비공개 채널에는 임의로 참여할 수 없습니다.");
         }
 
-        channel.joinChannel(userId);
-        Channel savedChannel = channelRepository.save(channel);
+        // PUBLIC 채널은 모든 사용자가 참여자로 간주되므로
+        // 별도의 참여 정보 저장이 필요하지 않음
 
-        user.addChannelId(channelId);
-        userRepository.save(user);
-
-        createReadStatusIfAbsent(userId, channelId);
-
-        return toResponseDto(savedChannel);
+        return toResponseDto(channel);
     }
 
     @Override
     public void leaveChannel(UUID channelId, UUID userId) {
-        User user = findUserEntity(userId);
+        findUserEntity(userId);
         Channel channel = findChannelEntity(channelId);
 
-        channel.leaveChannel(userId);
-        channelRepository.save(channel);
+        if (channel.getType() == ChannelType.PRIVATE) {
+            readStatusRepository.findByUserIdAndChannelId(userId, channelId)
+                    .ifPresent(readStatus ->
+                            readStatusRepository.deleteById(readStatus.getId()));
+        }
 
-        user.removeChannelId(channelId);
-        userRepository.save(user);
-
-        readStatusRepository.findByUserIdAndChannelId(userId, channelId)
-                .ifPresent(readStatus ->
-                        readStatusRepository.deleteById(readStatus.getId()));
+        // PUBLIC 채널은 모든 사용자가 참여자로 간주되므로
+        // 별도의 참여 정보 삭제가 필요하지 않음
     }
 
     @Override
@@ -131,7 +116,27 @@ public class BasicChannelService implements ChannelService {
     public List<ChannelDto> findAccessibleChannelsByUserId(UUID userId) {
         findUserEntity(userId);
 
-        return channelRepository.findAccessibleByUserId(userId).stream()
+        List<Channel> publicChannels = channelRepository.findAll().stream()
+                .filter(channel -> channel.getType() == ChannelType.PUBLIC)
+                .toList();
+
+        List<Channel> accessibleChannels = new ArrayList<>(publicChannels);
+
+        List<ReadStatus> readStatuses =
+                readStatusRepository.findByUserId(userId);
+
+        for (ReadStatus readStatus : readStatuses) {
+            Channel channel = channelRepository
+                    .findById(readStatus.getChannelId())
+                    .orElse(null);
+
+            if (channel != null
+                    && channel.getType() == ChannelType.PRIVATE) {
+                accessibleChannels.add(channel);
+            }
+        }
+
+        return accessibleChannels.stream()
                 .map(this::toChannelDto)
                 .toList();
     }
@@ -164,17 +169,12 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public void deleteChannel(UUID channelId) {
-        Channel channel = findChannelEntity(channelId);
+        findChannelEntity(channelId);
 
         List<Message> messages =
                 messageRepository.findByChannelId(channelId);
 
         for (Message message : messages) {
-            User sender = findUserEntity(message.getAuthorId());
-
-            sender.removeMessageId(message.getId());
-            userRepository.save(sender);
-
             for (UUID attachmentId : message.getAttachmentIds()) {
                 binaryContentRepository.deleteById(attachmentId);
             }
@@ -187,13 +187,6 @@ public class BasicChannelService implements ChannelService {
 
         for (ReadStatus readStatus : readStatuses) {
             readStatusRepository.deleteById(readStatus.getId());
-        }
-
-        for (UUID participantId : channel.getParticipantIds()) {
-            User participant = findUserEntity(participantId);
-
-            participant.removeChannelId(channelId);
-            userRepository.save(participant);
         }
 
         channelRepository.deleteById(channelId);
@@ -222,7 +215,8 @@ public class BasicChannelService implements ChannelService {
         readStatusRepository
                 .findByUserIdAndChannelId(userId, channelId)
                 .orElseGet(() -> {
-                    ReadStatus readStatus = new ReadStatus(userId, channelId, null);
+                    ReadStatus readStatus =
+                            new ReadStatus(userId, channelId, null);
 
                     return readStatusRepository.save(readStatus);
                 });
@@ -249,8 +243,21 @@ public class BasicChannelService implements ChannelService {
                 .type(channel.getType())
                 .name(channel.getName())
                 .description(channel.getDescription())
-                .participantIds(channel.getParticipantIds())
+                .participantIds(findParticipantIds(channel))
                 .lastMessageAt(lastMessageAt)
                 .build();
+    }
+
+    private List<UUID> findParticipantIds(Channel channel) {
+        if (channel.getType() == ChannelType.PUBLIC) {
+            return userRepository.findAll().stream()
+                    .map(User::getId)
+                    .toList();
+        }
+
+        return readStatusRepository.findByChannelId(channel.getId())
+                .stream()
+                .map(ReadStatus::getUserId)
+                .toList();
     }
 }

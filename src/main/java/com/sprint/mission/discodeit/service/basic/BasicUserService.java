@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequestDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -144,60 +145,40 @@ public class BasicUserService implements UserService {
     public void deleteUser(UUID userId) {
         User user = findUserEntity(userId);
 
-        // 1. 참여 채널 정리
-        List<UUID> channelIds = new ArrayList<>(
-                user.getMyChannelIds()
-        );
+        // 1. 사용자가 작성한 메시지 삭제
+        List<Message> userMessages =
+                messageRepository.findByUserId(userId);
 
-        for (UUID channelId : channelIds) {
+        for (Message message : userMessages) {
+            deleteMessageData(message);
+        }
+
+        // 2. 사용자의 읽음 상태 및 채널 참여 관계 정리
+        List<ReadStatus> userReadStatuses =
+                readStatusRepository.findByUserId(userId);
+
+        for (ReadStatus readStatus : userReadStatuses) {
+            UUID channelId = readStatus.getChannelId();
+
             Channel channel = channelRepository.findById(channelId)
                     .orElse(null);
 
+            readStatusRepository.deleteById(readStatus.getId());
+
+            // 채널이 이미 삭제된 경우 읽음 상태만 정리
             if (channel == null) {
-                user.removeChannelId(channelId);
                 continue;
             }
 
-            // 사용자 메시지 삭제
-            List<Message> messages =
-                    messageRepository.findByUserIdAndChannelId(
-                            userId,
-                            channelId
-                    );
+            // 비공개 채널의 참여자가 모두 사라졌다면 채널도 삭제
+            if (channel.getType() == ChannelType.PRIVATE) {
+                List<ReadStatus> remainingParticipants =
+                        readStatusRepository.findByChannelId(channelId);
 
-            for (Message message : messages) {
-                deleteMessageData(message);
+                if (remainingParticipants.isEmpty()) {
+                    deleteChannelData(channel);
+                }
             }
-
-            // 채널 탈퇴
-            channel.leaveChannel(userId);
-            user.removeChannelId(channelId);
-
-            // 읽음 상태 삭제
-            readStatusRepository.findByUserIdAndChannelId(userId, channelId)
-                    .ifPresent(status ->
-                            readStatusRepository.deleteById(status.getId())
-                    );
-
-            // 참여자가 없으면 채널 삭제
-            if (channel.getParticipantIds().isEmpty()) {
-                deleteChannelData(channel);
-            } else {
-                channelRepository.save(channel);
-            }
-        }
-
-        // 2. 남은 사용자 메시지 정리
-        List<UUID> messageIds = new ArrayList<>(
-                user.getMyMessageIds()
-        );
-
-        for (UUID messageId : messageIds) {
-            messageRepository.findById(messageId)
-                    .ifPresentOrElse(
-                            this::deleteMessageData,
-                            () -> user.removeMessageId(messageId)
-                    );
         }
 
         // 3. 프로필 이미지 삭제
@@ -210,37 +191,21 @@ public class BasicUserService implements UserService {
         // 4. 사용자 상태 삭제
         userStatusRepository.findByUserId(userId)
                 .ifPresent(status ->
-                        userStatusRepository.deleteById(status.getId())
-                );
+                        userStatusRepository.deleteById(status.getId()));
 
         // 5. 사용자 삭제
         userRepository.deleteById(userId);
     }
 
-    // 메시지와 연관 데이터 삭제
+    // 메시지와 첨부 파일 삭제
     private void deleteMessageData(Message message) {
-        UUID messageId = message.getId();
-
-        // 작성자의 메시지 목록에서 제거
-        userRepository.findById(message.getAuthorId())
-                .ifPresent(sender -> {
-                    sender.removeMessageId(messageId);
-                    userRepository.save(sender);
-                });
-
-        // 채널의 메시지 목록에서 제거
-        channelRepository.findById(message.getChannelId())
-                .ifPresent(channel -> {
-                    channel.removeMessageId(messageId);
-                    channelRepository.save(channel);
-                });
-
         // 첨부 파일 삭제
         for (UUID attachmentId : message.getAttachmentIds()) {
             binaryContentRepository.deleteById(attachmentId);
         }
 
-        messageRepository.deleteById(messageId);
+        // 메시지 삭제
+        messageRepository.deleteById(message.getId());
     }
 
     // 채널과 채널에 속한 연관 데이터 삭제
@@ -263,17 +228,7 @@ public class BasicUserService implements UserService {
             readStatusRepository.deleteById(status.getId());
         }
 
-        // 3. 모든 참여자의 채널 목록에서 제거
-        for (UUID participantId :
-                new ArrayList<>(channel.getParticipantIds())) {
-
-            userRepository.findById(participantId)
-                    .ifPresent(participant -> {
-                        participant.removeChannelId(channelId);
-                        userRepository.save(participant);
-                    });
-        }
-
+        // 3. 채널 삭제
         channelRepository.deleteById(channelId);
     }
 

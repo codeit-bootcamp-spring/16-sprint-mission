@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.repository.file;
 
 import com.sprint.mission.discodeit.entity.Channel;
-import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 
 import java.io.IOException;
@@ -89,21 +88,5 @@ public class FileChannelRepository implements ChannelRepository {
         } catch (IOException e) {
             throw new RuntimeException("채널 파일 삭제에 실패했습니다.", e);
         }
-    }
-
-    @Override
-    public List<Channel> findByParticipantId(UUID userId) {
-        return findAll().stream()
-                .filter(channel -> channel.getParticipantIds().contains(userId))
-                .toList();
-    }
-
-    @Override
-    public List<Channel> findAccessibleByUserId(UUID userId) {
-        return findAll().stream()
-                .filter(channel ->
-                        channel.getType() == ChannelType.PUBLIC
-                                || channel.getParticipantIds().contains(userId))
-                .toList();
     }
 }
