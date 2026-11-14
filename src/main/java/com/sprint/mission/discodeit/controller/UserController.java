@@ -62,6 +62,7 @@ public class UserController {
     }
 
     /* 사용자 삭제(DELETE) */
+    // 삭제 성공 시 204 No Content 반환
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
     public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
         userService.deleteUser(userId);
