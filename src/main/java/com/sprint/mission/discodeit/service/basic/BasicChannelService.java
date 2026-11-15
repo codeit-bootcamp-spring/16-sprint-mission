@@ -8,6 +8,7 @@ import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -126,7 +127,9 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
         }
 
-        existingChannel.update(request.name(), request.description());
+        String name = request.name() == null ? existingChannel.getName() : request.name();
+        String description = request.description() == null ? existingChannel.getDescription() : request.description();
+        existingChannel.update(name, description);
         channelRepository.save(existingChannel);
     }
 
@@ -153,13 +156,13 @@ public class BasicChannelService implements ChannelService {
 
         // 연결된 데이터들을 정리한 뒤 마지막으로 채널을 삭제합니다.
         if (!channelRepository.deleteById(channel.getId())) {
-            throw new IllegalArgumentException("채널을 찾을 수 없습니다: " + id);
+            throw new ResourceNotFoundException("채널을 찾을 수 없습니다: " + id);
         }
     }
 
     private Channel findChannelOrThrow(UUID id) {
         return channelRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("채널을 찾을 수 없습니다: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("채널을 찾을 수 없습니다: " + id));
     }
 
     private ChannelDto toDto(Channel channel) {
