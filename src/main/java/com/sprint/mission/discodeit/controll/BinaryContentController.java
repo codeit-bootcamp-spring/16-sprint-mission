@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/api/binary-contents")
+@RequestMapping("/api/binaryContent")
 @RequiredArgsConstructor
 public class BinaryContentController {
 
@@ -44,6 +44,7 @@ public class BinaryContentController {
     ) {
         return ResponseEntity.ok(binaryContentService.findById(id));
     }
+
     @RequestMapping(method = RequestMethod.GET, params = "ids")
     public ResponseEntity<List<BinaryContent>> findAllByIds(
             @RequestParam("ids") List<UUID> ids
