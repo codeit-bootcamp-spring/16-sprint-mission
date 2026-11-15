@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelUpdateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,7 +27,9 @@ public class ChannelController {
   private final ChannelService channelService;
 
   @PostMapping("/public")
-  public ResponseEntity<ChannelDto> create(@RequestBody PublicChannelCreateRequest request) {
+  @Operation(description = "Public Channel 생성")
+  @ApiResponse(responseCode = "201", description = "Public Channel이 성공적으로 생성됨")
+  public ResponseEntity<ChannelDto> create(@RequestBody(required = true) PublicChannelCreateRequest request) {
     ChannelDto createdChannel = channelService.create(request);
     return ResponseEntity
         .status(HttpStatus.CREATED)
@@ -33,7 +37,9 @@ public class ChannelController {
   }
 
   @PostMapping("/private")
-  public ResponseEntity<ChannelDto> create(@RequestBody PrivateChannelCreateRequest request) {
+  @Operation(summary = "Private Channel 생성")
+  @ApiResponse(responseCode = "201", description = "Private Channel이 성공적으로 생성됨")
+  public ResponseEntity<ChannelDto> create(@RequestBody(required = true) PrivateChannelCreateRequest request) {
     ChannelDto createdChannel = channelService.create(request);
     return ResponseEntity
         .status(HttpStatus.CREATED)
