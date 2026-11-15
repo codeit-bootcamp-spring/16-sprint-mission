@@ -24,7 +24,7 @@ public class BinaryContentController {
 
     private final BinaryContentService binaryContentService;
 
-    @RequestMapping(value = "/{id}download", method = RequestMethod.GET)
+    @RequestMapping(value = "/{id}/download", method = RequestMethod.GET)
     public ResponseEntity<byte[]> download(@PathVariable("id") UUID id) {
         BinaryContent file = binaryContentService.findById(id);
 
@@ -38,11 +38,12 @@ public class BinaryContentController {
                 .body(file.getBytes());
     }
 
-    @RequestMapping(value = "/{id}", method = RequestMethod.GET)
-    public ResponseEntity<BinaryContent> findById(@PathVariable("id") UUID id) {
+    @RequestMapping(value = "/find", method = RequestMethod.GET)
+    public ResponseEntity<BinaryContent> findById(
+            @RequestParam("binaryContentId") UUID id
+    ) {
         return ResponseEntity.ok(binaryContentService.findById(id));
     }
-
     @RequestMapping(method = RequestMethod.GET, params = "ids")
     public ResponseEntity<List<BinaryContent>> findAllByIds(
             @RequestParam("ids") List<UUID> ids
