@@ -72,15 +72,15 @@ public class BasicChannelService implements ChannelService {
      */
 
     @Override
-    public ChannelResponse createPublicChannel(PublicChannelCreateRequest request) {
+    public ChannelDto createPublicChannel(PublicChannelCreateRequest request) {
         Channel publicChannel = new Channel(request);
         this.channelRepository.save(publicChannel);
 
-        return this.channelMapper.toChannelResponse(publicChannel, null, null);
+        return this.channelMapper.toChannelDto(publicChannel);
     }
 
     @Override
-    public ChannelResponse createPrivateChannel(PrivateChannelCreateRequest request) {
+    public ChannelDto createPrivateChannel(PrivateChannelCreateRequest request) {
         boolean allUserExist = request.participantIds().stream()
                 .allMatch(this.userRepository::existsById);
 
@@ -99,8 +99,7 @@ public class BasicChannelService implements ChannelService {
         this.channelRepository.save(privateChannel);
         this.readStatusRepository.saveAll(readStatusList);
 
-        Set<UUID> participantIds = new HashSet<>(request.participantIds());
-        return this.channelMapper.toChannelResponse(privateChannel, participantIds, null);
+        return this.channelMapper.toChannelDto(privateChannel);
     }
 
     /*
@@ -212,7 +211,7 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelResponse update(UUID channelId, ChannelUpdateRequest request) {
+    public ChannelDto update(UUID channelId, ChannelUpdateRequest request) {
         if (request.newName() != null && request.newName().isBlank()) {
             throw new InvalidChannelUpdateRequestException(
                     "채널 이름은 공백으로만 구성할 수 없습니다."
@@ -231,7 +230,7 @@ public class BasicChannelService implements ChannelService {
 
         this.channelRepository.save(channel);
 
-        return this.channelMapper.toChannelResponse(channel, null, this.findLastMessageAt(channel.getId()));
+        return this.channelMapper.toChannelDto(channel);
     }
 
     @Override

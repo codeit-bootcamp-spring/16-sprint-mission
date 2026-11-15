@@ -29,33 +29,33 @@ public class ChannelController {
      */
 
     @PostMapping("/public")
-    public ResponseEntity<ChannelResponse> createPublicChannel(
+    public ResponseEntity<ChannelDto> createPublicChannel(
             @RequestBody PublicChannelCreateRequest request
     ) {
-        ChannelResponse publicChannelResponse =
+        ChannelDto publicChannelDto =
                 this.channelService.createPublicChannel(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(publicChannelResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(publicChannelDto);
     }
 
     @PostMapping("/private")
-    public ResponseEntity<ChannelResponse> createPrivateChannel(
+    public ResponseEntity<ChannelDto> createPrivateChannel(
             @RequestBody PrivateChannelCreateRequest request
     ) {
-        ChannelResponse privateChannelResponse =
+        ChannelDto privateChannelDto =
                 this.channelService.createPrivateChannel(request);
 
-        return ResponseEntity.status(HttpStatus.CREATED).body(privateChannelResponse);
+        return ResponseEntity.status(HttpStatus.CREATED).body(privateChannelDto);
     }
 
     @PatchMapping("/{channelId}")
-    public ResponseEntity<ChannelResponse> updatePublicChannel(
+    public ResponseEntity<ChannelDto> updatePublicChannel(
             @PathVariable("channelId") UUID channelId,
             @RequestBody ChannelUpdateRequest request
     ) {
-        ChannelResponse channelResponse = this.channelService.update(channelId, request);
+        ChannelDto channelDto = this.channelService.update(channelId, request);
 
-        return ResponseEntity.ok(channelResponse);
+        return ResponseEntity.ok(channelDto);
     }
 
     @DeleteMapping("/{channelId}")
