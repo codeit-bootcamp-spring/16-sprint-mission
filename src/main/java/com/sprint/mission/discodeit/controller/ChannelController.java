@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.channel.*;
 import com.sprint.mission.discodeit.service.ChannelService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -30,7 +31,7 @@ public class ChannelController {
 
     @PostMapping("/public")
     public ResponseEntity<ChannelDto> createPublicChannel(
-            @RequestBody PublicChannelCreateRequest request
+            @Valid @RequestBody PublicChannelCreateRequest request
     ) {
         ChannelDto publicChannelDto =
                 this.channelService.createPublicChannel(request);
@@ -40,7 +41,7 @@ public class ChannelController {
 
     @PostMapping("/private")
     public ResponseEntity<ChannelDto> createPrivateChannel(
-            @RequestBody PrivateChannelCreateRequest request
+            @Valid @RequestBody PrivateChannelCreateRequest request
     ) {
         ChannelDto privateChannelDto =
                 this.channelService.createPrivateChannel(request);
