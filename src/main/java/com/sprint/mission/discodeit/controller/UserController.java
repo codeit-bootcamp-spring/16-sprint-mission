@@ -2,11 +2,16 @@ package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -86,6 +91,19 @@ public class UserController {
             method = RequestMethod.PATCH,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
+    @Operation(
+            summary = "사용자 정보 수정",
+            requestBody = @RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            schema = @Schema(implementation = UserUpdateMultipartRequest.class),
+                            encoding = @Encoding(
+                                    name = "userUpdateRequest",
+                                    contentType = MediaType.APPLICATION_JSON_VALUE
+                            )
+                    )
+            )
+    )
     public ResponseEntity<UserResponse> updateWithProfile(
             @PathVariable("userId") UUID userId,
             @RequestPart("userUpdateRequest") UpdatePart request,
@@ -146,6 +164,14 @@ public class UserController {
     }
 
     public record UpdatePart(String newUsername, String newEmail, String newPassword) {
+    }
+
+    public record UserUpdateMultipartRequest(
+            @Schema(implementation = UpdatePart.class)
+            UpdatePart userUpdateRequest,
+            @Schema(type = "string", format = "binary")
+            MultipartFile profile
+    ) {
     }
 
     public record StatusUpdateBody(Instant newLastActiveAt) {
