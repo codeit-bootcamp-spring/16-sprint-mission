@@ -41,14 +41,14 @@ public class BinaryContentController {
     }
 
     @GetMapping
-    public ResponseEntity<BinaryContentListResponse> findBinaryContentsByIds(
+    public ResponseEntity<List<BinaryContentResponse>> findBinaryContentsByIds(
             @RequestParam("binaryContentIds") List<UUID> binaryContentIds
     ) {
         BinaryContentListResponse binaryContentListResponse
                 = this.binaryContentService.findAllByIdIn(binaryContentIds);
 
         return ResponseEntity.ok(
-                binaryContentListResponse
+                binaryContentListResponse.binaryContents()
         );
     }
 
