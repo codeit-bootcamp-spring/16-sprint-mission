@@ -57,7 +57,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PrivateChannelModificationNotAllowedException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handlePrivateChannelModificationNotAllowedException(PrivateChannelModificationNotAllowedException exception) {
         return exception.getMessage();
     }
