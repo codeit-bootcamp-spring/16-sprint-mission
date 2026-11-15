@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Controller
-@RequestMapping("/api/users")
+@RequestMapping("/api/user")
 @RequiredArgsConstructor
 public class UserController {
 
@@ -37,7 +37,7 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
     public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userService.findAll());
     }
@@ -78,4 +78,6 @@ public class UserController {
         userStatusService.updateByUserId(id, Instant.now());
         return ResponseEntity.noContent().build();
     }
+
+
 }

@@ -107,8 +107,9 @@ public class BasicUserService implements UserService {
 
         return new UserDto(
                 savedUser.getId(),
+                savedUser.getCreatedAt(),
+                savedUser.getUpdatedAt(),
                 savedUser.getUsername(),
-                savedUser.getAge(),
                 savedUser.getEmail(),
                 savedUser.getProfileId(),
                 savedStatus.isOnline()
@@ -317,8 +318,9 @@ public class BasicUserService implements UserService {
 
         return new UserDto(
                 user.getId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
                 user.getUsername(),
-                user.getAge(),
                 user.getEmail(),
                 user.getProfileId(),
                 userStatus.isOnline()
