@@ -5,10 +5,11 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -18,36 +19,30 @@ import java.util.UUID;
 )
 public class JCFChannelRepository implements ChannelRepository {
 
-    private final List<Channel> channels = new ArrayList<>();
+    private final Map<UUID, Channel> channels = new ConcurrentHashMap<>();
 
     @Override
     public Channel save(Channel channel) {
-        for (int i = 0; i < channels.size(); i++) {
-            if (channels.get(i).getId().equals(channel.getId())) {
-                channels.set(i, channel);
-                return channel;
-            }
-        }
-
-        channels.add(channel);
+        channels.put(channel.getId(), channel);
         return channel;
     }
 
     @Override
     public Optional<Channel> findById(UUID id) {
-        return channels.stream()
-                .filter(channel -> channel.getId().equals(id))
-                .findFirst();
+        if (id == null) {
+            return Optional.empty();
+        }
+
+        return Optional.ofNullable(channels.get(id));
     }
 
     @Override
     public List<Channel> findAll() {
-        return List.copyOf(channels);
+        return List.copyOf(channels.values());
     }
 
     @Override
     public void delete(Channel channel) {
-        channels.removeIf(existingChannel ->
-                existingChannel.getId().equals(channel.getId()));
+        channels.remove(channel.getId());
     }
 }
