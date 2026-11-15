@@ -1,9 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.user.UserListResponse;
-import com.sprint.mission.discodeit.dto.user.UserResponse;
-import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.user.*;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
@@ -29,30 +26,30 @@ public class UserController {
     private final UserStatusService userStatusService;
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserResponse> createUser(
+    public ResponseEntity<UserDto> createUser(
             @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
             @RequestPart(value = "profile", required = false)
             MultipartFile profile
     ) throws IOException {
-        UserResponse userResponse = userService.create(request, profile);
+        UserDto userDto = userService.create(request, profile);
 
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(userResponse);
+                .body(userDto);
     }
 
     @PatchMapping(value = "/{userId}",
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<UserResponse> updateUser(
+    public ResponseEntity<UserDto> updateUser(
             @PathVariable("userId") UUID userId,
             @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
             @RequestPart(value = "profile", required = false)
             MultipartFile profile) throws IOException {
-        UserResponse userResponse = this.userService.update(
+        UserDto userDto = this.userService.update(
                 userId, request, profile
         );
 
-        return ResponseEntity.ok(userResponse);
+        return ResponseEntity.ok(userDto);
     }
 
     @DeleteMapping("/{userId}")
