@@ -71,17 +71,37 @@ public class MessageController {
         .body(createdMessage);
   }
 
-  @PatchMapping("/{message-id}")
-  public ResponseEntity<Message> update(@PathVariable("message-id") UUID messageId,
-      @RequestBody MessageUpdateRequest request) {
+  @PatchMapping("/{messageId}")
+  @Operation(summary = "Message 내용 수정")
+  @ApiResponses({
+          @ApiResponse(responseCode = "200", description = "Message가 성공적으로 수정됨"),
+          @ApiResponse(responseCode = "404", description = "Message를 찾을 수 없음",
+                  content = @Content(mediaType = "*/*",
+                          examples = @ExampleObject(value = "Message with id {messageId} not found")))
+  })
+  public ResponseEntity<Message> update(
+          @PathVariable("messageId")
+          @Parameter(description = "수정할 Message ID", required = true)
+          UUID messageId,
+      @RequestBody(required = true) MessageUpdateRequest request) {
     Message updatedMessage = messageService.update(messageId, request);
     return ResponseEntity
         .status(HttpStatus.OK)
         .body(updatedMessage);
   }
 
-  @DeleteMapping("/{message-id}")
-  public ResponseEntity<Void> delete(@PathVariable("message-id") UUID messageId) {
+  @DeleteMapping("/{messageId}")
+  @Operation(summary = "Message 삭제")
+  @ApiResponses({
+          @ApiResponse(responseCode = "204", description = "Message가 성공적으로 삭제됨"),
+          @ApiResponse(responseCode = "404", description = "Message를 찾을 수 없음",
+                  content = @Content(mediaType = "*/*",
+                          examples = @ExampleObject(value = "Message with id {messageId} not found")))
+  })
+  public ResponseEntity<Void> delete(
+          @PathVariable("messageId")
+          @Parameter(description = "삭제할 Message ID", required = true)
+          UUID messageId) {
     messageService.delete(messageId);
     return ResponseEntity
         .status(HttpStatus.NO_CONTENT)
