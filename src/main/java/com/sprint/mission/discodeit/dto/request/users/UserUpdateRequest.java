@@ -3,8 +3,14 @@ package com.sprint.mission.discodeit.dto.request.users;
 import jakarta.validation.constraints.Email; // 이메일 형식 검사
 import jakarta.validation.constraints.Pattern; // 지정한 정규표현식에 맞는지 검사
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+@Schema(
+        name = "UserUpdateRequest",
+        description = "수정할 User 정보"
+)
 public record UserUpdateRequest(
-        
+
         @Pattern(
                 regexp = "^\\S+$",
                 message = "사용자 이름에는 공백을 포함할 수 없습니다.")

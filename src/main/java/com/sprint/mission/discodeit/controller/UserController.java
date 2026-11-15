@@ -5,6 +5,8 @@ import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 
@@ -14,26 +16,45 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.v3.oas.annotations.tags.Tag; // API 그룹 이름과 설명
+import io.swagger.v3.oas.annotations.Operation; // 개별 API의 기능 설명
+import io.swagger.v3.oas.annotations.responses.ApiResponse; // 개별 HTTP 응답 코드 설명
+import io.swagger.v3.oas.annotations.responses.ApiResponses; // API의 응답 목록 정의
+import io.swagger.v3.oas.annotations.Parameter; // PathVariable 등의 파라미터 설명
+
 import java.util.List;
 import java.util.UUID;
 
 @RestController
 @RequestMapping({"/api/users"})
 @RequiredArgsConstructor
+@Tag(name = "User", description = "User API")
 public class UserController {
 
     private final UserService userService;
 
-    /* 전체 사용자 조회(GET) */
-    // 기존 코드는 사용자 목록 데이터만 반환하며, HTTP 응답은 Spring이 기본 처리한 반면,
-    // 변경 코드는 ResponseEntity를 사용하여 HTTP 상태 코드와 헤더, 응답 데이터를 직접 제어한다.
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.readAllUser());
-    }
-
     /* 사용자 등록(POST) */
-    // 생성 성공 시 201 Created 반환
+    @Operation(summary = "User 등록")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "201",
+                    description = "User가 성공적으로 생성"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함"
+            )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    encoding = {
+                            @Encoding(
+                                    name = "userCreateRequest",
+                                    contentType = MediaType.APPLICATION_JSON_VALUE
+                            )
+                    }
+            )
+    )
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
@@ -46,14 +67,53 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
+    /* 전체 사용자 조회(GET) */
+    @Operation(summary = "전체 User 목록 조회")
+    @ApiResponse(
+            responseCode = "200",
+            description = "User 목록 조회 성공"
+    )
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<UserDto>> getAllUsers() {
+        return ResponseEntity.ok(userService.readAllUser());
+    }
+
     /* 사용자 정보 수정(PATCH) */
-    // 수정할 때 본인을 제외한 다른 유저의 이름이나 이메일을 수정할 경우 "409" 가 발생한다.
+    @Operation(summary = "User 정보 수정")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User를 찾을 수 없음"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함"
+            ),
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "User 정보가 성공적으로 수정됨"
+            )
+    })
+    @io.swagger.v3.oas.annotations.parameters.RequestBody(
+            content = @Content(
+                    encoding = {
+                            @Encoding(
+                                    name = "userUpdateRequest",
+                                    contentType = MediaType.APPLICATION_JSON_VALUE
+                            )
+                    }
+            )
+    )
     @RequestMapping(
             value = "/{userId}",
             method = RequestMethod.PATCH,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
     public UserDto patchUser(
+            @Parameter(
+                    description = "수정할 User ID",
+                    required = true
+            )
             @PathVariable UUID userId,
             @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
             @RequestPart(value = "profile", required = false) MultipartFile profile) {
@@ -62,9 +122,25 @@ public class UserController {
     }
 
     /* 사용자 삭제(DELETE) */
-    // 삭제 성공 시 204 No Content 반환
+    @Operation(summary = "User 삭제")
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "User가 성공적으로 삭제"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "User를 찾을 수 없음"
+            )
+    })
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+    public ResponseEntity<Void> deleteUser(
+            @Parameter(
+                    description = "삭제할 User ID",
+                    required = true
+            )
+            @PathVariable UUID userId) {
+
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
