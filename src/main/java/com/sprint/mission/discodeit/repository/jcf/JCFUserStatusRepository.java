@@ -5,10 +5,11 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -18,45 +19,36 @@ import java.util.UUID;
 )
 public class JCFUserStatusRepository implements UserStatusRepository {
 
-    private final List<UserStatus> userStatuses = new ArrayList<>();
+    private final Map<UUID, UserStatus> userStatuses = new ConcurrentHashMap<>();
 
     @Override
     public UserStatus save(UserStatus userStatus) {
-        for (int i = 0; i < userStatuses.size(); i++) {
-            if (userStatuses.get(i).getId().equals(userStatus.getId())) {
-                userStatuses.set(i, userStatus);
-                return userStatus;
-            }
-        }
-
-            userStatuses.add(userStatus);
-            return userStatus;
+        userStatuses.put(userStatus.getId(), userStatus);
+        return userStatus;
     }
 
     @Override
     public List<UserStatus> findAll() {
-        return List.copyOf(userStatuses);
+        return List.copyOf(userStatuses.values());
     }
 
     @Override
     public Optional<UserStatus> findById(UUID id) {
-        return userStatuses.stream()
-                .filter(userStatus ->
-                        userStatus.getId().equals(id))
-                .findFirst();
+        if (id == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(userStatuses.get(id));
     }
 
     @Override
     public Optional<UserStatus> findByUserId(UUID userId) {
-        return userStatuses.stream()
-                .filter(userStatus ->
-                        userStatus.getUserId().equals(userId))
+        return userStatuses.values().stream()
+                .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst();
     }
 
     @Override
     public void delete(UserStatus userStatus) {
-        userStatuses.removeIf(existingUserStatus ->
-                existingUserStatus.getId().equals(userStatus.getId()));
+        userStatuses.remove(userStatus.getId());
     }
 }
