@@ -55,7 +55,7 @@ public class BasicUserService implements UserService {
         userStatus.makeOnline();
 
         this.userRepository.save(user);
-        // this.userStatusRepository.save(userStatus);
+        this.userStatusRepository.save(userStatus);
 
         return this.userMapper.toUserDto(user);
     }
