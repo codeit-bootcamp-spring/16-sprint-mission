@@ -6,14 +6,18 @@ import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
+import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 
 @Service
 @RequiredArgsConstructor
 public class BasicAuthService implements AuthService {
 
     private final UserRepository userRepository;
+    private final UserStatusService userStatusService;
 
     @Override
     public AuthUserDto login(AuthLoginRequest request) {
@@ -27,6 +31,8 @@ public class BasicAuthService implements AuthService {
         if (!user.getPassword().equals(request.password())) {
             throw new IllegalArgumentException("Wrong password");
         }
+
+        userStatusService.updateByUserId(user.getId(), Instant.now());
 
         return new AuthUserDto(
                 user.getId(),
