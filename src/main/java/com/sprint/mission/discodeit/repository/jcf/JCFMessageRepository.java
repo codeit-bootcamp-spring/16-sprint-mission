@@ -5,10 +5,11 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -18,51 +19,43 @@ import java.util.UUID;
 )
 public class JCFMessageRepository implements MessageRepository {
 
-    private final List<Message> messages = new ArrayList<>();
+    private final Map<UUID, Message> messages = new ConcurrentHashMap<>();
 
     @Override
     public Message save(Message message) {
-        for (int i=0; i < messages.size(); i++) {
-            if (messages.get(i).getId().equals(message.getId())) {
-                messages.set(i, message);
-                return message;
-            }
-        }
-
-        messages.add(message);
+        messages.put(message.getId(), message);
         return message;
     }
 
     @Override
     public Optional<Message> findById(UUID id) {
-        return messages.stream()
-                .filter(message -> message.getId().equals(id))
-                .findFirst();
+        if (id == null) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(messages.get(id));
     }
 
     @Override
     public List<Message> findAll() {
-        return List.copyOf(messages);
+        return List.copyOf(messages.values());
     }
 
     @Override
     public List<Message> findAllByUserId(UUID userId) {
-        return messages.stream()
-                .filter(message ->
-                        message.getAuthorId().equals(userId))
+        return messages.values().stream()
+                .filter(message -> message.getAuthorId().equals(userId))
                 .toList();
     }
 
     @Override
     public List<Message> findAllByChannelId(UUID channelId) {
-        return messages.stream()
-                .filter(message ->
-                        message.getChannelId().equals(channelId))
+        return messages.values().stream()
+                .filter(message -> message.getChannelId().equals(channelId))
                 .toList();
     }
 
     @Override
     public void delete(Message message) {
-       messages.removeIf(existingMessage -> existingMessage.getId().equals(message.getId()));
+        messages.remove(message.getId());
     }
 }
