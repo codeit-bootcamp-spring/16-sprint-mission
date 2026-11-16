@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.ChannelApi;
 import com.sprint.mission.discodeit.dto.channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelResponseDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelUpdateRequestDto;
@@ -19,10 +20,11 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/channels")
-public class ChannelController {
+public class ChannelController implements ChannelApi {
 
     private final ChannelService channelService;
 
+    @Override
     @PostMapping("/public")
     @ResponseStatus(HttpStatus.CREATED)
     public ChannelResponseDto createPublic(
@@ -31,6 +33,7 @@ public class ChannelController {
         return channelService.createPublicChannel(request);
     }
 
+    @Override
     @PostMapping("/private")
     @ResponseStatus(HttpStatus.CREATED)
     public ChannelResponseDto createPrivate(
@@ -39,6 +42,7 @@ public class ChannelController {
         return channelService.createPrivateChannel(request);
     }
 
+    @Override
     @GetMapping
     public List<ChannelDto> findAccessible(
             @RequestParam UUID userId
@@ -46,6 +50,7 @@ public class ChannelController {
         return channelService.findAccessibleChannelsByUserId(userId);
     }
 
+    @Override
     @PatchMapping("/{channelId}")
     public ChannelResponseDto update(
             @PathVariable UUID channelId,
@@ -54,6 +59,7 @@ public class ChannelController {
         return channelService.updateChannel(channelId, request);
     }
 
+    @Override
     @DeleteMapping("/{channelId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
