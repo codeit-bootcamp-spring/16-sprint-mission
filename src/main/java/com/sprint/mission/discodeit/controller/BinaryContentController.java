@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.response.BinaryContentResponse;
+import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.AllArgsConstructor;
 import org.springframework.core.io.ByteArrayResource;
@@ -25,15 +26,7 @@ public class BinaryContentController {
     @GetMapping("/{binaryContentId}")
     public ResponseEntity<BinaryContentResponse> getContent(@PathVariable("binaryContentId") UUID contentId) {
         BinaryContentResponse response = binaryContentService.find(contentId);
-        ContentDisposition contentDisposition = ContentDisposition.attachment()
-                .filename(response.fileName(), StandardCharsets.UTF_8)
-                .build();
-
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, contentDisposition.toString())
-                .contentType(toMediaType(response.contentType()))
-                .contentLength(response.bytes().length)
-                .body(response);
+        return ResponseEntity.ok().body(response);
     }
 
     @GetMapping
