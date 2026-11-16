@@ -4,9 +4,9 @@ import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
 import com.sprint.mission.discodeit.dto.swagger.message.MessageCreateMultipartRequestDto;
+import com.sprint.mission.discodeit.exception.ErrorResponse;
 
 import org.springframework.http.MediaType;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @Tag(name = "Message", description = "Message API")
 public interface MessageApi {
@@ -80,7 +81,7 @@ public interface MessageApi {
             )
     )
     MessageResponseDto create(
-            @RequestPart("messageCreateRequest") MessageCreateRequestDto request,
+            @Valid @RequestPart("messageCreateRequest") MessageCreateRequestDto request,
             @RequestPart(value = "attachments", required = false)
             List<MultipartFile> attachments
     ) throws IOException;
