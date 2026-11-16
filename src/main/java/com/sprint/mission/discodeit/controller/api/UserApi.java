@@ -7,10 +7,13 @@ import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.dto.response.UserStatusDto;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import java.util.List;
 import java.util.UUID;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -20,9 +23,20 @@ public interface UserApi {
   @ApiResponse(responseCode = "200", description = "User 목록 조회 성공")
   ResponseEntity<List<UserDto>> findAll();
 
-  @Operation(summary = "User 등록")
+  @Operation(
+      summary = "User 등록",
+      requestBody =
+          @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              required = true,
+              content =
+                  @Content(
+                      mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                      encoding =
+                          @Encoding(
+                              name = "userCreateRequest",
+                              contentType = MediaType.APPLICATION_JSON_VALUE))))
   @ApiResponse(responseCode = "201", description = "User가 성공적으로 생성됨")
-  @ApiResponse(responseCode = "409", description = "같은 email 또는 username를 사용하는 User가 이미 존재함")
+  @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함")
   ResponseEntity<UserDto> create(
       UserCreateRequest userCreateRequest,
       @Parameter(description = "User 프로필 이미지") MultipartFile profile);
@@ -41,7 +55,7 @@ public interface UserApi {
   @Operation(summary = "User 정보 수정")
   @ApiResponse(responseCode = "200", description = "User 정보가 성공적으로 수정됨")
   @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음")
-  @ApiResponse(responseCode = "409", description = "같은 email 또는 username를 사용하는 User가 이미 존재함")
+  @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함")
   ResponseEntity<UserDto> update(
       @Parameter(description = "수정할 User ID") UUID userId,
       UserUpdateRequest userUpdateRequest,
