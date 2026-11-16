@@ -29,8 +29,7 @@ public class MessageController implements MessageApi {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<MessageDto> create(
       @Valid @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
-      @Valid @RequestPart(value = "attachments", required = false)
-          List<MultipartFile> attachments) {
+      @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
     MessageDto message =
         messageService.create(messageCreateRequest, toBinaryContentRequests(attachments));
     return ResponseEntity.status(HttpStatus.CREATED).body(message);

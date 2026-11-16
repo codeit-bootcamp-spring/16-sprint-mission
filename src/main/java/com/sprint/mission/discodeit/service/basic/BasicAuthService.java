@@ -4,7 +4,7 @@ import com.sprint.mission.discodeit.dto.request.UserLoginRequest;
 import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.exception.InvalidCredentialsException;
+import com.sprint.mission.discodeit.exception.UserNotFoundException;
 import com.sprint.mission.discodeit.exception.UserStatusNotFoundException;
 import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -26,8 +26,10 @@ public class BasicAuthService implements AuthService {
     User user =
         userRepository
             .findByUsername(request.username())
-            .filter(u -> u.getPassword().equals(request.password()))
-            .orElseThrow(() -> new InvalidCredentialsException("아이디 또는 비밀번호가 일치하지 않습니다."));
+            .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
+    if (!user.getPassword().equals(request.password())) {
+      throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+    }
 
     UserStatus status =
         userStatusRepository

@@ -27,11 +27,6 @@ public class GlobalExceptionHandler {
     return toResponse(HttpStatus.CONFLICT, "ALREADY_JOINED_CHANNEL", e);
   }
 
-  @ExceptionHandler(InvalidCredentialsException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException e) {
-    return toResponse(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", e);
-  }
-
   @ExceptionHandler(UserNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleUserNotFound(UserNotFoundException e) {
     return toResponse(HttpStatus.NOT_FOUND, "USER_NOT_FOUND", e);
@@ -64,23 +59,6 @@ public class GlobalExceptionHandler {
     return toResponse(HttpStatus.BAD_REQUEST, "PRIVATE_CHANNEL_JOIN_NOT_ALLOWED", e);
   }
 
-  @ExceptionHandler(ChannelOwnerLeaveNotAllowedException.class)
-  public ResponseEntity<ErrorResponse> handleChannelOwnerLeaveNotAllowed(
-      ChannelOwnerLeaveNotAllowedException e) {
-    return toResponse(HttpStatus.BAD_REQUEST, "CHANNEL_OWNER_LEAVE_NOT_ALLOWED", e);
-  }
-
-  @ExceptionHandler(ChannelOwnershipTransferNotAllowedException.class)
-  public ResponseEntity<ErrorResponse> handleChannelOwnershipTransferNotAllowed(
-      ChannelOwnershipTransferNotAllowedException e) {
-    return toResponse(HttpStatus.BAD_REQUEST, "CHANNEL_OWNERSHIP_TRANSFER_NOT_ALLOWED", e);
-  }
-
-  @ExceptionHandler(ChannelOwnerRequiredException.class)
-  public ResponseEntity<ErrorResponse> handleChannelOwnerRequired(ChannelOwnerRequiredException e) {
-    return toResponse(HttpStatus.FORBIDDEN, "CHANNEL_OWNER_REQUIRED", e);
-  }
-
   @ExceptionHandler(MessageNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleMessageNotFound(MessageNotFoundException e) {
     return toResponse(HttpStatus.NOT_FOUND, "MESSAGE_NOT_FOUND", e);
@@ -90,12 +68,6 @@ public class GlobalExceptionHandler {
   public ResponseEntity<ErrorResponse> handleChannelMemberRequired(
       ChannelMemberRequiredException e) {
     return toResponse(HttpStatus.FORBIDDEN, "CHANNEL_MEMBER_REQUIRED", e);
-  }
-
-  @ExceptionHandler(MessageAuthorRequiredException.class)
-  public ResponseEntity<ErrorResponse> handleMessageAuthorRequired(
-      MessageAuthorRequiredException e) {
-    return toResponse(HttpStatus.FORBIDDEN, "MESSAGE_AUTHOR_REQUIRED", e);
   }
 
   @ExceptionHandler(DuplicateReadStatusException.class)

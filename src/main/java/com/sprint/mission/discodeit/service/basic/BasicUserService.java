@@ -7,7 +7,6 @@ import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.exception.ChannelOwnerLeaveNotAllowedException;
 import com.sprint.mission.discodeit.exception.DuplicateEmailException;
 import com.sprint.mission.discodeit.exception.DuplicateUsernameException;
 import com.sprint.mission.discodeit.exception.UserNotFoundException;
@@ -110,12 +109,6 @@ public class BasicUserService implements UserService {
   @Override
   public void delete(UUID id) {
     User user = getUserOrThrow(id);
-
-    boolean ownsChannel =
-        channelRepository.findAll().stream().anyMatch(channel -> id.equals(channel.getOwnerId()));
-    if (ownsChannel) {
-      throw new ChannelOwnerLeaveNotAllowedException("소유한 채널이 있는 사용자는 삭제할 수 없습니다. 먼저 소유권을 양도하세요.");
-    }
 
     // 2. 참여 채널에서 제거
     channelRepository.findAll().stream()

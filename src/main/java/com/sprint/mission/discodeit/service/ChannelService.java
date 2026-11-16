@@ -25,6 +25,4 @@ public interface ChannelService {
   void join(UUID id, UUID userId);
 
   void leave(UUID id, UUID userId);
-
-  void transferOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId);
 }

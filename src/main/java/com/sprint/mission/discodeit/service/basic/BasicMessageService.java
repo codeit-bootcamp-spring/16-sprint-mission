@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.MessageDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
+import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.exception.*;
@@ -41,7 +42,7 @@ public class BasicMessageService implements MessageService {
         userRepository
             .findById(request.authorId())
             .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-    if (!channel.hasUser(request.authorId())) {
+    if (channel.getType() == ChannelType.PRIVATE && !channel.hasUser(request.authorId())) {
       throw new ChannelMemberRequiredException("채널 멤버만 메시지를 작성할 수 있습니다.");
     }
 
@@ -92,7 +93,6 @@ public class BasicMessageService implements MessageService {
   public MessageDto update(UUID id, MessageUpdateRequest request) {
     Message message = getMessageOrThrow(id);
 
-    requireAuthor(message, request.requesterId(), "메시지 수정 권한이 없습니다.");
     message.update(request.newContent());
     messageRepository.save(message);
 
@@ -126,11 +126,5 @@ public class BasicMessageService implements MessageService {
     return messageRepository
         .findById(id)
         .orElseThrow(() -> new MessageNotFoundException("존재하지 않는 메시지입니다."));
-  }
-
-  private void requireAuthor(Message message, UUID requesterId, String errorMessage) {
-    if (!message.getAuthorId().equals(requesterId)) {
-      throw new MessageAuthorRequiredException(errorMessage);
-    }
   }
 }

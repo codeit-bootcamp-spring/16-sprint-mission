@@ -30,7 +30,6 @@ public class BasicChannelService implements ChannelService {
     List<UUID> participantIds =
         request.participantIds() != null ? request.participantIds() : List.of();
     Set<UUID> memberIds = new LinkedHashSet<>(participantIds);
-    memberIds.add(request.ownerId());
 
     List<User> members =
         memberIds.stream()
@@ -40,8 +39,8 @@ public class BasicChannelService implements ChannelService {
                     .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.")))
             .toList();
 
-    Channel channel = new Channel(request.ownerId(), ChannelType.PRIVATE, null, null);
-    memberIds.stream().filter(id -> !id.equals(request.ownerId())).forEach(channel::addUser);
+    Channel channel = new Channel(null, ChannelType.PRIVATE, null, null);
+    memberIds.forEach(channel::addUser);
     channelRepository.save(channel);
 
     for (User member : members) {
@@ -55,17 +54,8 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   public ChannelDto createPublic(PublicChannelCreateRequest request) {
-    User owner =
-        userRepository
-            .findById(request.ownerId())
-            .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다."));
-
-    Channel channel =
-        new Channel(request.ownerId(), ChannelType.PUBLIC, request.name(), request.description());
-    owner.addChannel(channel.getId());
+    Channel channel = new Channel(null, ChannelType.PUBLIC, request.name(), request.description());
     channelRepository.save(channel);
-
-    userRepository.save(owner);
 
     return channelMapper.toDto(channel);
   }
@@ -101,8 +91,7 @@ public class BasicChannelService implements ChannelService {
     if (channel.getType() == ChannelType.PRIVATE)
       throw new PrivateChannelUpdateNotAllowedException("PRIVATE 채널은 수정할 수 없습니다.");
 
-    requireOwner(channel, request.requesterId(), "채널 수정 권한이 없습니다.");
-    channel.update(request.name(), request.description());
+    channel.update(request.newName(), request.newDescription());
     channelRepository.save(channel);
     return channelMapper.toDto(channel);
   }
@@ -163,8 +152,6 @@ public class BasicChannelService implements ChannelService {
   @Override
   public void leave(UUID id, UUID userId) {
     Channel channel = getChannelOrThrow(id);
-    if (channel.getOwnerId().equals(userId))
-      throw new ChannelOwnerLeaveNotAllowedException("소유자는 채널을 나갈 수 없습니다. 먼저 소유권을 양도하세요.");
 
     channel.removeUser(userId);
     channelRepository.save(channel);
@@ -177,23 +164,5 @@ public class BasicChannelService implements ChannelService {
     readStatusRepository
         .findByUserIdAndChannelId(userId, id)
         .ifPresent(rs -> readStatusRepository.deleteById(rs.getId()));
-  }
-
-  @Override
-  public void transferOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId) {
-    Channel channel = getChannelOrThrow(id);
-    requireOwner(channel, currentOwnerId, "채널 양도 권한이 없습니다.");
-
-    if (!channel.hasUser(newOwnerId))
-      throw new ChannelOwnershipTransferNotAllowedException("채널 멤버에게만 소유권을 양도할 수 있습니다.");
-
-    channel.transferOwnership(newOwnerId);
-    channelRepository.save(channel);
-  }
-
-  private void requireOwner(Channel channel, UUID requesterId, String message) {
-    if (!channel.isOwner(requesterId)) {
-      throw new ChannelOwnerRequiredException(message);
-    }
   }
 }

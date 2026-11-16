@@ -6,5 +6,5 @@ import jakarta.validation.constraints.Size;
 
 public record UserCreateRequest(
     @NotBlank @Size(max = 32) String username,
-    @NotBlank @Email @Size(min = 254) String email,
+    @NotBlank @Email @Size(max = 254) String email,
     @NotBlank @Size(max = 72) String password) {}

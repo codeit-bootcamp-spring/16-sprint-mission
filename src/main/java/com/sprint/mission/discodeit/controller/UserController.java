@@ -33,7 +33,7 @@ public class UserController implements UserApi {
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserDto> create(
       @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
-      @Valid @RequestPart(value = "profile", required = false) MultipartFile profile) {
+      @RequestPart(value = "profile", required = false) MultipartFile profile) {
     UserDto user = userService.create(request, toBinaryContentRequest(profile));
     return ResponseEntity.status(HttpStatus.CREATED).body(user);
   }
@@ -56,7 +56,7 @@ public class UserController implements UserApi {
   public ResponseEntity<UserDto> update(
       @PathVariable UUID userId,
       @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
-      @Valid @RequestPart(value = "profile", required = false) MultipartFile profile) {
+      @RequestPart(value = "profile", required = false) MultipartFile profile) {
     return ResponseEntity.ok(userService.update(userId, request, toBinaryContentRequest(profile)));
   }
 
