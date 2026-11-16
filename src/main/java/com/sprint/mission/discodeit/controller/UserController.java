@@ -91,8 +91,7 @@ public class UserController {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
-
-    // 사용자의 온라인 상태 업데이트(PATCH)
+    
     @UserStatusUpdateDocs
     @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
     public UserStatus updateUserStatusByUserId(
