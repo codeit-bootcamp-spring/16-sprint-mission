@@ -10,20 +10,20 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/files")
+@RequestMapping("/api/binaryContents")
 @RequiredArgsConstructor
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
-    @GetMapping("/{fileId}")
-    public ResponseEntity<BinaryContent> getFile(@PathVariable UUID fileId) {
-        BinaryContent binaryContent = binaryContentService.find(fileId);
+    @GetMapping("/{binaryContentId}")
+    public ResponseEntity<BinaryContent> find(@PathVariable UUID binaryContentId) {
+        BinaryContent binaryContent = binaryContentService.find(binaryContentId);
         return ResponseEntity.ok(binaryContent);
     }
 
     @GetMapping
-    public ResponseEntity<List<BinaryContent>> getFilesByIds(@RequestParam List<UUID> ids) {
-        List<BinaryContent> files = binaryContentService.findAllByIdIn(ids);
+    public ResponseEntity<List<BinaryContent>> findAllByIdIn(@RequestParam List<UUID> binaryContentIds) {
+        List<BinaryContent> files = binaryContentService.findAllByIdIn(binaryContentIds);
         return ResponseEntity.ok(files);
     }
 }

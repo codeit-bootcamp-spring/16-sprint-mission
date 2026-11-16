@@ -20,25 +20,22 @@ import java.util.UUID;
 public class MessageController {
     private final MessageService messageService;
 
-    // 메시지 작성
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Message> createMessage(
-            @RequestPart("request") MessageCreateRequest request,
+            @RequestPart("messageCreateRequest") MessageCreateRequest request,
             @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
     ) {
         Message message = messageService.create(request, attachments);
         return ResponseEntity.status(HttpStatus.CREATED).body(message);
     }
 
-    // 특정 채널의 모든 메시지 조회
-    @GetMapping("/channels/{channelId}/messages")
-    public ResponseEntity<List<Message>> getMessagesByChannel(@PathVariable UUID channelId) {
+    @GetMapping
+    public ResponseEntity<List<Message>> findAllByChannelId(@RequestParam UUID channelId) {
         List<Message> messages = messageService.findAllByChannelId(channelId);
         return ResponseEntity.ok(messages);
     }
 
-    // 메시지 수정
-    @PutMapping("/{messageId}")
+    @PatchMapping("/{messageId}")
     public ResponseEntity<Message> updateMessage(
             @PathVariable UUID messageId,
             @RequestBody MessageUpdateRequest request
@@ -47,7 +44,6 @@ public class MessageController {
         return ResponseEntity.ok(updatedMessage);
     }
 
-    // 메시지 삭제
     @DeleteMapping("/{messageId}")
     public ResponseEntity<Void> deleteMessage(@PathVariable UUID messageId) {
         messageService.delete(messageId);

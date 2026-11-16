@@ -1,0 +1,571 @@
+{
+  "info": {
+    "_postman_id": "535cb8a9-b7e4-4c1c-b3bc-6c858fc42268",
+    "name": "mission5",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "57541656",
+    "_collection_link": "https://go.postman.co/collection/57541656-535cb8a9-b7e4-4c1c-b3bc-6c858fc42268?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "UserController_회원가입",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "userCreateRequest",
+              "value": "{\"username\": \"testuser\", \"email\": \"test@12345.com\", \"password\": \"password12345\"}",
+              "type": "text",
+              "contentType": "application/json"
+            },
+            {
+              "key": "profile",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserController_전체 유저 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/users",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserController_유저수정",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "userUpdateRequest",
+              "value": "{\n  \"newUsername\": \"updatedUser\",\n  \"newEmail\": \"updated@12345.com\",\n  \"newPassword\": \"newpassword12345\"\n}",
+              "type": "text",
+              "contentType": "application/json"
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users/68726c07-a25f-4ba4-bfa4-a14ff769f1b9",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "68726c07-a25f-4ba4-bfa4-a14ff769f1b9"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserController_접속상태수정",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"newLastActiveAt\": \"2026-11-16T10:30:00Z\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/users/68726c07-a25f-4ba4-bfa4-a14ff769f1b9/userStatus",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "68726c07-a25f-4ba4-bfa4-a14ff769f1b9",
+            "userStatus"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserController_유저삭제",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/users/{userId}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "users",
+            "{userId}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "AuthController_로그인",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"username\": \"updatedUser\",\r\n  \"password\": \"newpassword12345\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/auth/login",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "auth",
+            "login"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ChannelController_공개 채널 생성",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"name\": \"공개채널\",\r\n  \"description\": \"누구나 참여 가능한 채널입니다.\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/channels/public",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "channels",
+            "public"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ChannelController_비공개 채널 생성",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"participantIds\": [\r\n    \"46d607de-2b09-4d36-8cac-edaea665e9c0\"\r\n  ]\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/channels/private",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "channels",
+            "private"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ChannelController_유저 채널목록 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/channels?userId=46d607de-2b09-4d36-8cac-edaea665e9c0",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "channels"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "46d607de-2b09-4d36-8cac-edaea665e9c0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ChannelController_공개 채널 수정",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"newName\": \"공개채널 이름 수정\",\r\n  \"newDescription\": \"공개채널222222\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/channels/9a5d7f51-4715-45fb-b685-cc7b27ea2cc4",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "channels",
+            "9a5d7f51-4715-45fb-b685-cc7b27ea2cc4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ChannelController_채널삭제",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/channels/{channelId}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "channels",
+            "{channelId}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "MessageController_메세지 생성",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "formdata",
+          "formdata": [
+            {
+              "key": "messageCreateRequest",
+              "value": "{\n  \"content\": \"메세지 생성\",\n  \"channelId\": \"9a5d7f51-4715-45fb-b685-cc7b27ea2cc4\",\n  \"authorId\": \"46d607de-2b09-4d36-8cac-edaea665e9c0\"\n}",
+              "type": "text",
+              "contentType": "application/json"
+            },
+            {
+              "key": "attachments",
+              "type": "file",
+              "src": []
+            }
+          ]
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/messages",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "messages"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "MessageController_메세지 수정",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"newContent\": \"메세지 수정\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/messages/46d5732e-d2fb-4f8f-9af0-aac2c9154410",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "messages",
+            "46d5732e-d2fb-4f8f-9af0-aac2c9154410"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "MessageController_메세지 삭제",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/messages/{messageId}",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "messages",
+            "{messageId}"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ReadStatusController_읽음 표시",
+      "request": {
+        "method": "POST",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"userId\": \"46d607de-2b09-4d36-8cac-edaea665e9c0\",\r\n  \"channelId\": \"9a5d7f51-4715-45fb-b685-cc7b27ea2cc4\",\r\n  \"lastReadAt\": \"2026-11-16T10:35:00Z\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/readStatuses",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "readStatuses"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ReadStatusController_읽음 상태 수정",
+      "request": {
+        "method": "PATCH",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"newLastReadAt\": \"2026-11-16T10:40:00Z\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/readStatuses/a1c535b7-ba43-4d86-b9c5-3498e9e13f6a",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "readStatuses",
+            "a1c535b7-ba43-4d86-b9c5-3498e9e13f6a"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "ReadStatusController_읽음 상태 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/readStatuses?userId=46d607de-2b09-4d36-8cac-edaea665e9c0",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "readStatuses"
+          ],
+          "query": [
+            {
+              "key": "userId",
+              "value": "46d607de-2b09-4d36-8cac-edaea665e9c0"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserStatusController_전체 상태 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/user-statuses",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "user-statuses"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserStatusController_상태 수정(UserStatus ID)",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"newLastActiveAt\": \"2026-11-16T10:41:00Z\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/user-statuses/61dca7cc-0b03-48d3-90c8-b3701db6b1d4",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "user-statuses",
+            "61dca7cc-0b03-48d3-90c8-b3701db6b1d4"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "UserStatusController_상태 수정(User ID)",
+      "request": {
+        "method": "PUT",
+        "header": [],
+        "body": {
+          "mode": "raw",
+          "raw": "{\r\n  \"newLastActiveAt\": \"2026-11-16T10:41:00Z\"\r\n}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "http://localhost:8080/api/user-statuses/user/46d607de-2b09-4d36-8cac-edaea665e9c0",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "user-statuses",
+            "user",
+            "46d607de-2b09-4d36-8cac-edaea665e9c0"
+          ]
+        }
+      },
+      "response": []
+    }
+  ]
+}
