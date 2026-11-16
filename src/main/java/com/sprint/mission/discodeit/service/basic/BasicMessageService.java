@@ -63,7 +63,7 @@ public class BasicMessageService implements MessageService {
         }
 
         Message message = new Message(
-                request.comment(), request.authorId(), request.channelId(), attachmentIds);
+                request.content(), request.authorId(), request.channelId(), attachmentIds);
         messageRepository.save(message);
         return message;
     }

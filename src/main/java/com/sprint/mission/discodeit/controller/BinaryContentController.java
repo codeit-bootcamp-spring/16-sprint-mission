@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,9 +11,8 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
 
-
 @RestController
-@RequestMapping("/api/binary-contents")
+@RequestMapping("/api")
 public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
@@ -22,7 +20,7 @@ public class BinaryContentController {
         this.binaryContentService = binaryContentService;
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/{binaryContentId}")
+    @RequestMapping(method = RequestMethod.GET, value = "/binary-contents/{binaryContentId}")
     public ResponseEntity<byte[]> getBinaryContent(@PathVariable("binaryContentId") UUID binaryContentId) {
         BinaryContent binaryContent = binaryContentService.findById(binaryContentId);
         return ResponseEntity.ok().header(HttpHeaders.CONTENT_DISPOSITION, ContentDisposition.attachment()
@@ -30,15 +28,13 @@ public class BinaryContentController {
                 .build().toString()).body(binaryContent.getBytes());
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @RequestMapping(method = RequestMethod.GET, value = "/binaryContents")
     public ResponseEntity<List<BinaryContent>> getAllBinaryContents(@RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
         return ResponseEntity.ok(binaryContentService.findAllByIdIn(binaryContentIds));
     }
 
-    @RequestMapping(method = RequestMethod.GET, value = "/find")
-    public ResponseEntity<BinaryContent> find(
-            @RequestParam("binaryContentId") UUID binaryContentId) {
+    @RequestMapping(method = RequestMethod.GET, value = "/binaryContents/{binaryContentId}")
+    public ResponseEntity<BinaryContent> find(@PathVariable("binaryContentId") UUID binaryContentId) {
         return ResponseEntity.ok(binaryContentService.findById(binaryContentId));
     }
-
 }
