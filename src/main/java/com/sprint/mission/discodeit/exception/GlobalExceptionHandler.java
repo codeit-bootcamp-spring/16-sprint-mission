@@ -1,9 +1,11 @@
 package com.sprint.mission.discodeit.exception;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -134,6 +136,20 @@ public class GlobalExceptionHandler {
   @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class})
   public ResponseEntity<ErrorResponse> handleValidation(Exception e) {
     return ResponseEntity.badRequest().body(new ErrorResponse("INVALID_INPUT", "입력값이 올바르지 않습니다."));
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
+      HttpRequestMethodNotSupportedException e) {
+
+    HttpHeaders headers = new HttpHeaders();
+    if (e.getSupportedHttpMethods() != null) {
+      headers.setAllow(e.getSupportedHttpMethods());
+    }
+
+    return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+        .headers(headers)
+        .body(new ErrorResponse("METHOD_NOT_ALLOWED", "지원하지 않는 HTTP 메서드입니다."));
   }
 
   private ResponseEntity<ErrorResponse> toResponse(HttpStatus status, String code, Exception e) {
