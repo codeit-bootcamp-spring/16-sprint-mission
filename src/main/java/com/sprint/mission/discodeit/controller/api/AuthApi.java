@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 
 import org.springframework.http.MediaType;
 import org.springframework.web.ErrorResponse;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -12,6 +13,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @Tag(name = "Auth", description = "인증 API")
 public interface AuthApi {
@@ -48,5 +50,5 @@ public interface AuthApi {
                     )
             )
     )
-    UserResponseDto login(AuthLoginRequestDto request);
+    UserResponseDto login(@Valid @PathVariable AuthLoginRequestDto request);
 }
