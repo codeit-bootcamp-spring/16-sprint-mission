@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.ReadStatusApi;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequestDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponseDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequestDto;
@@ -17,10 +18,11 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/readStatuses")
-public class ReadStatusController {
+public class ReadStatusController implements ReadStatusApi {
 
     private final ReadStatusService readStatusService;
 
+    @Override
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     public ReadStatusResponseDto create(
@@ -29,6 +31,7 @@ public class ReadStatusController {
         return readStatusService.createReadStatus(request);
     }
 
+    @Override
     @PatchMapping("/{readStatusId}")
     public ReadStatusResponseDto update(
             @PathVariable UUID readStatusId,
@@ -37,6 +40,7 @@ public class ReadStatusController {
         return readStatusService.updateReadStatus(readStatusId, request);
     }
 
+    @Override
     @GetMapping
     public List<ReadStatusResponseDto> findAllUserReadStatuses(
             @RequestParam UUID userId

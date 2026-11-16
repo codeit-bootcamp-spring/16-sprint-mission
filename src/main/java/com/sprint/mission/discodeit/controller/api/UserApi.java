@@ -56,11 +56,21 @@ public interface UserApi {
                     examples = {
                             @ExampleObject(
                                     name = "이메일 중복",
-                                    value = "이미 사용 중인 이메일입니다."
+                                    value = """
+                                            {
+                                                "status": 400,
+                                                "message": "이미 사용 중인 이메일입니다."
+                                            }
+                                            """
                             ),
                             @ExampleObject(
                                     name = "사용자 이름 중복",
-                                    value = "이미 사용 중인 사용자 이름입니다."
+                                    value = """
+                                            {
+                                                "status": 400,
+                                                "message": "이미 사용 중인 사용자 이름입니다."
+                                            }
+                                            """
                             )
                     }
             )
@@ -100,11 +110,21 @@ public interface UserApi {
                     examples = {
                             @ExampleObject(
                                     name = "이메일 중복",
-                                    value = "이미 사용 중인 이메일입니다."
+                                    value = """
+                                            {
+                                                "status": 400,
+                                                "message": "이미 사용 중인 이메일입니다."
+                                            }
+                                            """
                             ),
                             @ExampleObject(
                                     name = "사용자 이름 중복",
-                                    value = "이미 사용 중인 사용자 이름입니다."
+                                    value = """
+                                            {
+                                                "status": 400,
+                                                "message": "이미 사용 중인 사용자 이름입니다."
+                                            }
+                                            """
                             )
                     }
             )
