@@ -1,7 +1,6 @@
 package com.sprint.mission.discodeit.dto.readstatus;
 
 import jakarta.validation.constraints.NotNull;
-import org.jspecify.annotations.NonNull;
 
 import java.time.Instant;
 import java.util.UUID;
