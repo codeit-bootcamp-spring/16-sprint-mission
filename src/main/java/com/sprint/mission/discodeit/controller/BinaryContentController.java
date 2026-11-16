@@ -20,7 +20,7 @@ public class BinaryContentController {
     private final BinaryContentService binaryContentService;
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<BinaryContentResponse>> findAllFilesByIds(@RequestParam("binaryContentIds") List<@NotNull UUID> binaryContentIds) {
+    public ResponseEntity<List<BinaryContentResponse>> findAllFilesByIds(@RequestParam("binaryContentIds") @NotNull List<@NotNull UUID> binaryContentIds) {
         return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findAllByIdIn(binaryContentIds));
     }
 
