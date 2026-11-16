@@ -1,10 +1,15 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.annotation.swagger.readstatus.ReadStatusCreateDocs;
+import com.sprint.mission.discodeit.annotation.swagger.readstatus.ReadStatusFindByUserIdDocs;
+import com.sprint.mission.discodeit.annotation.swagger.readstatus.ReadStatusUpdateDocs;
 import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 
@@ -18,11 +23,12 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/readStatuses")
 @RequiredArgsConstructor
+@Tag(name = "ReadStatus", description = "Message 읽음 상태 API")
 public class ReadStatusController {
 
     private final ReadStatusService readStatusService;
 
-    // 특정 채널의 메시지 수신 정보 생성(POST)
+    @ReadStatusCreateDocs
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ReadStatus> postReadStatus(
             @RequestBody ReadStatusCreateRequest request) {
@@ -31,15 +37,16 @@ public class ReadStatusController {
         return ResponseEntity.status(HttpStatus.CREATED).body(readStatus);
     }
 
-    // 특정 사용자의 메시지 수신 정보 조회(GET)
+    @ReadStatusFindByUserIdDocs
     @RequestMapping(method = RequestMethod.GET)
     public List<ReadStatus> getAllByUserId(@RequestParam UUID userId) {
         return readStatusService.findAllByUserId(userId);
     }
 
-    // 메시지 읽음 상태 수정(PATCH)
+    @ReadStatusUpdateDocs
     @RequestMapping(value = "/{readStatusId}", method = RequestMethod.PATCH)
     public ReadStatus putReadStatus(
+            @Parameter(description = "수정할 ReadStatus ID", required = true)
             @PathVariable UUID readStatusId,
             @Valid @RequestBody ReadStatusUpdateRequest request) {
 
