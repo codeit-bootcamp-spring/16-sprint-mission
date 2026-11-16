@@ -36,21 +36,28 @@ public class UserController {
 
     private final UserService userService;
 
-    /* 사용자 등록(POST) */
+
+    @Operation(summary = "전체 User 목록 조회")
+    @ApiResponse(
+            responseCode = "200", description = "User 목록 조회 성공"
+    )
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<UserDto>> findAll() {
+        return ResponseEntity.ok(userService.readAllUser());
+    }
+
+
     @Operation(summary = "User 등록")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "201",
-                    description = "User가 성공적으로 생성"
+                    responseCode = "201", description = "User가 성공적으로 생성됨"
             ),
             @ApiResponse(
-                    responseCode = "400",
-                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
+                    responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
                     content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(implementation = String.class),
+                            mediaType = "*/*",
                             examples = @ExampleObject(
-                                    value = "The email or username is already in use."
+                                    value = "User with email {email} already exists"
                             )
                     )
             )
@@ -81,45 +88,29 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    /* 전체 사용자 조회(GET) */
-    @Operation(summary = "전체 User 목록 조회")
-    @ApiResponse(
-            responseCode = "200",
-            description = "User 목록 조회 성공"
-    )
-    @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<UserDto>> findAll() {
-        return ResponseEntity.ok(userService.readAllUser());
-    }
 
-    /* 사용자 정보 수정(PATCH) */
     @Operation(summary = "User 정보 수정")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "404",
-                    description = "User를 찾을 수 없음",
+                    responseCode = "404", description = "User를 찾을 수 없음",
                     content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(implementation = String.class),
+                            mediaType = "*/*",
                             examples = @ExampleObject(
                                     value = "User with id {userId} not found"
                             )
                     )
             ),
             @ApiResponse(
-                    responseCode = "400",
-                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
+                    responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
                     content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(implementation = String.class),
+                            mediaType = "*/*",
                             examples = @ExampleObject(
-                                    value = "The email or username is already in use."
+                                    value = "user with email {newEmail} already exists"
                             )
                     )
             ),
             @ApiResponse(
-                    responseCode = "200",
-                    description = "User 정보가 성공적으로 수정됨"
+                    responseCode = "200", description = "User 정보가 성공적으로 수정됨"
             )
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -137,44 +128,35 @@ public class UserController {
             method = RequestMethod.PATCH,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public UserDto patchUser(
-            @Parameter(
-                    description = "수정할 User ID",
-                    required = true
-            )
+    public UserDto update(
+            @Parameter(description = "수정할 User ID", required = true)
             @PathVariable UUID userId,
             @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
+            @Parameter(description = "수정할 User 프로필 이미지")
             @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
         return userService.updateUser(userId, request, profile);
     }
 
-    /* 사용자 삭제(DELETE) */
+
     @Operation(summary = "User 삭제")
     @ApiResponses({
             @ApiResponse(
-                    responseCode = "204",
-                    description = "User가 성공적으로 삭제돰"
+                    responseCode = "204", description = "User가 성공적으로 삭제됨"
             ),
             @ApiResponse(
-                    responseCode = "404",
-                    description = "User를 찾을 수 없음",
+                    responseCode = "404", description = "User를 찾을 수 없음",
                     content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(implementation = String.class),
+                            mediaType = "*/*",
                             examples = @ExampleObject(
-                                    value = "User with id {id} not found"
+                                    value = "User with id {userId} not found"
                             )
                     )
-
             )
     })
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteUser(
-            @Parameter(
-                    description = "삭제할 User ID",
-                    required = true
-            )
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "삭제할 User ID", required = true)
             @PathVariable UUID userId) {
 
         userService.deleteUser(userId);

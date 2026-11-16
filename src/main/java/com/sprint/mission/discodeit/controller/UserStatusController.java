@@ -4,6 +4,9 @@ import com.sprint.mission.discodeit.dto.request.status.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserStatusService;
 
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 
@@ -34,15 +37,25 @@ public class UserStatusController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "404",
-                    description = "해당 User의 UserStatus를 찾을 수 없음"
+                    description = "해당 User의 UserStatus를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = "*/*",
+                            examples = @ExampleObject(
+                                    value = "UserStatus with userId {userId} not found"
+                            )
+                    )
             ),
             @ApiResponse(
                     responseCode = "200",
-                    description = "User 온라인 상태가 성공적으로 업데이트됨"
+                    description = "User 온라인 상태가 성공적으로 업데이트됨",
+                    content = @Content(
+                            mediaType = "*/*",
+                            schema = @Schema(implementation = UserStatus.class)
+                    )
             )
     })
     @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
-    public UserStatus patchUserStatus(
+    public UserStatus updateUserStatusByUserId(
             @Parameter(
                     description = "상태를 변경할 User ID",
                     required = true
