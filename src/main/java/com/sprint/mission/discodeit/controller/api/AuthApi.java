@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 import org.springframework.http.MediaType;
 import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -50,5 +51,5 @@ public interface AuthApi {
                     )
             )
     )
-    UserResponseDto login(@Valid @PathVariable AuthLoginRequestDto request);
+    UserResponseDto login(@Valid @RequestBody AuthLoginRequestDto request);
 }
