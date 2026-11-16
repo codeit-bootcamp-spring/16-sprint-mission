@@ -100,5 +100,5 @@ public class ChannelController {
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(channels);
-    }ㅋ
+    }
 }
