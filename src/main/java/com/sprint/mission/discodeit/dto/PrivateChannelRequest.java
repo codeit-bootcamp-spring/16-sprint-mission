@@ -3,5 +3,5 @@ package com.sprint.mission.discodeit.dto;
 import java.util.List;
 import java.util.UUID;
 
-public record PrivateChannelRequest(List<UUID> userIds) {
+public record PrivateChannelRequest(List<UUID> participantIds) {
 }

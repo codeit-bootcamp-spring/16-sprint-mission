@@ -43,7 +43,7 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public Channel createPrivate(PrivateChannelRequest request) {
-        for (UUID userId : request.userIds()) {
+        for (UUID userId : request.participantIds()) {
             userRepository.findById(userId).orElseThrow(() ->
                     new ResourceNotFoundException("유저를 찾을 수 없음"));
         }
@@ -53,7 +53,7 @@ public class BasicChannelService implements ChannelService {
 
         List<UUID> participantIds = new ArrayList<>();
 
-        for (UUID userId : request.userIds()) {
+        for (UUID userId : request.participantIds()) {
             if (!participantIds.contains(userId)) {
                 ReadStatus readStatus = new ReadStatus(userId, channel.getId(), Instant.now());
                 readStatusRepository.save(readStatus);
@@ -122,11 +122,11 @@ public class BasicChannelService implements ChannelService {
         if (channels.stream()
                 .filter(c -> c.getType() == ChannelType.PUBLIC)
                 .anyMatch(otherChannel -> !otherChannel.getId().equals(request.channelId())
-                        && otherChannel.getName().equals(request.name()))) {
+                        && otherChannel.getName().equals(request.newName()))) {
             throw new ConflictException("사용 중인 채널명");
         }
 
-        channel.update(request.name(), request.description());
+        channel.update(request.newName(), request.newDescription());
         channelRepository.save(channel);
         return channel;
     }

@@ -21,11 +21,13 @@ public class ChannelController {
         this.channelService = channelService;
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(method = RequestMethod.POST,value = "/public")
     public Channel createPublic(@RequestBody PublicChannelRequest request){
         return channelService.createPublic(request);
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(method = RequestMethod.POST,value = "/private")
     public Channel createPrivate(@RequestBody PrivateChannelRequest request){
         return channelService.createPrivate(request);
@@ -33,7 +35,7 @@ public class ChannelController {
 
     @RequestMapping(method = RequestMethod.PATCH,value = "/{channelId}")
     public Channel update(@PathVariable UUID channelId, @RequestBody ChannelUpdateRequest request){
-        ChannelUpdateRequest channelUpdateRequest = new ChannelUpdateRequest(channelId,request.name(),request.description());
+        ChannelUpdateRequest channelUpdateRequest = new ChannelUpdateRequest(channelId, request.newName(), request.newDescription());
         return channelService.update(channelUpdateRequest);
     }
 
