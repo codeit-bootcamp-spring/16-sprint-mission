@@ -5,8 +5,6 @@ import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Encoding;
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 
@@ -18,9 +16,14 @@ import org.springframework.web.multipart.MultipartFile;
 
 import io.swagger.v3.oas.annotations.tags.Tag; // API 그룹 이름과 설명
 import io.swagger.v3.oas.annotations.Operation; // 개별 API의 기능 설명
+import io.swagger.v3.oas.annotations.Parameter; // PathVariable 등의 파라미터 설명
 import io.swagger.v3.oas.annotations.responses.ApiResponse; // 개별 HTTP 응답 코드 설명
 import io.swagger.v3.oas.annotations.responses.ApiResponses; // API의 응답 목록 정의
-import io.swagger.v3.oas.annotations.Parameter; // PathVariable 등의 파라미터 설명
+
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 import java.util.UUID;
@@ -42,7 +45,14 @@ public class UserController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함"
+                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN_VALUE,
+                            schema = @Schema(implementation = String.class),
+                            examples = @ExampleObject(
+                                    value = "The email or username is already in use."
+                            )
+                    )
             )
     })
     @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -59,8 +69,12 @@ public class UserController {
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public ResponseEntity<UserDto> postUser(
+    public ResponseEntity<UserDto> create(
             @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
+            @Parameter(
+                    description = "User 프로필 이미지",
+                    schema = @Schema(type = "string", format = "binary")
+            )
             @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
         UserDto user = userService.createUser(request, profile);
@@ -74,7 +88,7 @@ public class UserController {
             description = "User 목록 조회 성공"
     )
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<UserDto>> getAllUsers() {
+    public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userService.readAllUser());
     }
 
@@ -83,11 +97,25 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "404",
-                    description = "User를 찾을 수 없음"
+                    description = "User를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN_VALUE,
+                            schema = @Schema(implementation = String.class),
+                            examples = @ExampleObject(
+                                    value = "User with id {userId} not found"
+                            )
+                    )
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함"
+                    description = "같은 email 또는 username를 사용하는 User가 이미 존재함",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN_VALUE,
+                            schema = @Schema(implementation = String.class),
+                            examples = @ExampleObject(
+                                    value = "The email or username is already in use."
+                            )
+                    )
             ),
             @ApiResponse(
                     responseCode = "200",
@@ -126,11 +154,19 @@ public class UserController {
     @ApiResponses({
             @ApiResponse(
                     responseCode = "204",
-                    description = "User가 성공적으로 삭제"
+                    description = "User가 성공적으로 삭제돰"
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "User를 찾을 수 없음"
+                    description = "User를 찾을 수 없음",
+                    content = @Content(
+                            mediaType = MediaType.TEXT_PLAIN_VALUE,
+                            schema = @Schema(implementation = String.class),
+                            examples = @ExampleObject(
+                                    value = "User with id {id} not found"
+                            )
+                    )
+
             )
     })
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
