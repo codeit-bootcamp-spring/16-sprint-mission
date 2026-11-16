@@ -8,6 +8,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.NoSuchElementException;
@@ -33,7 +34,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             HttpMessageNotReadableException.class,
             MissingServletRequestParameterException.class,
-            MissingServletRequestPartException.class
+            MissingServletRequestPartException.class,
+            MethodArgumentTypeMismatchException.class
     })
     public ResponseEntity<String> handleInvalidRequest(Exception e) {
         return ResponseEntity.badRequest()

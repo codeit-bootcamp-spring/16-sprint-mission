@@ -92,7 +92,7 @@ public class BasicUserService implements UserService {
 
         if (newEmail != null
                 && !newEmail.equals(user.getEmail())
-                && !userRepository.existsByEmail(newEmail)) {
+                && userRepository.existsByEmail(newEmail)) {
             throw new IllegalArgumentException("User with email " + newEmail + " already exists");
         }
         if (newUsername != null
