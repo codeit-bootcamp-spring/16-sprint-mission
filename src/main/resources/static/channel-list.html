@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>채널 목록</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .channel-toolbar { display: flex; flex-wrap: wrap; gap: 0.75rem; align-items: center; }
+        .channel-list { display: grid; gap: 0.75rem; padding: 0; list-style: none; }
+        .channel-card { padding: 1rem; border: 1px solid #cbd5e1; border-radius: 8px; overflow-wrap: anywhere; }
+        .channel-card h2 { margin: 0 0 0.5rem; font-size: 1.1rem; }
+        .channel-card p { margin: 0.35rem 0; }
+    </style>
+</head>
+<body>
+<main class="container">
+    <a href="user-list.html">사용자 목록</a>
+    <h1>채널 목록</h1>
+    <p>선택한 사용자에게 보이는 공개 채널과 참여 중인 비공개 채널을 표시합니다.</p>
+    <div class="channel-toolbar">
+        <label for="channelUser">조회할 사용자</label>
+        <select id="channelUser" disabled></select>
+        <button id="refreshChannels" type="button" disabled>새로고침</button>
+    </div>
+    <p id="channelStatus" role="status"></p>
+    <ul id="channelList" class="channel-list"></ul>
+</main>
+<script>
+    const userSelect = document.getElementById('channelUser');
+    const refreshButton = document.getElementById('refreshChannels');
+    const status = document.getElementById('channelStatus');
+    const channelList = document.getElementById('channelList');
+
+    async function getJson(url) {
+        const response = await fetch(url, { cache: 'no-store' });
+        if (!response.ok) {
+            throw new Error('HTTP ' + response.status);
+        }
+        return response.json();
+    }
+
+    function addDetail(card, label, value) {
+        const detail = document.createElement('p');
+        detail.textContent = label + ': ' + value;
+        card.append(detail);
+    }
+
+    function renderChannel(channel, namesById) {
+        const card = document.createElement('li');
+        card.className = 'channel-card';
+        const title = document.createElement('h2');
+        const isPrivate = channel.type === 'PRIVATE';
+        title.textContent = (isPrivate ? '[비공개] ' : '[공개] ')
+                + (channel.name || '이름 없는 채널');
+        card.append(title);
+        if (channel.description) {
+            addDetail(card, '설명', channel.description);
+        }
+        addDetail(card, '채널 ID', channel.id);
+        if (isPrivate) {
+            const participants = (channel.participantIds ?? [])
+                    .map(id => namesById.get(id) ?? id);
+            addDetail(card, '참여자', participants.join(', ') || '없음');
+        }
+        addDetail(card, '최근 메시지', channel.lastMessageAt
+                ? new Date(channel.lastMessageAt).toLocaleString('ko-KR')
+                : '아직 없음');
+        return card;
+    }
+
+    const namesById = new Map();
+
+    async function loadChannels() {
+        if (!userSelect.value) {
+            return;
+        }
+        userSelect.disabled = true;
+        refreshButton.disabled = true;
+        channelList.replaceChildren();
+        status.textContent = '채널을 불러오는 중입니다.';
+        try {
+            const query = new URLSearchParams({ userId: userSelect.value });
+            const channels = await getJson('/api/channels?' + query);
+            channelList.replaceChildren(...channels.map(channel => renderChannel(channel, namesById)));
+            status.textContent = channels.length
+                    ? channels.length + '개 채널'
+                    : '표시할 채널이 없습니다.';
+        } catch (error) {
+            status.textContent = '채널 목록을 불러오지 못했습니다. (' + error.message + ')';
+        } finally {
+            userSelect.disabled = false;
+            refreshButton.disabled = false;
+        }
+    }
+
+    async function loadUsers() {
+        status.textContent = '사용자 목록을 불러오는 중입니다.';
+        try {
+            const users = await getJson('/api/users');
+            if (!users.length) {
+                status.textContent = '먼저 사용자를 등록한 뒤 페이지를 다시 열어주세요.';
+                return;
+            }
+            for (const user of users) {
+                namesById.set(user.id, user.username);
+                userSelect.add(new Option(user.username, user.id));
+            }
+            await loadChannels();
+        } catch (error) {
+            status.textContent = '사용자 목록을 불러오지 못했습니다. (' + error.message + ')';
+        }
+    }
+
+    userSelect.addEventListener('change', loadChannels);
+    refreshButton.addEventListener('click', loadChannels);
+    loadUsers();
+</script>
+</body>
+</html>
