@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.MessageApi;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
@@ -8,6 +9,7 @@ import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -18,11 +20,12 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/messages")
-public class MessageController {
+public class MessageController implements MessageApi {
 
     private final MessageService messageService;
 
-    @PostMapping
+    @Override
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
     public MessageResponseDto create(
             @RequestPart("messageCreateRequest") MessageCreateRequestDto request,
@@ -32,6 +35,7 @@ public class MessageController {
         return messageService.createMessage(request, attachments);
     }
 
+    @Override
     @GetMapping
     public List<MessageResponseDto> findAllChannelMessages(
             @RequestParam UUID channelId
@@ -39,6 +43,7 @@ public class MessageController {
         return messageService.findAllMessagesByChannelId(channelId);
     }
 
+    @Override
     @PatchMapping("/{messageId}")
     public MessageResponseDto update(
             @PathVariable UUID messageId,
@@ -47,6 +52,7 @@ public class MessageController {
         return messageService.updateMessage(messageId, request);
     }
 
+    @Override
     @DeleteMapping("/{messageId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
