@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -31,10 +32,10 @@ public class BasicReadStatusService implements ReadStatusService {
         }
 
         userRepository.findById(request.userId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "사용자를 찾을 수 없습니다: " + request.userId()));
         channelRepository.findById(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "채널을 찾을 수 없습니다: " + request.channelId()));
 
         if (readStatusRepository.findByUserIdAndChannelId(
@@ -52,7 +53,7 @@ public class BasicReadStatusService implements ReadStatusService {
     @Override
     public ReadStatus findById(UUID id) {
         return readStatusRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "읽음 상태를 찾을 수 없습니다: " + id));
     }
 

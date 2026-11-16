@@ -10,11 +10,12 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/read-statuses")
+@RequestMapping("/api/readStatuses")
 @RequiredArgsConstructor
 public class ReadStatusController {
 
@@ -39,11 +40,11 @@ public class ReadStatusController {
     )
     public ResponseEntity<ReadStatus> update(
             @PathVariable("readStatusId") UUID readStatusId,
-            @RequestBody ReadStatusUpdateRequest request
+            @RequestBody ReadStatusUpdateBody request
     ) {
         ReadStatusUpdateRequest serviceRequest = new ReadStatusUpdateRequest(
                 readStatusId,
-                request.lastReadAt()
+                request.newLastReadAt()
         );
 
         readStatusService.update(serviceRequest);
@@ -60,5 +61,8 @@ public class ReadStatusController {
         List<ReadStatus> readStatuses = readStatusService.findAllByUserId(userId);
 
         return ResponseEntity.ok(readStatuses);
+    }
+
+    public record ReadStatusUpdateBody(Instant newLastReadAt) {
     }
 }
