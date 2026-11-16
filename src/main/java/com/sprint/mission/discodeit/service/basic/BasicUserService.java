@@ -119,11 +119,23 @@ public class BasicUserService implements UserService {
 
         User user = requireUser(request.id());
 
+        String username = request.username() == null
+                ? user.getUsername()
+                : request.username();
+
+        String email = request.email() == null
+                ? user.getEmail()
+                : request.email();
+
+        String password = request.password() == null
+                ? user.getPassword()
+                : request.password();
+
         validateUser(
-                request.username(),
-                request.email(),
-                request.password(),
-                request.id()
+                username,
+                email,
+                password,
+                user.getId()
         );
 
         BinaryContent newProfile = null;
@@ -143,9 +155,9 @@ public class BasicUserService implements UserService {
         }
 
         user.update(
-                request.username().trim(),
-                request.email().trim(),
-                request.password()
+                username.trim(),
+                email.trim(),
+                password
         );
 
         if (newProfileId != null) {
@@ -154,7 +166,10 @@ public class BasicUserService implements UserService {
 
         User updatedUser = userRepository.save(user);
 
-        if (newProfileId != null && oldProfileId != null) {
+        if (newProfileId != null
+                && oldProfileId != null
+                && !oldProfileId.equals(newProfileId)) {
+
             binaryContentRepository.delete(oldProfileId);
         }
 
@@ -186,7 +201,9 @@ public class BasicUserService implements UserService {
         }
 
         if (user.getProfileId() != null) {
-            binaryContentRepository.delete(user.getProfileId());
+            binaryContentRepository.delete(
+                    user.getProfileId()
+            );
         }
 
         userRepository.delete(id);
@@ -212,7 +229,8 @@ public class BasicUserService implements UserService {
         String contentType = profile.getContentType();
 
         if (contentType == null
-                || !contentType.toLowerCase(Locale.ROOT)
+                || !contentType
+                .toLowerCase(Locale.ROOT)
                 .startsWith("image/")) {
 
             throw new IllegalArgumentException(
@@ -254,7 +272,9 @@ public class BasicUserService implements UserService {
 
     private UserResponse toResponse(User user) {
         UserStatus userStatus =
-                userStatusRepository.findByUserId(user.getId());
+                userStatusRepository.findByUserId(
+                        user.getId()
+                );
 
         boolean online = userStatus != null
                 && userStatus.isOnline();
@@ -297,7 +317,7 @@ public class BasicUserService implements UserService {
             if (existing.getUsername()
                     .equalsIgnoreCase(username.trim())) {
 
-                throw new IllegalStateException(
+                throw new IllegalArgumentException(
                         "이미 사용 중인 사용자 이름입니다."
                 );
             }
@@ -305,7 +325,7 @@ public class BasicUserService implements UserService {
             if (existing.getEmail()
                     .equalsIgnoreCase(email.trim())) {
 
-                throw new IllegalStateException(
+                throw new IllegalArgumentException(
                         "이미 사용 중인 이메일입니다."
                 );
             }
