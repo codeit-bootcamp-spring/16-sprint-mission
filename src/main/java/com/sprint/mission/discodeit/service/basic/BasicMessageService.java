@@ -94,7 +94,7 @@ public class BasicMessageService implements MessageService {
         channelRepository.findById(message.getChannelId()).orElseThrow(() ->
                 new ResourceNotFoundException("채널을 찾을 수 없음"));
 
-        message.update(request.comment());
+        message.update(request.newContent());
         messageRepository.save(message);
         return message;
     }

@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.MessageCreateRequest;
+import com.sprint.mission.discodeit.dto.MessageResponse;
 import com.sprint.mission.discodeit.dto.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.service.MessageService;
@@ -22,23 +23,30 @@ public class MessageController {
         this.messageService = messageService;
     }
 
-    @RequestMapping(method = RequestMethod.POST,consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public Message create(@RequestPart("request") MessageCreateRequest request,
-                          @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
-        return messageService.create(request, attachments);
+    @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
+    public MessageResponse create(@RequestPart("messageCreateRequest") MessageCreateRequest request,
+                                  @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments) {
+        Message message = messageService.create(request, attachments);
+        return new MessageResponse(message.getId(), message.getCreatedAt(), message.getUpdatedAt(),
+                message.getComment(), message.getChannelId(), message.getAuthorId(), message.getAttachmentIds());
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public List<Message> findAllByChannelId(@RequestParam("channelId") UUID channelId) {
-        return messageService.findAllByChannelId(channelId);
+    public List<MessageResponse> findAllByChannelId(@RequestParam("channelId") UUID channelId) {
+        return messageService.findAllByChannelId(channelId).stream()
+                .map(message -> new MessageResponse(message.getId(), message.getCreatedAt(), message.getUpdatedAt(),
+                        message.getComment(), message.getChannelId(), message.getAuthorId(), message.getAttachmentIds()))
+                .toList();
     }
 
     @RequestMapping(method = RequestMethod.PATCH, value = "/{messageId}")
-    public Message update(@PathVariable("messageId") UUID messageId,
-                          @RequestBody MessageUpdateRequest request) {
-        MessageUpdateRequest updateRequest =
-                new MessageUpdateRequest(messageId, request.comment());
-        return messageService.update(updateRequest);
+    public MessageResponse update(@PathVariable("messageId") UUID messageId,
+                                  @RequestBody MessageUpdateRequest request) {
+        MessageUpdateRequest updateRequest = new MessageUpdateRequest(messageId, request.newContent());
+        Message message = messageService.update(updateRequest);
+        return new MessageResponse(message.getId(), message.getCreatedAt(), message.getUpdatedAt(),
+                message.getComment(), message.getChannelId(), message.getAuthorId(), message.getAttachmentIds());
     }
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/{messageId}")
