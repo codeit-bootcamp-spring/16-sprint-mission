@@ -77,7 +77,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         ReadStatus readStatus = find(readStatusId);
 
-        readStatus.updateLastReadAt(request.lastReadAt());
+        readStatus.updateLastReadAt(request.newLastReadAt());
 
         return readStatusRepository.save(readStatus);
     }
