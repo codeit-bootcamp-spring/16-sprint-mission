@@ -7,6 +7,7 @@ import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.ConflictException;
+import com.sprint.mission.discodeit.exception.InvalidRequestException;
 import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -34,15 +35,15 @@ public class BasicUserService implements UserService {
     public User create(UserCreateRequest request, MultipartFile profile) {
         List<User> users = userRepository.findAll();
 
-        if (users.stream().anyMatch(user -> user.getName().equals(request.name()))) {
-            throw new ConflictException("사용 중인 이름");
+        if (users.stream().anyMatch(user -> user.getName().equals(request.username()))) {
+            throw new InvalidRequestException("사용 중인 이름");
         }
 
         if (users.stream().anyMatch(user -> user.getEmail().equals(request.email()))) {
-            throw new ConflictException("사용 중인 이메일");
+            throw new InvalidRequestException("사용 중인 이메일");
         }
 
-        User user = new User(request.name(), request.password(), request.email());
+        User user = new User(request.username(), request.password(), request.email());
 
         if (profile != null && !profile.isEmpty()) {
             byte[] bytes;
@@ -111,17 +112,17 @@ public class BasicUserService implements UserService {
 
         if (users.stream().anyMatch(otherUser ->
                 !otherUser.getId().equals(request.userId())
-                        && otherUser.getEmail().equals(request.email()))) {
-            throw new ConflictException("사용 중인 이메일");
+                        && otherUser.getEmail().equals(request.newEmail()))) {
+            throw new InvalidRequestException("사용 중인 이메일");
         }
 
         if (users.stream().anyMatch(otherUser ->
                 !otherUser.getId().equals(request.userId())
-                        && otherUser.getName().equals(request.name()))) {
-            throw new ConflictException("사용 중인 이름");
+                        && otherUser.getName().equals(request.newUsername()))) {
+            throw new InvalidRequestException("사용 중인 이름");
         }
 
-        user.update(request.name(), request.password(), request.email());
+        user.update(request.newUsername(), request.newUsername(), request.newEmail());
 
         if (profile != null && !profile.isEmpty()) {
             byte[] bytes;

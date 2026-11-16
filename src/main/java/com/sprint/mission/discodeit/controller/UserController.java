@@ -1,11 +1,9 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.*;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.InvalidRequestException;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import org.springframework.http.HttpStatus;
@@ -30,18 +28,19 @@ public class UserController {
     }
 
 
-    @RequestMapping(method = RequestMethod.GET, value = {"/findAll"})
+    @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<UserDto>> findAll() {
         return ResponseEntity.ok(userService.findAll());
     }
 
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@RequestPart("request") UserCreateRequest request, @RequestPart(value = "profile", required = false)
+    public UserDto create(@RequestPart("userCreateRequest") UserCreateRequest request, @RequestPart(value = "profile", required = false)
             MultipartFile profile) {
         User user = userService.create(request, profile);
         return userService.findById(user.getId());
     }
+
 
     @RequestMapping(method = RequestMethod.DELETE, value = "/{userId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
@@ -50,18 +49,22 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.PATCH,value = "/{userId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UserDto update(@PathVariable UUID userId,@RequestPart("request") UserUpdateRequest request,
+    public UserDto update(@PathVariable UUID userId,@RequestPart("userUpdateRequest") UserUpdateRequest request,
                           @RequestPart(value = "profile", required = false)MultipartFile profile) {
-        userService.update(new UserUpdateRequest(userId, request.name(), request.password(), request.email()), profile);
+        userService.update(new UserUpdateRequest(userId, request.newUsername(), request.newPassword(), request.newEmail()), profile);
         return userService.findById(userId);
     }
 
 
 
-    @RequestMapping(method = RequestMethod.PATCH,value = "/{userId}/online-status")
-    public UserDto onlineStatus(@PathVariable UUID userId){
-        userStatusService.updateByUserId(userId,Instant.now());
-        return userService.findById(userId);
+    @PatchMapping("/{userId}/userStatus")
+    public UserStatus onlineStatus(@PathVariable UUID userId, @RequestBody UserActivityRequest request)
+    {
+        if (request.newLastActiveAt() == null) {
+            throw new InvalidRequestException("newLastActiveAt은 필수입니다");
+        }
+
+        return userStatusService.updateByUserId(userId, request.newLastActiveAt());
     }
 }
 
