@@ -23,17 +23,17 @@ public class BinaryContentController {
 
     private final BinaryContentService binaryContentService;
 
-    @GetMapping
-    public ResponseEntity<BinaryContent> find(@RequestParam("binaryContentId") UUID binaryContentId) {
+    @GetMapping(value = "{binaryContentId}")
+    public ResponseEntity<BinaryContent> find(@PathVariable("binaryContentId") UUID binaryContentId) {
         BinaryContent binaryContent = binaryContentService.find(binaryContentId);
         return ResponseEntity
                 .status(HttpStatus.OK)
                 .body(binaryContent);
     }
 
-    @GetMapping(value = "{binaryContentId}")
+    @GetMapping
     public ResponseEntity<List<BinaryContent>> findAllByIdIn(
-            @PathVariable("binaryContentId") List<UUID> binaryContentIds) {
+            @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
         List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(binaryContentIds);
         return ResponseEntity
                 .status(HttpStatus.OK)
