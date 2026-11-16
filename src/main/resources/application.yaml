@@ -6,3 +6,11 @@ discodeit:
   repository:
     type: file   # jcf | file
     file-directory: .discodeit
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha            # 태그 알파벳순 정렬
+    operations-sorter: method     # HTTP 메서드순 정렬
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
