@@ -19,22 +19,22 @@ import java.util.UUID;
 @Tag(name = "BinaryContent", description = "첨부 파일 API")
 public class BinaryContentController {
 
-  private final BinaryContentService binaryContentService;
+    private final BinaryContentService binaryContentService;
 
-  @GetMapping("/{binarycontent-id}")
-  public ResponseEntity<BinaryContent> find(@PathVariable("binarycontent-id") UUID binaryContentId) {
-    BinaryContent binaryContent = binaryContentService.find(binaryContentId);
-    return ResponseEntity
-        .status(HttpStatus.OK)
-        .body(binaryContent);
-  }
+    @GetMapping("/{binarycontent-id}")
+    public ResponseEntity<BinaryContent> find(@PathVariable("binarycontent-id") UUID binaryContentId) {
+        BinaryContent binaryContent = binaryContentService.find(binaryContentId);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(binaryContent);
+    }
 
-  @GetMapping
-  public ResponseEntity<List<BinaryContent>> findAllByIdIn(
-      @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
-    List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(binaryContentIds);
-    return ResponseEntity
-        .status(HttpStatus.OK)
-        .body(binaryContents);
-  }
+    @GetMapping
+    public ResponseEntity<List<BinaryContent>> findAllByIdIn(
+            @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
+        List<BinaryContent> binaryContents = binaryContentService.findAllByIdIn(binaryContentIds);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(binaryContents);
+    }
 }

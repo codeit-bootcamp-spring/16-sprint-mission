@@ -25,21 +25,21 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Tag(name = "Auth", description = "인증 API")
 public class AuthController {
 
-  private final AuthService authService;
+    private final AuthService authService;
 
-  @PostMapping
-  @Operation(summary = "로그인")
-  @ApiResponses({
-          @ApiResponse(responseCode = "200", description = "로그인 성공"),
-          @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
-                content = @Content(mediaType = "*/*", examples = @ExampleObject(value = "User with username {username} not found"))),
-          @ApiResponse(responseCode = "400", description = "비밀번호가 일치하지 않음",
-                  content = @Content(mediaType = "*/*", examples = @ExampleObject(value = "Wrong password")))
-  })
-  public ResponseEntity<User> login(@RequestBody(required = true) LoginRequest loginRequest) {
-    User user = authService.login(loginRequest);
-    return ResponseEntity
-        .status(HttpStatus.OK)
-        .body(user);
-  }
+    @PostMapping
+    @Operation(summary = "로그인")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "로그인 성공"),
+            @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음",
+                    content = @Content(mediaType = "*/*", examples = @ExampleObject(value = "User with username {username} not found"))),
+            @ApiResponse(responseCode = "400", description = "비밀번호가 일치하지 않음",
+                    content = @Content(mediaType = "*/*", examples = @ExampleObject(value = "Wrong password")))
+    })
+    public ResponseEntity<User> login(@RequestBody(required = true) LoginRequest loginRequest) {
+        User user = authService.login(loginRequest);
+        return ResponseEntity
+                .status(HttpStatus.OK)
+                .body(user);
+    }
 }
