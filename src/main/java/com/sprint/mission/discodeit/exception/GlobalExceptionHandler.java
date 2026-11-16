@@ -72,7 +72,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(DuplicateReadStatusException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateReadStatus(DuplicateReadStatusException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_READ_STATUS", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_READ_STATUS", e);
   }
 
   @ExceptionHandler(ReadStatusNotFoundException.class)
@@ -82,17 +82,17 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(DuplicateEmailException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_EMAIL", e);
   }
 
   @ExceptionHandler(DuplicateUsernameException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateUsername(DuplicateUsernameException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_USERNAME", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_USERNAME", e);
   }
 
   @ExceptionHandler(DuplicateUserStatusException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateUserStatus(DuplicateUserStatusException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_USER_STATUS", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_USER_STATUS", e);
   }
 
   @ExceptionHandler({
@@ -114,7 +114,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
   public ResponseEntity<ErrorResponse> handleUploadTooLarge(MaxUploadSizeExceededException e) {
-    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+    return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
         .body(new ErrorResponse("FILE_TOO_LARGE", "업로드 용량을 초과했습니다."));
   }
 
