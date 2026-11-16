@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.exception.ConflictException;
+import com.sprint.mission.discodeit.exception.InvalidRequestException;
 import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
@@ -35,7 +36,7 @@ public class BasicReadStatusService implements ReadStatusService {
         for (ReadStatus readStatus : readStatusRepository.findAll()) {
             if (readStatus.getChannelId().equals(request.channelId())
                     && readStatus.getUserId().equals(request.userId())) {
-                throw new ConflictException("이미 등록된 메시지 수신 정보");
+                throw new InvalidRequestException("이미 등록된 메시지 수신 정보");
             }
         }
 
@@ -63,7 +64,7 @@ public class BasicReadStatusService implements ReadStatusService {
     public ReadStatus update(ReadStatusUpdateRequest request) {
         ReadStatus readStatus = findById(request.readStatusId());
 
-        readStatus.update(request.lastReadAt());
+        readStatus.update(request.newLastReadAt());
         readStatusRepository.save(readStatus);
         return readStatus;
     }

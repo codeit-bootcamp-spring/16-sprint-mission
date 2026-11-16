@@ -4,13 +4,14 @@ import com.sprint.mission.discodeit.dto.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.service.ReadStatusService;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/read-statuses")
+@RequestMapping("/api/readStatuses")
 public class ReadStatusController {
     private final ReadStatusService readStatusService;
 
@@ -18,6 +19,7 @@ public class ReadStatusController {
         this.readStatusService = readStatusService;
     }
 
+    @ResponseStatus(HttpStatus.CREATED)
     @RequestMapping(method = RequestMethod.POST)
     public ReadStatus createReadStatus(@RequestBody ReadStatusCreateRequest request){
         return readStatusService.create(request);
@@ -25,7 +27,7 @@ public class ReadStatusController {
 
     @RequestMapping(method = RequestMethod.PATCH,value = "/{readStatusId}")
     public ReadStatus updateReadStatus(@PathVariable UUID readStatusId,@RequestBody ReadStatusUpdateRequest request){
-        ReadStatusUpdateRequest readStatusUpdateRequest = new ReadStatusUpdateRequest(readStatusId,request.lastReadAt());
+        ReadStatusUpdateRequest readStatusUpdateRequest = new ReadStatusUpdateRequest(readStatusId,request.newLastReadAt());
         return readStatusService.update(readStatusUpdateRequest);
     }
 
