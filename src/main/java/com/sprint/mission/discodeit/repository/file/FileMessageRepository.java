@@ -11,18 +11,28 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 public class FileMessageRepository implements MessageRepository {
 
     private final Path messageDirectory;
+    private final FileLockProvider fileLockProvider;
 
     public FileMessageRepository() {
-        this(Path.of("data", "messages"));
+        this(Path.of("data", "messages"), new FileLockProvider());
     }
 
     public FileMessageRepository(Path messageDirectory) {
+        this(messageDirectory, new FileLockProvider());
+    }
+
+    public FileMessageRepository(
+            Path messageDirectory,
+            FileLockProvider fileLockProvider
+    ) {
         this.messageDirectory = messageDirectory;
+        this.fileLockProvider = fileLockProvider;
 
         try {
             Files.createDirectories(messageDirectory);
@@ -36,7 +46,8 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     private Message readMessage(Path file) {
-        try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
+        try (ObjectInputStream in = new ObjectInputStream(
+                Files.newInputStream(file))) {
             return (Message) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("메시지 파일을 읽는 데 실패했습니다.", e);
@@ -46,12 +57,18 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public Optional<Message> findById(UUID messageId) {
         Path file = fileFor(messageId);
+        ReentrantLock lock = fileLockProvider.getLock(file);
 
-        if (Files.notExists(file)) {
-            return Optional.empty();
+        lock.lock();
+        try {
+            if (Files.notExists(file)) {
+                return Optional.empty();
+            }
+
+            return Optional.of(readMessage(file));
+        } finally {
+            lock.unlock();
         }
-
-        return Optional.of(readMessage(file));
     }
 
     @Override
@@ -59,8 +76,21 @@ public class FileMessageRepository implements MessageRepository {
         List<Message> allMessages = new ArrayList<>();
 
         try (Stream<Path> files = Files.list(messageDirectory)) {
-            files.filter(file -> file.getFileName().toString().endsWith(".ser"))
-                    .forEach(file -> allMessages.add(readMessage(file)));
+            files.filter(file ->
+                            file.getFileName().toString().endsWith(".ser"))
+                    .forEach(file -> {
+                        ReentrantLock lock =
+                                fileLockProvider.getLock(file);
+
+                        lock.lock();
+                        try {
+                            if (Files.exists(file)) {
+                                allMessages.add(readMessage(file));
+                            }
+                        } finally {
+                            lock.unlock();
+                        }
+                    });
         } catch (IOException e) {
             throw new RuntimeException("메시지 파일 목록을 읽는 데 실패했습니다.", e);
         }
@@ -72,21 +102,34 @@ public class FileMessageRepository implements MessageRepository {
     @Override
     public Message save(Message message) {
         Path file = fileFor(message.getId());
+        ReentrantLock lock = fileLockProvider.getLock(file);
 
-        try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(file))) {
-            out.writeObject(message);
-            return message;
-        } catch (IOException e) {
-            throw new RuntimeException("메시지 파일 저장에 실패했습니다.", e);
+        lock.lock();
+        try {
+            try (ObjectOutputStream out = new ObjectOutputStream(
+                    Files.newOutputStream(file))) {
+                out.writeObject(message);
+                return message;
+            } catch (IOException e) {
+                throw new RuntimeException("메시지 파일 저장에 실패했습니다.", e);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void deleteById(UUID messageId) {
+        Path file = fileFor(messageId);
+        ReentrantLock lock = fileLockProvider.getLock(file);
+
+        lock.lock();
         try {
-            Files.deleteIfExists(fileFor(messageId));
+            Files.deleteIfExists(file);
         } catch (IOException e) {
             throw new RuntimeException("메시지 파일 삭제에 실패했습니다.", e);
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -106,7 +149,9 @@ public class FileMessageRepository implements MessageRepository {
     }
 
     @Override
-    public List<Message> findByUserIdAndChannelId(UUID userId, UUID channelId) {
+    public List<Message> findByUserIdAndChannelId(
+            UUID userId, UUID channelId
+    ) {
         return findAll().stream()
                 .filter(message -> message.getType() == MessageType.USER)
                 .filter(message -> userId.equals(message.getAuthorId()))
