@@ -31,7 +31,6 @@ public class ChannelMapper {
         channel.getId(),
         channel.getCreatedAt(),
         channel.getUpdatedAt(),
-        channel.getOwnerId(),
         channel.getType(),
         channel.getName(),
         channel.getDescription(),

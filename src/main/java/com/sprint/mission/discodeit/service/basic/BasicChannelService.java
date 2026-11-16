@@ -39,7 +39,7 @@ public class BasicChannelService implements ChannelService {
                     .orElseThrow(() -> new UserNotFoundException("존재하지 않는 사용자입니다.")))
             .toList();
 
-    Channel channel = new Channel(null, ChannelType.PRIVATE, null, null);
+    Channel channel = new Channel(ChannelType.PRIVATE, null, null);
     memberIds.forEach(channel::addUser);
     channelRepository.save(channel);
 
@@ -54,7 +54,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   public ChannelDto createPublic(PublicChannelCreateRequest request) {
-    Channel channel = new Channel(null, ChannelType.PUBLIC, request.name(), request.description());
+    Channel channel = new Channel(ChannelType.PUBLIC, request.name(), request.description());
     channelRepository.save(channel);
 
     return channelMapper.toDto(channel);

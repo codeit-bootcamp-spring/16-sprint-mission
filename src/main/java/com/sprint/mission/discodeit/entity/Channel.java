@@ -6,7 +6,6 @@ import lombok.Getter;
 
 @Getter
 public class Channel extends BaseUpdatableEntity {
-  private UUID ownerId;
   private ChannelType type;
   private String name;
   private String description;
@@ -15,9 +14,8 @@ public class Channel extends BaseUpdatableEntity {
 
   @Serial private static final long serialVersionUID = 1L;
 
-  public Channel(UUID ownerId, ChannelType type, String name, String description) {
+  public Channel(ChannelType type, String name, String description) {
     super();
-    this.ownerId = ownerId;
 
     if (type == ChannelType.PUBLIC) validateName(name);
     this.type = type;
@@ -75,8 +73,6 @@ public class Channel extends BaseUpdatableEntity {
   @Override
   public String toString() {
     return "Channel{"
-        + "ownerId="
-        + ownerId
         + ", type="
         + type
         + ", name='"

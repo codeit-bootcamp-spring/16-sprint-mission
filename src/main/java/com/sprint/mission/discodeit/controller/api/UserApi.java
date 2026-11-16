@@ -52,7 +52,18 @@ public interface UserApi {
   ResponseEntity<UserStatusDto> updateUserStatusByUserId(
       @Parameter(description = "상태를 변경할 User ID") UUID userId, UserStatusUpdateRequest request);
 
-  @Operation(summary = "User 정보 수정")
+  @Operation(
+      summary = "User 정보 수정",
+      requestBody =
+          @io.swagger.v3.oas.annotations.parameters.RequestBody(
+              required = true,
+              content =
+                  @Content(
+                      mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                      encoding =
+                          @Encoding(
+                              name = "userUpdateRequest",
+                              contentType = MediaType.APPLICATION_JSON_VALUE))))
   @ApiResponse(responseCode = "200", description = "User 정보가 성공적으로 수정됨")
   @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음")
   @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함")
