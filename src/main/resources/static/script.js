@@ -2,7 +2,7 @@ const API_BASE_URL = '/api';
 const DEFAULT_AVATAR_URL = '/images/default-avatar.png';
 const ENDPOINTS = {
     USERS: `${API_BASE_URL}/user/findAll`,
-    BINARY_CONTENT: `${API_BASE_URL}/binaryContent/find`
+    BINARY_CONTENT: `${API_BASE_URL}/binaryContents`
 };
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -22,11 +22,11 @@ async function fetchAndRenderUsers() {
 
 async function fetchUserProfile(profileId) {
     try {
-        const response = await fetch(`${ENDPOINTS.BINARY_CONTENT}?binaryContentId=${profileId}`);
+        const response = await fetch(`${ENDPOINTS.BINARY_CONTENT}/${profileId}`);
         if (!response.ok) throw new Error('Failed to fetch profile');
         const profile = await response.json();
 
-        return `data:${profile.contentType};base64,${profile.data}`;
+        return `data:${profile.contentType};base64,${profile.bytes}`;
     } catch (error) {
         console.error('Error fetching profile:', error);
         return null;
