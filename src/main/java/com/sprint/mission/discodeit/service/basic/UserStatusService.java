@@ -23,9 +23,9 @@ public class UserStatusService {
         Instant lastActiveTime = createRequest.lastActiveTime();
 
         this.userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 상태를 생성할 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태를 생성할 사용자가 존재하지 않습니다."));
         if (this.userStatusRepository.findByUserId(userId).isPresent()) {
-            throw new IllegalStateException("유저 접속 상태가 이미 존재합니다.");
+            throw new IllegalStateException("사용자 접속 상태가 이미 존재합니다.");
         }
 
         UserStatus userStatus = new UserStatus(userId, lastActiveTime);
@@ -35,13 +35,13 @@ public class UserStatusService {
 
     public UserStatusResponse findById(UUID id) {
         UserStatus userStatus = this.userStatusRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 상태가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태가 존재하지 않습니다."));
         return UserStatusResponse.from(userStatus);
     }
 
     public UserStatusResponse findByUserId(UUID userId) {
         UserStatus userStatus = this.userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 상태가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태가 존재하지 않습니다."));
         return UserStatusResponse.from(userStatus);
     }
 
@@ -56,9 +56,9 @@ public class UserStatusService {
         Instant lastActiveTime = updateRequest.newLastActiveAt();
 
         UserStatus userStatus = this.userStatusRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 상태가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태가 존재하지 않습니다."));
         this.userRepository.findById(userStatus.getUserId())
-                .orElseThrow(() -> new NoSuchElementException("수정할 유저 접속 상태의 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("수정할 사용자 접속 상태의 사용자가 존재하지 않습니다."));
         userStatus.update(lastActiveTime);
 
         this.userStatusRepository.update(id, userStatus);
@@ -69,9 +69,9 @@ public class UserStatusService {
         Instant lastActiveTime = updateRequest.newLastActiveAt();
 
         this.userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("수정할 유저 접속 상태의 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("수정할 사용자 접속 상태의 사용자가 존재하지 않습니다."));
         UserStatus userStatus = this.userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 상태가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태가 존재하지 않습니다."));
         userStatus.update(lastActiveTime);
 
         this.userStatusRepository.update(userStatus.getId(), userStatus);
@@ -80,7 +80,7 @@ public class UserStatusService {
 
     public void delete(UUID id) {
         UserStatus userStatus = this.userStatusRepository.findById(id)
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 상태가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태가 존재하지 않습니다."));
         userStatus.validateNotDeleted();
 
         this.userStatusRepository.delete(id);

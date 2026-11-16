@@ -18,7 +18,7 @@ public class FileUserStatusRepository extends FileRepository<UserStatus> impleme
     public UserStatus save(UserStatus userStatus) {
         Map<UUID, UserStatus> userStatusMap = this.readFile(resolvedPath);
         UserStatus existing = userStatusMap.putIfAbsent(userStatus.getId(), userStatus);
-        if (existing != null) throw new IllegalStateException("이미 저장된 유저 접속 기록입니다.");
+        if (existing != null) throw new IllegalStateException("이미 저장된 사용자 접속 상태입니다.");
         this.writeFile(userStatusMap, resolvedPath);
         return userStatus;
     }
@@ -27,7 +27,7 @@ public class FileUserStatusRepository extends FileRepository<UserStatus> impleme
     public UserStatus update(UUID id, UserStatus userStatus) {
         Map<UUID, UserStatus> userStatusMap = this.readFile(resolvedPath);
         UserStatus existing = userStatusMap.replace(id, userStatus);
-        if (existing == null) throw new IllegalStateException("저장되지 않은 유저 접속 기록입니다.");
+        if (existing == null) throw new IllegalStateException("저장되지 않은 사용자 접속 상태입니다.");
         this.writeFile(userStatusMap, resolvedPath);
         return userStatus;
     }
@@ -64,7 +64,7 @@ public class FileUserStatusRepository extends FileRepository<UserStatus> impleme
         Map<UUID, UserStatus> userStatusMap = this.readFile(resolvedPath);
         UserStatus userStatus = userStatusMap.get(id);
         if (userStatus == null || userStatus.isDeleted())
-            throw new IllegalArgumentException("삭제할 유저 접속 기록이 존재하지 않습니다.");
+            throw new IllegalArgumentException("삭제할 사용자 접속 상태이 존재하지 않습니다.");
         userStatus.softDelete();
         this.writeFile(userStatusMap, resolvedPath);
     }

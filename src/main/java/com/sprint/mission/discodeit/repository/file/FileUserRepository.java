@@ -19,7 +19,7 @@ public class FileUserRepository extends FileRepository<User> implements UserRepo
     public User save(User user) {
         Map<UUID, User> users = this.readFile(resolvedPath);
         User existingUser = users.putIfAbsent(user.getId(), user);
-        if (existingUser != null) throw new IllegalStateException("이미 저장된 유저입니다.");
+        if (existingUser != null) throw new IllegalStateException("이미 저장된 사용자입니다.");
         this.writeFile(users, resolvedPath);
         return user;
     }
@@ -28,7 +28,7 @@ public class FileUserRepository extends FileRepository<User> implements UserRepo
     public User update(UUID id, User newUser) {
         Map<UUID, User> users = this.readFile(resolvedPath);
         User existing = users.replace(id, newUser);
-        if (existing == null) throw new IllegalStateException("저장되지 않은 유저입니다.");
+        if (existing == null) throw new IllegalStateException("저장되지 않은 사용자입니다.");
         this.writeFile(users, resolvedPath);
         return newUser;
     }
@@ -81,7 +81,7 @@ public class FileUserRepository extends FileRepository<User> implements UserRepo
     public void delete(UUID id) {
         Map<UUID, User> users = this.readFile(resolvedPath);
         User user = users.get(id);
-        if (user == null || user.isDeleted()) throw new IllegalArgumentException("삭제할 유저가 존재하지 않습니다.");
+        if (user == null || user.isDeleted()) throw new IllegalArgumentException("삭제할 사용자가 존재하지 않습니다.");
         user.softDelete();
         this.writeFile(users, resolvedPath);
     }

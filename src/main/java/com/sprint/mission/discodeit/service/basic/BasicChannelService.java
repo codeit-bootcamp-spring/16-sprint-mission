@@ -38,7 +38,7 @@ public class BasicChannelService implements ChannelService {
 
         distinctMemberIds.forEach(memberId -> {
             this.userRepository.findById(memberId)
-                    .orElseThrow(() -> new NoSuchElementException("생성할 비공개 채널에 소속될 유저가 존재하지 않습니다."));
+                    .orElseThrow(() -> new NoSuchElementException("생성할 비공개 채널에 소속될 사용자가 존재하지 않습니다."));
         });
 
         this.channelRepository.save(channel);
@@ -94,15 +94,15 @@ public class BasicChannelService implements ChannelService {
     @Override
     public void addUserToChannel(UUID channelId, UUID userId) {
         User user = this.userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("채널에 추가할 사용자가 존재하지 않습니다."));
         user.validateNotDeleted();
 
         Channel channel = this.channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자를 추가할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
 
         if (this.readStatusRepository.findByChannelIdAndUserId(channelId, userId).isPresent())
-            throw new IllegalStateException("메세지 확인 기록이 이미 존재합니다.");
+            throw new IllegalStateException("메세지 읽음 상태가 이미 존재합니다.");
 
         this.readStatusRepository.save(new ReadStatus(userId, channelId));
 
@@ -113,11 +113,11 @@ public class BasicChannelService implements ChannelService {
     @Override
     public void removeUserFromChannel(UUID channelId, UUID userId) {
         User user = this.userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("채널에서 탈퇴시킬 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("채널에서 탈퇴시킬 사용자가 존재하지 않습니다."));
         user.validateNotDeleted();
 
         Channel channel = this.channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자가 탈퇴할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
 
         this.readStatusRepository.findByChannelIdAndUserId(channelId, userId)

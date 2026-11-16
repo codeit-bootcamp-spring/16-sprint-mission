@@ -19,14 +19,14 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     @Override
     public UserStatus save(UserStatus userStatus) {
         UserStatus existing = this.data.putIfAbsent(userStatus.getId(), userStatus);
-        if (existing != null) throw new IllegalStateException("이미 저장된 유저 접속 기록입니다.");
+        if (existing != null) throw new IllegalStateException("이미 저장된 사용자 접속 상태입니다.");
         return userStatus;
     }
 
     @Override
     public UserStatus update(UUID id, UserStatus userStatus) {
         UserStatus existing = this.data.replace(id, userStatus);
-        if (existing == null) throw new IllegalStateException("저장되지 않은 유저 접속 기록입니다.");
+        if (existing == null) throw new IllegalStateException("저장되지 않은 사용자 접속 상태입니다.");
         return userStatus;
     }
 
@@ -58,7 +58,7 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     public void delete(UUID id) {
         UserStatus userStatus = this.data.get(id);
         if (userStatus == null || userStatus.isDeleted())
-            throw new IllegalArgumentException("삭제할 유저 접속 기록이 존재하지 않습니다.");
+            throw new IllegalArgumentException("삭제할 사용자 접속 상태이 존재하지 않습니다.");
         userStatus.softDelete();
     }
 }

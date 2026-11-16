@@ -29,7 +29,7 @@ public class AuthService {
         }
 
         UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 기록이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태이 존재하지 않습니다."));
 
         userStatus.update(Instant.now());
         this.userStatusRepository.update(userStatus.getId(), userStatus);

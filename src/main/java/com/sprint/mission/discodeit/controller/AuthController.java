@@ -38,7 +38,7 @@ public class AuthController {
             ),
             @ApiResponse(
                     responseCode = "404",
-                    description = "유저의 접속 기록이 존재하지 않음",
+                    description = "사용자의 접속 상태이 존재하지 않음",
                     content = @Content(schema = @Schema(
                             implementation = ErrorResponse.class
                     ))

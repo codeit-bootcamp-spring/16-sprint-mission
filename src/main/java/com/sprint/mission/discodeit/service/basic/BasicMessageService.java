@@ -32,9 +32,9 @@ public class BasicMessageService implements MessageService {
         UUID channelId = createRequest.channelId();
         String content = createRequest.content();
 
-        // 유저와 채널 존재 여부 확인
+        // 사용자와 채널 존재 여부 확인
         User author = this.userRepository.findById(authorId)
-                .orElseThrow(() -> new NoSuchElementException("메세지를 보내는 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("메세지를 보내는 사용자가 존재하지 않습니다."));
         Channel channel = this.channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("메세지를 보낼 채널이 존재하지 않습니다."));
         author.validateNotDeleted();
@@ -45,7 +45,7 @@ public class BasicMessageService implements MessageService {
 //                .stream()
 //                .filter(userId -> userId.equals(authorId))
 //                .findFirst()
-//                .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 유저입니다."));
+//                .orElseThrow(() -> new IllegalStateException("채널에 가입되지 않은 사용자입니다."));
 
         Message message = new Message(authorId, content, channelId);
 

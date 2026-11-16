@@ -23,7 +23,7 @@
 //
 //    @Override
 //    public User update(UUID id, User newUser) {
-//        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
+//        User user = this.findById(id).orElseThrow(() -> new NoSuchElementException("수정할 사용자가 존재하지 않습니다."));
 //        user.validateNotDeleted();
 //        user.update(newUser);
 //        this.data.put(id, user);
@@ -43,10 +43,10 @@
 //    @Override
 //    public void delete(UUID id) {
 //        User user = this.findById(id).orElseThrow(
-//                () -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+//                () -> new NoSuchElementException("삭제할 사용자가 존재하지 않습니다."));
 //        user.validateNotDeleted();
 //
-//        // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
+//        // 사용자 삭제 시 가입된 채널들에서도 사용자 탈퇴
 //        Set<UUID> channels = new HashSet<>(user.getChannels());
 //        channels.forEach(channelId -> this.channelService.removeUserFromChannel(channelId, id));
 //        user.softDelete();

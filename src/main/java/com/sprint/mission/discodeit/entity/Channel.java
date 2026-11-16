@@ -49,7 +49,7 @@ public class Channel extends UpdatableEntity {
 
         return this;
     }
-    
+
     public void addUser(UUID userId) {
         this.users.add(userId);
         this.update();
@@ -70,7 +70,7 @@ public class Channel extends UpdatableEntity {
                 .stream()
                 .map(uuid -> uuid.toString().substring(0, 4))
                 .collect(Collectors.joining(", "));
-        return "이름: %s, id: %s, 가입 유저 (id): [ %s ]".formatted(
+        return "이름: %s, id: %s, 가입 사용자 (id): [ %s ]".formatted(
                 this.name,
                 this.getId().toString().substring(0, 4), userStr);
     }

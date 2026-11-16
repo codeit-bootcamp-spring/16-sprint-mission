@@ -28,9 +28,9 @@
 //    public User update(UUID id, User newUser) {
 //        Map<UUID, User> users = this.readUserFile();
 //        User user = Optional.ofNullable(users.get(id)).orElseThrow(
-//                () -> new NoSuchElementException("수정할 유저가 존재하지 않습니다."));
+//                () -> new NoSuchElementException("수정할 사용자가 존재하지 않습니다."));
 //
-//        // 갱신할 유저 정보의 상태가 활동 중이면 현재 유저도 검사
+//        // 갱신할 사용자 정보의 상태가 활동 중이면 현재 사용자도 검사
 //        if (!newUser.isDeleted()) {
 //            user.validateNotDeleted();
 //        }
@@ -54,10 +54,10 @@
 //    @Override
 //    public void delete(UUID id) {
 //        User user = this.findById(id).orElseThrow(
-//                () -> new NoSuchElementException("삭제할 유저가 존재하지 않습니다."));
+//                () -> new NoSuchElementException("삭제할 사용자가 존재하지 않습니다."));
 //        user.validateNotDeleted();
 //
-//        // 유저 삭제 시 가입된 채널들에서도 유저 탈퇴
+//        // 사용자 삭제 시 가입된 채널들에서도 사용자 탈퇴
 //        Set<UUID> channels = new HashSet<>(user.getChannels());
 //        channels.forEach(channelId -> {
 //            this.channelService.removeUserFromChannel(channelId, id);
