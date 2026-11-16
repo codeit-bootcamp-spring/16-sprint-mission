@@ -35,10 +35,10 @@ public class UserController {
 
     @RequestMapping(method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseStatus(HttpStatus.CREATED)
-    public UserDto create(@RequestPart("userCreateRequest") UserCreateRequest request, @RequestPart(value = "profile", required = false)
+    public UserResponse create(@RequestPart("userCreateRequest") UserCreateRequest request, @RequestPart(value = "profile", required = false)
             MultipartFile profile) {
         User user = userService.create(request, profile);
-        return userService.findById(user.getId());
+        return new UserResponse(user.getId(), user.getCreatedAt(), user.getUpdatedAt(), user.getName(), user.getEmail(), user.getProfileId());
     }
 
 
@@ -49,10 +49,12 @@ public class UserController {
     }
 
     @RequestMapping(method = RequestMethod.PATCH,value = "/{userId}",consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public UserDto update(@PathVariable UUID userId,@RequestPart("userUpdateRequest") UserUpdateRequest request,
+    public UserResponse update(@PathVariable UUID userId,@RequestPart("userUpdateRequest") UserUpdateRequest request,
                           @RequestPart(value = "profile", required = false)MultipartFile profile) {
-        userService.update(new UserUpdateRequest(userId, request.newUsername(), request.newPassword(), request.newEmail()), profile);
-        return userService.findById(userId);
+        User user = userService.update(new UserUpdateRequest(userId, request.newUsername(),
+                request.newPassword(), request.newEmail()), profile);
+        return new UserResponse(user.getId(), user.getCreatedAt(), user.getUpdatedAt(),
+                user.getName(), user.getEmail(), user.getProfileId());
     }
 
 

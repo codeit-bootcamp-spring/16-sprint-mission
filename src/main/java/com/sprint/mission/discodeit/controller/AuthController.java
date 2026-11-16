@@ -1,8 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.LoginRequest;
-import com.sprint.mission.discodeit.dto.LoginResponse;
-import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.UserResponse;
 import com.sprint.mission.discodeit.service.AuthService;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -19,7 +18,7 @@ public class AuthController {
     }
 
     @RequestMapping(method = RequestMethod.POST)
-    public LoginResponse login(@RequestBody LoginRequest request){
+    public UserResponse login(@RequestBody LoginRequest request){
         return authService.login(request);
     }
 }

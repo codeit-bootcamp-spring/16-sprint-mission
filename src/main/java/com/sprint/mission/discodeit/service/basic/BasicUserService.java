@@ -122,7 +122,7 @@ public class BasicUserService implements UserService {
             throw new InvalidRequestException("사용 중인 이름");
         }
 
-        user.update(request.newUsername(), request.newUsername(), request.newEmail());
+        user.update(request.newUsername(), request.newPassword(), request.newEmail());
 
         if (profile != null && !profile.isEmpty()) {
             byte[] bytes;
