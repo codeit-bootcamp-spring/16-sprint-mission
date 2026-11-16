@@ -27,8 +27,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Message", description = "메시지 등록, 조회, 수정, 삭제")
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/messages")
@@ -36,6 +42,26 @@ public class MessageController {
 
     private final MessageService messageService;
 
+    @Operation(
+            summary = "메시지 등록",
+            description = "messageCreateRequest에 메시지 정보를 담고, attachments에 파일을 첨부할 수 있습니다."
+    )
+    @ApiResponse(responseCode = "201", description = "메시지 등록 성공")
+    @ApiResponse(
+            responseCode = "400",
+            description = "필수 메시지 파트가 누락되었거나 JSON을 읽을 수 없음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "작성자 또는 채널을 찾을 수 없음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(
+            responseCode = "415",
+            description = "요청 또는 멀티파트 항목의 Content-Type을 지원하지 않음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Message> create(
             @RequestPart("messageCreateRequest") MessageCreateRequest messageCreateRequest,
@@ -62,6 +88,24 @@ public class MessageController {
                 .body(createdMessage);
     }
 
+
+    @Operation(summary = "메시지 본문 수정")
+    @ApiResponse(responseCode = "200", description = "메시지 수정 성공")
+    @ApiResponse(
+            responseCode = "400",
+            description = "메시지 ID의 UUID 형식이 잘못되었거나 요청 JSON을 읽을 수 없음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "수정할 메시지를 찾을 수 없음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(
+            responseCode = "415",
+            description = "요청 본문의 Content-Type을 지원하지 않음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
     @PatchMapping(value = "/{messageId}")
     public ResponseEntity<Message> update(@PathVariable("messageId") UUID messageId,
                                           @RequestBody MessageUpdateRequest request) {
@@ -71,6 +115,19 @@ public class MessageController {
                 .body(updatedMessage);
     }
 
+
+    @Operation(summary = "메시지 삭제")
+    @ApiResponse(responseCode = "204", description = "메시지 삭제 성공", content = @Content)
+    @ApiResponse(
+            responseCode = "400",
+            description = "메시지 ID의 UUID 형식이 올바르지 않음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
+    @ApiResponse(
+            responseCode = "404",
+            description = "삭제할 메시지를 찾을 수 없음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
     @DeleteMapping(value = "/{messageId}")
     public ResponseEntity<Void> delete(@PathVariable("messageId") UUID messageId) {
         messageService.delete(messageId);
@@ -79,6 +136,13 @@ public class MessageController {
                 .build();
     }
 
+    @Operation(summary = "채널별 메시지 목록 조회")
+    @ApiResponse(responseCode = "200", description = "메시지 목록 조회 성공")
+    @ApiResponse(
+            responseCode = "400",
+            description = "channelId가 누락되었거나 UUID 형식이 올바르지 않음",
+            content = @Content(schema = @Schema(implementation = String.class))
+    )
     @GetMapping
     public ResponseEntity<List<Message>> findAllByChannelId(
             @RequestParam("channelId") UUID channelId) {
