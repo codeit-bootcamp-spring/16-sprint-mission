@@ -1,18 +1,13 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.docs.UserControllerDocs;
 import com.sprint.mission.discodeit.dto.user.*;
 import com.sprint.mission.discodeit.dto.userStatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userStatus.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.exception.ErrorResponse;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.basic.UserStatusService;
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
-import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.RequiredArgsConstructor;
@@ -26,41 +21,19 @@ import org.springframework.web.multipart.MultipartFile;
 import java.util.List;
 import java.util.UUID;
 
-@Tag(name = "User", description = "사용자")
 @Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("api/users")
-public class UserController {
+public class UserController implements UserControllerDocs {
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    @Operation(summary = "사용자 목록 전체 조회")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "조회 성공"
-            )
-    })
     @RequestMapping(method = RequestMethod.GET)
     public ResponseEntity<List<UserFindResponse>> findAllUser() {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.findAll());
     }
 
-    @Operation(summary = "사용자 등록")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "201",
-                    description = "사용자가 성공적으로 등록됨"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "같은 이름 또는 이메일의 사용자가 이미 존재함",
-                    content = @Content(schema = @Schema(
-                            implementation = ErrorResponse.class
-                    ))
-            )
-    })
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
@@ -72,27 +45,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.userService.create(createRequest, profileImage));
     }
 
-    @Operation(summary = "사용자 정보 수정", description = "기존 사용자의 이름, 이메일 또는 비밀번호를 수정함")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "사용자가 성공적으로 수정됨"
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "같은 이름 또는 이메일을 사용하는 사용자가 이미 존재함",
-                    content = @Content(schema = @Schema(
-                            implementation = ErrorResponse.class
-                    ))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "수정할 사용자가 존재하지 않음",
-                    content = @Content(schema = @Schema(
-                            implementation = ErrorResponse.class
-                    ))
-            )
-    })
     @RequestMapping(
             value = "/{userId}",
             method = RequestMethod.PATCH,
@@ -104,27 +56,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.update(userId, updateRequest, profileImage));
     }
 
-    @Operation(summary = "사용자 온라인 상태 갱신")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "사용자 온라인 상태가 성공적으로 갱신됨"
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "해당 사용자의 온라인 상태 정보를 찾을 수 없음",
-                    content = @Content(schema = @Schema(
-                            implementation = ErrorResponse.class
-                    ))
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "갱신할 사용자를 찾을 수 없음",
-                    content = @Content(schema = @Schema(
-                            implementation = ErrorResponse.class
-                    ))
-            )
-    })
     @RequestMapping(
             value = "/{userId}/userStatus",
             method = RequestMethod.PATCH)
@@ -133,20 +64,6 @@ public class UserController {
         return ResponseEntity.status(HttpStatus.OK).body(this.userStatusService.updateByUserId(userId, updateRequest));
     }
 
-    @Operation(summary = "사용자 삭제")
-    @ApiResponses(value = {
-            @ApiResponse(
-                    responseCode = "204",
-                    description = "사용자 삭제 성공"
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "삭제할 사용자를 찾을 수 없음",
-                    content = @Content(schema = @Schema(
-                            implementation = ErrorResponse.class
-                    ))
-            )
-    })
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
     public ResponseEntity<Void> deleteUser(@Parameter(description = "삭제할 사용자 ID") @NotNull @PathVariable UUID userId) {
         this.userService.delete(userId);
