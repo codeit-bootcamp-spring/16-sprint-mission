@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.exception;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -16,6 +17,12 @@ import java.io.IOException;
 @Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
+
+    @Value("${spring.servlet.multipart.max-file-size:1MB}")
+    private String maxFileSize;
+
+    @Value("${spring.servlet.multipart.max-request-size:10MB}")
+    private String maxRequestSize;
 
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ErrorResponse> handleNotFound(ResourceNotFoundException exception) {
@@ -65,7 +72,8 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErrorResponse> handleUploadSizeExceeded() {
         return ResponseEntity.status(HttpStatus.valueOf(413))
                 .body(new ErrorResponse(
-                        "첨부 파일의 크기 또는 전체 업로드 용량이 제한을 초과했습니다. 파일 크기를 줄여 다시 시도해주세요."
+                        "첨부 파일 용량 제한을 초과했습니다. 파일 한 개는 최대 %s, 전체 요청은 최대 %s입니다."
+                                .formatted(maxFileSize, maxRequestSize)
                 ));
     }
 
