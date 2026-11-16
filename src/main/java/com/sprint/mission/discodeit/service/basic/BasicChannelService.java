@@ -5,7 +5,6 @@ import com.sprint.mission.discodeit.dto.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.channels.PublicChannelUpdateRequest;
 
-import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ForbiddenOperationException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 
@@ -48,7 +47,7 @@ public class BasicChannelService implements ChannelService {
                 .anyMatch(channel -> channel.getName().equals(request.name()));
 
         if (duplicated) {
-            throw new DuplicateResourceException("중복된 채널 이름입니다.");
+            throw new IllegalArgumentException("중복된 채널 이름입니다.");
         }
 
         // 2. PUBLIC 채널 생성 및 저장
@@ -142,7 +141,7 @@ public class BasicChannelService implements ChannelService {
 
         // 5. 중복된 채널 이름이 있으면 예외를 발생시킨다.
         if (duplicated) {
-            throw new DuplicateResourceException("중복된 채널 이름입니다.");
+            throw new IllegalArgumentException("중복된 채널 이름입니다.");
         }
 
         // 6. 변경 사항이 있는지 확인한다.
