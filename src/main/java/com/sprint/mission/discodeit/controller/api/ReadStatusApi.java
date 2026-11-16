@@ -20,8 +20,8 @@ public interface ReadStatusApi {
 
   @Operation(summary = "Message 읽음 상태 생성")
   @ApiResponse(responseCode = "201", description = "Message 읽음 상태가 성공적으로 생성됨")
+  @ApiResponse(responseCode = "400", description = "이미 읽음 상태가 존재함")
   @ApiResponse(responseCode = "404", description = "Channel 또는 User를 찾을 수 없음")
-  @ApiResponse(responseCode = "409", description = "이미 읽음 상태가 존재함")
   ResponseEntity<ReadStatusDto> create(ReadStatusCreateRequest request);
 
   @Operation(summary = "Message 읽음 상태 수정")

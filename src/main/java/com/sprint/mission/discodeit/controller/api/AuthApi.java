@@ -11,7 +11,7 @@ import org.springframework.http.ResponseEntity;
 public interface AuthApi {
   @Operation(summary = "로그인")
   @ApiResponse(responseCode = "200", description = "로그인 성공")
-  @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
   @ApiResponse(responseCode = "400", description = "비밀번호가 일치하지 않음")
+  @ApiResponse(responseCode = "404", description = "사용자를 찾을 수 없음")
   ResponseEntity<UserDto> login(UserLoginRequest request);
 }

@@ -65,8 +65,8 @@ public interface UserApi {
                               name = "userUpdateRequest",
                               contentType = MediaType.APPLICATION_JSON_VALUE))))
   @ApiResponse(responseCode = "200", description = "User 정보가 성공적으로 수정됨")
-  @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음")
   @ApiResponse(responseCode = "400", description = "같은 email 또는 username를 사용하는 User가 이미 존재함")
+  @ApiResponse(responseCode = "404", description = "User를 찾을 수 없음")
   ResponseEntity<UserDto> update(
       @Parameter(description = "수정할 User ID") UUID userId,
       UserUpdateRequest userUpdateRequest,
