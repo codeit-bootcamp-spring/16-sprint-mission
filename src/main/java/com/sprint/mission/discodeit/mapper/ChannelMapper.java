@@ -2,8 +2,6 @@ package com.sprint.mission.discodeit.mapper;
 
 import com.sprint.mission.discodeit.dto.channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.channel.ChannelResponse;
-import com.sprint.mission.discodeit.dto.channel.PrivateChannelResponseByUserId;
-import com.sprint.mission.discodeit.dto.channel.PublicChannelResponse;
 import com.sprint.mission.discodeit.entity.Channel;
 import org.springframework.stereotype.Component;
 

@@ -1,0 +1,1743 @@
+{
+  "info": {
+    "title": {
+      "from": "Discodeit API 문서",
+      "to": "OpenAPI definition"
+    },
+    "description": {
+      "from": "Discodeit 프로젝트의 Swagger API 문서입니다.",
+      "to": ""
+    },
+    "version": {
+      "from": "",
+      "to": "v0"
+    }
+  },
+  "paths": {
+    "added": [
+      "/api/binaryContents/{binary-content-id}/download"
+    ],
+    "modified": {
+      "/api/auth/login": {
+        "operations": {
+          "modified": {
+            "POST": {
+              "tags": {
+                "added": [
+                  "auth-controller"
+                ],
+                "deleted": [
+                  "Auth"
+                ]
+              },
+              "summary": {
+                "from": "로그인",
+                "to": ""
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "로그인 정보",
+                          "to": ""
+                        },
+                        "required": {
+                          "added": [
+                            "password",
+                            "username"
+                          ]
+                        },
+                        "properties": {
+                          "modified": {
+                            "password": {
+                              "minLength": {
+                                "from": 0,
+                                "to": 1
+                              }
+                            },
+                            "username": {
+                              "minLength": {
+                                "from": 0,
+                                "to": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "401"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "로그인 성공",
+                      "to": "OK"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "properties": {
+                              "deleted": [
+                                "password"
+                              ]
+                            }
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "400": {
+                    "description": {
+                      "from": "비밀번호가 일치하지 않음",
+                      "to": "Bad Request"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Wrong password",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "사용자를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "User with username {username} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/binaryContents": {
+        "operations": {
+          "added": [
+            "POST"
+          ],
+          "modified": {
+            "GET": {
+              "tags": {
+                "added": [
+                  "binary-content-controller"
+                ],
+                "deleted": [
+                  "BinaryContent"
+                ]
+              },
+              "summary": {
+                "from": "여러 첨부 파일 조회",
+                "to": ""
+              },
+              "operationID": {
+                "from": "findAllByIdIn",
+                "to": "findBinaryContentsByIds"
+              },
+              "parameters": {
+                "modified": {
+                  "query": {
+                    "binaryContentIds": {
+                      "description": {
+                        "from": "조회할 첨부 파일 ID 목록",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401",
+                  "404"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "첨부 파일 목록 조회 성공",
+                      "to": "OK"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/binaryContents/{binaryContentId}": {
+        "operations": {
+          "modified": {
+            "GET": {
+              "tags": {
+                "added": [
+                  "binary-content-controller"
+                ],
+                "deleted": [
+                  "BinaryContent"
+                ]
+              },
+              "summary": {
+                "from": "첨부 파일 조회",
+                "to": ""
+              },
+              "operationID": {
+                "from": "find",
+                "to": "findBinaryContentsById"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "binaryContentId": {
+                      "description": {
+                        "from": "조회할 첨부 파일 ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "첨부 파일 조회 성공",
+                      "to": "OK"
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "첨부 파일을 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "BinaryContent with id {binaryContentId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/channels": {
+        "operations": {
+          "modified": {
+            "GET": {
+              "tags": {
+                "added": [
+                  "channel-controller"
+                ],
+                "deleted": [
+                  "Channel"
+                ]
+              },
+              "summary": {
+                "from": "User가 참여 중인 Channel 목록 조회",
+                "to": ""
+              },
+              "operationID": {
+                "from": "findAll_1",
+                "to": "getVisibleChannels"
+              },
+              "parameters": {
+                "modified": {
+                  "query": {
+                    "userId": {
+                      "description": {
+                        "from": "조회할 User ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401",
+                  "404"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "Channel 목록 조회 성공",
+                      "to": "OK"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "items": {
+                              "properties": {
+                                "modified": {
+                                  "participantIds": {
+                                    "uniqueItems": {
+                                      "from": false,
+                                      "to": true
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/channels/private": {
+        "operations": {
+          "modified": {
+            "POST": {
+              "tags": {
+                "added": [
+                  "channel-controller"
+                ],
+                "deleted": [
+                  "Channel"
+                ]
+              },
+              "summary": {
+                "from": "Private Channel 생성",
+                "to": ""
+              },
+              "operationID": {
+                "from": "create_4",
+                "to": "createPrivateChannel"
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "Private Channel 생성 정보",
+                          "to": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "400",
+                  "401",
+                  "404"
+                ],
+                "deleted": [
+                  "201"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "/api/channels/public": {
+        "operations": {
+          "modified": {
+            "POST": {
+              "tags": {
+                "added": [
+                  "channel-controller"
+                ],
+                "deleted": [
+                  "Channel"
+                ]
+              },
+              "summary": {
+                "from": "Public Channel 생성",
+                "to": ""
+              },
+              "operationID": {
+                "from": "create_3",
+                "to": "createPublicChannel"
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "Public Channel 생성 정보",
+                          "to": ""
+                        },
+                        "required": {
+                          "added": [
+                            "name"
+                          ]
+                        },
+                        "properties": {
+                          "modified": {
+                            "name": {
+                              "minLength": {
+                                "from": 0,
+                                "to": 1
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "400",
+                  "401",
+                  "404"
+                ],
+                "deleted": [
+                  "201"
+                ]
+              }
+            }
+          }
+        }
+      },
+      "/api/channels/{channelId}": {
+        "operations": {
+          "modified": {
+            "DELETE": {
+              "tags": {
+                "added": [
+                  "channel-controller"
+                ],
+                "deleted": [
+                  "Channel"
+                ]
+              },
+              "summary": {
+                "from": "Channel 삭제",
+                "to": ""
+              },
+              "operationID": {
+                "from": "delete_2",
+                "to": "deleteChannel"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "channelId": {
+                      "description": {
+                        "from": "삭제할 Channel ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "400",
+                  "401"
+                ],
+                "deleted": [
+                  "204"
+                ],
+                "modified": {
+                  "404": {
+                    "description": {
+                      "from": "Channel을 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Channel with id {channelId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "PATCH": {
+              "tags": {
+                "added": [
+                  "channel-controller"
+                ],
+                "deleted": [
+                  "Channel"
+                ]
+              },
+              "summary": {
+                "from": "Channel 정보 수정",
+                "to": ""
+              },
+              "operationID": {
+                "from": "update_3",
+                "to": "updatePublicChannel"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "channelId": {
+                      "description": {
+                        "from": "수정할 Channel ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "수정할 Channel 정보",
+                          "to": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "401"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "Channel 정보가 성공적으로 수정됨",
+                      "to": "OK"
+                    }
+                  },
+                  "400": {
+                    "description": {
+                      "from": "Private Channel은 수정할 수 없음",
+                      "to": "Bad Request"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Private channel cannot be updated",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "Channel을 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Channel with id {channelId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/messages": {
+        "operations": {
+          "modified": {
+            "GET": {
+              "tags": {
+                "added": [
+                  "message-controller"
+                ],
+                "deleted": [
+                  "Message"
+                ]
+              },
+              "summary": {
+                "from": "Channel의 Message 목록 조회",
+                "to": ""
+              },
+              "operationID": {
+                "from": "findAllByChannelId",
+                "to": "findAllMessage"
+              },
+              "parameters": {
+                "modified": {
+                  "query": {
+                    "channelId": {
+                      "description": {
+                        "from": "조회할 Channel ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401",
+                  "404"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "Message 목록 조회 성공",
+                      "to": "OK"
+                    }
+                  }
+                }
+              }
+            },
+            "POST": {
+              "tags": {
+                "added": [
+                  "message-controller"
+                ],
+                "deleted": [
+                  "Message"
+                ]
+              },
+              "summary": {
+                "from": "Message 생성",
+                "to": ""
+              },
+              "operationID": {
+                "from": "create_2",
+                "to": "createMessage"
+              },
+              "requestBody": {
+                "content": {
+                  "added": [
+                    "application/json"
+                  ],
+                  "deleted": [
+                    "multipart/form-data"
+                  ]
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "400",
+                  "401"
+                ],
+                "deleted": [
+                  "201"
+                ],
+                "modified": {
+                  "404": {
+                    "description": {
+                      "from": "Channel 또는 User를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Channel | Author with id {channelId | authorId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/messages/{messageId}": {
+        "operations": {
+          "added": [
+            "GET"
+          ],
+          "modified": {
+            "DELETE": {
+              "tags": {
+                "added": [
+                  "message-controller"
+                ],
+                "deleted": [
+                  "Message"
+                ]
+              },
+              "summary": {
+                "from": "Message 삭제",
+                "to": ""
+              },
+              "operationID": {
+                "from": "delete_1",
+                "to": "deleteMessage"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "messageId": {
+                      "description": {
+                        "from": "삭제할 Message ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "400",
+                  "401"
+                ],
+                "deleted": [
+                  "204"
+                ],
+                "modified": {
+                  "404": {
+                    "description": {
+                      "from": "Message를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Message with id {messageId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "PATCH": {
+              "tags": {
+                "added": [
+                  "message-controller"
+                ],
+                "deleted": [
+                  "Message"
+                ]
+              },
+              "summary": {
+                "from": "Message 내용 수정",
+                "to": ""
+              },
+              "operationID": {
+                "from": "update_2",
+                "to": "updateMessage"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "messageId": {
+                      "description": {
+                        "from": "수정할 Message ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "수정할 Message 내용",
+                          "to": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "Message가 성공적으로 수정됨",
+                      "to": "OK"
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "Message를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Message with id {messageId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/readStatuses": {
+        "operations": {
+          "modified": {
+            "GET": {
+              "tags": {
+                "added": [
+                  "read-status-controller"
+                ],
+                "deleted": [
+                  "ReadStatus"
+                ]
+              },
+              "summary": {
+                "from": "User의 Message 읽음 상태 목록 조회",
+                "to": ""
+              },
+              "operationID": {
+                "from": "findAllByUserId",
+                "to": "findReadStatusesByUserId"
+              },
+              "parameters": {
+                "modified": {
+                  "query": {
+                    "userId": {
+                      "description": {
+                        "from": "조회할 User ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401",
+                  "404"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "Message 읽음 상태 목록 조회 성공",
+                      "to": "OK"
+                    }
+                  }
+                }
+              }
+            },
+            "POST": {
+              "tags": {
+                "added": [
+                  "read-status-controller"
+                ],
+                "deleted": [
+                  "ReadStatus"
+                ]
+              },
+              "summary": {
+                "from": "Message 읽음 상태 생성",
+                "to": ""
+              },
+              "operationID": {
+                "from": "create_1",
+                "to": "createReadStatus"
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "Message 읽음 상태 생성 정보",
+                          "to": ""
+                        },
+                        "required": {
+                          "added": [
+                            "channelId",
+                            "userId"
+                          ]
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "401"
+                ],
+                "deleted": [
+                  "201"
+                ],
+                "modified": {
+                  "400": {
+                    "description": {
+                      "from": "이미 읽음 상태가 존재함",
+                      "to": "Bad Request"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "ReadStatus with userId {userId} and channelId {channelId} already exists",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "Channel 또는 User를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "Channel | User with id {channelId | userId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/readStatuses/{readStatusId}": {
+        "operations": {
+          "modified": {
+            "PATCH": {
+              "tags": {
+                "added": [
+                  "read-status-controller"
+                ],
+                "deleted": [
+                  "ReadStatus"
+                ]
+              },
+              "summary": {
+                "from": "Message 읽음 상태 수정",
+                "to": ""
+              },
+              "operationID": {
+                "from": "update_1",
+                "to": "updateReadStatus"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "readStatusId": {
+                      "description": {
+                        "from": "수정할 읽음 상태 ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "수정할 읽음 상태 정보",
+                          "to": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "Message 읽음 상태가 성공적으로 수정됨",
+                      "to": "OK"
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "Message 읽음 상태를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "ReadStatus with id {readStatusId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/users": {
+        "operations": {
+          "modified": {
+            "GET": {
+              "tags": {
+                "added": [
+                  "user-controller"
+                ],
+                "deleted": [
+                  "User"
+                ]
+              },
+              "summary": {
+                "from": "전체 User 목록 조회",
+                "to": ""
+              },
+              "operationID": {
+                "from": "findAll",
+                "to": "getAllUsers"
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401",
+                  "404"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "User 목록 조회 성공",
+                      "to": "OK"
+                    }
+                  }
+                }
+              }
+            },
+            "POST": {
+              "tags": {
+                "added": [
+                  "user-controller"
+                ],
+                "deleted": [
+                  "User"
+                ]
+              },
+              "summary": {
+                "from": "User 등록",
+                "to": ""
+              },
+              "operationID": {
+                "from": "create",
+                "to": "createUser"
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "multipart/form-data": {
+                      "schema": {
+                        "properties": {
+                          "modified": {
+                            "profile": {
+                              "description": {
+                                "from": "User 프로필 이미지",
+                                "to": ""
+                              }
+                            },
+                            "userCreateRequest": {
+                              "description": {
+                                "from": "User 생성 정보",
+                                "to": ""
+                              },
+                              "required": {
+                                "added": [
+                                  "email",
+                                  "password",
+                                  "username"
+                                ]
+                              },
+                              "properties": {
+                                "modified": {
+                                  "email": {
+                                    "format": {
+                                      "from": "",
+                                      "to": "email"
+                                    },
+                                    "maxLength": {
+                                      "from": null,
+                                      "to": 254
+                                    }
+                                  },
+                                  "password": {
+                                    "minLength": {
+                                      "from": 0,
+                                      "to": 1
+                                    }
+                                  },
+                                  "username": {
+                                    "minLength": {
+                                      "from": 0,
+                                      "to": 1
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "401",
+                  "404"
+                ],
+                "deleted": [
+                  "201"
+                ],
+                "modified": {
+                  "400": {
+                    "description": {
+                      "from": "같은 email 또는 username를 사용하는 User가 이미 존재함",
+                      "to": "Bad Request"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "User with email {email} already exists",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/users/{userId}": {
+        "operations": {
+          "modified": {
+            "DELETE": {
+              "tags": {
+                "added": [
+                  "user-controller"
+                ],
+                "deleted": [
+                  "User"
+                ]
+              },
+              "summary": {
+                "from": "User 삭제",
+                "to": ""
+              },
+              "operationID": {
+                "from": "delete",
+                "to": "deleteUser"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "userId": {
+                      "description": {
+                        "from": "삭제할 User ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "200",
+                  "400",
+                  "401"
+                ],
+                "deleted": [
+                  "204"
+                ],
+                "modified": {
+                  "404": {
+                    "description": {
+                      "from": "User를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "User with id {id} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "PATCH": {
+              "tags": {
+                "added": [
+                  "user-controller"
+                ],
+                "deleted": [
+                  "User"
+                ]
+              },
+              "summary": {
+                "from": "User 정보 수정",
+                "to": ""
+              },
+              "operationID": {
+                "from": "update",
+                "to": "updateUser"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "userId": {
+                      "description": {
+                        "from": "수정할 User ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "multipart/form-data": {
+                      "schema": {
+                        "properties": {
+                          "modified": {
+                            "profile": {
+                              "description": {
+                                "from": "수정할 User 프로필 이미지",
+                                "to": ""
+                              }
+                            },
+                            "userUpdateRequest": {
+                              "description": {
+                                "from": "수정할 User 정보",
+                                "to": ""
+                              },
+                              "properties": {
+                                "modified": {
+                                  "newEmail": {
+                                    "format": {
+                                      "from": "",
+                                      "to": "email"
+                                    },
+                                    "maxLength": {
+                                      "from": null,
+                                      "to": 254
+                                    }
+                                  }
+                                }
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "401"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "User 정보가 성공적으로 수정됨",
+                      "to": "OK"
+                    }
+                  },
+                  "400": {
+                    "description": {
+                      "from": "같은 email 또는 username를 사용하는 User가 이미 존재함",
+                      "to": "Bad Request"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "user with email {newEmail} already exists",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "User를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "User with id {userId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "/api/users/{userId}/userStatus": {
+        "operations": {
+          "modified": {
+            "PATCH": {
+              "tags": {
+                "added": [
+                  "user-controller"
+                ],
+                "deleted": [
+                  "User"
+                ]
+              },
+              "summary": {
+                "from": "User 온라인 상태 업데이트",
+                "to": ""
+              },
+              "operationID": {
+                "from": "updateUserStatusByUserId",
+                "to": "updateUserOnlineStatus"
+              },
+              "parameters": {
+                "modified": {
+                  "path": {
+                    "userId": {
+                      "description": {
+                        "from": "상태를 변경할 User ID",
+                        "to": ""
+                      }
+                    }
+                  }
+                }
+              },
+              "requestBody": {
+                "content": {
+                  "modified": {
+                    "application/json": {
+                      "schema": {
+                        "description": {
+                          "from": "변경할 User 온라인 상태 정보",
+                          "to": ""
+                        }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "added": [
+                  "400",
+                  "401"
+                ],
+                "modified": {
+                  "200": {
+                    "description": {
+                      "from": "User 온라인 상태가 성공적으로 업데이트됨",
+                      "to": "OK"
+                    }
+                  },
+                  "404": {
+                    "description": {
+                      "from": "해당 User의 UserStatus를 찾을 수 없음",
+                      "to": "Not Found"
+                    },
+                    "content": {
+                      "modified": {
+                        "*/*": {
+                          "schema": {
+                            "schemaAdded": true
+                          },
+                          "example": {
+                            "from": "UserStatus with userId {userId} not found",
+                            "to": null
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "servers": {
+    "modified": {
+      "http://localhost:8080": {
+        "description": {
+          "from": "로컬 서버",
+          "to": "Generated server url"
+        }
+      }
+    }
+  },
+  "tags": {
+    "deleted": [
+      "Channel",
+      "ReadStatus",
+      "Message",
+      "User",
+      "BinaryContent",
+      "Auth"
+    ]
+  },
+  "components": {
+    "schemas": {
+      "added": [
+        "BinaryContentCreateRequest",
+        "BinaryContentResponse",
+        "ChannelResponse",
+        "ChannelUpdateRequest",
+        "LoginResponse",
+        "MessageResponse",
+        "ReadStatusResponse",
+        "UserResponse",
+        "UserStatusResponse"
+      ],
+      "deleted": [
+        "BinaryContent",
+        "Channel",
+        "Message",
+        "PublicChannelUpdateRequest",
+        "ReadStatus",
+        "User",
+        "UserStatus"
+      ],
+      "modified": {
+        "ChannelDto": {
+          "properties": {
+            "added": [
+              "createdAt",
+              "updatedAt"
+            ],
+            "deleted": [
+              "lastMessageAt",
+              "participantIds"
+            ]
+          }
+        },
+        "LoginRequest": {
+          "description": {
+            "from": "로그인 정보",
+            "to": ""
+          },
+          "required": {
+            "added": [
+              "password",
+              "username"
+            ]
+          },
+          "properties": {
+            "modified": {
+              "password": {
+                "minLength": {
+                  "from": 0,
+                  "to": 1
+                }
+              },
+              "username": {
+                "minLength": {
+                  "from": 0,
+                  "to": 1
+                }
+              }
+            }
+          }
+        },
+        "MessageCreateRequest": {
+          "description": {
+            "from": "Message 생성 정보",
+            "to": ""
+          },
+          "required": {
+            "added": [
+              "authorId",
+              "channelId",
+              "content"
+            ]
+          },
+          "properties": {
+            "modified": {
+              "content": {
+                "minLength": {
+                  "from": 0,
+                  "to": 1
+                }
+              }
+            }
+          }
+        },
+        "MessageUpdateRequest": {
+          "description": {
+            "from": "수정할 Message 내용",
+            "to": ""
+          }
+        },
+        "PrivateChannelCreateRequest": {
+          "description": {
+            "from": "Private Channel 생성 정보",
+            "to": ""
+          }
+        },
+        "PublicChannelCreateRequest": {
+          "description": {
+            "from": "Public Channel 생성 정보",
+            "to": ""
+          },
+          "required": {
+            "added": [
+              "name"
+            ]
+          },
+          "properties": {
+            "modified": {
+              "name": {
+                "minLength": {
+                  "from": 0,
+                  "to": 1
+                }
+              }
+            }
+          }
+        },
+        "ReadStatusCreateRequest": {
+          "description": {
+            "from": "Message 읽음 상태 생성 정보",
+            "to": ""
+          },
+          "required": {
+            "added": [
+              "channelId",
+              "userId"
+            ]
+          }
+        },
+        "ReadStatusUpdateRequest": {
+          "description": {
+            "from": "수정할 읽음 상태 정보",
+            "to": ""
+          }
+        },
+        "UserCreateRequest": {
+          "description": {
+            "from": "User 생성 정보",
+            "to": ""
+          },
+          "required": {
+            "added": [
+              "email",
+              "password",
+              "username"
+            ]
+          },
+          "properties": {
+            "modified": {
+              "email": {
+                "format": {
+                  "from": "",
+                  "to": "email"
+                },
+                "maxLength": {
+                  "from": null,
+                  "to": 254
+                }
+              },
+              "password": {
+                "minLength": {
+                  "from": 0,
+                  "to": 1
+                }
+              },
+              "username": {
+                "minLength": {
+                  "from": 0,
+                  "to": 1
+                }
+              }
+            }
+          }
+        },
+        "UserDto": {
+          "properties": {
+            "added": [
+              "password"
+            ],
+            "deleted": [
+              "online"
+            ]
+          }
+        },
+        "UserStatusUpdateRequest": {
+          "description": {
+            "from": "변경할 User 온라인 상태 정보",
+            "to": ""
+          }
+        },
+        "UserUpdateRequest": {
+          "description": {
+            "from": "수정할 User 정보",
+            "to": ""
+          },
+          "properties": {
+            "modified": {
+              "newEmail": {
+                "format": {
+                  "from": "",
+                  "to": "email"
+                },
+                "maxLength": {
+                  "from": null,
+                  "to": 254
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
