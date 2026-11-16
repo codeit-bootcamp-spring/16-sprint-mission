@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.dto.message;
 
 import com.sprint.mission.discodeit.entity.Message;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.Instant;
 import java.util.List;
@@ -10,7 +11,10 @@ public record MessageResponse(
         UUID id,
         Instant createdAt,
         Instant updatedAt,
+
+        @Schema(example = "안녕하세요!")
         String content,
+
         UUID channelId,
         UUID authorId,
         List<UUID> attachmentIds
