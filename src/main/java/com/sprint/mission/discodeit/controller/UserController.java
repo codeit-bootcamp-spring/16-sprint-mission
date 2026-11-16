@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.request.status.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.request.users.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -91,7 +91,7 @@ public class UserController {
         userService.deleteUser(userId);
         return ResponseEntity.noContent().build();
     }
-    
+
     @UserStatusUpdateDocs
     @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
     public UserStatus updateUserStatusByUserId(
