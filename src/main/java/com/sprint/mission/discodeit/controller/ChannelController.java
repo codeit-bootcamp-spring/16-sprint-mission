@@ -5,7 +5,11 @@ import com.sprint.mission.discodeit.dto.request.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
+import com.sprint.mission.discodeit.exception.ErrorResponse;
 import com.sprint.mission.discodeit.service.ChannelService;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
@@ -31,11 +35,18 @@ public class ChannelController implements ChannelApi {
   @Override
   @PostMapping(value = "/private")
   public ResponseEntity<ChannelDto> createPrivate(
-      @RequestBody PrivateChannelCreateRequest request) {
+      @Valid @RequestBody PrivateChannelCreateRequest request) {
     ChannelDto channel = channelService.createPrivate(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(channel);
   }
 
+  @ApiResponse(
+      responseCode = "400",
+      description = "Private Channel은 수정할 수 없음",
+      content =
+          @Content(
+              mediaType = "application/json",
+              schema = @Schema(implementation = ErrorResponse.class)))
   @Override
   @PatchMapping(value = "/{channelId}")
   public ResponseEntity<ChannelDto> update(

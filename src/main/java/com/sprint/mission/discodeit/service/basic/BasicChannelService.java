@@ -27,9 +27,7 @@ public class BasicChannelService implements ChannelService {
 
   @Override
   public ChannelDto createPrivate(PrivateChannelCreateRequest request) {
-    List<UUID> participantIds =
-        request.participantIds() != null ? request.participantIds() : List.of();
-    Set<UUID> memberIds = new LinkedHashSet<>(participantIds);
+    Set<UUID> memberIds = new LinkedHashSet<>(request.participantIds());
 
     List<User> members =
         memberIds.stream()
