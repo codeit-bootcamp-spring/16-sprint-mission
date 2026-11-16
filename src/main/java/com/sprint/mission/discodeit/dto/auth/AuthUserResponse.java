@@ -17,9 +17,9 @@ public record AuthUserResponse(
         @Schema(example = "kimcode123@codeit.com")
         String email,
 
-        @Schema(description = "비밀번호 (8자 이상 ~ 20자 이하", example = "asdfqwer!")
+        @Schema(description = "비밀번호 (8자 이상 ~ 20자 이하)", example = "asdfqwer!")
         String password,
-        
+
         UUID profileId
 ) {
     public static AuthUserResponse from(User user) {
