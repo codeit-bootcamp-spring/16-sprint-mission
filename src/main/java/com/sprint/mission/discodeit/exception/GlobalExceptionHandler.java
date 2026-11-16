@@ -8,6 +8,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.io.IOException;
@@ -58,6 +59,14 @@ public class GlobalExceptionHandler {
     ) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
                 .body(new ErrorResponse("필수 요청 파트가 누락되었습니다: " + exception.getRequestPartName()));
+    }
+
+    @ExceptionHandler(MaxUploadSizeExceededException.class)
+    public ResponseEntity<ErrorResponse> handleUploadSizeExceeded() {
+        return ResponseEntity.status(HttpStatus.valueOf(413))
+                .body(new ErrorResponse(
+                        "첨부 파일의 크기 또는 전체 업로드 용량이 제한을 초과했습니다. 파일 크기를 줄여 다시 시도해주세요."
+                ));
     }
 
     @ExceptionHandler(IOException.class)
