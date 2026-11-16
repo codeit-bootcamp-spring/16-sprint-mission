@@ -38,7 +38,6 @@ public class UserController implements UserControllerDocs {
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<UserResponse> createUser(
-            @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
             @Valid
             @RequestPart("userCreateRequest") UserCreateRequest createRequest,
             @RequestPart(name = "profile", required = false) MultipartFile profileImage) {
@@ -49,8 +48,7 @@ public class UserController implements UserControllerDocs {
             value = "/{userId}",
             method = RequestMethod.PATCH,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserResponse> updateUser(@Parameter(description = "사용자 ID") @NotNull @PathVariable UUID userId,
-                                                   @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    public ResponseEntity<UserResponse> updateUser(@NotNull @PathVariable UUID userId,
                                                    @Valid @RequestPart("userUpdateRequest") UserUpdateRequest updateRequest,
                                                    @RequestPart(name = "profile", required = false) MultipartFile profileImage) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userService.update(userId, updateRequest, profileImage));
@@ -59,13 +57,13 @@ public class UserController implements UserControllerDocs {
     @RequestMapping(
             value = "/{userId}/userStatus",
             method = RequestMethod.PATCH)
-    public ResponseEntity<UserStatusResponse> updateUserStatus(@Parameter(description = "상태를 변경할 사용자 ID") @NotNull @PathVariable UUID userId,
+    public ResponseEntity<UserStatusResponse> updateUserStatus(@NotNull @PathVariable UUID userId,
                                                                @Valid @RequestBody UserStatusUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.userStatusService.updateByUserId(userId, updateRequest));
     }
 
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteUser(@Parameter(description = "삭제할 사용자 ID") @NotNull @PathVariable UUID userId) {
+    public ResponseEntity<Void> deleteUser(@NotNull @PathVariable UUID userId) {
         this.userService.delete(userId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

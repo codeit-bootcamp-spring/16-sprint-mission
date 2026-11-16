@@ -23,7 +23,7 @@ public class ReadStatusController implements ReadStatusControllerDocs {
     private final ReadStatusService readStatusService;
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ReadStatusResponse>> findAllReadStatusByUserId(@Parameter(description = "사용자 ID") @NotNull @RequestParam UUID userId) {
+    public ResponseEntity<List<ReadStatusResponse>> findAllReadStatusByUserId(@NotNull @RequestParam UUID userId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.readStatusService.findAllByUserId(userId));
     }
 
@@ -33,7 +33,7 @@ public class ReadStatusController implements ReadStatusControllerDocs {
     }
 
     @RequestMapping(value = "/{readStatusId}", method = RequestMethod.PATCH)
-    public ResponseEntity<ReadStatusResponse> updateReadStatus(@Parameter(description = "메세지 읽음 상태 ID") @NotNull @PathVariable UUID readStatusId,
+    public ResponseEntity<ReadStatusResponse> updateReadStatus(@NotNull @PathVariable UUID readStatusId,
                                                                @Valid @RequestBody ReadStatusUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.readStatusService.update(readStatusId, updateRequest));
     }

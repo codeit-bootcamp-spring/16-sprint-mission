@@ -33,32 +33,32 @@ public class ChannelController implements ChannelControllerDocs {
     }
 
     @RequestMapping(value = "/{id}/users", method = RequestMethod.POST)
-    public ResponseEntity<Void> joinChannel(@Parameter(description = "가입하는 채널 ID") @NotNull @PathVariable UUID id,
+    public ResponseEntity<Void> joinChannel(@NotNull @PathVariable UUID id,
                                             @Valid @RequestBody ChannelJoinRequest joinRequest) {
         this.channelService.addUserToChannel(id, joinRequest.userId());
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @RequestMapping(value = "/{id}/users", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> leaveChannel(@Parameter(description = "탈퇴할 채널 ID") @NotNull @PathVariable UUID id,
+    public ResponseEntity<Void> leaveChannel(@NotNull @PathVariable UUID id,
                                              @Valid @RequestBody ChannelLeaveRequest leaveRequest) {
         this.channelService.removeUserFromChannel(id, leaveRequest.userId());
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
 
     @RequestMapping(value = "/{channelId}", method = RequestMethod.PATCH)
-    public ResponseEntity<ChannelResponse> updatePublicChannel(@Parameter(description = "수정할 공개 채널 ID") @NotNull @PathVariable UUID channelId,
+    public ResponseEntity<ChannelResponse> updatePublicChannel(@NotNull @PathVariable UUID channelId,
                                                                @RequestBody PublicChannelUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.channelService.update(channelId, updateRequest));
     }
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<ChannelFindResponse>> findAllChannels(@Parameter(description = "사용자 ID") @NotNull @RequestParam UUID userId) {
+    public ResponseEntity<List<ChannelFindResponse>> findAllChannels(@NotNull @RequestParam UUID userId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.channelService.findAllByUserId(userId));
     }
 
     @RequestMapping(value = "/{channelId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteChannel(@Parameter(description = "삭제할 채널 ID") @NotNull @PathVariable UUID channelId) {
+    public ResponseEntity<Void> deleteChannel(@NotNull @PathVariable UUID channelId) {
         this.channelService.delete(channelId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }

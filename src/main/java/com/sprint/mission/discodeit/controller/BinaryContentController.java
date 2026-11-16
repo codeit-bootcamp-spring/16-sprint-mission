@@ -27,7 +27,7 @@ public class BinaryContentController implements BinaryContentControllerDocs {
     }
 
     @RequestMapping(value = "/{binaryContentId}", method = RequestMethod.GET)
-    public ResponseEntity<BinaryContentResponse> findById(@Parameter(description = "첨부 파일 ID") @NotNull @PathVariable UUID binaryContentId) {
+    public ResponseEntity<BinaryContentResponse> findById(@NotNull @PathVariable UUID binaryContentId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.binaryContentService.findById(binaryContentId));
     }
 }

@@ -26,7 +26,7 @@ public class MessageController implements MessageControllerDocs {
     private final MessageService messageService;
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<List<MessageResponse>> findAllMessagesByChannelId(@Parameter(description = "채널 ID") @NotNull @RequestParam UUID channelId) {
+    public ResponseEntity<List<MessageResponse>> findAllMessagesByChannelId(@NotNull @RequestParam UUID channelId) {
         return ResponseEntity.status(HttpStatus.OK).body(this.messageService.findAllByChannelId(channelId));
     }
 
@@ -34,19 +34,18 @@ public class MessageController implements MessageControllerDocs {
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<MessageResponse> createMessage(@RequestPart(name = "attachments", required = false) List<MultipartFile> attachments,
-                                                         @Parameter(content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
                                                          @Valid @RequestPart("messageCreateRequest") MessageCreateRequest createRequest) {
         return ResponseEntity.status(HttpStatus.CREATED).body(this.messageService.create(createRequest, attachments));
     }
 
     @RequestMapping(value = "/{messageId}", method = RequestMethod.PATCH)
-    public ResponseEntity<MessageResponse> updateMessage(@Parameter(description = "메세지 ID") @NotNull @PathVariable UUID messageId,
+    public ResponseEntity<MessageResponse> updateMessage(@NotNull @PathVariable UUID messageId,
                                                          @RequestBody MessageUpdateRequest updateRequest) {
         return ResponseEntity.status(HttpStatus.OK).body(this.messageService.update(messageId, updateRequest));
     }
 
     @RequestMapping(value = "/{messageId}", method = RequestMethod.DELETE)
-    public ResponseEntity<Void> deleteMessage(@Parameter(description = "메세지 ID") @NotNull @PathVariable UUID messageId) {
+    public ResponseEntity<Void> deleteMessage(@NotNull @PathVariable UUID messageId) {
         this.messageService.delete(messageId);
         return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
     }
