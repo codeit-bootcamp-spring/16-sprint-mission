@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.request.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.request.PublicChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.response.ChannelDto;
 import com.sprint.mission.discodeit.service.ChannelService;
+import jakarta.validation.Valid;
 import java.util.List;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,8 @@ public class ChannelController implements ChannelApi {
 
   @Override
   @PostMapping(value = "/public")
-  public ResponseEntity<ChannelDto> createPublic(@RequestBody PublicChannelCreateRequest request) {
+  public ResponseEntity<ChannelDto> createPublic(
+      @Valid @RequestBody PublicChannelCreateRequest request) {
     ChannelDto channel = channelService.createPublic(request);
     return ResponseEntity.status(HttpStatus.CREATED).body(channel);
   }
@@ -37,7 +39,7 @@ public class ChannelController implements ChannelApi {
   @Override
   @PatchMapping(value = "/{channelId}")
   public ResponseEntity<ChannelDto> update(
-      @PathVariable UUID channelId, @RequestBody ChannelUpdateRequest request) {
+      @PathVariable UUID channelId, @Valid @RequestBody ChannelUpdateRequest request) {
     return ResponseEntity.ok(channelService.update(channelId, request));
   }
 

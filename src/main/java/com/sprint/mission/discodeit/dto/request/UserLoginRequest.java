@@ -1,3 +1,5 @@
 package com.sprint.mission.discodeit.dto.request;
 
-public record UserLoginRequest(String username, String password) {}
+import jakarta.validation.constraints.NotBlank;
+
+public record UserLoginRequest(@NotBlank String username, @NotBlank String password) {}

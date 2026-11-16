@@ -9,6 +9,7 @@ import com.sprint.mission.discodeit.dto.response.UserDto;
 import com.sprint.mission.discodeit.dto.response.UserStatusDto;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
+import jakarta.validation.Valid;
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.util.List;
@@ -31,8 +32,8 @@ public class UserController implements UserApi {
   @Override
   @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserDto> create(
-      @RequestPart("userCreateRequest") UserCreateRequest request,
-      @RequestPart(value = "profile", required = false) MultipartFile profile) {
+      @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
+      @Valid @RequestPart(value = "profile", required = false) MultipartFile profile) {
     UserDto user = userService.create(request, toBinaryContentRequest(profile));
     return ResponseEntity.status(HttpStatus.CREATED).body(user);
   }
@@ -54,8 +55,8 @@ public class UserController implements UserApi {
   @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   public ResponseEntity<UserDto> update(
       @PathVariable UUID userId,
-      @RequestPart("userUpdateRequest") UserUpdateRequest request,
-      @RequestPart(value = "profile", required = false) MultipartFile profile) {
+      @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
+      @Valid @RequestPart(value = "profile", required = false) MultipartFile profile) {
     return ResponseEntity.ok(userService.update(userId, request, toBinaryContentRequest(profile)));
   }
 
@@ -75,7 +76,7 @@ public class UserController implements UserApi {
   @Override
   @PatchMapping(value = "/{userId}/userStatus")
   public ResponseEntity<UserStatusDto> updateUserStatusByUserId(
-      @PathVariable UUID userId, @RequestBody UserStatusUpdateRequest request) {
+      @PathVariable UUID userId, @Valid @RequestBody UserStatusUpdateRequest request) {
     return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
   }
 }
