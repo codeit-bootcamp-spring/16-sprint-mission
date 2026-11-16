@@ -14,6 +14,7 @@ public class UserStatusMapper {
         userStatus.getCreatedAt(),
         userStatus.getUpdatedAt(),
         userStatus.getUserId(),
-        userStatus.getLastActiveAt());
+        userStatus.getLastActiveAt(),
+        userStatus.isOnline());
   }
 }
