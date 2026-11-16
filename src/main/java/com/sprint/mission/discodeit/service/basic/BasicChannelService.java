@@ -120,9 +120,8 @@ public class BasicChannelService implements ChannelService {
                 .orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
 
-        ReadStatus readStatus = this.readStatusRepository.findByChannelIdAndUserId(channelId, userId)
-                .orElseThrow(() -> new NoSuchElementException("메세지 확인 기록이 존재하지 않습니다."));
-        this.readStatusRepository.delete(readStatus.getId());
+        this.readStatusRepository.findByChannelIdAndUserId(channelId, userId)
+                .ifPresent(readStatus -> this.readStatusRepository.delete(readStatus.getId()));
 
         channel.removeUser(userId);
         this.channelRepository.update(channelId, channel);
