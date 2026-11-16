@@ -27,7 +27,11 @@ public interface ChannelApi {
 
   @Operation(summary = "Channel 삭제")
   @ApiResponse(responseCode = "204", description = "Channel이 성공적으로 삭제됨")
-  @ApiResponse(responseCode = "404", description = "Channel을 찾을 수 없음")
+  @ApiResponse(responseCode = "404", description = "Channel을 찾을 수 없음",
+          content =
+          @Content(
+                  mediaType = "application/json",
+                  schema = @Schema(implementation = ErrorResponse.class)))
   ResponseEntity<Void> delete(@Parameter(description = "삭제할 Channel ID") UUID channelId);
 
   @Operation(summary = "Channel 정보 수정")
