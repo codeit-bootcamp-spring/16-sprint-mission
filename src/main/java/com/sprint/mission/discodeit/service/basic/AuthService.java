@@ -23,7 +23,7 @@ public class AuthService {
         String password = authRequest.password();
 
         User user = this.userRepository.findByName(name).orElseThrow(
-                () -> new NoSuchElementException("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요."));
+                () -> new IllegalArgumentException("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요."));
         if (!user.getPassword().equals(password)) {
             throw new IllegalArgumentException("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요.");
         }
