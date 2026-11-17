@@ -48,7 +48,7 @@ public class ReadStatusController {
                 .body(createdReadStatus);
     }
 
-    @PatchMapping("/{readstatusId}")
+    @PatchMapping("/{readStatusId}")
     @Operation(summary = "Message 읽음 상태 수정")
     @ApiResponses({
             @ApiResponse(responseCode = "200", description = "Message 읽음 상태가 성공적으로 수정됨"),
@@ -56,7 +56,7 @@ public class ReadStatusController {
                     content = @Content(mediaType = "*/*", examples = @ExampleObject(value = "ReadStatus with id {readStatusId} not found")))
     })
     public ResponseEntity<ReadStatus> update(
-            @PathVariable("readstatusId")
+            @PathVariable("readStatusId")
             @Parameter(description = "수정할 읽음 상태 ID", required = true)
             UUID readStatusId,
             @RequestBody(required = true) ReadStatusUpdateRequest request) {
