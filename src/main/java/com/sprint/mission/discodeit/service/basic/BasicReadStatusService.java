@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.readstatus.ReadStatusListResponse;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponse;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
@@ -8,6 +9,7 @@ import com.sprint.mission.discodeit.exception.DuplicateResourceException;
 import com.sprint.mission.discodeit.exception.channel.ChannelNotFoundException;
 import com.sprint.mission.discodeit.exception.readstatus.ReadStatusNotFoundException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
+import com.sprint.mission.discodeit.mapper.ReadStatusMapper;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -21,9 +23,13 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class BasicReadStatusService implements ReadStatusService {
+
     private final ReadStatusRepository readStatusRepository;
+
     private final UserRepository userRepository;
     private final ChannelRepository channelRepository;
+
+    private final ReadStatusMapper readStatusMapper;
 
     @Override
     public ReadStatusResponse create(ReadStatusCreateRequest request) {
@@ -50,31 +56,26 @@ public class BasicReadStatusService implements ReadStatusService {
         ReadStatus readStatus = new ReadStatus(request.userId(), request.channelId());
         readStatusRepository.save(readStatus);
 
-        return this.toReadStatusResponse(readStatus);
+        return this.readStatusMapper.toReadStatusResponse(readStatus);
     }
 
     @Override
     public ReadStatusResponse find(UUID readStatusId) {
-        ReadStatus readStatus = this.readStatusRepository.findById(readStatusId)
+        ReadStatus readStatus = this.findReadStatusEntity(readStatusId);
+
+        return this.readStatusMapper.toReadStatusResponse(readStatus);
+    }
+
+    private ReadStatus findReadStatusEntity(UUID readStatusId) {
+        return this.readStatusRepository.findById(readStatusId)
                 .orElseThrow(() -> new ReadStatusNotFoundException(
                         "ID가 " + readStatusId + "인 메시지 수신 정보를 찾을 수 없습니다."
                 ));
-
-        return this.toReadStatusResponse(readStatus);
     }
 
-    private ReadStatusResponse toReadStatusResponse(ReadStatus readStatus) {
-        return new ReadStatusResponse(
-                readStatus.getId(),
-                readStatus.getUserId(),
-                readStatus.getChannelId(),
-                readStatus.getCreatedAt(),
-                readStatus.getUpdatedAt()
-        );
-    }
 
     @Override
-    public List<ReadStatusResponse> findAllByUserId(UUID userId) {
+    public ReadStatusListResponse findAllByUserId(UUID userId) {
         if (!this.userRepository.existsById(userId)) {
             throw new UserNotFoundException(
                     "ID가 " + userId + "인 사용자를 찾을 수 없습니다."
@@ -83,23 +84,22 @@ public class BasicReadStatusService implements ReadStatusService {
 
         List<ReadStatus> readStatus = this.readStatusRepository.findAllByUserId(userId);
 
-        return readStatus.stream()
-                .map(this::toReadStatusResponse)
+        List<ReadStatusResponse> readStatusResponses = readStatus.stream()
+                .map(this.readStatusMapper::toReadStatusResponse)
                 .toList();
+
+        return new ReadStatusListResponse(readStatusResponses);
     }
 
     @Override
-    public ReadStatusResponse update(ReadStatusUpdateRequest request) {
-        ReadStatus readStatus =
-                this.readStatusRepository.findById(request.readStatusId())
-                .orElseThrow(() -> new ReadStatusNotFoundException(
-                        "ID가 " + request.readStatusId() + "인 메시지 수신 정보를 찾을 수 없습니다."
-                ));
+    public ReadStatusResponse update(UUID readStatusID, ReadStatusUpdateRequest request) {
+        ReadStatus readStatus = this.findReadStatusEntity(readStatusID);
 
         readStatus.update();
+        readStatus.updateLastReadAt(request.newLastReadAt());
         this.readStatusRepository.save(readStatus);
 
-        return this.toReadStatusResponse(readStatus);
+        return this.readStatusMapper.toReadStatusResponse(readStatus);
     }
 
     @Override

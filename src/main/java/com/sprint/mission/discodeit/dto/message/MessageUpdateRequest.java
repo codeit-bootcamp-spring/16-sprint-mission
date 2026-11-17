@@ -1,12 +1,12 @@
 package com.sprint.mission.discodeit.dto.message;
 
-import com.sprint.mission.discodeit.entity.BinaryContent;
-import jakarta.validation.constraints.NotBlank;
-import org.jspecify.annotations.Nullable;
-
-import java.util.List;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 public record MessageUpdateRequest(
+        @Schema(
+                description = "변경할 메시지 내용",
+                example = "수정된 메시지입니다."
+        )
         String newContent
 ) {
 }
