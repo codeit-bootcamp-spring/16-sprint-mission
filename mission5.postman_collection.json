@@ -132,7 +132,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "http://localhost:8080/api/users/{userId}",
+          "raw": "http://localhost:8080/api/users/68726c07-a25f-4ba4-bfa4-a14ff769f1b9",
           "protocol": "http",
           "host": [
             "localhost"
@@ -299,7 +299,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "http://localhost:8080/api/channels/{channelId}",
+          "raw": "http://localhost:8080/api/channels/9a5d7f51-4715-45fb-b685-cc7b27ea2cc4",
           "protocol": "http",
           "host": [
             "localhost"
@@ -386,7 +386,7 @@
         "method": "DELETE",
         "header": [],
         "url": {
-          "raw": "http://localhost:8080/api/messages/{messageId}",
+          "raw": "http://localhost:8080/api/messages/46d5732e-d2fb-4f8f-9af0-aac2c9154410",
           "protocol": "http",
           "host": [
             "localhost"
@@ -568,4 +568,62 @@
       "response": []
     }
   ]
+}
+
+{
+  "name": "MessageController_채널 메세지 조회",
+  "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+      "raw": "http://localhost:8080/api/messages?channelId=9a5d7f51-4715-45fb-b685-cc7b27ea2cc4",
+      "protocol": "http",
+      "host": ["localhost"],
+      "port": "8080",
+      "path": ["api", "messages"],
+      "query": [
+        {
+          "key": "channelId",
+          "value": "9a5d7f51-4715-45fb-b685-cc7b27ea2cc4"
+        }
+      ]
+    }
+  },
+  "response": []
+},
+{
+  "name": "BinaryContentController_여러 ID로 파일 조회",
+  "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+      "raw": "http://localhost:8080/api/binaryContents?binaryContentIds=68726c07-a25f-4ba4-bfa4-a14ff769f1b9,46d607de-2b09-4d36-8cac-edaea665e9c0",
+      "protocol": "http",
+      "host": ["localhost"],
+      "port": "8080",
+      "path": ["api", "binaryContents"],
+      "query": [
+        {
+          "key": "binaryContentIds",
+          "value": "68726c07-a25f-4ba4-bfa4-a14ff769f1b9,46d607de-2b09-4d36-8cac-edaea665e9c0"
+        }
+      ]
+    }
+  },
+  "response": []
+},
+{
+  "name": "BinaryContentController_단일 파일 조회",
+  "request": {
+    "method": "GET",
+    "header": [],
+    "url": {
+      "raw": "http://localhost:8080/api/binaryContents/68726c07-a25f-4ba4-bfa4-a14ff769f1b9",
+      "protocol": "http",
+      "host": ["localhost"],
+      "port": "8080",
+      "path": ["api", "binaryContents", "68726c07-a25f-4ba4-bfa4-a14ff769f1b9"]
+    }
+  },
+  "response": []
 }
