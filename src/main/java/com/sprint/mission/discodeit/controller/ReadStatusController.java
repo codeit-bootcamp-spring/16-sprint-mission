@@ -70,7 +70,7 @@ public class ReadStatusController {
                                     examples = {
                                             @ExampleObject(
                                                     name = "ReadStatus 중복",
-                                                    value = "해당 사용자와 채널에 대한 메시지 수신 정보가 이미 존재합니다. 사용자 ID: {userId}, 채널 ID: {channelId}"
+                                                    value = "해당 사용자와 채널에 대한 메시지 수신 정보가 이미 존재합니다. 사용자 ID: 550e8400-e29b-41d4-a716-446655440001, 채널 ID: 550e8400-e29b-41d4-a716-446655440002"
                                             ),
                                             @ExampleObject(
                                                     name = "유효성 검증 실패",
@@ -89,7 +89,17 @@ public class ReadStatusController {
                     description = "ReadStatus를 생성할 User 또는 Channel이 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "사용자 없음",
+                                            value = "ID가 550e8400-e29b-41d4-a716-446655440001인 사용자를 찾을 수 없습니다."
+                                    ),
+                                    @ExampleObject(
+                                            name = "채널 없음",
+                                            value = "ID가 550e8400-e29b-41d4-a716-446655440002인 채널을 찾을 수 없습니다."
+                                    )
+                            }
                     )
             )
     })
@@ -141,7 +151,10 @@ public class ReadStatusController {
                     description = "수정할 ReadStatus가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 메시지 수신 정보를 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -198,7 +211,10 @@ public class ReadStatusController {
                     description = "조회할 User가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440001인 사용자를 찾을 수 없습니다."
+                            )
                     )
             )
     })
