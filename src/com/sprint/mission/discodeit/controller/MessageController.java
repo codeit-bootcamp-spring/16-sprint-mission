@@ -5,7 +5,9 @@ import com.sprint.mission.discodeit.dto.request.message.MessageUpdateRequest;
 import com.sprint.mission.discodeit.dto.response.message.MessageDto;
 import com.sprint.mission.discodeit.service.MessageService;
 
+import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -46,6 +48,23 @@ public class MessageController {
                     )
             )
     })
+    @Operation(
+            requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    content = @Content(
+                            mediaType = MediaType.MULTIPART_FORM_DATA_VALUE,
+                            encoding = {
+                                    @Encoding(
+                                            name = "messageCreateRequest",
+                                            contentType = MediaType.APPLICATION_JSON_VALUE
+                                    ),
+                                    @Encoding(
+                                            name = "attachments",
+                                            contentType = MediaType.APPLICATION_OCTET_STREAM_VALUE
+                                    )
+                            }
+                    )
+            )
+    )
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
