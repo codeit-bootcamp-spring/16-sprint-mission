@@ -66,7 +66,11 @@ public class MessageController {
                     content = {
                             @Content(
                                     mediaType = MediaType.TEXT_PLAIN_VALUE,
-                                    schema = @Schema(type = "string")
+                                    schema = @Schema(type = "string"),
+                                    examples = @ExampleObject(
+                                            name = "유효성 검증 실패",
+                                            value = "요청값이 올바르지 않습니다."
+                                    )
                             ),
                             @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -79,7 +83,17 @@ public class MessageController {
                     description = "해당 Channel 또는 User가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "채널 없음",
+                                            value = "ID가 550e8400-e29b-41d4-a716-446655440001인 채널을 찾을 수 없습니다."
+                                    ),
+                                    @ExampleObject(
+                                            name = "작성자 없음",
+                                            value = "ID가 550e8400-e29b-41d4-a716-446655440002인 사용자를 찾을 수 없습니다."
+                                    )
+                            }
                     )
             ),
             @ApiResponse(
@@ -145,7 +159,10 @@ public class MessageController {
                     description = "수정할 Message가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 메시지를 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -199,7 +216,10 @@ public class MessageController {
                     description = "해당 Message가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 메시지를 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -255,7 +275,10 @@ public class MessageController {
                     description = "해당 Channel이 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440001인 채널을 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -292,7 +315,10 @@ public class MessageController {
                     description = "삭제할 Message가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 메시지를 찾을 수 없습니다."
+                            )
                     )
             )
     })
