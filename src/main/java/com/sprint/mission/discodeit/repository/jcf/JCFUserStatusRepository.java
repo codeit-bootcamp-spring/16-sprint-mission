@@ -2,11 +2,19 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
+@ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
+@Repository
 public class JCFUserStatusRepository implements UserStatusRepository {
-    private final Map<UUID, UserStatus> data = new HashMap<>();
+    private final Map<UUID, UserStatus> data;
+
+    public JCFUserStatusRepository() {
+        this.data = new HashMap<>();
+    }
 
     @Override
     public UserStatus save(UserStatus userStatus) {
@@ -21,17 +29,9 @@ public class JCFUserStatusRepository implements UserStatusRepository {
 
     @Override
     public Optional<UserStatus> findByUserId(UUID userId) {
-        return this.data.values().stream()
-                .filter(s -> s.getUserId().equals(userId))
+        return this.findAll().stream()
+                .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst();
-    }
-
-    @Override
-    public List<UserStatus> findByUserIdIn(List<UUID> userIds) {
-        if (userIds == null || userIds.isEmpty()) return Collections.emptyList();
-        return this.data.values().stream()
-                .filter(s -> userIds.contains(s.getUserId()))
-                .toList();
     }
 
     @Override
@@ -40,17 +40,18 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     }
 
     @Override
-    public void delete(UserStatus userStatus) {
-        if (userStatus != null) {
-            this.data.remove(userStatus.getId());
-        }
+    public boolean existsById(UUID id) {
+        return this.data.containsKey(id);
+    }
+
+    @Override
+    public void deleteById(UUID id) {
+        this.data.remove(id);
     }
 
     @Override
     public void deleteByUserId(UUID userId) {
-        this.data.values().stream()
-                .filter(s -> s.getUserId().equals(userId))
-                .findFirst()
-                .ifPresent(s -> this.data.remove(s.getId()));
+        this.findByUserId(userId)
+                .ifPresent(userStatus -> this.deleteById(userStatus.getId())); // .deleteByUserId에서 .deleteById로 변경!
     }
 }
