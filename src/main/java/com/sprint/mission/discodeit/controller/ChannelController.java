@@ -95,7 +95,19 @@ public class ChannelController {
                     description = "Private Channel이 성공적으로 생성되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ChannelDto.class)
+                            schema = @Schema(implementation = ChannelDto.class),
+                            examples = @ExampleObject(
+                                    value = """
+                        {
+                          "id": "550e8400-e29b-41d4-a716-446655440003",
+                          "createdAt": "2026-11-17T06:00:00Z",
+                          "updatedAt": "2026-11-17T06:00:00Z",
+                          "type": "PRIVATE",
+                          "name": null,
+                          "description": null
+                        }
+                        """
+                            )
                     )
             ),
             @ApiResponse(
