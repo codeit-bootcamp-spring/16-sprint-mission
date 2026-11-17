@@ -153,11 +153,16 @@ public interface MessageApi {
             responseCode = "500",
             description = "파일 처리 중 오류 발생",
             content = @Content(
-                    mediaType = MediaType.TEXT_PLAIN_VALUE,
-                    schema = @Schema(type = "string"),
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class),
                     examples = @ExampleObject(
                             name = "파일 처리 실패",
-                            value = "파일 처리 중 오류가 발생했습니다."
+                            value = """
+                                    {
+                                      "status": 500,
+                                      "message": "파일 처리 중 오류가 발생했습니다."
+                                    }
+                                    """
                     )
             )
     )

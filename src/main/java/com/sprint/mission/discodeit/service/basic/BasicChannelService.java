@@ -81,7 +81,7 @@ public class BasicChannelService implements ChannelService {
         Channel channel = findChannelEntity(channelId);
 
         if (channel.getType() == ChannelType.PRIVATE) {
-            throw new IllegalStateException("비공개 채널에는 임의로 참여할 수 없습니다.");
+            throw new IllegalArgumentException("비공개 채널에는 임의로 참여할 수 없습니다.");
         }
 
         // PUBLIC 채널은 모든 사용자가 참여자로 간주되므로
