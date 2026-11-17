@@ -15,4 +15,12 @@ public interface UserRepository {
     User save(User user);
 
     void deleteById(UUID userId);
+
+    boolean existsByUsername(String username);
+
+    boolean existsByUsernameAndIdNot(String username, UUID userId);
+
+    boolean existsByEmail(String email);
+
+    boolean existsByEmailAndIdNot(String email, UUID userId);
 }

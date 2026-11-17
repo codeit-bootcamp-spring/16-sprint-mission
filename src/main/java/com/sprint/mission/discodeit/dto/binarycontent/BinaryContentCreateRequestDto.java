@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.dto.binarycontent;
 
-import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,5 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class BinaryContentCreateRequestDto {
 
-    private byte[] data;
+    private String contentType;
+    private byte[] bytes;
 }

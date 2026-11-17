@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
@@ -12,9 +11,10 @@ import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
 
@@ -28,47 +28,31 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public MessageResponseDto createMessage(MessageCreateRequestDto dto) {
-        return createMessage(dto, null);
-    }
-
-    @Override
     public MessageResponseDto createMessage(
             MessageCreateRequestDto dto,
-            List<BinaryContentCreateRequestDto> attachments
-    ) {
-        if (dto.getContent() == null || dto.getContent().isBlank()) {
-            throw new IllegalArgumentException("메시지 내용은 필수입니다.");
+            List<MultipartFile> attachments
+    ) throws IOException {
+        User user = findUserEntity(dto.getUserId());
+        Channel channel = findChannelEntity(dto.getChannelId());
+
+        if (!channel.getParticipantIds().contains(user.getId())) {
+            throw new IllegalArgumentException("채널 참여자만 메시지를 보낼 수 있습니다.");
         }
 
-        User user = userRepository.findById(dto.getUserId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다."));
-
-        Channel channel = channelRepository.findById(dto.getChannelId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다."));
-
-        // 첨부 파일 확인
-        List<UUID> attachmentIds = new ArrayList<>(
-                dto.getAttachmentIds() == null
-                        ? List.of()
-                        : dto.getAttachmentIds()
-        );
-
-        for (UUID attachmentId : attachmentIds) {
-            binaryContentRepository.findById(attachmentId)
-                    .orElseThrow(() ->
-                            new IllegalArgumentException("존재하지 않는 첨부 파일입니다."));
-        }
+        List<UUID> attachmentIds = new ArrayList<>();
 
         if (attachments != null) {
-            for (BinaryContentCreateRequestDto attachment : attachments) {
-                BinaryContent saved = binaryContentRepository.save(
-                        new BinaryContent(attachment.getData())
-                );
+            for (MultipartFile attachment : attachments) {
+                BinaryContent binaryContent =
+                        new BinaryContent(
+                                attachment.getContentType(),
+                                attachment.getBytes()
+                        );
 
-                attachmentIds.add(saved.getId());
+                BinaryContent savedAttachment =
+                        binaryContentRepository.save(binaryContent);
+
+                attachmentIds.add(savedAttachment.getId());
             }
         }
 
@@ -93,22 +77,17 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public MessageResponseDto findMessage(UUID messageId) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+        Message message = findMessageEntity(messageId);
 
         return toResponseDto(message);
     }
 
     @Override
     public List<MessageResponseDto> findAllMessagesByChannelId(UUID channelId) {
-        channelRepository.findById(channelId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다."));
+        findChannelEntity(channelId);
 
         return messageRepository.findByChannelId(channelId)
                 .stream()
-                .sorted(Comparator.comparing(Message::getCreatedAt))
                 .map(this::toResponseDto)
                 .toList();
     }
@@ -118,9 +97,7 @@ public class BasicMessageService implements MessageService {
             UUID messageId,
             MessageUpdateRequestDto dto
     ) {
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+        Message message = findMessageEntity(messageId);
 
         message.updateContent(dto.getContent());
 
@@ -131,18 +108,10 @@ public class BasicMessageService implements MessageService {
 
     @Override
     public void deleteMessage(UUID messageId) {
+        Message message = findMessageEntity(messageId);
 
-        Message message = messageRepository.findById(messageId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
-
-        User user = userRepository.findById(message.getSenderId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("메시지 작성자를 찾을 수 없습니다."));
-
-        Channel channel = channelRepository.findById(message.getChannelId())
-                .orElseThrow(() ->
-                        new IllegalArgumentException("메시지가 속한 채널을 찾을 수 없습니다."));
+        User user = findUserEntity(message.getSenderId());
+        Channel channel = findChannelEntity(message.getChannelId());
 
         user.removeMessageId(messageId);
         channel.removeMessageId(messageId);
@@ -155,6 +124,24 @@ public class BasicMessageService implements MessageService {
         }
 
         messageRepository.deleteById(messageId);
+    }
+
+    private Message findMessageEntity(UUID messageId) {
+        return messageRepository.findById(messageId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 메시지입니다."));
+    }
+
+    private Channel findChannelEntity(UUID channelId) {
+        return channelRepository.findById(channelId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 채널입니다."));
+    }
+
+    private User findUserEntity(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() ->
+                        new IllegalArgumentException("존재하지 않는 사용자입니다."));
     }
 
     private MessageResponseDto toResponseDto(Message message) {

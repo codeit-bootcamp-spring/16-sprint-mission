@@ -63,6 +63,14 @@ public class FileBinaryContentRepository implements BinaryContentRepository {
     }
 
     @Override
+    public List<BinaryContent> findAllByIdIn(List<UUID> binaryContentIds) {
+        return binaryContentIds.stream()
+                .map(this::findById)
+                .flatMap(Optional::stream)
+                .toList();
+    }
+
+    @Override
     public BinaryContent save(BinaryContent binaryContent) {
         Path path = fileFor(binaryContent.getId());
 

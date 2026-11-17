@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.user.UserCreateRequestDto;
-import com.sprint.mission.discodeit.dto.user.UserResponseDto;
+import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequestDto;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -18,7 +18,9 @@ import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -30,13 +32,16 @@ public class BasicUserService implements UserService {
     private final UserRepository userRepository;
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
-
     private final ChannelRepository channelRepository;
     private final MessageRepository messageRepository;
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserResponseDto createUser(UserCreateRequestDto dto) {
+    public UserDto createUser(
+            UserCreateRequestDto dto,
+            MultipartFile profile
+    ) throws IOException {
+
         validateUsernameDuplicate(dto.getUsername(), null);
         validateEmailDuplicate(dto.getEmail(), null);
 
@@ -46,9 +51,12 @@ public class BasicUserService implements UserService {
                 dto.getEmail()
         );
 
-        if (dto.getProfileRequest() != null) {
+        if (profile != null) {
             BinaryContent binaryContent =
-                    new BinaryContent(dto.getProfileRequest().getData());
+                    new BinaryContent(
+                            profile.getContentType(),
+                            profile.getBytes()
+                    );
 
             BinaryContent savedContent =
                     binaryContentRepository.save(binaryContent);
@@ -65,15 +73,15 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponseDto findUser(UUID userId) {
+    public UserDto findUser(UUID userId) {
         User user = findUserEntity(userId);
         return toResponseDto(user);
     }
 
     @Override
-    public List<UserResponseDto> findAllUsers() {
+    public List<UserDto> findAllUsers() {
         List<User> users = userRepository.findAll();
-        List<UserResponseDto> result = new ArrayList<>();
+        List<UserDto> result = new ArrayList<>();
 
         for (User user : users) {
             result.add(toResponseDto(user));
@@ -83,7 +91,7 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public UserResponseDto updateUser(
+    public UserDto updateUser(
             UUID userId,
             UserUpdateRequestDto dto
     ) {
@@ -107,7 +115,10 @@ public class BasicUserService implements UserService {
             UUID oldProfileId = user.getProfileId();
 
             BinaryContent newContent =
-                    new BinaryContent(dto.getProfileRequest().getData());
+                    new BinaryContent(
+                            dto.getProfileRequest().getContentType(),
+                            dto.getProfileRequest().getBytes()
+                    );
 
             BinaryContent savedContent =
                     binaryContentRepository.save(newContent);
@@ -118,13 +129,6 @@ public class BasicUserService implements UserService {
                 binaryContentRepository.deleteById(oldProfileId);
             }
         }
-
-        UserStatus userStatus = userStatusRepository.findByUserId(userId)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("사용자 상태를 찾을 수 없습니다."));
-
-        userStatus.updateLastActiveAt();
-        userStatusRepository.save(userStatus);
 
         User savedUser = userRepository.save(user);
 
@@ -172,9 +176,7 @@ public class BasicUserService implements UserService {
                 }
 
                 // 사용자 참여 채널 ID 정리
-                if (user.getMyChannelIds().contains(channelId)) {
-                    user.removeChannelId(channelId);
-                }
+                user.removeChannelId(channelId);
 
                 // 해당 사용자의 읽음 상태 삭제
                 readStatusRepository
@@ -275,10 +277,8 @@ public class BasicUserService implements UserService {
 
             userRepository.findById(participantId)
                     .ifPresent(participant -> {
-                        if (participant.getMyChannelIds().contains(channelId)) {
-                            participant.removeChannelId(channelId);
-                            userRepository.save(participant);
-                        }
+                        participant.removeChannelId(channelId);
+                        userRepository.save(participant);
                     });
         }
 
@@ -296,10 +296,9 @@ public class BasicUserService implements UserService {
             String username,
             UUID excludeUserId
     ) {
-        boolean duplicated = userRepository.findAll().stream()
-                .anyMatch(user ->
-                        user.getUsername().equals(username)
-                                && !user.getId().equals(excludeUserId));
+        boolean duplicated = excludeUserId == null
+                ? userRepository.existsByUsername(username)
+                : userRepository.existsByUsernameAndIdNot(username, excludeUserId);
 
         if (duplicated) {
             throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
@@ -314,22 +313,21 @@ public class BasicUserService implements UserService {
             return;
         }
 
-        boolean duplicated = userRepository.findAll().stream()
-                .anyMatch(user ->
-                        email.equals(user.getEmail())
-                                && !user.getId().equals(excludeUserId));
+        boolean duplicated = excludeUserId == null
+                ? userRepository.existsByEmail(email)
+                : userRepository.existsByEmailAndIdNot(email, excludeUserId);
 
         if (duplicated) {
             throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
         }
     }
 
-    private UserResponseDto toResponseDto(User user) {
+    private UserDto toResponseDto(User user) {
         boolean online = userStatusRepository.findByUserId(user.getId())
                 .map(UserStatus::isOnline)
                 .orElse(false);
 
-        return UserResponseDto.builder()
+        return UserDto.builder()
                 .id(user.getId())
                 .username(user.getUsername())
                 .email(user.getEmail())

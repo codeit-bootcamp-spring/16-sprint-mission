@@ -20,6 +20,14 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
     }
 
     @Override
+    public List<BinaryContent> findAllByIdIn(List<UUID> binaryContentIds) {
+        return binaryContentIds.stream()
+                .map(binaryContents::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    @Override
     public BinaryContent save(BinaryContent binaryContent) {
         binaryContents.put(binaryContent.getId(), binaryContent);
         return binaryContent;

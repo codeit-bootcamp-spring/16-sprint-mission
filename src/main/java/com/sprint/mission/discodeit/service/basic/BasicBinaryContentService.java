@@ -18,37 +18,36 @@ public class BasicBinaryContentService implements BinaryContentService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public BinaryContentResponseDto createReadStatus(BinaryContentCreateRequestDto dto) {
-        BinaryContent binaryContent = new BinaryContent(dto.getData());
+    public BinaryContentResponseDto create(BinaryContentCreateRequestDto dto) {
+        BinaryContent binaryContent = new BinaryContent(dto.getContentType(), dto.getBytes());
 
-        BinaryContent saveBinaryContent = binaryContentRepository.save(binaryContent);
+        BinaryContent savedBinaryContent = binaryContentRepository.save(binaryContent);
 
-        return toResponseDto(saveBinaryContent);
+        return toResponseDto(savedBinaryContent);
     }
 
     @Override
-    public BinaryContentResponseDto findReadStatus(UUID binaryContentId) {
-        BinaryContent binaryContent = binaryContentRepository.findById(binaryContentId)
+    public BinaryContent find(UUID binaryContentId) {
+//        BinaryContent binaryContent =
+        return binaryContentRepository.findById(binaryContentId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("바이너리 콘텐츠를 찾을 수 없습니다."));
 
-        return toResponseDto(binaryContent);
+//        return toResponseDto(binaryContent);
     }
 
     @Override
-    public List<BinaryContentResponseDto> findAllReadStatusesByUserId(
+    public List<BinaryContentResponseDto> findAllByIdIn(
             List<UUID> binaryContentIds
     ) {
-        return binaryContentRepository.findAll()
+        return binaryContentRepository.findAllByIdIn(binaryContentIds)
                 .stream()
-                .filter(bc ->
-                        binaryContentIds.contains(bc.getId()))
                 .map(this::toResponseDto)
                 .toList();
     }
 
     @Override
-    public void deleteReadStatus(UUID binaryContentId) {
+    public void delete(UUID binaryContentId) {
         binaryContentRepository.findById(binaryContentId)
                 .orElseThrow(() ->
                         new IllegalArgumentException("바이너리 콘텐츠를 찾을 수 없습니다."));
@@ -60,7 +59,8 @@ public class BasicBinaryContentService implements BinaryContentService {
         return BinaryContentResponseDto.builder()
                 .id(binaryContent.getId())
                 .createdAt(binaryContent.getCreatedAt())
-                .data(binaryContent.getData())
+                .contentType(binaryContent.getContentType())
+                .bytes(binaryContent.getBytes())
                 .build();
     }
 }
