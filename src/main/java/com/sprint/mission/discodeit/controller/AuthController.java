@@ -91,7 +91,7 @@ public class AuthController {
                             examples = @ExampleObject(
                                     value = "사용자 이름이 student01인 사용자를 찾을 수 없습니다."
                             )
-                    )g
+                    )
             )
     })
     public ResponseEntity<LoginResponse> login(

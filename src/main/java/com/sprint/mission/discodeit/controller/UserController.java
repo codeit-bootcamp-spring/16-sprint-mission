@@ -140,7 +140,21 @@ public class UserController {
                     content = {
                             @Content(
                                     mediaType = MediaType.TEXT_PLAIN_VALUE,
-                                    schema = @Schema(type = "string")
+                                    schema = @Schema(type = "string"),
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "사용자명 중복",
+                                                    value = "이미 사용 중인 사용자 이름입니다: student02"
+                                            ),
+                                            @ExampleObject(
+                                                    name = "이메일 중복",
+                                                    value = "이미 사용 중인 이메일입니다: student02@example.com"
+                                            ),
+                                            @ExampleObject(
+                                                    name = "유효성 검증 실패",
+                                                    value = "요청값이 올바르지 않습니다."
+                                            )
+                                    }
                             ),
                             @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -153,7 +167,10 @@ public class UserController {
                     description = "수정할 User가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440000인 사용자를 찾을 수 없습니다."
+                            )
                     )
             ),
             @ApiResponse(
@@ -206,7 +223,10 @@ public class UserController {
                     description = "삭제할 User 또는 관련 사용자 상태가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440000인 사용자를 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -254,7 +274,10 @@ public class UserController {
                     description = "조회 대상 User에 연결된 사용자 상태 정보를 찾을 수 없습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440000인 user의 userStatus를 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -304,7 +327,17 @@ public class UserController {
                     description = "해당 User 또는 UserStatus가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "사용자 없음",
+                                            value = "ID가 550e8400-e29b-41d4-a716-446655440000인 사용자를 찾을 수 없습니다."
+                                    ),
+                                    @ExampleObject(
+                                            name = "사용자 상태 없음",
+                                            value = "사용자 ID가 550e8400-e29b-41d4-a716-446655440000인 사용자의 상태 정보를 찾을 수 없습니다."
+                                    )
+                            }
                     )
             )
     })
