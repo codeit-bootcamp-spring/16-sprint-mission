@@ -5,6 +5,7 @@ import com.sprint.mission.discodeit.dto.authentication.LoginResponse;
 import com.sprint.mission.discodeit.service.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -42,6 +43,18 @@ public class AuthController {
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(
                                     implementation = LoginResponse.class
+                            ),
+                            examples = @ExampleObject(
+                                    value = """
+                                {
+                                  "id": "550e8400-e29b-41d4-a716-446655440000",
+                                  "createdAt": "2026-11-17T06:00:00Z",
+                                  "updatedAt": "2026-11-17T06:00:00Z",
+                                  "username": "student01",
+                                  "email": "student01@example.com",
+                                  "profileId": null
+                                }
+                                """
                             )
                     )
             ),

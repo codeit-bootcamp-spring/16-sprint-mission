@@ -48,7 +48,20 @@ public class UserController {
                     description = "User가 성공적으로 생성되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserDto.class)
+                            schema = @Schema(implementation = UserDto.class),
+                            examples = @ExampleObject(
+                                    value = """
+                                        {
+                                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                                          "createdAt": "2026-11-17T06:00:00Z",
+                                          "updatedAt": "2026-11-17T06:00:00Z",
+                                          "username": "student01",
+                                          "email": "student01@example.com",
+                                          "password": "Example123!",
+                                          "profileId": null
+                                        }
+                                        """
+                            )
                     )
             ),
             @ApiResponse(
