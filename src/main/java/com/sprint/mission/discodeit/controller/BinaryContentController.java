@@ -93,8 +93,18 @@ public class BinaryContentController {
                     description = "BinaryContent 조회에 성공했습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = BinaryContentResponse.class
+                            schema = @Schema(implementation = BinaryContentResponse.class),
+                            examples = @ExampleObject(
+                                    value = """
+                        {
+                          "id": "550e8400-e29b-41d4-a716-446655440003",
+                          "createdAt": "2026-11-17T06:00:00Z",
+                          "fileName": "sample.txt",
+                          "size": 5,
+                          "contentType": "text/plain",
+                          "bytes": "SGVsbG8="
+                        }
+                        """
                             )
                     )
             ),
