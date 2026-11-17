@@ -87,8 +87,11 @@ public class AuthController {
                     description = "입력한 사용자명에 해당하는 User가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
-                    )
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "사용자 이름이 student01인 사용자를 찾을 수 없습니다."
+                            )
+                    )g
             )
     })
     public ResponseEntity<LoginResponse> login(
