@@ -223,9 +223,22 @@ public class MessageController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             array = @ArraySchema(
-                                    schema = @Schema(
-                                            implementation = MessageResponse.class
-                                    )
+                                    schema = @Schema(implementation = MessageResponse.class)
+                            ),
+                            examples = @ExampleObject(
+                                    value = """
+                        [
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440003",
+                            "createdAt": "2026-11-17T06:00:00Z",
+                            "updatedAt": "2026-11-17T06:00:00Z",
+                            "content": "안녕하세요!",
+                            "channelId": "550e8400-e29b-41d4-a716-446655440001",
+                            "authorId": "550e8400-e29b-41d4-a716-446655440002",
+                            "attachmentIds": []
+                          }
+                        ]
+                        """
                             )
                     )
             ),
