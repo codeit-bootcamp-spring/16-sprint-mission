@@ -265,6 +265,20 @@ public class ChannelController {
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             array = @ArraySchema(
                                     schema = @Schema(implementation = ChannelResponse.class)
+                            ),
+                            examples = @ExampleObject(
+                                    value = """
+                        [
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440001",
+                            "type": "PUBLIC",
+                            "name": "general",
+                            "description": "자유롭게 대화하는 채널입니다.",
+                            "participantIds": [],
+                            "lastMessageAt": "2026-11-17T07:00:00Z"
+                          }
+                        ]
+                        """
                             )
                     )
             ),
