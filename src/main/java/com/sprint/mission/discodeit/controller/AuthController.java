@@ -64,7 +64,17 @@ public class AuthController {
                     content = {
                             @Content(
                                     mediaType = MediaType.TEXT_PLAIN_VALUE,
-                                    schema = @Schema(type = "string")
+                                    schema = @Schema(type = "string"),
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "비밀번호 불일치",
+                                                    value = "입력하신 비밀번호 Example123!가 옳바르지 않습니다."
+                                            ),
+                                            @ExampleObject(
+                                                    name = "유효성 검증 실패",
+                                                    value = "요청값이 올바르지 않습니다."
+                                            )
+                                    }
                             ),
                             @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
