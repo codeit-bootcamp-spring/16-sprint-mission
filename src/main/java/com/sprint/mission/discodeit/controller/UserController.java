@@ -263,8 +263,18 @@ public class UserController {
                     description = "User 온라인 상태가 성공적으로 갱신되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = UserStatusResponse.class
+                            schema = @Schema(implementation = UserStatusResponse.class),
+                            examples = @ExampleObject(
+                                    value = """
+                        {
+                          "id": "550e8400-e29b-41d4-a716-446655440001",
+                          "createdAt": "2026-11-17T05:00:00Z",
+                          "updatedAt": "2026-11-17T06:00:00Z",
+                          "userId": "550e8400-e29b-41d4-a716-446655440000",
+                          "lastActiveAt": "2026-11-17T06:00:00Z",
+                          "online": true
+                        }
+                        """
                             )
                     )
             ),
