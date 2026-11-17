@@ -42,3 +42,17 @@ bin/
 
 ### Mac OS ###
 .DS_Store
+
+# Local data
+
+/data/
+*.ser
+
+.env
+.env.*
+!.env.example
+
+**/application-local.yml
+**/application-local.yaml
+**/application-secret.yml
+**/application-secret.yaml
