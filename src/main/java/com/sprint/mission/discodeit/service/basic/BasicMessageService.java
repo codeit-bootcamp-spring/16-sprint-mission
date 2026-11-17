@@ -82,9 +82,18 @@ public class BasicMessageService implements MessageService {
             }
         }
 
+        // 메시지 본문과 첨부파일이 모두 없으면 예외 처리한다.
+        if ((request.content() == null || request.content().isBlank())
+                && attachmentIds.isEmpty()) {
+
+            throw new IllegalArgumentException(
+                    "메시지 내용 또는 첨부파일 중 하나는 필수입니다."
+            );
+        }
+
         // 메시지 생성 및 저장
         Message message = new Message(
-                request.content(),
+                request.content() == null ? "" : request.content(),
                 user.getId(),
                 channel.getId(),
                 attachmentIds
