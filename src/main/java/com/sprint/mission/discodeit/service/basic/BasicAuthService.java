@@ -2,6 +2,8 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.AuthUserDto;
 
+import com.sprint.mission.discodeit.exceptions.AuthenticationFailedException;
+import com.sprint.mission.discodeit.exceptions.AuthenticationUserNotFoundException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
@@ -28,10 +30,12 @@ public class BasicAuthService implements AuthService {
         User user = userRepository.findByUsername(request.username())
                 // 일치하는 유저가 없다면 예외를 발생시킨다.
                 .orElseThrow(() ->
-                        new ResourceNotFoundException("유저를 찾을 수 없습니다."));
+                        new AuthenticationUserNotFoundException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
         if (!passwordEncoder.matches(request.password(), user.getPassword())) {
-            throw new IllegalArgumentException("아이디 또는 비밀번호가 일치하지 않습니다.");
+            throw new AuthenticationFailedException(
+                    "아이디 또는 비밀번호가 일치하지 않습니다."
+            );
         }
 
         // 로그인에 성공한 유저 정보를 AuthUserDto로 변환하여 반환한다.
