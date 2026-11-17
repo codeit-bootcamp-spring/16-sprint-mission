@@ -68,7 +68,7 @@ public class AuthController {
                                     examples = {
                                             @ExampleObject(
                                                     name = "비밀번호 불일치",
-                                                    value = "입력하신 비밀번호 Example123!가 옳바르지 않습니다."
+                                                    value = "입력하신 비밀번호 Example1234!가 옳바르지 않습니다."
                                             ),
                                             @ExampleObject(
                                                     name = "유효성 검증 실패",

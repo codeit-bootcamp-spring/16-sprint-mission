@@ -21,7 +21,7 @@ public record UserCreateRequest(
 
         @NotBlank
         @Password
-        @Schema(description = "비밀번호", example = "Example123!")
+        @Schema(description = "비밀번호", example = "Example1234!")
         String password
 ) {
 }
