@@ -31,8 +31,7 @@ public class AuthController {
 
     @Operation(
             summary = "로그인",
-            description = "이메일과 비밀번호를 사용하여 로그인합니다. "
-                    + "로그인에 성공하면 사용자 정보를 반환합니다."
+            description = "사용자 이름과 비밀번호로 로그인합니다."
     )
     @ApiResponses({
             @ApiResponse(
@@ -63,7 +62,7 @@ public class AuthController {
     )
     public ResponseEntity<UserDto> login(
             @io.swagger.v3.oas.annotations.parameters.RequestBody(
-                    description = "로그인할 사용자의 이메일과 비밀번호",
+                    description = "로그인할 사용자의 이름과 비밀번호",
                     required = true
             )
             @RequestBody LoginRequest request

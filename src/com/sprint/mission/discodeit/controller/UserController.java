@@ -11,6 +11,7 @@ import com.sprint.mission.discodeit.service.UserStatusService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Encoding;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -112,7 +113,10 @@ public class UserController {
                     responseCode = "200",
                     description = "사용자 목록 조회 성공",
                     content = @Content(
-                            schema = @Schema(implementation = UserDto.class)
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            array = @ArraySchema(
+                                    schema = @Schema(implementation = UserDto.class)
+                            )
                     )
             )
     })
