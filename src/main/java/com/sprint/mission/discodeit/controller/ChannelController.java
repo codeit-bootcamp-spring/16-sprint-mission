@@ -203,7 +203,10 @@ public class ChannelController {
                     description = "수정할 Channel이 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440000인 채널을 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -240,7 +243,10 @@ public class ChannelController {
                     description = "삭제할 Channel이 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440000인 채널을 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -295,7 +301,10 @@ public class ChannelController {
                     description = "해당 User가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440001인 사용자를 찾을 수 없습니다."
+                            )
                     )
             )
     })
