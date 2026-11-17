@@ -64,7 +64,11 @@ public class BinaryContentController {
                     content = {
                             @Content(
                                     mediaType = MediaType.TEXT_PLAIN_VALUE,
-                                    schema = @Schema(type = "string")
+                                    schema = @Schema(type = "string"),
+                                    examples = @ExampleObject(
+                                            name = "유효성 검증 실패",
+                                            value = "요청값이 올바르지 않습니다."
+                                    )
                             ),
                             @Content(
                                     mediaType = MediaType.APPLICATION_JSON_VALUE,
@@ -121,7 +125,10 @@ public class BinaryContentController {
                     description = "해당 BinaryContent가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 파일을 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -146,9 +153,21 @@ public class BinaryContentController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             array = @ArraySchema(
-                                    schema = @Schema(
-                                            implementation = BinaryContentResponse.class
-                                    )
+                                    schema = @Schema(implementation = BinaryContentResponse.class)
+                            ),
+                            examples = @ExampleObject(
+                                    value = """
+                        [
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440003",
+                            "createdAt": "2026-11-17T06:00:00Z",
+                            "fileName": "sample.txt",
+                            "size": 5,
+                            "contentType": "text/plain",
+                            "bytes": "SGVsbG8="
+                          }
+                        ]
+                        """
                             )
                     )
             ),
@@ -165,7 +184,10 @@ public class BinaryContentController {
                     description = "요청한 BinaryContent 중 존재하지 않는 파일이 있습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 파일을 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -216,7 +238,10 @@ public class BinaryContentController {
                     description = "다운로드할 BinaryContent가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 파일을 찾을 수 없습니다."
+                            )
                     )
             )
     })
@@ -264,7 +289,10 @@ public class BinaryContentController {
                     description = "삭제할 BinaryContent가 존재하지 않습니다.",
                     content = @Content(
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
+                            schema = @Schema(type = "string"),
+                            examples = @ExampleObject(
+                                    value = "ID가 550e8400-e29b-41d4-a716-446655440003인 파일을 찾을 수 없습니다."
+                            )
                     )
             )
     })
