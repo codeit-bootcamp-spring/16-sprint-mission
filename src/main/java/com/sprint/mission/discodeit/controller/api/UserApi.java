@@ -7,10 +7,10 @@ import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.dto.user.UserResponseDto;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequestDto;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponseDto;
+import com.sprint.mission.discodeit.exception.ErrorResponse;
 
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestPart;
 import org.springframework.web.multipart.MultipartFile;
@@ -26,6 +26,7 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 
 @Tag(name = "User", description = "User API")
 public interface UserApi {
@@ -76,7 +77,7 @@ public interface UserApi {
             )
     )
     UserResponseDto create(
-            @RequestPart("userCreateRequest") UserCreateRequestDto request,
+            @Valid @RequestPart("userCreateRequest") UserCreateRequestDto request,
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException;
 
@@ -148,7 +149,7 @@ public interface UserApi {
     )
     UserResponseDto update(
             @PathVariable UUID userId,
-            @RequestPart("userUpdateRequest") UserUpdateRequestDto request,
+            @Valid @RequestPart("userUpdateRequest") UserUpdateRequestDto request,
             @RequestPart(value = "profile", required = false) MultipartFile profile
     ) throws IOException;
 

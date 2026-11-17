@@ -3,9 +3,9 @@ package com.sprint.mission.discodeit.controller.api;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusCreateRequestDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusResponseDto;
 import com.sprint.mission.discodeit.dto.readstatus.ReadStatusUpdateRequestDto;
+import com.sprint.mission.discodeit.exception.ErrorResponse;
 
 import org.springframework.http.MediaType;
-import org.springframework.web.ErrorResponse;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
