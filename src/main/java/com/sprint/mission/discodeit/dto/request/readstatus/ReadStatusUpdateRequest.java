@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.dto.request.readstatus;
 
-import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.NotNull; // null 값 방지
 
 import java.time.Instant;
 

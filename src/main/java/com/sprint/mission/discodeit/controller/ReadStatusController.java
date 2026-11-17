@@ -31,7 +31,7 @@ public class ReadStatusController {
     @ReadStatusCreateDocs
     @RequestMapping(method = RequestMethod.POST)
     public ResponseEntity<ReadStatus> postReadStatus(
-            @RequestBody ReadStatusCreateRequest request) {
+            @Valid @RequestBody ReadStatusCreateRequest request) {
 
         ReadStatus readStatus = readStatusService.create(request);
         return ResponseEntity.status(HttpStatus.CREATED).body(readStatus);
