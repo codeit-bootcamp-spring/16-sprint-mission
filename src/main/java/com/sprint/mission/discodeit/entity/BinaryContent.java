@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.entity;
 
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Getter;
 
 import java.io.Serial;
@@ -25,9 +26,17 @@ public class BinaryContent implements Serializable {
 
     private final UUID id;
     private final Instant createdAt;
+
+    @Schema(example = "profile.png")
     private final String fileName;
+
+    @Schema(example = "1024")
     private final Long size;
+
+    @Schema(example = "image/png")
     private final String contentType;
+
+    @Schema(example = "aGVsbG8=")
     private final byte[] bytes;
 
     public BinaryContent(String fileName, String contentType, byte[] bytes) {
