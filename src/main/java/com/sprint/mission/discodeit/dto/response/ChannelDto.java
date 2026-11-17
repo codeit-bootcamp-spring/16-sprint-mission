@@ -9,7 +9,6 @@ public record ChannelDto(
     UUID id,
     Instant createdAt,
     Instant updatedAt,
-    UUID ownerId,
     ChannelType type,
     String name,
     String description,

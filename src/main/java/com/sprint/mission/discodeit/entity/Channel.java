@@ -1,14 +1,11 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.exception.ChannelOwnerLeaveNotAllowedException;
-import com.sprint.mission.discodeit.exception.ChannelOwnershipTransferNotAllowedException;
 import java.io.Serial;
 import java.util.*;
 import lombok.Getter;
 
 @Getter
 public class Channel extends BaseUpdatableEntity {
-  private UUID ownerId;
   private ChannelType type;
   private String name;
   private String description;
@@ -17,15 +14,13 @@ public class Channel extends BaseUpdatableEntity {
 
   @Serial private static final long serialVersionUID = 1L;
 
-  public Channel(UUID ownerId, ChannelType type, String name, String description) {
+  public Channel(ChannelType type, String name, String description) {
     super();
-    this.ownerId = Objects.requireNonNull(ownerId, "소유자는 필수입니다.");
 
     if (type == ChannelType.PUBLIC) validateName(name);
     this.type = type;
     this.name = name;
     this.description = description;
-    users.add(ownerId); // 소유자는 자동으로 가입한다.
   }
 
   public Set<UUID> getUsers() {
@@ -36,18 +31,18 @@ public class Channel extends BaseUpdatableEntity {
     return Collections.unmodifiableList(messages);
   }
 
-  public boolean isOwner(UUID userId) {
-    return ownerId.equals(userId);
-  }
-
   public boolean hasUser(UUID userId) {
     return users.contains(userId);
   }
 
   public void update(String name, String description) {
-    validateName(name);
-    this.name = name;
-    this.description = description;
+    if (name != null) {
+      validateName(name);
+      this.name = name;
+    }
+    if (description != null) {
+      this.description = description;
+    }
     super.touch();
   }
 
@@ -59,9 +54,6 @@ public class Channel extends BaseUpdatableEntity {
   }
 
   public void removeUser(UUID userId) {
-    if (isOwner(userId)) {
-      throw new ChannelOwnerLeaveNotAllowedException("소유자는 채널을 나갈 수 없습니다. 먼저 소유권을 양도하세요.");
-    }
     if (!users.remove(userId)) {
       throw new IllegalArgumentException("채널 멤버가 아닙니다.");
     }
@@ -78,19 +70,11 @@ public class Channel extends BaseUpdatableEntity {
     touch();
   }
 
-  public void transferOwnership(UUID newOwnerId) {
-    if (!hasUser(newOwnerId)) {
-      throw new ChannelOwnershipTransferNotAllowedException("채널 멤버에게만 소유권을 양도할 수 있습니다.");
-    }
-    this.ownerId = newOwnerId;
-    touch();
-  }
-
   @Override
   public String toString() {
     return "Channel{"
-        + "ownerId="
-        + ownerId
+        + ", type="
+        + type
         + ", name='"
         + name
         + '\''

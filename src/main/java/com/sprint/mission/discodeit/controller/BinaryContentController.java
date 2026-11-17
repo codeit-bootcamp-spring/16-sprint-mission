@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.BinaryContentApi;
 import com.sprint.mission.discodeit.dto.response.BinaryContentDto;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import java.nio.charset.StandardCharsets;
@@ -16,23 +17,24 @@ import org.springframework.web.util.UriUtils;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/binaryContent")
-public class BinaryContentController {
+@RequestMapping("/api/binaryContents")
+public class BinaryContentController implements BinaryContentApi {
   private final BinaryContentService binaryContentService;
 
-  @RequestMapping(value = "/find", method = RequestMethod.GET)
-  public ResponseEntity<BinaryContentDto> findById(
-      @RequestParam("binaryContentId") UUID binaryContentId) {
+  @Override
+  @GetMapping(value = "/{binaryContentId}")
+  public ResponseEntity<BinaryContentDto> find(@PathVariable UUID binaryContentId) {
     return ResponseEntity.ok(binaryContentService.findById(binaryContentId));
   }
 
-  @RequestMapping(value = "/findAll", method = RequestMethod.GET)
+  @Override
+  @GetMapping
   public ResponseEntity<List<BinaryContentDto>> findAllByIdIn(
       @RequestParam("binaryContentIds") List<UUID> binaryContentIds) {
     return ResponseEntity.ok(binaryContentService.findAllByIdIn(binaryContentIds));
   }
 
-  @RequestMapping(value = "/{binaryContentId}/download", method = RequestMethod.GET)
+  @GetMapping(value = "/{binaryContentId}/download")
   public ResponseEntity<Resource> download(@PathVariable UUID binaryContentId) {
     BinaryContentDto contentDto = binaryContentService.findById(binaryContentId);
     String encoded = UriUtils.encode(contentDto.fileName(), StandardCharsets.UTF_8);

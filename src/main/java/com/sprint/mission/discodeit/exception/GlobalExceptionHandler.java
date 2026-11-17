@@ -1,12 +1,16 @@
 package com.sprint.mission.discodeit.exception;
 
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
@@ -23,11 +27,6 @@ public class GlobalExceptionHandler {
   @ExceptionHandler(AlreadyJoinedChannelException.class)
   public ResponseEntity<ErrorResponse> handleAlreadyJoinedChannel(AlreadyJoinedChannelException e) {
     return toResponse(HttpStatus.CONFLICT, "ALREADY_JOINED_CHANNEL", e);
-  }
-
-  @ExceptionHandler(InvalidCredentialsException.class)
-  public ResponseEntity<ErrorResponse> handleInvalidCredentials(InvalidCredentialsException e) {
-    return toResponse(HttpStatus.UNAUTHORIZED, "INVALID_CREDENTIALS", e);
   }
 
   @ExceptionHandler(UserNotFoundException.class)
@@ -62,23 +61,6 @@ public class GlobalExceptionHandler {
     return toResponse(HttpStatus.BAD_REQUEST, "PRIVATE_CHANNEL_JOIN_NOT_ALLOWED", e);
   }
 
-  @ExceptionHandler(ChannelOwnerLeaveNotAllowedException.class)
-  public ResponseEntity<ErrorResponse> handleChannelOwnerLeaveNotAllowed(
-      ChannelOwnerLeaveNotAllowedException e) {
-    return toResponse(HttpStatus.BAD_REQUEST, "CHANNEL_OWNER_LEAVE_NOT_ALLOWED", e);
-  }
-
-  @ExceptionHandler(ChannelOwnershipTransferNotAllowedException.class)
-  public ResponseEntity<ErrorResponse> handleChannelOwnershipTransferNotAllowed(
-      ChannelOwnershipTransferNotAllowedException e) {
-    return toResponse(HttpStatus.BAD_REQUEST, "CHANNEL_OWNERSHIP_TRANSFER_NOT_ALLOWED", e);
-  }
-
-  @ExceptionHandler(ChannelOwnerRequiredException.class)
-  public ResponseEntity<ErrorResponse> handleChannelOwnerRequired(ChannelOwnerRequiredException e) {
-    return toResponse(HttpStatus.FORBIDDEN, "CHANNEL_OWNER_REQUIRED", e);
-  }
-
   @ExceptionHandler(MessageNotFoundException.class)
   public ResponseEntity<ErrorResponse> handleMessageNotFound(MessageNotFoundException e) {
     return toResponse(HttpStatus.NOT_FOUND, "MESSAGE_NOT_FOUND", e);
@@ -90,15 +72,9 @@ public class GlobalExceptionHandler {
     return toResponse(HttpStatus.FORBIDDEN, "CHANNEL_MEMBER_REQUIRED", e);
   }
 
-  @ExceptionHandler(MessageAuthorRequiredException.class)
-  public ResponseEntity<ErrorResponse> handleMessageAuthorRequired(
-      MessageAuthorRequiredException e) {
-    return toResponse(HttpStatus.FORBIDDEN, "MESSAGE_AUTHOR_REQUIRED", e);
-  }
-
   @ExceptionHandler(DuplicateReadStatusException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateReadStatus(DuplicateReadStatusException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_READ_STATUS", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_READ_STATUS", e);
   }
 
   @ExceptionHandler(ReadStatusNotFoundException.class)
@@ -108,17 +84,17 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(DuplicateEmailException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateEmail(DuplicateEmailException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_EMAIL", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_EMAIL", e);
   }
 
   @ExceptionHandler(DuplicateUsernameException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateUsername(DuplicateUsernameException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_USERNAME", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_USERNAME", e);
   }
 
   @ExceptionHandler(DuplicateUserStatusException.class)
   public ResponseEntity<ErrorResponse> handleDuplicateUserStatus(DuplicateUserStatusException e) {
-    return toResponse(HttpStatus.CONFLICT, "DUPLICATE_USER_STATUS", e);
+    return toResponse(HttpStatus.BAD_REQUEST, "DUPLICATE_USER_STATUS", e);
   }
 
   @ExceptionHandler({
@@ -140,7 +116,7 @@ public class GlobalExceptionHandler {
 
   @ExceptionHandler(MaxUploadSizeExceededException.class)
   public ResponseEntity<ErrorResponse> handleUploadTooLarge(MaxUploadSizeExceededException e) {
-    return ResponseEntity.status(HttpStatus.PAYLOAD_TOO_LARGE)
+    return ResponseEntity.status(HttpStatus.CONTENT_TOO_LARGE)
         .body(new ErrorResponse("FILE_TOO_LARGE", "업로드 용량을 초과했습니다."));
   }
 
@@ -155,6 +131,25 @@ public class GlobalExceptionHandler {
     e.printStackTrace();
     return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
         .body(new ErrorResponse("INTERNAL_SERVER_ERROR", "서버 내부 오류가 발생했습니다."));
+  }
+
+  @ExceptionHandler({MethodArgumentNotValidException.class, HandlerMethodValidationException.class})
+  public ResponseEntity<ErrorResponse> handleValidation(Exception e) {
+    return ResponseEntity.badRequest().body(new ErrorResponse("INVALID_INPUT", "입력값이 올바르지 않습니다."));
+  }
+
+  @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+  public ResponseEntity<ErrorResponse> handleMethodNotAllowed(
+      HttpRequestMethodNotSupportedException e) {
+
+    HttpHeaders headers = new HttpHeaders();
+    if (e.getSupportedHttpMethods() != null) {
+      headers.setAllow(e.getSupportedHttpMethods());
+    }
+
+    return ResponseEntity.status(HttpStatus.METHOD_NOT_ALLOWED)
+        .headers(headers)
+        .body(new ErrorResponse("METHOD_NOT_ALLOWED", "지원하지 않는 HTTP 메서드입니다."));
   }
 
   private ResponseEntity<ErrorResponse> toResponse(HttpStatus status, String code, Exception e) {
