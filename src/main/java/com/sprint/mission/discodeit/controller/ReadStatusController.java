@@ -167,9 +167,21 @@ public class ReadStatusController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             array = @ArraySchema(
-                                    schema = @Schema(
-                                            implementation = ReadStatusResponse.class
-                                    )
+                                    schema = @Schema(implementation = ReadStatusResponse.class)
+                            ),
+                            examples = @ExampleObject(
+                                    value = """
+                        [
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440003",
+                            "createdAt": "2026-11-17T06:00:00Z",
+                            "updatedAt": "2026-11-17T07:00:00Z",
+                            "userId": "550e8400-e29b-41d4-a716-446655440001",
+                            "channelId": "550e8400-e29b-41d4-a716-446655440002",
+                            "lastReadAt": "2026-11-17T07:00:00Z"
+                          }
+                        ]
+                        """
                             )
                     )
             ),
