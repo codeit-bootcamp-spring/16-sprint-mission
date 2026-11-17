@@ -11,6 +11,8 @@ public record ChannelDto(
         String name,
         String description,
         ChannelType type,
+        Instant createdAt,
+        Instant updatedAt,
         Instant lastMessageAt,
         List<UUID> participantIds
 ) {

@@ -36,10 +36,15 @@ public class Channel extends BaseEntity {
             throw new IllegalStateException("비공개 채널은 수정할 수 없습니다.");
         }
 
-        validateRequired(name, "채널 이름");
+        if (name != null) {
+            validateRequired(name, "채널 이름");
+            this.name = name;
+        }
 
-        this.name = name;
-        this.description = description;
+        if (description != null) {
+            this.description = description;
+        }
+
         updateUpdatedAt();
     }
 

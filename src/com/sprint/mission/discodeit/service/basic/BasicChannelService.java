@@ -153,8 +153,12 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("채널 수정 요청은 필수입니다.");
         }
 
-        if (request.newName() == null || request.newName().isBlank()) {
-            throw new IllegalArgumentException("채널 이름은 필수입니다.");
+        if (request.newName() == null && request.newDescription() == null) {
+            throw new IllegalArgumentException("수정할 내용이 없습니다.");
+        }
+
+        if (request.newName() != null && request.newName().isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 공백일 수 없습니다.");
         }
 
         Channel channel = channelRepository.findById(channelId)
@@ -166,15 +170,18 @@ public class BasicChannelService implements ChannelService {
             throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
         }
 
-        boolean duplicate = channelRepository.findAll().stream()
-                .anyMatch(other ->
-                        !other.getId().equals(channel.getId())
-                                && other.getType() == ChannelType.PUBLIC
-                                && Objects.equals(other.getName(), request.newName())
-                );
+        // 제목을 변경하는 경우에만 중복 검사
+        if (request.newName() != null) {
+            boolean duplicate = channelRepository.findAll().stream()
+                    .anyMatch(other ->
+                            !other.getId().equals(channel.getId())
+                                    && other.getType() == ChannelType.PUBLIC
+                                    && Objects.equals(other.getName(), request.newName())
+                    );
 
-        if (duplicate) {
-            throw new IllegalArgumentException("이미 사용 중인 채널 이름입니다.");
+            if (duplicate) {
+                throw new IllegalArgumentException("이미 사용 중인 채널 이름입니다.");
+            }
         }
 
         channel.update(request.newName(), request.newDescription());
@@ -307,6 +314,8 @@ public class BasicChannelService implements ChannelService {
                 channel.getName(),
                 channel.getDescription(),
                 channel.getType(),
+                channel.getCreatedAt(),
+                channel.getUpdatedAt(),
                 lastMessageAt,
                 participantIds
         );
