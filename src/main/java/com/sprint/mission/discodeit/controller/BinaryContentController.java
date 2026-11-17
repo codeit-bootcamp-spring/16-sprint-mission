@@ -49,7 +49,17 @@ public class BinaryContentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "파일 이름, 콘텐츠 유형 또는 바이너리 데이터 등 요청값이 올바르지 않습니다."
+                    description = "파일 이름, 콘텐츠 유형 또는 바이너리 데이터의 유효성 검증 실패, 잘못된 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string")
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
+                            )
+                    }
             )
     })
     public ResponseEntity<BinaryContentResponse> createBinaryContent(
@@ -75,6 +85,14 @@ public class BinaryContentController {
                             schema = @Schema(
                                     implementation = BinaryContentResponse.class
                             )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "binaryContentId의 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
                     )
             ),
             @ApiResponse(
@@ -115,7 +133,11 @@ public class BinaryContentController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "요청한 BinaryContent ID 목록의 형식이 올바르지 않습니다."
+                    description = "binaryContentIds가 누락되었거나 UUID 목록의 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -153,6 +175,20 @@ public class BinaryContentController {
                                     format = "binary"
                             )
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "binary-content-id의 UUID 형식이 올바르지 않거나 저장된 콘텐츠 유형이 유효하지 않습니다.",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
+                            ),
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -193,6 +229,14 @@ public class BinaryContentController {
                     responseCode = "204",
                     description = "BinaryContent가 성공적으로 삭제되었습니다. 응답 본문은 없습니다.",
                     content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "binary-content-id의 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
