@@ -53,14 +53,31 @@ public class UserController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "같은 email 또는 username을 사용하는 User가 이미 존재하거나 요청값이 올바르지 않습니다.",
-                    content = @Content(
-                            mediaType = "text/plain",
-                            schema = @Schema(type = "string"),
-                            examples = @ExampleObject(
-                                    value = "이미 사용 중인 이메일입니다: user@example.com"
+                    description = "사용자명 또는 이메일 중복, 유효성 검증 실패, 잘못된 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string"),
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "이메일 중복",
+                                                    value = "이미 사용 중인 이메일입니다: user@example.com"
+                                            ),
+                                            @ExampleObject(
+                                                    name = "사용자명 중복",
+                                                    value = "이미 사용 중인 사용자 이름입니다: username"
+                                            ),
+                                            @ExampleObject(
+                                                    name = "유효성 검증 실패",
+                                                    value = "요청값이 올바르지 않습니다."
+                                            )
+                                    }
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
                             )
-                    )
+                    }
             )
     })
     public ResponseEntity<UserDto> createUser(
@@ -92,14 +109,17 @@ public class UserController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "요청값이 올바르지 않거나 변경할 email 또는 username이 이미 사용 중입니다.",
-                    content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string"),
-                            examples = @ExampleObject(
-                                    value = "이미 사용 중인 사용자 이름입니다: username"
+                    description = "사용자명 또는 이메일 중복, 유효성 검증 실패, 잘못된 UUID 또는 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string")
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
                             )
-                    )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -132,6 +152,14 @@ public class UserController {
                     responseCode = "204",
                     description = "User가 성공적으로 삭제되었습니다. 응답 본문은 없습니다.",
                     content = @Content
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "userId의 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -198,6 +226,14 @@ public class UserController {
                             schema = @Schema(
                                     implementation = UserStatusResponse.class
                             )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 UUID 또는 요청 본문 형식",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
                     )
             ),
             @ApiResponse(
