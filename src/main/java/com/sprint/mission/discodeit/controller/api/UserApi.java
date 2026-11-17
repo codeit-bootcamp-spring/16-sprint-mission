@@ -77,6 +77,35 @@ public interface UserApi {
                     }
             )
     )
+    @ApiResponse(
+            responseCode = "413",
+            description = "파일 크기가 허용된 최대 크기를 초과함",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "파일 크기 초과",
+                            value = """
+                                    {
+                                      "status": 413,
+                                      "message": "파일 크기가 허용된 최대 크기를 초과했습니다."
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponse(
+            responseCode = "500",
+            description = "파일 처리 중 오류 발생",
+            content = @Content(
+                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                    schema = @Schema(type = "string"),
+                    examples = @ExampleObject(
+                            name = "파일 처리 실패",
+                            value = "파일 처리 중 오류가 발생했습니다."
+                    )
+            )
+    )
     UserResponseDto create(
             @Valid @RequestPart("userCreateRequest") UserCreateRequestDto request,
             @RequestPart(value = "profile", required = false) MultipartFile profile

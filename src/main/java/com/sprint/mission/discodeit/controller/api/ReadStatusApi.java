@@ -44,6 +44,23 @@ public interface ReadStatusApi {
             )
     )
     @ApiResponse(
+            responseCode = "400",
+            description = "비공개 채널에 참여하지 않은 사용자",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "채널 미참여 사용자",
+                            value = """
+                                    {
+                                      "status": 400,
+                                      "message": "사용자가 해당 채널에 참여하고 있지 않습니다."
+                                    }
+                                    """
+                    )
+            )
+    )
+    @ApiResponse(
             responseCode = "404",
             description = "Channel 또는 User를 찾을 수 없음",
             content = @Content(
@@ -79,7 +96,7 @@ public interface ReadStatusApi {
     @ApiResponse(responseCode = "200", description = "Message 읽음 상태가 성공적으로 수정됨")
     @ApiResponse(
             responseCode = "404",
-            description = "User를 찾을 수 없음",
+            description = "ReadStatus를 찾을 수 없음",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ErrorResponse.class),
@@ -101,6 +118,23 @@ public interface ReadStatusApi {
 
     @Operation(summary = "User의 Message 읽음 상태 목록 조회")
     @ApiResponse(responseCode = "200", description = "Message 읽음 상태 목록 조회 성공")
+    @ApiResponse(
+            responseCode = "404",
+            description = "User를 찾을 수 없음",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "사용자를 찾을 수 없음",
+                            value = """
+                                    {
+                                      "status": 404,
+                                      "message": "사용자를 찾을 수 없습니다. %s"
+                                    }
+                                    """
+                    )
+            )
+    )
     List<ReadStatusResponseDto> findAllUserReadStatuses(
             @RequestParam UUID userId
     );

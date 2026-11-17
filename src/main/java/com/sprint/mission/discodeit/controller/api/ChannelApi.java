@@ -34,12 +34,46 @@ public interface ChannelApi {
 
     @Operation(summary = "Private Channel 생성")
     @ApiResponse(responseCode = "201", description = "Private Channel이 성공적으로 생성됨")
+    @ApiResponse(
+            responseCode = "404",
+            description = "참여자를 찾을 수 없음",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "참여자를 찾을 수 없음",
+                            value = """
+                                    {
+                                      "status": 404,
+                                      "message": "사용자를 찾을 수 없습니다. %s"
+                                    }
+                                    """
+                    )
+            )
+    )
     ChannelResponseDto createPrivate(
             @Valid @RequestBody PrivateChannelCreateRequestDto request
     );
 
     @Operation(summary = "User가 참여 중인 Channel 목록 조회")
     @ApiResponse(responseCode = "200", description = "Channel 목록 조회 성공")
+    @ApiResponse(
+            responseCode = "404",
+            description = "User를 찾을 수 없음",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class),
+                    examples = @ExampleObject(
+                            name = "User를 찾을 수 없음",
+                            value = """
+                                    {
+                                      "status": 404,
+                                      "message": "사용자를 찾을 수 없습니다. %s"
+                                    }
+                                    """
+                    )
+            )
+    )
     List<ChannelDto> findAccessible(
             @RequestParam UUID userId
     );

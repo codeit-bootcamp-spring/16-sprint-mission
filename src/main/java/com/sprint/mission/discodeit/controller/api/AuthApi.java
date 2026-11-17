@@ -22,7 +22,7 @@ public interface AuthApi {
     @ApiResponse(responseCode = "200", description = "로그인 성공")
     @ApiResponse(
             responseCode = "400",
-            description = "같은 email 또는 username을 사용하는 User가 이미 존재함",
+            description = "비밀번호가 일치하지 않음",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ErrorResponse.class),
@@ -47,7 +47,7 @@ public interface AuthApi {
                             name = "사용자를 찾을 수 없음",
                             value = """
                                     {
-                                      "staTtus": 404,
+                                      "status": 404,
                                       "message": "사용자를 찾을 수 없습니다. %s"
                                     }
                                     """
