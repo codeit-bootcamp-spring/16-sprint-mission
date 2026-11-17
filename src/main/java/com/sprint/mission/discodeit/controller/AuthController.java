@@ -47,11 +47,17 @@ public class AuthController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "비밀번호가 일치하지 않거나 요청값이 올바르지 않습니다.",
-                    content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string")
-                    )
+                    description = "비밀번호 불일치, 유효성 검증 실패 또는 잘못된 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string")
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",

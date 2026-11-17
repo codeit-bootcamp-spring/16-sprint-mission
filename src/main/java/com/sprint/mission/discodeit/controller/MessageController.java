@@ -222,6 +222,14 @@ public class MessageController {
                     content = @Content
             ),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "messageId의 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "삭제할 Message가 존재하지 않습니다.",
                     content = @Content(
