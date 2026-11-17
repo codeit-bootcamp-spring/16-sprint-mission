@@ -3,166 +3,250 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
-import com.sprint.mission.discodeit.entity.BinaryContent;
-import com.sprint.mission.discodeit.entity.User;
-import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.repository.BinaryContentRepository;
-import com.sprint.mission.discodeit.repository.UserRepository;
-import com.sprint.mission.discodeit.repository.UserStatusRepository;
+import com.sprint.mission.discodeit.entity.*;
+import com.sprint.mission.discodeit.exception.DuplicateResourceException;
+import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
+import com.sprint.mission.discodeit.exception.userstatus.UserStatusNotFoundException;
+import com.sprint.mission.discodeit.mapper.UserMapper;
+import com.sprint.mission.discodeit.repository.*;
 import com.sprint.mission.discodeit.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.UUID;
-
+import java.io.IOException;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class BasicUserService implements UserService {
+
     private final UserRepository userRepository;
+
     private final UserStatusRepository userStatusRepository;
+    private final ReadStatusRepository readStatusRepository;
+
+    private final MessageRepository messageRepository;
+    private final ChannelRepository channelRepository;
+
     private final BinaryContentRepository binaryContentRepository;
 
+    private final UserMapper userMapper;
+
     @Override
-    public User create(UserCreateRequest request) {
+    public UserResponse create(UserCreateRequest request, MultipartFile profile)
+            throws IOException {
 
         this.validateUniqueUsername(request.username());
         this.validateUniqueEmail(request.email());
 
         UUID newProfileId = null;
 
-        if (request.profile() != null) {
-            var profile = request.profile();
-            newProfileId = binaryContentRepository.save(
-                    new BinaryContent(
-                            profile.fileName(), profile.contentType(), profile.bytes()
-                    )
-            ).getId();
+        if (profile != null) {
+            BinaryContent profileImage = this.createProfileImage(profile);
+            newProfileId = profileImage.getId();
         }
 
-        User user = new User(request.username(), request.email(), request.password(), newProfileId);
-
+        User user = new User(request.username(),
+                request.email(),
+                request.password(),
+                newProfileId);
         UserStatus userStatus = new UserStatus(user.getId());
+
+        this.userRepository.save(user);
         this.userStatusRepository.save(userStatus);
 
-        return userRepository.save(user);
+        return this.userMapper.toUserResponse(user, userStatus);
     }
 
-    public void validateUniqueUsername(String username) {
-         boolean isUniqueEmail = this.userRepository.findAll().stream()
+    private BinaryContent createProfileImage(MultipartFile profile) throws IOException {
+            BinaryContent profileImage = new BinaryContent(
+                    profile.getOriginalFilename(),
+                    profile.getContentType(),
+                    profile.getBytes());
+
+            this.binaryContentRepository.save(profileImage);
+
+            return profileImage;
+    }
+
+    private void validateUniqueUsername(String username) {
+        boolean isUsernameTaken = this.userRepository.findAll().stream()
                 .anyMatch(user -> user.getUsername().equals(username));
-         if (isUniqueEmail) {
-             throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다: " + username);
-         }
+
+        if (isUsernameTaken) {
+            throw new DuplicateResourceException(
+                    "이미 사용 중인 사용자 이름입니다: " + username
+            );
+        }
     }
 
-    public void validateUniqueEmail(String email) {
-        boolean isUniqueEmail = this.userRepository.findAll().stream()
+    private void validateUniqueEmail(String email) {
+        boolean isEmailTaken = this.userRepository.findAll().stream()
                 .anyMatch(user -> user.getEmail().equals(email));
-        if (isUniqueEmail) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다: " + email);
+
+        if (isEmailTaken) {
+            throw new DuplicateResourceException(
+                    "이미 사용 중인 이메일입니다: " + email
+            );
         }
     }
 
     @Override
     public UserResponse find(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
-
+        User user = findUserEntity(userId);
         UserStatus userStatus = this.findUserStatus(user.getId());
 
-        UserResponse response = this.toResponse(user);
+        return this.userMapper.toUserResponse(user, userStatus);
+    }
 
-        return response;
+    @Override
+    public User findUserEntity(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new UserNotFoundException(
+                        "ID가 " + userId + "인 사용자를 찾을 수 없습니다."
+                ));
     }
 
     @Override
     public List<UserResponse> findAll() {
-        return userRepository.findAll().stream()
-                .map(this::toResponse)
-                .toList();
-    }
+        List<User> users = userRepository.findAll();
+        List<UserResponse> userResponses = new ArrayList<>();
+        for (User user : users) {
+            UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
+                    .orElseThrow(() ->
+                            new UserStatusNotFoundException(
+                            "ID가 " + user.getId() + "인 user의 userStatus를 찾을 수 없습니다."
+                    ));
 
-    private UserResponse toResponse(User user) {
-        return new UserResponse(
-                user.getId(), user.getProfileId(),
-                user.getCreatedAt(), user.getUpdatedAt(),
-                user.getUsername(), user.getEmail(),
-                this.findUserStatus(user.getId()).isOnline()
-        );
+            userResponses.add(this.userMapper.toUserResponse(user, userStatus));
+        }
+
+        return userResponses;
     }
 
     @Override
-    public User update(UUID userId, UserUpdateRequest request) {
-        this.validateUniqueUsername(request.newUsername());
-        this.validateUniqueEmail(request.newEmail());
+    public UserResponse update(
+            UUID userId,
+            UserUpdateRequest request,
+            MultipartFile profile
+    ) throws IOException {
 
-        User user = userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("ID가 " + userId + "인 사용자를 찾을 수 없습니다."));
+        User user = this.findUserEntity(userId);
+
+        if (!Objects.equals(request.newUsername(), user.getUsername())) {
+            validateUniqueUsername(request.newUsername());
+        }
+        if (!Objects.equals(request.newEmail(), user.getEmail())) {
+            validateUniqueEmail(request.newEmail());
+        }
 
         UUID oldProfileId = user.getProfileId();
         UUID newProfileId = null;
 
-        if (request.profile() != null) {
-            var profile = request.profile();
-            newProfileId = binaryContentRepository.save(
-                    new BinaryContent(
-                            profile.fileName(), profile.contentType(), profile.bytes()
-                    )
-            ).getId();
+        if (profile != null) {
+            BinaryContent profileImage = this.createProfileImage(profile);
+            newProfileId = profileImage.getId();
         }
 
-        user.update(request.newUsername(), request.newEmail(), request.newPassword(), newProfileId);
+        user.update(
+                request.newUsername(),
+                request.newEmail(),
+                request.newPassword(),
+                newProfileId
+        );
 
-        User saved = userRepository.save(user);
+        User updatedUser = userRepository.save(user);
+        UserStatus userStatus = this.findUserStatus(userId);
 
         if (newProfileId != null && oldProfileId != null) {
             binaryContentRepository.deleteById(oldProfileId);
         }
-        return saved;
+
+        return this.userMapper.toUserResponse(updatedUser, userStatus);
     }
 
     @Override
     public void delete(UUID userId) {
-        User user = userRepository.findById(userId)
-                .orElseThrow(() ->
-                        new NoSuchElementException("User with id: " + userId + " not found."));
+        if (!this.userRepository.existsById(userId)) {
+            throw new UserNotFoundException("ID가 " + userId + "인 사용자를 찾을 수 없습니다.");
+        }
 
+        deleteMessageAttachmentsByUserId(userId);
+        deleteMessagesByUserId(userId);
+        deleteReadStatusesByUserId(userId);
+        deleteUserStatusesByUserId(userId);
+        deleteProfileImageByUserId(userId);
+
+        this.userRepository.deleteById(userId);
+    }
+
+    private void deleteMessageAttachmentsByUserId(UUID userId) {
+        List<Message> messages = this.messageRepository.findAll();
+        List<List<UUID>> attachmentIdsList = messages.stream()
+                .filter(m -> m.getAuthorId().equals(userId))
+                .map(Message::getAttachmentIds)
+                .toList();
+
+        attachmentIdsList.stream()
+                .flatMap(List::stream)
+                .collect(Collectors.toSet())
+                .forEach(this.binaryContentRepository::deleteById);
+    }
+
+    private void deleteMessagesByUserId(UUID userId) {
+        List<Message> messages = this.messageRepository.findAll();
+
+        messages.stream()
+                .filter(m -> m.getAuthorId().equals(userId))
+                .forEach(m -> this.messageRepository.deleteById(m.getId()));
+    }
+
+    private void deleteReadStatusesByUserId(UUID userId) {
+        List<ReadStatus> readStatuses = this.readStatusRepository.findAllByUserId(userId);
+
+        readStatuses.stream()
+                .filter(r -> r.getUserId().equals(userId))
+                .forEach(r -> this.readStatusRepository.deleteById(r.getId()));
+    }
+
+    private void deleteUserStatusesByUserId(UUID userId) {
         UserStatus userStatus = this.findUserStatus(userId);
-        UUID profileId = user.getProfileId();
 
+        this.userStatusRepository.deleteById(userStatus.getId());
+    }
+
+    private void deleteProfileImageByUserId(UUID userId) {
+        User user = this.findUserEntity(userId);
+        UUID profileId = user.getProfileId();
         if (profileId != null) {
             this.binaryContentRepository.deleteById(profileId);
         }
-        this.userStatusRepository.deleteById(userStatus.getId());
-        userRepository.deleteById(userId);
     }
 
+    @Override
     public UserStatus findUserStatus(UUID userId) {
         if (!userRepository.existsById(userId)) {
-            throw new NoSuchElementException("User with id " + userId + " not found.");
+            throw new UserNotFoundException(
+                    "ID가 " + userId + "인 사용자를 찾을 수 없습니다."
+            );
         }
 
         Optional<UserStatus> userStatus = this.userStatusRepository.findByUserId(userId);
 
         return userStatus.orElseThrow(() ->
-                new NoSuchElementException(
+                new UserStatusNotFoundException(
                         "사용자 ID " + userId + "에 해당하는 UserStatus를 찾을 수 없습니다."
                 )
         );
     }
 
     public Optional<BinaryContent> findBinaryContent(UUID userId) {
-        if (!userRepository.existsById(userId)) {
-            throw new NoSuchElementException("User with id " + userId + " not found");
-        }
+        User user = this.findUserEntity(userId);
+        UUID profileId = user.getProfileId();
 
-        Optional<User> user = userRepository.findById(userId);
-        // user.get()은 Optional 객체 안에 들어 있는 값을 꺼내는 메서드입니다.
-        UUID profileId = user.get().getProfileId();
+        if (profileId == null) return Optional.empty();
 
         return binaryContentRepository.findById(profileId);
     }

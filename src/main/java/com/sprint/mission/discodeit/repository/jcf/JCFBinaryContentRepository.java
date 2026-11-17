@@ -10,7 +10,6 @@ import java.util.*;
 
 @Repository
 public class JCFBinaryContentRepository implements BinaryContentRepository {
-
     private final Map<UUID, BinaryContent> data;
 
     public JCFBinaryContentRepository() {

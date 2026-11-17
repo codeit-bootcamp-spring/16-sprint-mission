@@ -7,13 +7,13 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-public final class BinaryContent implements Serializable { // BinarayContetn는 불변 객체를 생성함으로 클래스 앞에 final을 붙입니다.
+public final class BinaryContent implements Serializable {
     private static final long serialVersionUID = 1L;
     private final UUID id;
     private final Instant createdAt;
     private final String fileName;
     private final String contentType;
-    private final byte[] bytes; // byte[]는 바이트 배열을 나타냅니다.
+    private final byte[] bytes;
 
     public BinaryContent(String fileName, String contentType, byte[] bytes) {
         this.id = UUID.randomUUID();

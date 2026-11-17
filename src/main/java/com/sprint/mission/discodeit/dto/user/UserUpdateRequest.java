@@ -1,14 +1,19 @@
 package com.sprint.mission.discodeit.dto.user;
 
-import com.sprint.mission.discodeit.dto.binarycontent.BinaryContentCreateRequest;
-import jakarta.annotation.Nullable;
+import com.sprint.mission.discodeit.validation.Password;
+import com.sprint.mission.discodeit.validation.Username;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Size;
 
-public record UserUpdateRequest(
-        // UUID userId, // userId는 포함하지 않는다, update()의 인자로 따로 간다.
+public record  UserUpdateRequest(
+        @Username
         String newUsername,
+
+        @Email
+        @Size(max = 254)
         String newEmail,
-        String newPassword,
-        // UUID newProfileId,
-        @Nullable BinaryContentCreateRequest profile
+
+        @Password
+        String newPassword
 ) {
 }

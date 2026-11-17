@@ -4,18 +4,27 @@ import com.sprint.mission.discodeit.dto.user.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.user.UserResponse;
 import com.sprint.mission.discodeit.dto.user.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.UUID;
 
 public interface UserService {
-    // User create(String username, String email, String password); DTO 사용 전
-    User create(UserCreateRequest request); // DTO 사용 후
-    // User find(UUID userId); // DTO 사용 전
-    UserResponse find(UUID userId); // DTO 사용 후
+    UserResponse create(UserCreateRequest request, MultipartFile profile)
+            throws IOException;
+
+    UserResponse find(UUID userId);
+
     List<UserResponse> findAll();
-    // User update(UUID userId, String newUsername, String newEmail, String newPassword); // DTO 사용 전
-    User update(UUID userId, UserUpdateRequest request); // DTO 사용 후
+
+    User findUserEntity(UUID userId);
+
+    UserStatus findUserStatus(UUID userId);
+
+    UserResponse update(UUID userId, UserUpdateRequest request, MultipartFile profile)
+            throws IOException;
 
     void delete(UUID userId);
 }
