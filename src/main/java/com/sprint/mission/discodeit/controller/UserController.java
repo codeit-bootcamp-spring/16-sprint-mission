@@ -230,9 +230,22 @@ public class UserController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             array = @ArraySchema(
-                                    schema = @Schema(
-                                            implementation = UserResponse.class
-                                    )
+                                    schema = @Schema(implementation = UserResponse.class)
+                            ),
+                            examples = @ExampleObject(
+                                    value = """
+                        [
+                          {
+                            "id": "550e8400-e29b-41d4-a716-446655440001",
+                            "createdAt": "2026-11-17T06:00:00Z",
+                            "updatedAt": "2026-11-17T07:00:00Z",
+                            "username": "student01",
+                            "online": true,
+                            "email": "student01@example.com",
+                            "profileId": null
+                          }
+                        ]
+                        """
                             )
                     )
             ),
