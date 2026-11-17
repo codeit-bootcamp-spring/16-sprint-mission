@@ -24,6 +24,9 @@ dependencies {
     // 비밀번호 암호화 기능
     implementation 'org.springframework.security:spring-security-crypto'
 
+    // 요청 데이터 유효성 검증을 위한 의존성
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
     compileOnly 'org.projectlombok:lombok'
     annotationProcessor 'org.projectlombok:lombok'
 

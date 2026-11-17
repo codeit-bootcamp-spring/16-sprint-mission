@@ -6,6 +6,7 @@ build/
 .kotlin
 testbytest.rtf
 .gitattributes
+.discodeit/
 
 ### IntelliJ IDEA ###
 .idea/modules.xml
