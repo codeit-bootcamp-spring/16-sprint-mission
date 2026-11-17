@@ -52,12 +52,33 @@ public class UserController {
     @ApiResponse(
             responseCode = "400",
             description = "이메일 또는 사용자명이 중복되거나 필수 요청 파트가 누락됨",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "duplicateEmail",
+                                    value = "User with email tester@example.com already exists"
+                            ),
+                            @ExampleObject(
+                                    name = "duplicateUsername",
+                                    value = "User with username tester already exists"
+                            ),
+                            @ExampleObject(
+                                    name = "missingUserCreateRequest",
+                                    value = "Required part 'userCreateRequest' is not present."
+                            )
+                    })
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 또는 멀티파트 항목의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'application/json' is not supported"
+                    )
+            )
     )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<User> create(
@@ -77,17 +98,41 @@ public class UserController {
     @ApiResponse(
             responseCode = "400",
             description = "사용자 ID 형식이 잘못됐거나, 변경할 이메일 또는 사용자명이 중복되거나, 수정 요청 파트가 잘못됨",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "duplicateEmail",
+                                    value = "User with email tester@example.com already exists"
+                            ),
+                            @ExampleObject(
+                                    name = "missingUserUpdateRequest",
+                                    value = "Required part 'userUpdateRequest' is not present."
+                            )
+                    }
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "수정할 사용자를 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "userNotFound",
+                            value = "User with id 88e75d27-b6b7-488a-a19e-51ded3868800 not found"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 또는 멀티파트 항목의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'application/json' is not supported"
+                    )
+            )
     )
     @PatchMapping(
             value = "/{userId}",
@@ -111,12 +156,24 @@ public class UserController {
     @ApiResponse(
             responseCode = "400",
             description = "사용자 ID 형식이 올바르지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "invalidUserId",
+                            value = "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: abc"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "삭제할 사용자를 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "userNotFound",
+                            value = "User with id 88e75d27-b6b7-488a-a19e-51ded3868800 not found"
+                    )
+            )
     )
     @DeleteMapping(value = "/{userId}")
     public ResponseEntity<Void> delete(@PathVariable("userId") UUID userId) {
@@ -141,17 +198,35 @@ public class UserController {
     @ApiResponse(
             responseCode = "400",
             description = "사용자 ID 형식이 올바르지 않거나 요청 JSON이 누락되었거나 잘못됨",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "invalidUserId",
+                            value = "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: abc"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "해당 사용자의 상태 정보를 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "userStatusNotFound",
+                            value = "UserStatus with userId 88e75d27-b6b7-488a-a19e-51ded3868800 not found"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 본문의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'text/plain' is not supported"
+                    )
+            )
     )
     @PatchMapping(value = "/{userId}/userStatus")
     public ResponseEntity<UserStatus> updateUserStatusByUserId(@PathVariable("userId") UUID userId,

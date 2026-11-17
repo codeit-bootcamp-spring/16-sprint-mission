@@ -24,6 +24,7 @@ import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,12 +43,24 @@ public class ChannelController {
     @ApiResponse(
             responseCode = "400",
             description = "요청 JSON이 누락되었거나 형식이 올바르지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "malformedJson",
+                            value = "JSON parse error: Unexpected end-of-input"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 본문의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'text/plain' is not supported"
+                    )
+            )
     )
     @PostMapping(value = "/public")
     public ResponseEntity<Channel> create(@RequestBody PublicChannelCreateRequest request) {
@@ -62,12 +75,24 @@ public class ChannelController {
     @ApiResponse(
             responseCode = "400",
             description = "요청 JSON이 누락되었거나 형식이 올바르지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "malformedJson",
+                            value = "JSON parse error: Unexpected end-of-input"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 본문의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'text/plain' is not supported"
+                    )
+            )
     )
     @PostMapping(value = "/private")
     public ResponseEntity<Channel> create(@RequestBody PrivateChannelCreateRequest request) {
@@ -82,17 +107,34 @@ public class ChannelController {
     @ApiResponse(
             responseCode = "400",
             description = "채널 ID 또는 요청 JSON 형식이 잘못되었거나 비공개 채널을 수정하려 함",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "privateChannelUpdate",
+                            value = "Private channel cannot be updated"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "수정할 채널을 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "channelNotFound",
+                            value = "Channel with id 88e75d27-b6b7-488a-a19e-51ded3868800 not found"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 본문의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'text/plain' is not supported")
+            )
     )
     @PatchMapping(value = "/{channelId}")
     public ResponseEntity<Channel> update(@PathVariable("channelId") UUID channelId,
@@ -108,12 +150,23 @@ public class ChannelController {
     @ApiResponse(
             responseCode = "400",
             description = "채널 ID의 UUID 형식이 올바르지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "invalidUuid",
+                            value = "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: abc")
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "삭제할 채널을 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "channelNotFound",
+                            value = "Channel with id 88e75d27-b6b7-488a-a19e-51ded3868800 not found"
+                    )
+            )
     )
     @DeleteMapping(value = "/{channelId}")
     public ResponseEntity<Void> delete(@PathVariable("channelId") UUID channelId) {
@@ -131,7 +184,11 @@ public class ChannelController {
     @ApiResponse(
             responseCode = "400",
             description = "userId가 누락되었거나 UUID 형식이 올바르지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "invalidUuid",
+                            value = "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: abc")
+            )
     )
     @GetMapping
     public ResponseEntity<List<ChannelDto>> findAll(@RequestParam("userId") UUID userId) {

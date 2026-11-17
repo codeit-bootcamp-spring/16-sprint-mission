@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,12 +32,19 @@ public class AuthController {
     @ApiResponse(
             responseCode = "400",
             description = "비밀번호가 일치하지 않거나 요청 JSON이 누락되었거나 잘못됨",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(name = "wrongPassword", value = "Wrong password"))
     )
     @ApiResponse(
             responseCode = "404",
             description = "해당 사용자 이름으로 등록된 사용자를 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "userNotFound",
+                            value = "User with username tester not found"
+                    )
+            )
     )
     @PostMapping(value = "login")
     public ResponseEntity<User> login(@RequestBody LoginRequest loginRequest) {

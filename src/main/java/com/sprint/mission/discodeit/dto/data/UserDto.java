@@ -13,7 +13,7 @@ public record UserDto(
         @Schema(description = "사용자 등록 시각", example = "2026-11-16T10:00:00Z")
         Instant createdAt,
 
-        @Schema(description = "사용자 정보가 마지막으로 수정된 시각")
+        @Schema(description = "사용자 정보가 마지막으로 수정된 시각, 생성 후 초기값 null")
         Instant updatedAt,
 
         @Schema(description = "사용자 이름", example = "tester")
@@ -25,7 +25,7 @@ public record UserDto(
         @Schema(description = "프로필 이미지의 파일 ID. 이미지가 없으면 null")
         UUID profileId,
 
-        @Schema(description = "온라인 상태. 상태 정보가 없으면 null", example = "true")
+        @Schema(description = "최근 5분 이내 활동 여부. 사용자 상태 정보가 없으면 null", example = "true")
         Boolean online
 ) {
 }

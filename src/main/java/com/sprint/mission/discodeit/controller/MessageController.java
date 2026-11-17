@@ -29,6 +29,7 @@ import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -50,17 +51,41 @@ public class MessageController {
     @ApiResponse(
             responseCode = "400",
             description = "필수 메시지 파트가 누락되었거나 JSON을 읽을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "missingMessagePart",
+                            value = "Required part 'messageCreateRequest' is not present."
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "작성자 또는 채널을 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = {
+                            @ExampleObject(
+                                    name = "channelNotFound",
+                                    value = "Channel with id 88e75d27-b6b7-488a-a19e-51ded3868800 does not exist"
+                            ),
+                            @ExampleObject(
+                                    name = "authorNotFound",
+                                    value = "Author with id 88e75d27-b6b7-488a-a19e-51ded3868800 does not exist"
+                            )
+                    }
+            )
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 또는 멀티파트 항목의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'application/json' is not supported"
+                    )
+            )
     )
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<Message> create(
@@ -94,17 +119,35 @@ public class MessageController {
     @ApiResponse(
             responseCode = "400",
             description = "메시지 ID의 UUID 형식이 잘못되었거나 요청 JSON을 읽을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "invalidUuid",
+                            value = "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: abc"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "수정할 메시지를 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "messageNotFound",
+                            value = "Message with id 88e75d27-b6b7-488a-a19e-51ded3868800 not found"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "415",
             description = "요청 본문의 Content-Type을 지원하지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "unsupportedContentType",
+                            value = "Content-Type 'text/plain' is not supported"
+                    )
+            )
     )
     @PatchMapping(value = "/{messageId}")
     public ResponseEntity<Message> update(@PathVariable("messageId") UUID messageId,
@@ -121,12 +164,24 @@ public class MessageController {
     @ApiResponse(
             responseCode = "400",
             description = "메시지 ID의 UUID 형식이 올바르지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "invalidUuid",
+                            value = "Failed to convert value of type 'java.lang.String' to required type 'java.util.UUID'; Invalid UUID string: abc"
+                    )
+            )
     )
     @ApiResponse(
             responseCode = "404",
             description = "삭제할 메시지를 찾을 수 없음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "messageNotFound",
+                            value = "Message with id 88e75d27-b6b7-488a-a19e-51ded3868800 not found"
+                    )
+            )
     )
     @DeleteMapping(value = "/{messageId}")
     public ResponseEntity<Void> delete(@PathVariable("messageId") UUID messageId) {
@@ -141,7 +196,13 @@ public class MessageController {
     @ApiResponse(
             responseCode = "400",
             description = "channelId가 누락되었거나 UUID 형식이 올바르지 않음",
-            content = @Content(schema = @Schema(implementation = String.class))
+            content = @Content(
+                    schema = @Schema(implementation = String.class),
+                    examples = @ExampleObject(
+                            name = "missingChannelId",
+                            value = "Required request parameter 'channelId' for method parameter type UUID is not present"
+                    )
+            )
     )
     @GetMapping
     public ResponseEntity<List<Message>> findAllByChannelId(
