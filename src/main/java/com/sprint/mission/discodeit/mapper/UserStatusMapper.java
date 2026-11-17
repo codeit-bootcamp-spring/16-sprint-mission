@@ -8,13 +8,12 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class UserStatusMapper {
-    public UserStatusDto toDto(UserStatus userStatus) {
-        return new UserStatusDto(
-                userStatus.getId(),
-                userStatus.getCreatedAt(),
-                userStatus.getUpdatedAt(),
-                userStatus.getUserId(),
-                userStatus.getLastActiveAt()
-        );
-    }
+  public UserStatusDto toDto(UserStatus userStatus) {
+    return new UserStatusDto(
+        userStatus.getId(),
+        userStatus.getCreatedAt(),
+        userStatus.getUpdatedAt(),
+        userStatus.getUserId(),
+        userStatus.getLastActiveAt());
+  }
 }

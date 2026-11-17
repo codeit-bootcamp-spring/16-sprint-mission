@@ -8,15 +8,14 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class MessageMapper {
-    public MessageDto toDto(Message message) {
-        return new MessageDto(
-                message.getId(),
-                message.getCreatedAt(),
-                message.getUpdatedAt(),
-                message.getAuthorId(),
-                message.getChannelId(),
-                message.getContent(),
-                message.getAttachmentIds()
-        );
-    }
+  public MessageDto toDto(Message message) {
+    return new MessageDto(
+        message.getId(),
+        message.getCreatedAt(),
+        message.getUpdatedAt(),
+        message.getAuthorId(),
+        message.getChannelId(),
+        message.getContent(),
+        message.getAttachmentIds());
+  }
 }
