@@ -31,6 +31,7 @@ import java.util.UUID;
         description = "메시지 읽음 상태 생성, 수정 및 조회 API"
 )
 public class ReadStatusController {
+
     private final ReadStatusService readStatusService;
 
     @PostMapping
@@ -51,14 +52,27 @@ public class ReadStatusController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "요청값이 올바르지 않거나 해당 User와 Channel에 대한 ReadStatus가 이미 존재합니다.",
-                    content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string"),
-                            examples = @ExampleObject(
-                                    value = "해당 사용자와 채널에 대한 메시지 수신 정보가 이미 존재합니다. 사용자 ID: {userId}, 채널 ID: {channelId}"
+                    description = "User ID 또는 Channel ID의 유효성 검증 실패, ReadStatus 중복 또는 잘못된 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string"),
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "ReadStatus 중복",
+                                                    value = "해당 사용자와 채널에 대한 메시지 수신 정보가 이미 존재합니다. 사용자 ID: {userId}, 채널 ID: {channelId}"
+                                            ),
+                                            @ExampleObject(
+                                                    name = "유효성 검증 실패",
+                                                    value = "요청값이 올바르지 않습니다."
+                                            )
+                                    }
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
                             )
-                    )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -92,6 +106,14 @@ public class ReadStatusController {
                             schema = @Schema(
                                     implementation = ReadStatusResponse.class
                             )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "readStatusId의 UUID 형식 또는 요청 JSON 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
                     )
             ),
             @ApiResponse(
@@ -132,6 +154,14 @@ public class ReadStatusController {
                     )
             ),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "userId가 누락되었거나 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "조회할 User가 존재하지 않습니다.",
                     content = @Content(
@@ -149,4 +179,3 @@ public class ReadStatusController {
         return ResponseEntity.ok(readStatusListResponse.readStatuses());
     }
 }
-
