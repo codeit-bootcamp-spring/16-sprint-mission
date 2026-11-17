@@ -48,3 +48,4 @@ public class User extends BaseEntity{
         updateTime();
     }
 }
+
