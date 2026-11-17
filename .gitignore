@@ -38,6 +38,5 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-### 데이터 저장 폴더 ###
-file-data-map/
-.discodeit/
+### Discodeit ###
+.discodeit

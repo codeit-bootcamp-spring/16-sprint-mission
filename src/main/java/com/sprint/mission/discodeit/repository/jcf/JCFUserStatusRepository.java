@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-@Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
+@Repository
 public class JCFUserStatusRepository implements UserStatusRepository {
     private final Map<UUID, UserStatus> data;
 
@@ -29,7 +29,7 @@ public class JCFUserStatusRepository implements UserStatusRepository {
 
     @Override
     public Optional<UserStatus> findByUserId(UUID userId) {
-        return this.data.values().stream()
+        return this.findAll().stream()
                 .filter(userStatus -> userStatus.getUserId().equals(userId))
                 .findFirst();
     }
@@ -52,6 +52,6 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     @Override
     public void deleteByUserId(UUID userId) {
         this.findByUserId(userId)
-                .ifPresent(userStatus -> this.deleteById(userStatus.getId()));
+                .ifPresent(userStatus -> this.deleteByUserId(userStatus.getId()));
     }
 }

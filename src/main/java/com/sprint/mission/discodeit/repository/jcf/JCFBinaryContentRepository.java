@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-@Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
+@Repository
 public class JCFBinaryContentRepository implements BinaryContentRepository {
     private final Map<UUID, BinaryContent> data;
 
@@ -30,7 +30,7 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
     @Override
     public List<BinaryContent> findAllByIdIn(List<UUID> ids) {
         return this.data.values().stream()
-                .filter(binaryContent -> ids.contains(binaryContent.getId()))
+                .filter(content -> ids.contains(content.getId()))
                 .toList();
     }
 

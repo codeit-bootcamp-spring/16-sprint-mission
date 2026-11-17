@@ -1,13 +1,12 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.UserResponseDto;
-import com.sprint.mission.discodeit.dto.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.data.UserDto;
+import com.sprint.mission.discodeit.dto.request.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
-import com.sprint.mission.discodeit.mapper.UserMapper;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
@@ -18,113 +17,96 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.UUID;
 import java.util.Optional;
+import java.util.UUID;
 
-@Service
 @RequiredArgsConstructor
+@Service
 public class BasicUserService implements UserService {
     private final UserRepository userRepository;
+    //
     private final BinaryContentRepository binaryContentRepository;
     private final UserStatusRepository userStatusRepository;
-    private final UserMapper userMapper;
 
     @Override
-    public UserResponseDto create(UserCreateRequest request) {
-        // 파일 저장 전에 중복을 검사
-        if (userRepository.findByUsername(request.username()).isPresent()) {
-            throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
+    public User create(UserCreateRequest userCreateRequest, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
+        String username = userCreateRequest.username();
+        String email = userCreateRequest.email();
+
+        if (userRepository.existsByEmail(email)) {
+            throw new IllegalArgumentException("User with email " + email + " already exists");
         }
-        if (userRepository.findByEmail(request.email()).isPresent()) {
-            throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-        }
-
-        UUID profileId = null;
-        BinaryContentCreateRequest profile = request.profile();
-
-        if (profile != null) {
-            byte[] bytes = profile.bytes();
-
-            BinaryContent binaryContent = new BinaryContent(
-                    profile.fileName(),
-                    (long) bytes.length,
-                    profile.contentType(),
-                    bytes
-            );
-
-            profileId = binaryContentRepository.save(binaryContent).getId();
+        if (userRepository.existsByUsername(username)) {
+            throw new IllegalArgumentException("User with username " + username + " already exists");
         }
 
-        User user = new User(
-                request.username(),
-                request.email(),
-                request.password(),
-                profileId
-        );
-        User savedUser = userRepository.save(user);
+        UUID nullableProfileId = optionalProfileCreateRequest
+                .map(profileRequest -> {
+                    String fileName = profileRequest.fileName();
+                    String contentType = profileRequest.contentType();
+                    byte[] bytes = profileRequest.bytes();
+                    BinaryContent binaryContent = new BinaryContent(fileName, (long)bytes.length, contentType, bytes);
+                    return binaryContentRepository.save(binaryContent).getId();
+                })
+                .orElse(null);
+        String password = userCreateRequest.password();
 
-        UserStatus status = new UserStatus(savedUser.getId(), Instant.now());
-        userStatusRepository.save(status);
+        User user = new User(username, email, password, nullableProfileId);
+        User createdUser = userRepository.save(user);
 
-        return userMapper.toDto(savedUser);
+        Instant now = Instant.now();
+        UserStatus userStatus = new UserStatus(createdUser.getId(), now);
+        userStatusRepository.save(userStatus);
+
+        return createdUser;
     }
 
     @Override
-    public UserResponseDto find(UUID userId) {
-        User user = userRepository.findById(userId)
+    public UserDto find(UUID userId) {
+        return userRepository.findById(userId)
+                .map(this::toDto)
                 .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
-        return userMapper.toDto(user);
     }
 
     @Override
-    public List<UserResponseDto> findAll() {
-        return userRepository.findAll().stream()
-                .map(userMapper::toDto)
+    public List<UserDto> findAll() {
+        return userRepository.findAll()
+                .stream()
+                .map(this::toDto)
                 .toList();
     }
 
     @Override
-    public UserResponseDto update(UUID userId, UserUpdateRequest request) {
+    public User update(UUID userId, UserUpdateRequest userUpdateRequest, Optional<BinaryContentCreateRequest> optionalProfileCreateRequest) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
 
-        // 파일 저장 전에 중복을 검사 (자기 자신은 제외)
-        if (request.newUsername() != null) {
-            Optional<User> sameName = userRepository.findByUsername(request.newUsername());
-            if (sameName.isPresent() && !sameName.get().getId().equals(userId)) {
-                throw new IllegalArgumentException("이미 사용 중인 사용자 이름입니다.");
-            }
+        String newUsername = userUpdateRequest.newUsername();
+        String newEmail = userUpdateRequest.newEmail();
+        if (userRepository.existsByEmail(newEmail)) {
+            throw new IllegalArgumentException("User with email " + newEmail + " already exists");
         }
-        if (request.newEmail() != null) {
-            Optional<User> sameEmail = userRepository.findByEmail(request.newEmail());
-            if (sameEmail.isPresent() && !sameEmail.get().getId().equals(userId)) {
-                throw new IllegalArgumentException("이미 사용 중인 이메일입니다.");
-            }
+        if (userRepository.existsByUsername(newUsername)) {
+            throw new IllegalArgumentException("User with username " + newUsername + " already exists");
         }
 
-        UUID newProfileId = null;
-        BinaryContentCreateRequest newProfile = request.newProfile();
+        UUID nullableProfileId = optionalProfileCreateRequest
+                .map(profileRequest -> {
+                    Optional.ofNullable(user.getProfileId())
+                                    .ifPresent(binaryContentRepository::deleteById);
 
-        if (newProfile != null) {
-            byte[] bytes = newProfile.bytes();
+                    String fileName = profileRequest.fileName();
+                    String contentType = profileRequest.contentType();
+                    byte[] bytes = profileRequest.bytes();
+                    BinaryContent binaryContent = new BinaryContent(fileName, (long) bytes.length, contentType, bytes);
+                    return binaryContentRepository.save(binaryContent).getId();
+                })
+                .orElse(null);
 
-            BinaryContent binaryContent = new BinaryContent(
-                    newProfile.fileName(),
-                    (long) bytes.length,
-                    newProfile.contentType(),
-                    bytes
-            );
-            newProfileId = binaryContentRepository.save(binaryContent).getId();
+        String newPassword = userUpdateRequest.newPassword();
+        user.update(newUsername, newEmail, newPassword, nullableProfileId);
 
-            // 이전 프로필 이미지는 삭제
-            if (user.getProfileId() != null) {
-                binaryContentRepository.deleteById(user.getProfileId());
-            }
-        }
-
-        user.update(request.newUsername(), request.newEmail(), request.newPassword(), newProfileId);
-        User savedUser = userRepository.save(user);
-        return userMapper.toDto(savedUser);
+        return userRepository.save(user);
     }
 
     @Override
@@ -132,12 +114,26 @@ public class BasicUserService implements UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new NoSuchElementException("User with id " + userId + " not found"));
 
-        // 관련된 도메인도 같이 삭제
-        if (user.getProfileId() != null) {
-            binaryContentRepository.deleteById(user.getProfileId());
-        }
+        Optional.ofNullable(user.getProfileId())
+                        .ifPresent(binaryContentRepository::deleteById);
         userStatusRepository.deleteByUserId(userId);
 
         userRepository.deleteById(userId);
+    }
+
+    private UserDto toDto(User user) {
+        Boolean online = userStatusRepository.findByUserId(user.getId())
+                .map(UserStatus::isOnline)
+                .orElse(null);
+
+        return new UserDto(
+                user.getId(),
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getProfileId(),
+                online
+        );
     }
 }

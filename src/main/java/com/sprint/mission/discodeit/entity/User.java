@@ -11,13 +11,13 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private UUID id;
-    private UUID profileId;
     private Instant createdAt;
     private Instant updatedAt;
     //
     private String username;
     private String email;
     private String password;
+    private UUID profileId;     // BinaryContent
 
     public User(String username, String email, String password, UUID profileId) {
         this.id = UUID.randomUUID();
@@ -51,6 +51,5 @@ public class User implements Serializable {
         if (anyValueUpdated) {
             this.updatedAt = Instant.now();
         }
-
     }
 }

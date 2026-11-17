@@ -7,8 +7,8 @@ import org.springframework.stereotype.Repository;
 
 import java.util.*;
 
-@Repository
 @ConditionalOnProperty(name = "discodeit.repository.type", havingValue = "jcf", matchIfMissing = true)
+@Repository
 public class JCFReadStatusRepository implements ReadStatusRepository {
     private final Map<UUID, ReadStatus> data;
 
