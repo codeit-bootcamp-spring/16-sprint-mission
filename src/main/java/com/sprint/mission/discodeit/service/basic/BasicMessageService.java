@@ -53,10 +53,26 @@ public class BasicMessageService implements MessageService {
             throw new BusinessLogicException(ExceptionCode.USER_NOT_PARTICIPANT);
         }
 
+        String content = dto.getContent();
+
+        boolean hasContent = content != null && !content.isBlank();
+        boolean hasAttachments = attachments != null
+                && attachments.stream().anyMatch(file -> !file.isEmpty());
+
+        if (!hasContent && !hasAttachments) {
+            throw new IllegalArgumentException(
+                    "메시지 내용 또는 첨부 파일은 필수입니다."
+            );
+        }
+
         List<UUID> attachmentIds = new ArrayList<>();
 
         if (attachments != null) {
             for (MultipartFile attachment : attachments) {
+                if (attachment.isEmpty()) {
+                    continue;
+                }
+
                 BinaryContent binaryContent =
                         new BinaryContent(
                                 attachment.getOriginalFilename(),

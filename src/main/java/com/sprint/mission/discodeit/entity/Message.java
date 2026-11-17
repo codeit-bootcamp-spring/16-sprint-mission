@@ -27,7 +27,6 @@ public class Message extends BaseEntity {
     ) {
         super();
 
-        Validation.validateBlank(content, "content");
         Validation.validateNull(channelId, "channelId");
         Validation.validateNull(authorId, "authorId");
         Validation.validateNull(attachmentIds, "attachmentIds");
@@ -41,8 +40,6 @@ public class Message extends BaseEntity {
     }
 
     public void updateContent(String content) {
-
-
         Validation.validateBlank(content, "content");
         this.content = content;
         super.update();
