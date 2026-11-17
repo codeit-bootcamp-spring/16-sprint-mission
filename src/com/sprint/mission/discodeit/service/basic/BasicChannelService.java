@@ -1,9 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.channel.ChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
 import com.sprint.mission.discodeit.dto.request.channel.ChannelUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.channel.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.dto.response.channel.ChannelDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ChannelType;
 import com.sprint.mission.discodeit.entity.Message;
@@ -14,6 +14,7 @@ import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ChannelService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -35,7 +36,13 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelDto createPublic(ChannelCreateRequest request) {
-        Objects.requireNonNull(request, "채널 생성 요청은 필수입니다.");
+        if (request == null) {
+            throw new IllegalArgumentException("채널 생성 요청은 필수입니다.");
+        }
+
+        if (request.name() == null || request.name().isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 필수입니다.");
+        }
 
         boolean duplicate = channelRepository.findAll().stream()
                 .anyMatch(channel ->
@@ -58,7 +65,9 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelDto createPrivate(PrivateChannelCreateRequest request) {
-        Objects.requireNonNull(request, "비공개 채널 생성 요청은 필수입니다.");
+        if (request == null) {
+            throw new IllegalArgumentException("비공개 채널 생성 요청은 필수입니다.");
+        }
 
         List<UUID> participantIds = request.participantIds();
 
@@ -95,7 +104,9 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public Optional<ChannelDto> findById(UUID id) {
-        Objects.requireNonNull(id, "채널 ID는 필수입니다.");
+        if (id == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
 
         return channelRepository.findById(id)
                 .map(this::toDto);
@@ -111,7 +122,9 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public List<ChannelDto> findAllByUserId(UUID userId) {
-        Objects.requireNonNull(userId, "사용자 ID는 필수입니다.");
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
@@ -131,7 +144,17 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public ChannelDto update(ChannelUpdateRequest request) {
-        Objects.requireNonNull(request, "채널 수정 요청은 필수입니다.");
+        if (request == null) {
+            throw new IllegalArgumentException("채널 수정 요청은 필수입니다.");
+        }
+
+        if (request.id() == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
+
+        if (request.name() == null || request.name().isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 필수입니다.");
+        }
 
         Channel channel = channelRepository.findById(request.id())
                 .orElseThrow(() ->
@@ -160,7 +183,9 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public void delete(UUID id) {
-        Objects.requireNonNull(id, "채널 ID는 필수입니다.");
+        if (id == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
 
         channelRepository.findById(id)
                 .orElseThrow(() ->
@@ -193,8 +218,13 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public void join(UUID channelId, UUID userId) {
-        Objects.requireNonNull(channelId, "채널 ID는 필수입니다.");
-        Objects.requireNonNull(userId, "사용자 ID는 필수입니다.");
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
+
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
 
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
@@ -220,8 +250,13 @@ public class BasicChannelService implements ChannelService {
 
     @Override
     public void leave(UUID channelId, UUID userId) {
-        Objects.requireNonNull(channelId, "채널 ID는 필수입니다.");
-        Objects.requireNonNull(userId, "사용자 ID는 필수입니다.");
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
+
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
 
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->

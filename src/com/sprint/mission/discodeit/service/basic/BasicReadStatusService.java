@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.response.readstatus.ReadStatusDto;
 import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.readstatus.ReadStatusDto;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -15,7 +15,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -33,8 +32,13 @@ public class BasicReadStatusService implements ReadStatusService {
             throw new IllegalArgumentException("읽음 상태 생성 정보는 필수입니다.");
         }
 
-        Objects.requireNonNull(request.userId(), "사용자 ID는 필수입니다.");
-        Objects.requireNonNull(request.channelId(), "채널 ID는 필수입니다.");
+        if (request.userId() == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
+
+        if (request.channelId() == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() ->
@@ -69,7 +73,9 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public Optional<ReadStatusDto> findById(UUID id) {
-        Objects.requireNonNull(id, "읽음 상태 ID는 필수입니다.");
+        if (id == null) {
+            throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
+        }
 
         return readStatusRepository.findById(id)
                 .map(this::toDto);
@@ -77,7 +83,9 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public List<ReadStatusDto> findAllByUserId(UUID userId) {
-        Objects.requireNonNull(userId, "사용자 ID는 필수입니다.");
+        if (userId == null) {
+            throw new IllegalArgumentException("사용자 ID는 필수입니다.");
+        }
 
         return readStatusRepository.findAllByUserId(userId)
                 .stream()
@@ -91,11 +99,13 @@ public class BasicReadStatusService implements ReadStatusService {
             throw new IllegalArgumentException("읽음 상태 수정 정보는 필수입니다.");
         }
 
-        Objects.requireNonNull(request.id(), "읽음 상태 ID는 필수입니다.");
-        Objects.requireNonNull(
-                request.lastReadAt(),
-                "마지막 읽음 시간은 필수입니다."
-        );
+        if (request.id() == null) {
+            throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
+        }
+
+        if (request.lastReadAt() == null) {
+            throw new IllegalArgumentException("마지막 읽음 시간은 필수입니다.");
+        }
 
         ReadStatus readStatus = readStatusRepository.findById(request.id())
                 .orElseThrow(() ->
@@ -110,7 +120,9 @@ public class BasicReadStatusService implements ReadStatusService {
 
     @Override
     public void delete(UUID id) {
-        Objects.requireNonNull(id, "읽음 상태 ID는 필수입니다.");
+        if (id == null) {
+            throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
+        }
 
         readStatusRepository.findById(id)
                 .orElseThrow(() ->

@@ -1,12 +1,15 @@
 package com.sprint.mission.discodeit.dto.response.user;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public record UserDto(
         UUID id,
+        Instant createdAt,
+        Instant updatedAt,
         String username,
         String email,
-        UUID profileImageId,
-        boolean online
+        UUID profileId,
+        Boolean online
 ) {
 }
