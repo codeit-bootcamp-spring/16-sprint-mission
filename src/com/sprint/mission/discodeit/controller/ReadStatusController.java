@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Tag(name = "ReadStatus", description = "읽음 상태 생성, 조회 및 수정 API")
+@Tag(name = "ReadStatus", description = "읽음 상태 생성, 조회, 수정 및 삭제 API")
 @RestController
 @RequestMapping("/api/readStatuses")
 @RequiredArgsConstructor
@@ -152,5 +152,36 @@ public class ReadStatusController {
         return ResponseEntity.ok(
                 readStatusService.update(readStatusId, request)
         );
+    }
+
+    // 읽음 상태 삭제
+    @Operation(
+            summary = "읽음 상태 삭제",
+            description = "지정한 읽음 상태를 삭제합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "204",
+                    description = "읽음 상태 삭제 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "읽음 상태를 찾을 수 없음",
+                    content = @Content(
+                            schema = @Schema(implementation = Map.class)
+                    )
+            )
+    })
+    @DeleteMapping("/{readStatusId}")
+    public ResponseEntity<Void> delete(
+            @Parameter(
+                    description = "삭제할 읽음 상태 ID (UUID)",
+                    required = true,
+                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            )
+            @PathVariable UUID readStatusId
+    ) {
+        readStatusService.delete(readStatusId);
+        return ResponseEntity.noContent().build();
     }
 }
