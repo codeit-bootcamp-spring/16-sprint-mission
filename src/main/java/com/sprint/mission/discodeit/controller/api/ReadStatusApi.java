@@ -48,6 +48,7 @@ public interface ReadStatusApi {
             description = "Channel 또는 User를 찾을 수 없음",
             content = @Content(
                     mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ErrorResponse.class),
                     examples = {
                             @ExampleObject(
                                     name = "채널 없음",
