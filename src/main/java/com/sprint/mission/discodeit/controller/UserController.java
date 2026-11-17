@@ -6,6 +6,7 @@ import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -117,7 +118,20 @@ public class UserController {
                     description = "User가 성공적으로 수정되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = UserDto.class)
+                            schema = @Schema(implementation = UserDto.class),
+                            examples = @ExampleObject(
+                                    value = """
+                        {
+                          "id": "550e8400-e29b-41d4-a716-446655440000",
+                          "createdAt": "2026-11-17T06:00:00Z",
+                          "updatedAt": "2026-11-17T07:00:00Z",
+                          "username": "student02",
+                          "email": "student02@example.com",
+                          "password": "NewPassword123!",
+                          "profileId": null
+                        }
+                        """
+                            )
                     )
             ),
             @ApiResponse(
@@ -141,13 +155,26 @@ public class UserController {
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
                             schema = @Schema(type = "string")
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "413",
+                    description = "업로드 파일 또는 전체 multipart 요청의 크기가 서버 제한을 초과했습니다."
             )
     })
     public ResponseEntity<UserDto> updateUser(
             @PathVariable("userId") UUID userId,
+            @Parameter(
+                    description = "사용자 수정 정보(JSON). 변경할 사용자명, 이메일, 비밀번호를 포함합니다.",
+                    required = true
+            )
             @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
+            @Parameter(
+                    description = "선택적으로 첨부하는 새 프로필 이미지 파일입니다.",
+                    schema = @Schema(type = "string", format = "binary")
+            )
             @RequestPart(value = "profile", required = false)
-            MultipartFile profile) throws IOException {
+            MultipartFile profile
+    ) throws IOException {
         UserDto userDto = this.userService.update(
                 userId, request, profile
         );
