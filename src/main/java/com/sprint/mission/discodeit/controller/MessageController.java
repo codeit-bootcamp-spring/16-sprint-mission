@@ -4,6 +4,7 @@ import com.sprint.mission.discodeit.dto.message.*;
 import com.sprint.mission.discodeit.dto.user.UserDto;
 import com.sprint.mission.discodeit.service.MessageService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
@@ -43,8 +44,19 @@ public class MessageController {
                     description = "Message가 성공적으로 생성되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = MessageResponse.class
+                            schema = @Schema(implementation = MessageResponse.class),
+                            examples = @ExampleObject(
+                                    value = """
+                        {
+                          "id": "550e8400-e29b-41d4-a716-446655440003",
+                          "createdAt": "2026-11-17T06:00:00Z",
+                          "updatedAt": "2026-11-17T06:00:00Z",
+                          "content": "안녕하세요!",
+                          "channelId": "550e8400-e29b-41d4-a716-446655440001",
+                          "authorId": "550e8400-e29b-41d4-a716-446655440002",
+                          "attachmentIds": []
+                        }
+                        """
                             )
                     )
             ),
@@ -69,10 +81,21 @@ public class MessageController {
                             mediaType = MediaType.TEXT_PLAIN_VALUE,
                             schema = @Schema(type = "string")
                     )
+            ),
+            @ApiResponse(
+                    responseCode = "413",
+                    description = "첨부파일 또는 전체 multipart 요청의 크기가 서버 제한을 초과했습니다."
             )
     })
     public ResponseEntity<MessageResponse> createMessage(
+            @Parameter(
+                    description = "메시지 내용, 채널 UUID, 작성자 UUID를 포함하는 필수 JSON 파트",
+                    required = true
+            )
             @Valid @RequestPart("messageCreateRequest") MessageCreateRequest request,
+            @Parameter(
+                    description = "선택적으로 첨부하는 파일 목록"
+            )
             @RequestPart(value = "attachments", required = false)
             List<MultipartFile> attachments
     ) {
