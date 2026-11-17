@@ -50,7 +50,17 @@ public class MessageController {
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "메시지 내용, 채널 ID 또는 작성자 ID 등 요청값이 올바르지 않습니다."
+                    description = "메시지 내용, 채널 ID 또는 작성자 ID의 유효성 검증 실패, 잘못된 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string")
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -89,6 +99,14 @@ public class MessageController {
                     )
             ),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "잘못된 messageId UUID 또는 요청 JSON 형식",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "수정할 Message가 존재하지 않습니다.",
                     content = @Content(
@@ -124,6 +142,14 @@ public class MessageController {
                     )
             ),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "messageId의 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "해당 Message가 존재하지 않습니다.",
                     content = @Content(
@@ -156,6 +182,14 @@ public class MessageController {
                                             implementation = MessageResponse.class
                                     )
                             )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "channelId가 누락되거나 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
                     )
             ),
             @ApiResponse(
