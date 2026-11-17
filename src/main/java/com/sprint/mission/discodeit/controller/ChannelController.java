@@ -42,14 +42,25 @@ public class ChannelController {
                     description = "Public Channel이 성공적으로 생성되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = ChannelDto.class
-                            )
+                            schema = @Schema(implementation = ChannelDto.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "채널 이름이 누락되었거나 올바르지 않은 요청입니다."
+                    description = "채널 이름의 유효성 검증 실패 또는 잘못된 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string"),
+                                    examples = @ExampleObject(
+                                            value = "요청값이 올바르지 않습니다."
+                                    )
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
+                            )
+                    }
             )
     })
     public ResponseEntity<ChannelDto> createPublicChannel(
@@ -72,14 +83,25 @@ public class ChannelController {
                     description = "Private Channel이 성공적으로 생성되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = ChannelDto.class
-                            )
+                            schema = @Schema(implementation = ChannelDto.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "요청 본문의 JSON 형식이 올바르지 않습니다."
+                    description = "참여자 목록의 유효성 검증 실패 또는 잘못된 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string"),
+                                    examples = @ExampleObject(
+                                            value = "요청값이 올바르지 않습니다."
+                                    )
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -113,28 +135,32 @@ public class ChannelController {
                     description = "Public Channel이 성공적으로 수정되었습니다.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(
-                                    implementation = ChannelDto.class
-                            )
+                            schema = @Schema(implementation = ChannelDto.class)
                     )
             ),
             @ApiResponse(
                     responseCode = "400",
-                    description = "채널 이름이 공백으로만 구성되어 있거나 비공개 채널의 수정을 요청했습니다.",
-                    content = @Content(
-                            mediaType = MediaType.TEXT_PLAIN_VALUE,
-                            schema = @Schema(type = "string"),
-                            examples = {
-                                    @ExampleObject(
-                                            name = "잘못된 채널 이름",
-                                            value = "채널 이름은 공백으로만 구성할 수 없습니다."
-                                    ),
-                                    @ExampleObject(
-                                            name = "비공개 채널 수정",
-                                            value = "프라이빗 채널은 수정할 수 없습니다."
-                                    )
-                            }
-                    )
+                    description = "잘못된 채널 이름, 비공개 채널 수정 요청, 잘못된 UUID 또는 요청 형식",
+                    content = {
+                            @Content(
+                                    mediaType = MediaType.TEXT_PLAIN_VALUE,
+                                    schema = @Schema(type = "string"),
+                                    examples = {
+                                            @ExampleObject(
+                                                    name = "잘못된 채널 이름",
+                                                    value = "채널 이름은 공백으로만 구성할 수 없습니다."
+                                            ),
+                                            @ExampleObject(
+                                                    name = "비공개 채널 수정",
+                                                    value = "프라이빗 채널은 수정할 수 없습니다."
+                                            )
+                                    }
+                            ),
+                            @Content(
+                                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                                    schema = @Schema(type = "object")
+                            )
+                    }
             ),
             @ApiResponse(
                     responseCode = "404",
@@ -166,6 +192,14 @@ public class ChannelController {
                     content = @Content
             ),
             @ApiResponse(
+                    responseCode = "400",
+                    description = "channelId의 UUID 형식이 올바르지 않습니다.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
+                    )
+            ),
+            @ApiResponse(
                     responseCode = "404",
                     description = "삭제할 Channel이 존재하지 않습니다.",
                     content = @Content(
@@ -194,10 +228,16 @@ public class ChannelController {
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
                             array = @ArraySchema(
-                                    schema = @Schema(
-                                            implementation = ChannelResponse.class
-                                    )
+                                    schema = @Schema(implementation = ChannelResponse.class)
                             )
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "userId 누락 또는 UUID 형식 오류",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(type = "object")
                     )
             ),
             @ApiResponse(
