@@ -7,11 +7,10 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Getter
-public class Channel extends BaseEntity implements Updatable {
+public class Channel extends UpdatableEntity {
     private final Set<UUID> users;
     private final ChannelType type;
 
-    private Instant updatedAt;
     private String name;
     private String description;
 
@@ -51,11 +50,6 @@ public class Channel extends BaseEntity implements Updatable {
         return this;
     }
 
-    @Override
-    public void update() {
-        this.updatedAt = Instant.now();
-    }
-
     public void addUser(UUID userId) {
         this.users.add(userId);
         this.update();
@@ -66,13 +60,17 @@ public class Channel extends BaseEntity implements Updatable {
         this.update();
     }
 
+    public List<UUID> getUsers() {
+        return List.copyOf(this.users);
+    }
+
     @Override
     public String toString() {
         String userStr = this.users
                 .stream()
                 .map(uuid -> uuid.toString().substring(0, 4))
                 .collect(Collectors.joining(", "));
-        return "이름: %s, id: %s, 가입 유저 (id): [ %s ]".formatted(
+        return "이름: %s, id: %s, 가입 사용자 (id): [ %s ]".formatted(
                 this.name,
                 this.getId().toString().substring(0, 4), userStr);
     }

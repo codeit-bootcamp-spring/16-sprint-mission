@@ -20,28 +20,25 @@ public class BasicChannelService implements ChannelService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public ChannelPublicCreateResponse createPublic(ChannelPublicCreateRequest createRequest) {
+    public ChannelResponse createPublic(PublicChannelCreateRequest createRequest) {
         String name = createRequest.name();
         String description = createRequest.description();
 
         Channel channel = new Channel(name, description, ChannelType.PUBLIC);
         this.channelRepository.save(channel);
 
-        return ChannelPublicCreateResponse.from(channel);
+        return ChannelResponse.from(channel);
     }
 
     @Override
-    public ChannelPrivateCreateResponse createPrivate(ChannelPrivateCreateRequest createRequest) {
-        List<UUID> memberIds = createRequest.memberIds();
+    public ChannelResponse createPrivate(PrivateChannelCreateRequest createRequest) {
+        List<UUID> memberIds = createRequest.participantIds();
         Channel channel = new Channel(memberIds, ChannelType.PRIVATE);
         List<UUID> distinctMemberIds = new ArrayList<>(new LinkedHashSet<>(memberIds));
 
         distinctMemberIds.forEach(memberId -> {
             this.userRepository.findById(memberId)
-                    .orElseThrow(() -> new NoSuchElementException("생성할 비공개 채널에 소속될 유저가 존재하지 않습니다."));
-            if (this.readStatusRepository.findByChannelIdAndUserId(channel.getId(), memberId).isPresent()) {
-                throw new IllegalStateException("이미 존재하는 메세지 확인 기록입니다.");
-            }
+                    .orElseThrow(() -> new NoSuchElementException("생성할 비공개 채널에 소속될 사용자가 존재하지 않습니다."));
         });
 
         this.channelRepository.save(channel);
@@ -50,7 +47,7 @@ public class BasicChannelService implements ChannelService {
             this.readStatusRepository.save(new ReadStatus(memberId, channel.getId()));
         });
 
-        return ChannelPrivateCreateResponse.from(channel);
+        return ChannelResponse.from(channel);
     }
 
     @Override
@@ -80,32 +77,32 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelUpdateResponse update(UUID id, ChannelUpdateRequest updateRequest) {
+    public ChannelResponse update(UUID id, PublicChannelUpdateRequest updateRequest) {
         Channel channel = this.channelRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("수정할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
         if (channel.getType() == ChannelType.PRIVATE) throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
 
-        String newName = updateRequest.name();
-        String newDescription = updateRequest.description();
+        String newName = updateRequest.newName();
+        String newDescription = updateRequest.newDescription();
 
         channel.update(newName, newDescription);
         this.channelRepository.update(id, channel);
-        return ChannelUpdateResponse.from(channel);
+        return ChannelResponse.from(channel);
     }
 
     @Override
     public void addUserToChannel(UUID channelId, UUID userId) {
         User user = this.userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("채널에 추가할 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("채널에 추가할 사용자가 존재하지 않습니다."));
         user.validateNotDeleted();
 
         Channel channel = this.channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("유저를 추가할 채널이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자를 추가할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
 
         if (this.readStatusRepository.findByChannelIdAndUserId(channelId, userId).isPresent())
-            throw new IllegalStateException("메세지 확인 기록이 이미 존재합니다.");
+            throw new IllegalStateException("메세지 읽음 상태가 이미 존재합니다.");
 
         this.readStatusRepository.save(new ReadStatus(userId, channelId));
 
@@ -116,16 +113,15 @@ public class BasicChannelService implements ChannelService {
     @Override
     public void removeUserFromChannel(UUID channelId, UUID userId) {
         User user = this.userRepository.findById(userId)
-                .orElseThrow(() -> new NoSuchElementException("채널에서 탈퇴시킬 유저가 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("채널에서 탈퇴시킬 사용자가 존재하지 않습니다."));
         user.validateNotDeleted();
 
         Channel channel = this.channelRepository.findById(channelId)
-                .orElseThrow(() -> new NoSuchElementException("유저가 탈퇴할 채널이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자가 탈퇴할 채널이 존재하지 않습니다."));
         channel.validateNotDeleted();
 
-        ReadStatus readStatus = this.readStatusRepository.findByChannelIdAndUserId(channelId, userId)
-                .orElseThrow(() -> new NoSuchElementException("메세지 확인 기록이 존재하지 않습니다."));
-        this.readStatusRepository.delete(readStatus.getId());
+        this.readStatusRepository.findByChannelIdAndUserId(channelId, userId)
+                .ifPresent(readStatus -> this.readStatusRepository.delete(readStatus.getId()));
 
         channel.removeUser(userId);
         this.channelRepository.update(channelId, channel);

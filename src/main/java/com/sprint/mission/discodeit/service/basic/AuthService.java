@@ -19,17 +19,17 @@ public class AuthService {
     private final UserStatusRepository userStatusRepository;
 
     public AuthUserResponse login(AuthUserRequest authRequest) {
-        String email = authRequest.email();
+        String name = authRequest.username();
         String password = authRequest.password();
 
-        User user = this.userRepository.findByEmail(email).orElseThrow(
-                () -> new NoSuchElementException("존재하지 않는 유저 이름입니다."));
+        User user = this.userRepository.findByName(name).orElseThrow(
+                () -> new IllegalArgumentException("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요."));
         if (!user.getPassword().equals(password)) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new IllegalArgumentException("로그인에 실패했습니다. 아이디 또는 비밀번호를 확인해주세요.");
         }
 
         UserStatus userStatus = this.userStatusRepository.findByUserId(user.getId())
-                .orElseThrow(() -> new NoSuchElementException("유저 접속 기록이 존재하지 않습니다."));
+                .orElseThrow(() -> new NoSuchElementException("사용자 접속 상태이 존재하지 않습니다."));
 
         userStatus.update(Instant.now());
         this.userStatusRepository.update(userStatus.getId(), userStatus);

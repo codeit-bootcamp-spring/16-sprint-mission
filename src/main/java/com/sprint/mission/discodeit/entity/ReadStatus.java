@@ -6,11 +6,10 @@ import java.time.Instant;
 import java.util.UUID;
 
 @Getter
-public class ReadStatus extends BaseEntity implements Updatable {
+public class ReadStatus extends UpdatableEntity {
     private final UUID userId;
     private final UUID channelId;
     private Instant lastReadTime;
-    private Instant updatedAt;
 
     public ReadStatus(UUID userId, UUID channelId) {
         super();
@@ -25,10 +24,5 @@ public class ReadStatus extends BaseEntity implements Updatable {
             this.lastReadTime = newLastReadTime;
             this.update();
         }
-    }
-
-    @Override
-    public void update() {
-        this.updatedAt = Instant.now();
     }
 }
