@@ -39,14 +39,16 @@ public class ReadStatusController {
 
     @ReadStatusFindByUserIdDocs
     @RequestMapping(method = RequestMethod.GET)
-    public List<ReadStatus> getAllByUserId(@RequestParam UUID userId) {
+    public List<ReadStatus> getAllByUserId(
+            @Parameter(description = "조회할 User ID", required = true)
+            @RequestParam UUID userId) {
         return readStatusService.findAllByUserId(userId);
     }
 
     @ReadStatusUpdateDocs
     @RequestMapping(value = "/{readStatusId}", method = RequestMethod.PATCH)
     public ReadStatus putReadStatus(
-            @Parameter(description = "수정할 ReadStatus ID", required = true)
+            @Parameter(description = "수정할 읽음 상태 ID", required = true)
             @PathVariable UUID readStatusId,
             @Valid @RequestBody ReadStatusUpdateRequest request) {
 
