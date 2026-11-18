@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.global.error;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -8,6 +9,7 @@ import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.multipart.MaxUploadSizeExceededException;
 import org.springframework.web.multipart.support.MissingServletRequestPartException;
 import org.springframework.web.server.ResponseStatusException;
 
@@ -15,6 +17,21 @@ import java.util.NoSuchElementException;
 
     @RestControllerAdvice
     public class GlobalExceptionHandler {
+        //개별크기
+        @Value("${spring.servlet.multipart.max-file-size:1MB}")
+        private String maxFileSize;
+        //전체요청 크기
+        @Value("${spring.servlet.multipart.max-request-size:10MB}")
+        private String maxRequestSize;
+
+        //파일크기 초과 (413  Payload Too Large)
+        @ExceptionHandler(MaxUploadSizeExceededException.class)
+        public ResponseStatusException handleMaxUploadSizeExceededException(MaxUploadSizeExceededException e) {
+            return new ResponseStatusException(
+                    HttpStatus.PAYLOAD_TOO_LARGE,
+                    String.format("업로드 가능한 최대 파일 크기(%s)를 초과했습니다.", maxFileSize,maxRequestSize)
+            );
+        }
 
         // 데이터를 찾지 못했을 때 (404 Not Found)
         @ExceptionHandler(NoSuchElementException.class)
