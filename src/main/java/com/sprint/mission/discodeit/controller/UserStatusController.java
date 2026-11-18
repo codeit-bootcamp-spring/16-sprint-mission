@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.UserStatusApi;
 import com.sprint.mission.discodeit.dto.request.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
@@ -16,47 +17,36 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/user-statuses")
 @RequiredArgsConstructor
-public class UserStatusController {
+public class UserStatusController implements UserStatusApi {
     private final UserStatusService userStatusService;
 
-    @PostMapping
-    public ResponseEntity<UserStatus> createUserStatus(@RequestBody UserStatusCreateRequest request) {
-        UserStatus userStatus = userStatusService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(userStatus);
+    @Override
+    public ResponseEntity<UserStatus> createUserStatus(UserStatusCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userStatusService.create(request));
     }
 
-    @GetMapping("/{userStatusId}")
-    public ResponseEntity<UserStatus> getUserStatus(@PathVariable UUID userStatusId) {
-        UserStatus userStatus = userStatusService.find(userStatusId);
-        return ResponseEntity.ok(userStatus);
+    @Override
+    public ResponseEntity<UserStatus> getUserStatus(UUID userStatusId) {
+        return ResponseEntity.ok(userStatusService.find(userStatusId));
     }
 
-    @GetMapping
+    @Override
     public ResponseEntity<List<UserStatus>> getAllUserStatuses() {
-        List<UserStatus> statuses = userStatusService.findAll();
-        return ResponseEntity.ok(statuses);
+        return ResponseEntity.ok(userStatusService.findAll());
     }
 
-    @PutMapping("/{userStatusId}")
-    public ResponseEntity<UserStatus> updateUserStatus(
-            @PathVariable UUID userStatusId,
-            @RequestBody UserStatusUpdateRequest request
-    ) {
-        UserStatus updatedStatus = userStatusService.update(userStatusId, request);
-        return ResponseEntity.ok(updatedStatus);
+    @Override
+    public ResponseEntity<UserStatus> updateUserStatus(UUID userStatusId, UserStatusUpdateRequest request) {
+        return ResponseEntity.ok(userStatusService.update(userStatusId, request));
     }
 
-    @PutMapping("/user/{userId}")
-    public ResponseEntity<UserStatus> updateUserStatusByUserId(
-            @PathVariable UUID userId,
-            @RequestBody UserStatusUpdateRequest request
-    ) {
-        UserStatus updatedStatus = userStatusService.updateByUserId(userId, request);
-        return ResponseEntity.ok(updatedStatus);
+    @Override
+    public ResponseEntity<UserStatus> updateUserStatusByUserId(UUID userId, UserStatusUpdateRequest request) {
+        return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
     }
 
-    @DeleteMapping("/{userStatusId}")
-    public ResponseEntity<Void> deleteUserStatus(@PathVariable UUID userStatusId) {
+    @Override
+    public ResponseEntity<Void> deleteUserStatus(UUID userStatusId) {
         userStatusService.delete(userStatusId);
         return ResponseEntity.noContent().build();
     }

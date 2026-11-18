@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.ReadStatusApi;
 import com.sprint.mission.discodeit.dto.request.ReadStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.request.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
@@ -15,27 +16,21 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/readStatuses")
 @RequiredArgsConstructor
-public class ReadStatusController {
+public class ReadStatusController implements ReadStatusApi {
     private final ReadStatusService readStatusService;
 
-    @PostMapping
-    public ResponseEntity<ReadStatus> createReadStatus(@RequestBody ReadStatusCreateRequest request) {
-        ReadStatus readStatus = readStatusService.create(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(readStatus);
+    @Override
+    public ResponseEntity<ReadStatus> createReadStatus(ReadStatusCreateRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(readStatusService.create(request));
     }
 
-    @PatchMapping("/{readStatusId}")
-    public ResponseEntity<ReadStatus> updateReadStatus(
-            @PathVariable UUID readStatusId,
-            @RequestBody ReadStatusUpdateRequest request
-    ) {
-        ReadStatus updatedStatus = readStatusService.update(readStatusId, request);
-        return ResponseEntity.ok(updatedStatus);
+    @Override
+    public ResponseEntity<ReadStatus> updateReadStatus(UUID readStatusId, ReadStatusUpdateRequest request) {
+        return ResponseEntity.ok(readStatusService.update(readStatusId, request));
     }
 
-    @GetMapping
-    public ResponseEntity<List<ReadStatus>> findAllByUserId(@RequestParam UUID userId) {
-        List<ReadStatus> statuses = readStatusService.findAllByUserId(userId);
-        return ResponseEntity.ok(statuses);
+    @Override
+    public ResponseEntity<List<ReadStatus>> findAllByUserId(UUID userId) {
+        return ResponseEntity.ok(readStatusService.findAllByUserId(userId));
     }
 }

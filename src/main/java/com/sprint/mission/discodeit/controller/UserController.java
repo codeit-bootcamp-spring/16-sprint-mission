@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.UserApi;
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
@@ -21,47 +22,33 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserApi {
     private final UserService userService;
     private final UserStatusService userStatusService;
 
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<User> createUser(
-            @RequestPart("userCreateRequest") UserCreateRequest request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
-    ) {
-        User user = userService.create(request, profile);
-        return ResponseEntity.status(HttpStatus.CREATED).body(user);
+    @Override
+    public ResponseEntity<User> createUser(UserCreateRequest request, MultipartFile profile) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request, profile));
     }
 
-    @GetMapping
+    @Override
     public ResponseEntity<List<UserDto>> findAll() {
-        List<UserDto> users = userService.findAll();
-        return ResponseEntity.ok(users);
+        return ResponseEntity.ok(userService.findAll());
     }
 
-    @PatchMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<User> updateUser(
-            @PathVariable UUID userId,
-            @RequestPart("userUpdateRequest") UserUpdateRequest request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
-    ) {
-        User updatedUser = userService.update(userId, request, profile);
-        return ResponseEntity.ok(updatedUser);
+    @Override
+    public ResponseEntity<User> updateUser(UUID userId, UserUpdateRequest request, MultipartFile profile) {
+        return ResponseEntity.ok(userService.update(userId, request, profile));
     }
 
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+    @Override
+    public ResponseEntity<Void> deleteUser(UUID userId) {
         userService.delete(userId);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{userId}/userStatus")
-    public ResponseEntity<UserStatus> updateUserStatusByUserId(
-            @PathVariable UUID userId,
-            @RequestBody UserStatusUpdateRequest request
-    ) {
-        UserStatus updatedStatus = userStatusService.updateByUserId(userId, request);
-        return ResponseEntity.ok(updatedStatus);
+    @Override
+    public ResponseEntity<UserStatus> updateUserStatusByUserId(UUID userId, UserStatusUpdateRequest request) {
+        return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
     }
 }
