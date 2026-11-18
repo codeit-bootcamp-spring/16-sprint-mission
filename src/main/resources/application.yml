@@ -1,3 +1,6 @@
+server:
+  port: ${PORT:8080}
+
 spring:
   application:
     name: discodeit
@@ -10,8 +13,5 @@ spring:
 
 discodeit:
   repository:
-    type: jcf
-    file-directory: data
-
-  demo:
-    seed-users: true
+    type: ${DISCODEIT_REPOSITORY_TYPE:jcf}
+    file-directory: ${DISCODEIT_REPOSITORY_FILE_DIRECTORY:data}
