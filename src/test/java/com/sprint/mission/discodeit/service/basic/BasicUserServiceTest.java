@@ -78,6 +78,7 @@ class BasicUserServiceTest {
 
             UUID profileId = profileIdOf(response.userId());
             assertThat(profileId).isNotNull();
+            assertThat(response.profileId()).isEqualTo(profileId);
             assertThat(binaryContentRepository.existsById(profileId)).isTrue();
         }
 
