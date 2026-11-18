@@ -3,10 +3,12 @@ package com.sprint.mission.discodeit.repository.jcf;
 import com.sprint.mission.discodeit.dto.MessageDto;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.repository.MessageRepository;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -15,11 +17,12 @@ import java.util.*;
         havingValue = "jcf",
         matchIfMissing = true
 )
-public class JCFMessageRepository implements MessageRepository{
+public class JCFMessageRepository implements MessageRepository {
     private final Map<UUID, Message> data;
 
+    // 여러 스레드에서 동시에 접근할 수 있도록 ConcurrentHashMap을 초기화한다.
     public JCFMessageRepository() {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -63,7 +66,7 @@ public class JCFMessageRepository implements MessageRepository{
         Message removed = data.remove(id);
 
         // 삭제된 메시지가 없으면 예외를 발생시킨다.
-        if(removed == null){
+        if (removed == null) {
             throw new IllegalArgumentException("삭제할 메시지를 찾을 수 없습니다.");
         }
     }

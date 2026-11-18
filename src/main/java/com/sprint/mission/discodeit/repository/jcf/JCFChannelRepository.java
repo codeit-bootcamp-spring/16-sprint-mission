@@ -2,10 +2,12 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.repository.ChannelRepository;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -17,8 +19,9 @@ import java.util.*;
 public class JCFChannelRepository implements ChannelRepository {
     private final Map<UUID, Channel> data;
 
+    // 여러 스레드에서 동시에 접근할 수 있도록 ConcurrentHashMap을 초기화한다.
     public JCFChannelRepository() {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
     }
 
     @Override
@@ -55,7 +58,7 @@ public class JCFChannelRepository implements ChannelRepository {
         Channel removed = data.remove(id);
 
         // 삭제된 채널이 없으면 예외를 발생시킨다.
-        if(removed == null){
+        if (removed == null) {
             throw new IllegalArgumentException("삭제할 채널을 찾을 수 없습니다");
         }
     }
