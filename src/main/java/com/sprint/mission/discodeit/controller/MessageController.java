@@ -1,10 +1,15 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.MessageApi;
 import com.sprint.mission.discodeit.dto.message.MessageCreateRequestDto;
 import com.sprint.mission.discodeit.dto.message.MessageResponseDto;
 import com.sprint.mission.discodeit.dto.message.MessageUpdateRequestDto;
 import com.sprint.mission.discodeit.service.MessageService;
+
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -15,37 +20,43 @@ import java.util.UUID;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/messages")
-public class MessageController {
+public class MessageController implements MessageApi {
 
     private final MessageService messageService;
 
-    @RequestMapping(method = RequestMethod.POST)
+    @Override
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseStatus(HttpStatus.CREATED)
     public MessageResponseDto create(
-            @RequestPart("request") MessageCreateRequestDto request,
+            @RequestPart("messageCreateRequest") MessageCreateRequestDto request,
             @RequestPart(value = "attachments", required = false)
             List<MultipartFile> attachments
     ) throws IOException {
         return messageService.createMessage(request, attachments);
     }
 
-    @RequestMapping(method = RequestMethod.GET)
+    @Override
+    @GetMapping
     public List<MessageResponseDto> findAllChannelMessages(
-            @RequestHeader("CHANNEL-UUID") UUID channelId
+            @RequestParam UUID channelId
     ) {
         return messageService.findAllMessagesByChannelId(channelId);
     }
 
-    @RequestMapping(method = RequestMethod.PATCH)
+    @Override
+    @PatchMapping("/{messageId}")
     public MessageResponseDto update(
-            @RequestHeader("MESSAGE-UUID") UUID messageId,
+            @PathVariable UUID messageId,
             @RequestBody MessageUpdateRequestDto request
     ) {
-        return messageService.updateMessage(messageId,  request);
+        return messageService.updateMessage(messageId, request);
     }
 
-    @RequestMapping(method = RequestMethod.DELETE)
+    @Override
+    @DeleteMapping("/{messageId}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
     public void delete(
-            @RequestHeader("MESSAGE-UUID") UUID messageId
+            @PathVariable UUID messageId
     ) {
         messageService.deleteMessage(messageId);
     }

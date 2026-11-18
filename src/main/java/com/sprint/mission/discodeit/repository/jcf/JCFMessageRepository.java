@@ -38,7 +38,7 @@ public class JCFMessageRepository implements MessageRepository {
     public List<Message> findByUserId(UUID userId) {
         return findAll().stream()
                 .filter(message -> message.getType() == MessageType.USER)
-                .filter(message -> message.getSenderId().equals(userId))
+                .filter(message -> message.getAuthorId().equals(userId))
                 .toList();
     }
 
@@ -53,7 +53,7 @@ public class JCFMessageRepository implements MessageRepository {
     public List<Message> findByUserIdAndChannelId(UUID userId, UUID channelId) {
         return findAll().stream()
                 .filter(message -> message.getType() == MessageType.USER)
-                .filter(message -> message.getSenderId().equals(userId))
+                .filter(message -> message.getAuthorId().equals(userId))
                 .filter(message -> message.getChannelId().equals(channelId))
                 .toList();
     }

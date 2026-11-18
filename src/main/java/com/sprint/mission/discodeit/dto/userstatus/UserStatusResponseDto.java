@@ -13,9 +13,9 @@ import java.util.UUID;
 public class UserStatusResponseDto {
 
     private UUID id;
-    private UUID userId;
-    private Instant lastActiveAt;
     private Instant createdAt;
     private Instant updatedAt;
+    private UUID userId;
+    private Instant lastActiveAt;
     private boolean online;
 }
