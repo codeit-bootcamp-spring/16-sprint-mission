@@ -57,8 +57,9 @@ public class Channel extends BaseEntity {
         return new LinkedHashSet<>(memberIds);
     }
 
+    // 유저를 채널에 참가시킨다.
     public void addMember(UUID userId){
-        // 유저를 채널에 참가시킨다.
+
         if (userId == null){
             throw new IllegalArgumentException("유저 ID는 필수입니다.");
         }
@@ -71,9 +72,14 @@ public class Channel extends BaseEntity {
 
     // 유저를 채널에 퇴장시킨다.
     public void exitMember(UUID userId){
+
+        if (userId == null) {
+            throw new IllegalArgumentException("유저 ID는 필수입니다.");
+        }
         if(!memberIds.remove(userId)){
             throw new IllegalArgumentException("채널에 참여중인 유저가 아닙니다.");
         }
+
         touch();
     }
 

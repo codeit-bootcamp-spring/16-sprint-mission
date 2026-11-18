@@ -1,12 +1,17 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.AuthUserDto;
+
 import com.sprint.mission.discodeit.exceptions.AuthenticationFailedException;
-import com.sprint.mission.discodeit.service.AuthService;
-import com.sprint.mission.discodeit.dto.request.authlogin.AuthLoginRequest;
-import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.exceptions.AuthenticationUserNotFoundException;
+import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.service.AuthService;
+import com.sprint.mission.discodeit.dto.request.auth.AuthLoginRequest;
+import com.sprint.mission.discodeit.entity.User;
+
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -25,10 +30,12 @@ public class BasicAuthService implements AuthService {
         User user = userRepository.findByUsername(request.username())
                 // 일치하는 유저가 없다면 예외를 발생시킨다.
                 .orElseThrow(() ->
-                        new AuthenticationFailedException("아이디 또는 비밀번호가 일치하지 않습니다."));
+                        new AuthenticationUserNotFoundException("아이디 또는 비밀번호가 일치하지 않습니다."));
 
-        if(!passwordEncoder.matches(request.password(), user.getPassword())){
-            throw new AuthenticationFailedException("아이디 또는 비밀번호가 일치하지 않습니다.");
+        if (!passwordEncoder.matches(request.password(), user.getPassword())) {
+            throw new AuthenticationFailedException(
+                    "아이디 또는 비밀번호가 일치하지 않습니다."
+            );
         }
 
         // 로그인에 성공한 유저 정보를 AuthUserDto로 변환하여 반환한다.
