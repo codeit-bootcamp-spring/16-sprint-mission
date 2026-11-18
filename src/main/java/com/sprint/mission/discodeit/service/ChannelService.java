@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service;
 
-import com.sprint.mission.discodeit.dto.Channel.*;
+import com.sprint.mission.discodeit.dto.channel.*;
 
 import java.util.List;
 import java.util.UUID;
@@ -10,7 +10,7 @@ public interface ChannelService {
 
     ChannelPrivateCreateResponse createPrivate(ChannelPrivateCreateRequest createRequest);
 
-    ChannelUpdateResponse update(ChannelUpdateRequest updateRequest);
+    ChannelUpdateResponse update(UUID id, ChannelUpdateRequest updateRequest);
 
     void addUserToChannel(UUID channelId, UUID userId);
 

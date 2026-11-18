@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.ReadStatus.*;
+import com.sprint.mission.discodeit.dto.readStatus.*;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -57,8 +57,7 @@ public class ReadStatusService {
                 .toList();
     }
 
-    public ReadStatusUpdateResponse update(ReadStatusUpdateRequest updateRequest) {
-        UUID id = updateRequest.id();
+    public ReadStatusUpdateResponse update(UUID id, ReadStatusUpdateRequest updateRequest) {
         Instant lastReadTime = updateRequest.lastReadTime();
 
         ReadStatus readStatus = this.readStatusRepository.findById(id)

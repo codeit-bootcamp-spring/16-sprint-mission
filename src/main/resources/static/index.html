@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e76f51">
+  <title>Discodeit · API Playground</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&family=Noto+Sans+KR:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="app-frame">
+    <header class="topbar">
+      <a class="brand" href="#users" data-nav="users" aria-label="Discodeit 홈">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span>discodeit<span class="brand-dot">.</span></span>
+        <span class="brand-tag">API PLAYGROUND</span>
+      </a>
+      <nav class="main-nav" aria-label="주 메뉴">
+        <button class="nav-link active" data-nav="users">사용자 목록</button>
+        <button class="nav-link" data-nav="register">사용자 등록</button>
+        <button class="nav-link" data-nav="login">로그인</button>
+        <button class="nav-link" data-nav="channels">채널 목록</button>
+        <button class="nav-link" data-nav="channel-create">채널 등록</button>
+      </nav>
+      <div class="session-pill" id="sessionPill">
+        <span class="session-dot"></span>
+        <span id="sessionLabel">로그인 필요</span>
+      </div>
+      <button class="mobile-menu" id="mobileMenu" aria-label="메뉴 열기">☰</button>
+    </header>
+
+    <section class="toolbar">
+      <div class="api-target">
+        <span class="api-indicator"></span>
+        <label for="apiBase">API 서버</label>
+        <input id="apiBase" value="http://localhost:8080/api/v1" spellcheck="false">
+        <button id="saveApiBase" class="button button-quiet button-small">적용</button>
+      </div>
+      <div class="toolbar-right">
+        <span id="lastUpdated" class="muted small">아직 연결하지 않았어요</span>
+        <button id="refreshAll" class="icon-button" title="새로고침" aria-label="새로고침">↻</button>
+        <button id="logoutButton" class="button button-quiet button-small hidden">로그아웃</button>
+      </div>
+    </section>
+
+    <main class="page-wrap">
+      <section class="view active" id="view-users">
+        <div class="page-heading heading-row">
+          <div>
+            <div class="eyebrow">YOUR COMMUNITY</div>
+            <h1>사용자 <span class="text-coral">목록</span></h1>
+            <p class="subtitle">가입된 사용자를 확인하고 접속 상태를 테스트해보세요.</p>
+          </div>
+          <div class="heading-actions">
+            <button class="button button-outline" id="seedButton">✦ 샘플 데이터 만들기</button>
+            <button class="button button-primary" data-nav="register">+ 사용자 등록</button>
+          </div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card"><span class="stat-icon coral-bg">♙</span><span><strong id="userCount">—</strong><small>전체 사용자</small></span></div>
+          <div class="stat-card"><span class="stat-icon green-bg">●</span><span><strong id="onlineCount">—</strong><small>온라인</small></span></div>
+          <div class="stat-card"><span class="stat-icon blue-bg">◷</span><span><strong id="channelCount">—</strong><small>내 채널</small></span></div>
+          <div class="stat-note"><span class="sparkle">✳</span><span><strong>개발 모드</strong><small>버튼으로 요청을 바로 호출합니다.</small></span></div>
+        </div>
+        <div class="section-title-row">
+          <div><h2>가입된 사용자</h2><span class="muted small" id="usersSubheading">사용자 정보를 불러오는 중</span></div>
+          <button class="button button-quiet button-small" id="refreshUsers">↻ 목록 갱신</button>
+        </div>
+        <div class="user-grid" id="userGrid"><div class="loading-card">사용자 목록을 불러오는 중…</div></div>
+      </section>
+
+      <section class="view" id="view-register">
+        <div class="page-heading"><div class="eyebrow">NEW MEMBER</div><h1>사용자 <span class="text-coral">등록</span></h1><p class="subtitle">이름과 계정을 입력하고, 원하면 프로필 이미지를 추가하세요.</p></div>
+        <div class="form-layout">
+          <form id="registerForm" class="panel form-panel">
+            <div class="panel-heading"><div><h2>새 계정 만들기</h2><p>프로필 이미지는 선택사항입니다.</p></div><span class="step-badge">01</span></div>
+            <label class="field-label" for="regName">이름</label><input class="text-input" id="regName" name="name" placeholder="예: 김하늘" required maxlength="60">
+            <label class="field-label" for="regEmail">이메일</label><input class="text-input" id="regEmail" name="email" type="email" placeholder="hello@example.com" required>
+            <label class="field-label" for="regPassword">비밀번호 <span class="hint-inline">8–20자</span></label><input class="text-input" id="regPassword" name="password" type="password" minlength="8" maxlength="20" placeholder="8자 이상 입력" required>
+            <label class="field-label" for="regProfile">프로필 이미지 <span class="hint-inline">선택</span></label>
+            <div class="upload-box"><input id="regProfile" name="profileImage" type="file" accept="image/*"><span class="upload-icon">↥</span><span><strong>이미지를 선택하거나 여기에 놓으세요</strong><small id="profileFileName">PNG, JPG 등 이미지 파일</small></span><img id="profilePreview" class="upload-preview hidden" alt="프로필 미리보기"></div>
+            <button class="button button-primary button-wide" type="submit">사용자 등록하기 <span>→</span></button>
+            <p class="form-footnote">요청 형식: multipart/form-data · user(JSON), profileImage(선택)</p>
+          </form>
+          <aside class="helper-card coral-wash"><div class="helper-art">✿</div><div class="eyebrow">QUICK NOTE</div><h3>테스트용 계정도<br>간편하게 등록</h3><p>프로필 사진 없이도 가입할 수 있어요. 이메일은 중복되지 않도록 입력해주세요.</p><div class="helper-line"></div><span class="muted small">비밀번호는 8–20자로 입력</span></aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-login">
+        <div class="page-heading"><div class="eyebrow">WELCOME BACK</div><h1>간편 <span class="text-coral">로그인</span></h1><p class="subtitle">이메일과 비밀번호로 로그인하면 이 브라우저에서 로그인 상태를 유지합니다.</p></div>
+        <div class="form-layout login-layout">
+          <form id="loginForm" class="panel form-panel">
+            <div class="panel-heading"><div><h2>로그인</h2><p>인증 토큰 없이 API 응답의 사용자 ID를 사용합니다.</p></div><span class="step-badge">↗</span></div>
+            <label class="field-label" for="loginEmail">이메일</label><input class="text-input" id="loginEmail" type="email" placeholder="hello@example.com" required>
+            <label class="field-label" for="loginPassword">비밀번호</label><input class="text-input" id="loginPassword" type="password" minlength="8" maxlength="20" placeholder="비밀번호 입력" required>
+            <button class="button button-primary button-wide" type="submit">로그인하기 <span>→</span></button>
+          </form>
+          <aside class="panel session-card"><span class="session-card-icon">◎</span><div class="eyebrow">CURRENT SESSION</div><h3 id="loginSessionTitle">로그인되어 있지 않아요</h3><p id="loginSessionDescription">로그인하면 사용자 ID를 저장하고 채널 목록 조회에 사용합니다.</p><div class="id-display hidden" id="loginIdDisplay"><small>로그인 사용자 ID</small><code id="loginUserId"></code></div></aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-channels">
+        <div class="page-heading heading-row">
+          <div><div class="eyebrow">YOUR SPACES</div><h1>채널 <span class="text-coral">목록</span></h1><p class="subtitle">로그인한 사용자가 참여 중인 공개·비공개 채널입니다.</p></div>
+          <button class="button button-primary" data-nav="channel-create">+ 채널 등록</button>
+        </div>
+        <div class="channel-layout">
+          <div class="channel-list-wrap"><div class="section-title-row compact"><h2>내 채널 <span id="channelTotal" class="count-chip">0</span></h2><button id="refreshChannels" class="button button-quiet button-small">↻ 갱신</button></div><div id="channelList" class="channel-list"><div class="empty-state">로그인 후 채널을 불러올 수 있어요.</div></div></div>
+          <aside class="panel channel-hint"><div class="hint-emoji">◈</div><h3>채널을 선택해보세요</h3><p>메시지와 첨부파일을 확인하고 읽음 위치를 살펴볼 수 있습니다.</p><div class="channel-mini-stats"><span><strong id="messageCount">—</strong><small>메시지</small></span><span><strong id="channelMemberCount">—</strong><small>선택 채널 멤버</small></span></div></aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-channel-create">
+        <div class="page-heading"><div class="eyebrow">CREATE A SPACE</div><h1>채널 <span class="text-coral">등록</span></h1><p class="subtitle">공개 채널 또는 선택한 사용자만 참여하는 비공개 채널을 만들어요.</p></div>
+        <div class="form-layout channel-create-layout">
+          <form id="channelForm" class="panel form-panel">
+            <div class="panel-heading"><div><h2>새 채널 만들기</h2><p>채널 종류에 따라 요청 DTO가 달라집니다.</p></div><span class="step-badge">02</span></div>
+            <div class="radio-cards"><label class="radio-card selected" id="publicChoice"><input type="radio" name="channelType" value="PUBLIC" checked><span class="radio-dot"></span><span><strong>공개 채널</strong><small>이름과 설명으로 생성</small></span><span class="radio-symbol">◉</span></label><label class="radio-card" id="privateChoice"><input type="radio" name="channelType" value="PRIVATE"><span class="radio-dot"></span><span><strong>비공개 채널</strong><small>선택한 멤버와 생성</small></span><span class="radio-symbol">◈</span></label></div>
+            <div id="publicFields"><label class="field-label" for="channelName">채널 이름</label><input class="text-input" id="channelName" placeholder="예: 오늘의 수다" maxlength="80"><label class="field-label" for="channelDescription">설명</label><textarea class="text-input textarea" id="channelDescription" placeholder="채널에 대한 짧은 설명" rows="3"></textarea></div>
+            <div id="privateFields" class="hidden"><div class="section-title-row compact"><div><span class="field-label no-margin">참여할 멤버</span><small class="muted">비워두면 멤버 없는 채널을 만듭니다.</small></div><button type="button" id="selectAllMembers" class="button button-quiet button-small">모두 선택</button></div><div id="memberPicker" class="member-picker"><div class="empty-state">사용자 목록을 불러오는 중</div></div></div>
+            <button class="button button-primary button-wide" type="submit">채널 생성하기 <span>→</span></button>
+            <p class="form-footnote" id="channelPayloadHint">공개 요청: { name, description }</p>
+          </form>
+          <aside class="helper-card peach-wash"><div class="helper-art">◌</div><div class="eyebrow">CHANNEL TYPES</div><h3>필요한 대화 공간을<br>만들어보세요</h3><p>공개 채널은 전체 사용자에게 열리고, 비공개 채널은 선택한 멤버 ID를 요청에 담습니다.</p><div class="helper-line"></div><span class="muted small">비공개 요청: { memberIds }</span></aside>
+        </div>
+      </section>
+
+      <section class="view" id="view-messages">
+        <div class="message-topline"><button id="backToChannels" class="button button-quiet button-small">← 채널 목록</button><span class="breadcrumb-sep">/</span><span id="activeChannelTitle">채널</span><span id="activeChannelType" class="type-badge">공개</span><button id="markRead" class="button button-quiet button-small">여기까지 읽음</button><button id="deleteActiveChannel" class="button button-danger-quiet button-small message-channel-delete">채널 삭제</button></div>
+        <div class="messages-heading"><div><div class="eyebrow">CHANNEL CONVERSATION</div><h1 id="messagesTitle">메시지</h1><p id="messagesDescription" class="subtitle">채널의 대화를 확인하세요.</p></div><div class="message-count-badge"><strong id="messagesCountLabel">0</strong><small>messages</small></div></div>
+        <div class="read-divider hidden" id="readDivider"><span></span><b>여기까지 읽었어요</b><span></span></div>
+        <div class="message-list" id="messageList"><div class="empty-state">채널을 선택하세요.</div></div>
+        <form id="messageForm" class="composer panel">
+          <textarea id="messageContent" class="text-input composer-input" rows="2" placeholder="메시지를 입력하세요…"></textarea>
+          <div class="composer-bottom"><label class="button button-quiet button-small attach-button" for="messageAttachments">＋ 첨부파일 <input id="messageAttachments" type="file" multiple hidden></label><span id="attachmentsLabel" class="muted small">파일 선택 안 됨</span><button class="button button-primary" type="submit">보내기 <span>↑</span></button></div>
+        </form>
+      </section>
+    </main>
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+    <div id="modalRoot"></div>
+  </div>
+  <script src="app.js" defer></script>
+</body>
+</html>

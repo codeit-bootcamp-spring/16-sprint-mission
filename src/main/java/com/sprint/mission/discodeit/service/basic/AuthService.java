@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.Auth.AuthUserRequest;
-import com.sprint.mission.discodeit.dto.Auth.AuthUserResponse;
+import com.sprint.mission.discodeit.dto.auth.AuthUserRequest;
+import com.sprint.mission.discodeit.dto.auth.AuthUserResponse;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -19,10 +19,10 @@ public class AuthService {
     private final UserStatusRepository userStatusRepository;
 
     public AuthUserResponse login(AuthUserRequest authRequest) {
-        String name = authRequest.name();
+        String email = authRequest.email();
         String password = authRequest.password();
 
-        User user = this.userRepository.findByName(name).orElseThrow(
+        User user = this.userRepository.findByEmail(email).orElseThrow(
                 () -> new NoSuchElementException("존재하지 않는 유저 이름입니다."));
         if (!user.getPassword().equals(password)) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");

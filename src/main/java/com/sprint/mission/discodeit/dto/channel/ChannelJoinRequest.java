@@ -1,0 +1,12 @@
+package com.sprint.mission.discodeit.dto.channel;
+
+import jakarta.validation.constraints.NotNull;
+
+import java.util.UUID;
+
+public record ChannelJoinRequest(
+        @NotNull
+        UUID userId
+) {
+
+}

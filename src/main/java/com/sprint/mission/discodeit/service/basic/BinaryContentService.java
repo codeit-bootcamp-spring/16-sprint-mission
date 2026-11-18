@@ -1,8 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateRequest;
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentCreateResponse;
-import com.sprint.mission.discodeit.dto.BinaryContent.BinaryContentFindResponse;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateRequest;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentCreateResponse;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindAllByIdInRequest;
+import com.sprint.mission.discodeit.dto.binaryContent.BinaryContentFindResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
@@ -21,10 +22,9 @@ public class BinaryContentService {
 
     public BinaryContentCreateResponse create(BinaryContentCreateRequest createRequest) {
         String fileName = createRequest.fileName();
-        String extension = createRequest.extension();
         byte[] content = createRequest.content();
 
-        BinaryContent binaryContent = new BinaryContent(fileName, extension, content);
+        BinaryContent binaryContent = new BinaryContent(fileName, content);
         this.binaryContentRepository.save(binaryContent);
         return BinaryContentCreateResponse.from(binaryContent);
     }
@@ -42,8 +42,8 @@ public class BinaryContentService {
                 .toList();
     }
 
-    public List<BinaryContentFindResponse> findAllByIdIn(List<UUID> ids) {
-        List<UUID> distinctIds = new ArrayList<>(new LinkedHashSet<>(ids));
+    public List<BinaryContentFindResponse> findAllByIdIn(BinaryContentFindAllByIdInRequest findRequest) {
+        List<UUID> distinctIds = new ArrayList<>(new LinkedHashSet<>(findRequest.ids()));
 
         List<BinaryContent> binaryContents = binaryContentRepository.findAllByIdIn(distinctIds);
         if (binaryContents.size() != distinctIds.size())
