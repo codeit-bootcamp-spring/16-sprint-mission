@@ -28,4 +28,8 @@ public final class BinaryContent implements Serializable {
         return this.bytes.clone();
     }
 
+    public long getSize() {
+        return bytes.length;
+    }
+
 }
