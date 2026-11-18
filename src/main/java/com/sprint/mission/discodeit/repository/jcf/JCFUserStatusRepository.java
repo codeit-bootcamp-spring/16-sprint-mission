@@ -2,10 +2,12 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -19,9 +21,9 @@ public class JCFUserStatusRepository implements UserStatusRepository {
     // 유저 ID를 키로 사용하여 유저 상태를 관리하는 Map
     private final Map<UUID, UserStatus> data;
 
-    // 유저 상태를 저장할 HashMap을 초기화한다.
+    // 여러 스레드에서 동시에 접근할 수 있도록 ConcurrentHashMap을 초기화한다.
     public JCFUserStatusRepository() {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
     }
 
     @Override

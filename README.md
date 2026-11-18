@@ -1,5 +1,3 @@
 스프링 16기 레포지토리
 
-test PR
-
-test PR again
+스프린트 미션 6 PR 테스트 및 sprint6 브랜치 추가

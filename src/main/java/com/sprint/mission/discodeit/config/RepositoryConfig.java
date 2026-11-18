@@ -1,6 +1,7 @@
-package com.sprint.mission.discodeit.repository.config;
+package com.sprint.mission.discodeit.config;
 
 import com.sprint.mission.discodeit.repository.properties.RepositoryProperties;
+
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Configuration;
 

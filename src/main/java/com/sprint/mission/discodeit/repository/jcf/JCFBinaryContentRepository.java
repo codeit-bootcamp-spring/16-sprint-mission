@@ -2,10 +2,12 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Repository
 @ConditionalOnProperty(
@@ -19,9 +21,9 @@ public class JCFBinaryContentRepository implements BinaryContentRepository {
     // BinaryContent ID를 키로 사용하여 바이너리 콘텐츠를 관리하는 Map
     private final Map<UUID, BinaryContent> data;
 
-    // 바이너리 콘텐츠를 저장할 HashMap을 초기화한다.
+    // 여러 스레드에서 동시에 접근할 수 있도록 ConcurrentHashMap을 초기화한다.
     public JCFBinaryContentRepository() {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
     }
 
     @Override
