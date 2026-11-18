@@ -26,6 +26,16 @@ public class GlobalExceptionHandler {
         .body(e.getMessage());
   }
 
+  @ExceptionHandler({
+      org.springframework.http.converter.HttpMessageNotReadableException.class,
+      org.springframework.web.method.annotation.MethodArgumentTypeMismatchException.class,
+      org.springframework.web.bind.MissingServletRequestParameterException.class,
+      org.springframework.web.multipart.support.MissingServletRequestPartException.class
+  })
+  public ResponseEntity<String> handleBadRequest(Exception e) {
+    return ResponseEntity.badRequest().body("요청 형식 또는 필수 항목을 확인해주세요.");
+  }
+
   @ExceptionHandler(Exception.class)
   public ResponseEntity<String> handleException(Exception e) {
     return ResponseEntity
