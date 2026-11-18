@@ -10,11 +10,11 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.ReadStatusService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -42,12 +42,12 @@ public class BasicReadStatusService implements ReadStatusService {
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         Channel channel = channelRepository.findById(request.channelId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("채널을 찾을 수 없습니다.")
+                        new NoSuchElementException("채널을 찾을 수 없습니다.")
                 );
 
         Optional<ReadStatus> existingStatus =
@@ -94,25 +94,28 @@ public class BasicReadStatusService implements ReadStatusService {
     }
 
     @Override
-    public ReadStatusDto update(ReadStatusUpdateRequest request) {
+    public ReadStatusDto update(
+            UUID readStatusId,
+            ReadStatusUpdateRequest request
+    ) {
+        if (readStatusId == null) {
+            throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
+        }
+
         if (request == null) {
             throw new IllegalArgumentException("읽음 상태 수정 정보는 필수입니다.");
         }
 
-        if (request.id() == null) {
-            throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
-        }
-
-        if (request.lastReadAt() == null) {
+        if (request.newLastReadAt() == null) {
             throw new IllegalArgumentException("마지막 읽음 시간은 필수입니다.");
         }
 
-        ReadStatus readStatus = readStatusRepository.findById(request.id())
+        ReadStatus readStatus = readStatusRepository.findById(readStatusId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("읽음 상태를 찾을 수 없습니다.")
+                        new NoSuchElementException("읽음 상태를 찾을 수 없습니다.")
                 );
 
-        readStatus.updateLastReadAt(request.lastReadAt());
+        readStatus.updateLastReadAt(request.newLastReadAt());
 
         ReadStatus savedReadStatus = readStatusRepository.save(readStatus);
         return toDto(savedReadStatus);
@@ -126,7 +129,7 @@ public class BasicReadStatusService implements ReadStatusService {
 
         readStatusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("읽음 상태를 찾을 수 없습니다.")
+                        new NoSuchElementException("읽음 상태를 찾을 수 없습니다.")
                 );
 
         readStatusRepository.deleteById(id);

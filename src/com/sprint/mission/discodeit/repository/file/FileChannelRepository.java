@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Repository
 @ConditionalOnProperty(
@@ -30,19 +31,20 @@ import java.util.UUID;
 public class FileChannelRepository implements ChannelRepository {
 
     private final File file;
+    private final ReentrantLock lock;
 
-    // 기존 코드에서 사용하는 기본 생성자
     public FileChannelRepository() {
-        this(".discodeit");
+        this(".discodeit", new FileLockProvider());
     }
 
-    // Spring이 YAML 설정을 읽어서 사용하는 생성자
     @Autowired
     public FileChannelRepository(
             @Value("${discodeit.repository.file-directory:.discodeit}")
-            String fileDirectory
+            String fileDirectory,
+            FileLockProvider fileLockProvider
     ) {
         this.file = new File(fileDirectory, "channels.dat");
+        this.lock = fileLockProvider.getLock(file.toPath());
 
         File parent = file.getParentFile();
 
@@ -65,11 +67,16 @@ public class FileChannelRepository implements ChannelRepository {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
 
-        Map<UUID, Channel> data = readAllAsMap();
-        data.put(channel.getId(), channel);
-        writeAll(data);
+        lock.lock();
+        try {
+            Map<UUID, Channel> data = readAllAsMap();
+            data.put(channel.getId(), channel);
+            writeAll(data);
 
-        return channel;
+            return channel;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -78,12 +85,22 @@ public class FileChannelRepository implements ChannelRepository {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
 
-        return Optional.ofNullable(readAllAsMap().get(id));
+        lock.lock();
+        try {
+            return Optional.ofNullable(readAllAsMap().get(id));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public List<Channel> findAll() {
-        return new ArrayList<>(readAllAsMap().values());
+        lock.lock();
+        try {
+            return new ArrayList<>(readAllAsMap().values());
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -92,14 +109,19 @@ public class FileChannelRepository implements ChannelRepository {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
 
-        Map<UUID, Channel> data = readAllAsMap();
+        lock.lock();
+        try {
+            Map<UUID, Channel> data = readAllAsMap();
 
-        if (!data.containsKey(id)) {
-            throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
+            if (!data.containsKey(id)) {
+                throw new IllegalArgumentException("채널을 찾을 수 없습니다.");
+            }
+
+            data.remove(id);
+            writeAll(data);
+        } finally {
+            lock.unlock();
         }
-
-        data.remove(id);
-        writeAll(data);
     }
 
     private Map<UUID, Channel> readAllAsMap() {
@@ -121,7 +143,6 @@ public class FileChannelRepository implements ChannelRepository {
             Map<UUID, Channel> data = new LinkedHashMap<>();
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-
                 if (!(entry.getKey() instanceof UUID id)
                         || !(entry.getValue() instanceof Channel channel)) {
                     throw new IllegalStateException(

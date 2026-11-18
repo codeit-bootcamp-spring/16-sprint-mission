@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Repository
 @ConditionalOnProperty(
@@ -30,19 +31,20 @@ import java.util.UUID;
 public class FileUserStatusRepository implements UserStatusRepository {
 
     private final File file;
+    private final ReentrantLock lock;
 
-    // 기존 코드와의 호환성을 위한 기본 생성자
     public FileUserStatusRepository() {
-        this(".discodeit");
+        this(".discodeit", new FileLockProvider());
     }
 
-    // Spring이 YAML 설정값을 주입하는 생성자
     @Autowired
     public FileUserStatusRepository(
             @Value("${discodeit.repository.file-directory:.discodeit}")
-            String fileDirectory
+            String fileDirectory,
+            FileLockProvider fileLockProvider
     ) {
         this.file = new File(fileDirectory, "user-statuses.dat");
+        this.lock = fileLockProvider.getLock(file.toPath());
 
         File parent = file.getParentFile();
 
@@ -65,11 +67,16 @@ public class FileUserStatusRepository implements UserStatusRepository {
             throw new IllegalArgumentException("사용자 접속 상태 ID는 필수입니다.");
         }
 
-        Map<UUID, UserStatus> data = readAllAsMap();
-        data.put(userStatus.getId(), userStatus);
-        writeAll(data);
+        lock.lock();
+        try {
+            Map<UUID, UserStatus> data = readAllAsMap();
+            data.put(userStatus.getId(), userStatus);
+            writeAll(data);
 
-        return userStatus;
+            return userStatus;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -78,12 +85,22 @@ public class FileUserStatusRepository implements UserStatusRepository {
             throw new IllegalArgumentException("사용자 접속 상태 ID는 필수입니다.");
         }
 
-        return Optional.ofNullable(readAllAsMap().get(id));
+        lock.lock();
+        try {
+            return Optional.ofNullable(readAllAsMap().get(id));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public List<UserStatus> findAll() {
-        return new ArrayList<>(readAllAsMap().values());
+        lock.lock();
+        try {
+            return new ArrayList<>(readAllAsMap().values());
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -92,9 +109,14 @@ public class FileUserStatusRepository implements UserStatusRepository {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
 
-        return findAll().stream()
-                .filter(status -> userId.equals(status.getUserId()))
-                .findFirst();
+        lock.lock();
+        try {
+            return readAllAsMap().values().stream()
+                    .filter(status -> userId.equals(status.getUserId()))
+                    .findFirst();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -103,16 +125,21 @@ public class FileUserStatusRepository implements UserStatusRepository {
             throw new IllegalArgumentException("사용자 접속 상태 ID는 필수입니다.");
         }
 
-        Map<UUID, UserStatus> data = readAllAsMap();
+        lock.lock();
+        try {
+            Map<UUID, UserStatus> data = readAllAsMap();
 
-        if (!data.containsKey(id)) {
-            throw new IllegalArgumentException(
-                    "사용자 접속 상태를 찾을 수 없습니다."
-            );
+            if (!data.containsKey(id)) {
+                throw new IllegalArgumentException(
+                        "사용자 접속 상태를 찾을 수 없습니다."
+                );
+            }
+
+            data.remove(id);
+            writeAll(data);
+        } finally {
+            lock.unlock();
         }
-
-        data.remove(id);
-        writeAll(data);
     }
 
     private Map<UUID, UserStatus> readAllAsMap() {
@@ -134,7 +161,6 @@ public class FileUserStatusRepository implements UserStatusRepository {
             Map<UUID, UserStatus> data = new LinkedHashMap<>();
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-
                 if (!(entry.getKey() instanceof UUID id)
                         || !(entry.getValue() instanceof UserStatus status)) {
                     throw new IllegalStateException(

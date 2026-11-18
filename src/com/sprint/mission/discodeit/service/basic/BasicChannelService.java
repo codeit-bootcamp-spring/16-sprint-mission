@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
@@ -86,7 +87,7 @@ public class BasicChannelService implements ChannelService {
         for (UUID participantId : participantIds) {
             userRepository.findById(participantId)
                     .orElseThrow(() ->
-                            new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                            new NoSuchElementException("존재하지 않는 사용자입니다.")
                     );
         }
 
@@ -128,7 +129,7 @@ public class BasicChannelService implements ChannelService {
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                        new NoSuchElementException("존재하지 않는 사용자입니다.")
                 );
 
         return channelRepository.findAll().stream()
@@ -143,40 +144,47 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelDto update(ChannelUpdateRequest request) {
+    public ChannelDto update(UUID channelId, ChannelUpdateRequest request) {
+        if (channelId == null) {
+            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        }
+
         if (request == null) {
             throw new IllegalArgumentException("채널 수정 요청은 필수입니다.");
         }
 
-        if (request.id() == null) {
-            throw new IllegalArgumentException("채널 ID는 필수입니다.");
+        if (request.newName() == null && request.newDescription() == null) {
+            throw new IllegalArgumentException("수정할 내용이 없습니다.");
         }
 
-        if (request.name() == null || request.name().isBlank()) {
-            throw new IllegalArgumentException("채널 이름은 필수입니다.");
+        if (request.newName() != null && request.newName().isBlank()) {
+            throw new IllegalArgumentException("채널 이름은 공백일 수 없습니다.");
         }
 
-        Channel channel = channelRepository.findById(request.id())
+        Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         if (channel.getType() == ChannelType.PRIVATE) {
             throw new IllegalArgumentException("비공개 채널은 수정할 수 없습니다.");
         }
 
-        boolean duplicate = channelRepository.findAll().stream()
-                .anyMatch(other ->
-                        !other.getId().equals(channel.getId())
-                                && other.getType() == ChannelType.PUBLIC
-                                && Objects.equals(other.getName(), request.name())
-                );
+        // 제목을 변경하는 경우에만 중복 검사
+        if (request.newName() != null) {
+            boolean duplicate = channelRepository.findAll().stream()
+                    .anyMatch(other ->
+                            !other.getId().equals(channel.getId())
+                                    && other.getType() == ChannelType.PUBLIC
+                                    && Objects.equals(other.getName(), request.newName())
+                    );
 
-        if (duplicate) {
-            throw new IllegalArgumentException("이미 사용 중인 채널 이름입니다.");
+            if (duplicate) {
+                throw new IllegalArgumentException("이미 사용 중인 채널 이름입니다.");
+            }
         }
 
-        channel.update(request.name(), request.description());
+        channel.update(request.newName(), request.newDescription());
 
         return toDto(channelRepository.save(channel));
     }
@@ -189,7 +197,7 @@ public class BasicChannelService implements ChannelService {
 
         channelRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         List<Message> messagesToDelete = messageRepository.findAll().stream()
@@ -228,12 +236,12 @@ public class BasicChannelService implements ChannelService {
 
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                        new NoSuchElementException("존재하지 않는 사용자입니다.")
                 );
 
         if (channel.getType() == ChannelType.PUBLIC) {
@@ -260,12 +268,12 @@ public class BasicChannelService implements ChannelService {
 
         Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 채널입니다.")
+                        new NoSuchElementException("존재하지 않는 채널입니다.")
                 );
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("존재하지 않는 사용자입니다.")
+                        new NoSuchElementException("존재하지 않는 사용자입니다.")
                 );
 
         if (channel.getType() == ChannelType.PUBLIC) {
@@ -306,6 +314,8 @@ public class BasicChannelService implements ChannelService {
                 channel.getName(),
                 channel.getDescription(),
                 channel.getType(),
+                channel.getCreatedAt(),
+                channel.getUpdatedAt(),
                 lastMessageAt,
                 participantIds
         );
