@@ -49,7 +49,7 @@ class BasicUserStatusServiceTest {
             UserStatusResponse response = userStatusService.create(new CreateUserStatusRequest(user.getId()));
 
             assertThat(response.userId()).isEqualTo(user.getId());
-            assertThat(userStatusRepository.existsById(response.statusId())).isTrue();
+            assertThat(userStatusRepository.existsById(response.id())).isTrue();
         }
 
         @Test
@@ -81,9 +81,9 @@ class BasicUserStatusServiceTest {
             User user = saveUser();
             UserStatusResponse created = userStatusService.create(new CreateUserStatusRequest(user.getId()));
 
-            UserStatusResponse found = userStatusService.find(created.statusId());
+            UserStatusResponse found = userStatusService.find(created.id());
 
-            assertThat(found.statusId()).isEqualTo(created.statusId());
+            assertThat(found.id()).isEqualTo(created.id());
             assertThat(found.userId()).isEqualTo(user.getId());
         }
 
@@ -106,8 +106,8 @@ class BasicUserStatusServiceTest {
 
             List<UserStatusResponse> result = userStatusService.findAll();
 
-            assertThat(result).extracting(UserStatusResponse::statusId)
-                    .containsExactlyInAnyOrder(first.statusId(), second.statusId());
+            assertThat(result).extracting(UserStatusResponse::id)
+                    .containsExactlyInAnyOrder(first.id(), second.id());
         }
 
         @Test
@@ -126,10 +126,10 @@ class BasicUserStatusServiceTest {
             UserStatusResponse created = userStatusService.create(new CreateUserStatusRequest(saveUser().getId()));
             Instant newLastActiveAt = Instant.now().minusSeconds(600);
 
-            UserStatusResponse updated = userStatusService.update(created.statusId(), new UpdateUserStatusRequest(newLastActiveAt));
+            UserStatusResponse updated = userStatusService.update(created.id(), new UpdateUserStatusRequest(newLastActiveAt));
 
-            assertThat(updated.lastActiveAt()).isEqualTo(newLastActiveAt);
-            assertThat(userStatusService.find(created.statusId()).lastActiveAt()).isEqualTo(newLastActiveAt);
+            assertThat(updated.lastActiveAt()).isEqualTo(newLastActiveAt.toString());
+            assertThat(userStatusService.find(created.id()).lastActiveAt()).isEqualTo(newLastActiveAt.toString());
         }
 
         @Test
@@ -137,7 +137,7 @@ class BasicUserStatusServiceTest {
         void nullValue() {
             UserStatusResponse created = userStatusService.create(new CreateUserStatusRequest(saveUser().getId()));
 
-            assertThatThrownBy(() -> userStatusService.update(created.statusId(), new UpdateUserStatusRequest(null)))
+            assertThatThrownBy(() -> userStatusService.update(created.id(), new UpdateUserStatusRequest(null)))
                     .isInstanceOf(IllegalArgumentException.class);
         }
 
@@ -163,8 +163,8 @@ class BasicUserStatusServiceTest {
 
             UserStatusResponse updated = userStatusService.updateByUserId(user.getId(), new UpdateUserStatusRequest(newLastActiveAt));
 
-            assertThat(updated.statusId()).isEqualTo(created.statusId());
-            assertThat(updated.lastActiveAt()).isEqualTo(newLastActiveAt);
+            assertThat(updated.id()).isEqualTo(created.id());
+            assertThat(updated.lastActiveAt()).isEqualTo(newLastActiveAt.toString());
         }
 
         @Test
@@ -215,9 +215,9 @@ class BasicUserStatusServiceTest {
         void userExists() {
             UserStatusResponse created = userStatusService.create(new CreateUserStatusRequest(saveUser().getId()));
 
-            assertThatThrownBy(() -> userStatusService.delete(created.statusId()))
+            assertThatThrownBy(() -> userStatusService.delete(created.id()))
                     .isInstanceOf(IllegalStateException.class);
-            assertThat(userStatusRepository.existsById(created.statusId())).isTrue();
+            assertThat(userStatusRepository.existsById(created.id())).isTrue();
         }
 
         @Test

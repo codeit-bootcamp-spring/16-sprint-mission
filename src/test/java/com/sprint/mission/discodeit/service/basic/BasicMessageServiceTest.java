@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
-import com.sprint.mission.discodeit.dto.request.CreateMessageRequest;
+import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UpdateMessageRequest;
 import com.sprint.mission.discodeit.dto.response.MessageResponse;
 import com.sprint.mission.discodeit.entity.Channel;
@@ -59,7 +59,7 @@ class BasicMessageServiceTest {
     }
 
     private MessageResponse createMessage(UUID channelId) {
-        return messageService.create(new CreateMessageRequest("hello", channelId, author.getId(), null));
+        return messageService.create(List.of(), new MessageCreateRequest("hello", channelId, author.getId()));
     }
 
     @Nested
@@ -80,10 +80,9 @@ class BasicMessageServiceTest {
         @Test
         @DisplayName("첨부파일을 함께 보내면 BinaryContent로 저장되고 메시지와 연결된다")
         void withAttachments() {
-            CreateMessageRequest request = new CreateMessageRequest("hello", channel.getId(), author.getId(),
-                    List.of(fileRequest(), fileRequest()));
+            MessageCreateRequest request = new MessageCreateRequest("hello", channel.getId(), author.getId());
 
-            MessageResponse response = messageService.create(request);
+            MessageResponse response = messageService.create(List.of(fileRequest(), fileRequest()), request);
 
             assertThat(response.attachmentIds()).hasSize(2);
             assertThat(response.attachmentIds()).allMatch(binaryContentRepository::existsById);
@@ -99,9 +98,9 @@ class BasicMessageServiceTest {
         @Test
         @DisplayName("작성자가 존재하지 않으면 예외가 발생한다")
         void authorNotFound() {
-            CreateMessageRequest request = new CreateMessageRequest("hello", channel.getId(), UUID.randomUUID(), null);
+            MessageCreateRequest request = new MessageCreateRequest("hello", channel.getId(), UUID.randomUUID());
 
-            assertThatThrownBy(() -> messageService.create(request))
+            assertThatThrownBy(() -> messageService.create(List.of(), request))
                     .isInstanceOf(NoSuchElementException.class);
         }
     }
@@ -198,8 +197,8 @@ class BasicMessageServiceTest {
         @Test
         @DisplayName("메시지를 삭제하면 첨부파일도 함께 삭제된다")
         void success() {
-            MessageResponse created = messageService.create(new CreateMessageRequest("hello", channel.getId(),
-                    author.getId(), List.of(fileRequest())));
+            MessageResponse created = messageService.create(List.of(fileRequest()), new MessageCreateRequest("hello", channel.getId(),
+                    author.getId()));
             UUID attachmentId = created.attachmentIds().get(0);
 
             messageService.delete(created.id());

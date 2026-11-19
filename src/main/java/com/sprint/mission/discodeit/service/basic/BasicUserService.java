@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
 import com.sprint.mission.discodeit.dto.request.CreateUserRequest;
 import com.sprint.mission.discodeit.dto.request.UpdateUserRequest;
+import com.sprint.mission.discodeit.dto.response.FindUserResponse;
 import com.sprint.mission.discodeit.dto.response.UserResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
 import com.sprint.mission.discodeit.entity.User;
@@ -25,7 +26,7 @@ public class BasicUserService implements UserService {
     private final ReadStatusRepository readStatusRepository;
 
     @Override
-    public UserResponse create(CreateUserRequest newUser) {
+    public UserResponse create(BinaryContentRequest profile, CreateUserRequest newUser) {
         boolean duplicated = userRepository.findAll().stream()
                 .anyMatch(other ->
                         newUser.username().equals(other.getUsername())
@@ -36,8 +37,8 @@ public class BasicUserService implements UserService {
         }
 
         User user = new User(newUser.username(), newUser.email(), newUser.password());
-        if (newUser.profile() != null) {
-            BinaryContent binaryContent = createBinaryContent(newUser.profile());
+        if (profile != null) {
+            BinaryContent binaryContent = createBinaryContent(profile);
             user.setProfileId(binaryContent.getId());
             binaryContentRepository.save(binaryContent);
         }
@@ -56,14 +57,14 @@ public class BasicUserService implements UserService {
     }
 
     @Override
-    public List<UserResponse> findAll() {
+    public List<FindUserResponse> findAll() {
         return userRepository.findAll().stream()
-                .map(user -> from(user, getUserStatus(user)))
+                .map(user -> FindUserResponse.from(user, getUserStatus(user)))
                 .toList();
     }
 
     @Override
-    public UserResponse update(UUID id, UpdateUserRequest request) {
+    public UserResponse update(UUID id, BinaryContentRequest profile, UpdateUserRequest request) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new NoSuchElementException("해당 id를 가진 유저를 찾을 수 없음"));
 
@@ -71,17 +72,17 @@ public class BasicUserService implements UserService {
         boolean duplicated = userRepository.findAll().stream()
                 .filter(other -> !other.getId().equals(id))
                 .anyMatch(other ->
-                        (request.username() != null
-                                && request.username().equals(other.getUsername()))
-                                || (request.email() != null
-                                && request.email().equals(other.getEmail())));
+                        (request.newUsername() != null
+                                && request.newUsername().equals(other.getUsername()))
+                                || (request.newEmail() != null
+                                && request.newEmail().equals(other.getEmail())));
 
         if (duplicated) {
             throw new IllegalStateException("중복된 유저명 또는 이메일");
         }
 
         UUID oldProfileId = user.getProfileId();
-        UUID newProfileId = Optional.ofNullable(request.profile())
+        UUID newProfileId = Optional.ofNullable(profile)
                 .map(this::createBinaryContent)
                 .map(binaryContentRepository::save)
                 .map(BinaryContent::getId)
@@ -91,7 +92,7 @@ public class BasicUserService implements UserService {
         if (newProfileId != null && oldProfileId != null) {
             binaryContentRepository.deleteById(oldProfileId);
         }
-        user.update(request.username(), request.email(), request.password(), newProfileId);
+        user.update(request.newUsername(), request.newEmail(), request.newPassword(), newProfileId);
         User updatedUser = userRepository.save(user);
         UserStatus status = getUserStatus(updatedUser);
 

@@ -41,11 +41,11 @@ class BasicBinaryContentServiceTest {
 
             BinaryContentResponse response = binaryContentService.create(request);
 
-            assertThat(response.filename()).isEqualTo(request.filename());
+            assertThat(response.fileName()).isEqualTo(request.filename());
             assertThat(response.size()).isEqualTo(request.size());
             assertThat(response.contentType()).isEqualTo(request.contentType());
             assertThat(response.bytes()).isEqualTo(request.bytes());
-            assertThat(binaryContentRepository.existsById(response.contentId())).isTrue();
+            assertThat(binaryContentRepository.existsById(response.id())).isTrue();
         }
 
         @Test
@@ -66,9 +66,9 @@ class BasicBinaryContentServiceTest {
         void success() {
             BinaryContentResponse created = binaryContentService.create(validRequest());
 
-            BinaryContentResponse found = binaryContentService.find(created.contentId());
+            BinaryContentResponse found = binaryContentService.find(created.id());
 
-            assertThat(found.contentId()).isEqualTo(created.contentId());
+            assertThat(found.id()).isEqualTo(created.id());
             assertThat(found.bytes()).isEqualTo(created.bytes());
         }
 
@@ -90,17 +90,17 @@ class BasicBinaryContentServiceTest {
             BinaryContentResponse second = binaryContentService.create(validRequest());
             binaryContentService.create(validRequest());
 
-            List<BinaryContentResponse> result = binaryContentService.findAllByIdIn(List.of(first.contentId(), second.contentId()));
+            List<BinaryContentResponse> result = binaryContentService.findAllByIdIn(List.of(first.id(), second.id()));
 
-            assertThat(result).extracting(BinaryContentResponse::contentId)
-                    .containsExactlyInAnyOrder(first.contentId(), second.contentId());
+            assertThat(result).extracting(BinaryContentResponse::id)
+                    .containsExactlyInAnyOrder(first.id(), second.id());
         }
 
         @Test
         @DisplayName("목록에 존재하지 않는 id가 하나라도 있으면 예외가 발생한다")
         void containsNotFoundId() {
             BinaryContentResponse created = binaryContentService.create(validRequest());
-            List<UUID> ids = List.of(created.contentId(), UUID.randomUUID());
+            List<UUID> ids = List.of(created.id(), UUID.randomUUID());
 
             assertThatThrownBy(() -> binaryContentService.findAllByIdIn(ids))
                     .isInstanceOf(NoSuchElementException.class);
@@ -121,9 +121,9 @@ class BasicBinaryContentServiceTest {
         void success() {
             BinaryContentResponse created = binaryContentService.create(validRequest());
 
-            binaryContentService.delete(created.contentId());
+            binaryContentService.delete(created.id());
 
-            assertThat(binaryContentRepository.existsById(created.contentId())).isFalse();
+            assertThat(binaryContentRepository.existsById(created.id())).isFalse();
         }
 
         @Test

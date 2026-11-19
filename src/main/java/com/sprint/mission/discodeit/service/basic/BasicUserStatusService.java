@@ -53,21 +53,21 @@ public class BasicUserStatusService implements UserStatusService {
 
     @Override
     public UserStatusResponse update(UUID statusId, UpdateUserStatusRequest request) {
-        if (request.lastActiveAt() == null) {
+        if (request.newLastActiveAt() == null) {
             throw new IllegalArgumentException("최근 활동 시간에 적절치 못한 값이 들어옴");
         }
 
         UserStatus userStatus = userStatusRepository.findById(statusId)
                 .orElseThrow(() -> new NoSuchElementException("해당 id의 user status는 존재하지 않음"));
 
-        userStatus.update(request.lastActiveAt());
+        userStatus.update(request.newLastActiveAt());
         userStatusRepository.save(userStatus);
         return UserStatusResponse.from(userStatus);
     }
 
     @Override
     public UserStatusResponse updateByUserId(UUID userId, UpdateUserStatusRequest request) {
-        if (request.lastActiveAt() == null) {
+        if (request.newLastActiveAt() == null) {
             throw new IllegalArgumentException("최근 활동 시간에 적절치 못한 값이 들어옴");
         }
 
@@ -78,7 +78,7 @@ public class BasicUserStatusService implements UserStatusService {
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() -> new NoSuchElementException("해당 유저의 user status는 존재하지 않음"));
 
-        userStatus.update(request.lastActiveAt());
+        userStatus.update(request.newLastActiveAt());
         userStatusRepository.save(userStatus);
         return UserStatusResponse.from(userStatus);
     }
