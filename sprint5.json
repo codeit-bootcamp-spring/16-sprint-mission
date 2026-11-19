@@ -1,0 +1,666 @@
+{
+  "info": {
+    "_postman_id": "c2b6891a-1485-4e9d-8f54-f2bcf5026a1b",
+    "name": "codeit-spring-practice",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "32135536"
+  },
+  "item": [
+    {
+      "name": "UserController",
+      "item": [
+        {
+          "name": "회원가입(프로필이 없을 경우)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userCreateRequest",
+                  "value": "{\"username\": \"T1\", \"email\": \"T1@gmail.com\", \"password\": \"pw1234\"}",
+                  "type": "text",
+                  "contentType": "application/json"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "회원가입(프로필이 있는 경우 1)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userCreateRequest",
+                  "value": "{\"username\":\"stax\", \"email\":\"stax@gmail.com\",\"password\":\"pw1234\"}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "profile",
+                  "type": "file",
+                  "src": [
+                    "/Users/daybreak/Downloads/stax.webp"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "회원가입(프로필이 있는 경우 2)",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userCreateRequest",
+                  "value": "{\"username\":\"T1 Buzz\", \"email\":\"t1buzz@gmail.com\",\"password\":\"pw1234\"}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "profile",
+                  "type": "file",
+                  "src": [
+                    "/Users/daybreak/Downloads/buzz.webp"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "단일 회원조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/af407824-f8c1-49cd-b287-0486001df648",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "af407824-f8c1-49cd-b287-0486001df648"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "회원정보 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userUpdateRequest",
+                  "value": "{\"newUsername\":\"T1 Stax\",\"newEmail\":\"t1stax@gmail.com\",\"newPassword\":\"password1234\"}",
+                  "type": "text",
+                  "contentType": "application/json"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/af407824-f8c1-49cd-b287-0486001df647",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "af407824-f8c1-49cd-b287-0486001df647"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "전체 회원조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "유저 온라인 상태 업데이트",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newLastActiveAt\":\"2026-01-01T00:00:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/users/online/f5eb10ef-2679-45ca-87b3-6d257f8af821",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "online",
+                "f5eb10ef-2679-45ca-87b3-6d257f8af821"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "회원삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users/e16838be-f360-4fe0-a8d7-e08f664618a3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users",
+                "e16838be-f360-4fe0-a8d7-e08f664618a3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "회원 삭제후 전체조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/users",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "AuthController",
+      "item": [
+        {
+          "name": "로그인",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"T1\",\n    \"password\": \"password1234\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "auth"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ChannelController",
+      "item": [
+        {
+          "name": "Public 채널 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"public channel first\",\n    \"description\": \"This is public channel\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/public",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "public"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Private 채널 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"participantIds\": [\n        \"af407824-f8c1-49cd-b287-0486001df647\",\n        \"2a16ea52-7759-48b3-b8d8-f78962e76ca3\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/private",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "private"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Public 채널 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newName\": \"Update public channel\",\n    \"newDescription\": \"Update Description\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/fca792c3-017f-4724-aff4-7c6f5dbb199f",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "fca792c3-017f-4724-aff4-7c6f5dbb199f"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "채널삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/channels/fca792c3-017f-4724-aff4-7c6f5dbb199f",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels",
+                "fca792c3-017f-4724-aff4-7c6f5dbb199f"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "유저가 속한 채널 찾기",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/channels?userId=2a16ea52-7759-48b3-b8d8-f78962e76ca3",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "channels"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "2a16ea52-7759-48b3-b8d8-f78962e76ca3"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "MessageController",
+      "item": [
+        {
+          "name": "매세지 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "messageCreateRequest",
+                  "value": "{\n    \"channelId\": \"5138e16b-682d-4e99-8507-2fea3ac41c69\",\n    \"content\": \"test message create second\",\n    \"authorId\": \"af407824-f8c1-49cd-b287-0486001df647\"\n}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "attachments",
+                  "type": "file",
+                  "src": [
+                    "/Users/daybreak/some/path/testfirst.txt"
+                  ]
+                },
+                {
+                  "key": "attachments",
+                  "type": "file",
+                  "src": [
+                    "/Users/daybreak/some/path/testsecond.txt"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/messages",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "메세지 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newContent\": \"test message update\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/07f966c7-5355-4fea-90bd-9bf4984be1bb",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages",
+                "07f966c7-5355-4fea-90bd-9bf4984be1bb"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "특정 채널의 모든 메세지 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages?channelId=5138e16b-682d-4e99-8507-2fea3ac41c69",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "channelId",
+                  "value": "5138e16b-682d-4e99-8507-2fea3ac41c69"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "메세지 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/messages/28269ffd-3cbb-4676-9079-6c309fa4a9c9",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "messages",
+                "28269ffd-3cbb-4676-9079-6c309fa4a9c9"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "ReadStatusController",
+      "item": [
+        {
+          "name": "유저의 메세지 읽음 상태 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/readStatuses?userId=af407824-f8c1-49cd-b287-0486001df647",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "readStatuses"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "af407824-f8c1-49cd-b287-0486001df647"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "수신정보 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newLastReadAt\": \"2026-11-09T18:48:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/readStatuses/fd66e008-85af-4d94-aea9-4d2d1d75380a",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "readStatuses",
+                "fd66e008-85af-4d94-aea9-4d2d1d75380a"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "BinaryContentRepsitory",
+      "item": [
+        {
+          "name": "컨텐츠 단일 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/binaryContents/213b85a5-1a56-48a0-a941-6d5c093cfb91",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "binaryContents",
+                "213b85a5-1a56-48a0-a941-6d5c093cfb91"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "컨텐츠 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "\n\n",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/binaryContents?binaryContentIds=213b85a5-1a56-48a0-a941-6d5c093cfb91,90fdab4e-4cb5-4249-9e9a-1ad13e9fff81",
+              "host": [
+                "{{baseUrl}}"
+              ],
+              "path": [
+                "api",
+                "binaryContents"
+              ],
+              "query": [
+                {
+                  "key": "binaryContentIds",
+                  "value": "213b85a5-1a56-48a0-a941-6d5c093cfb91,90fdab4e-4cb5-4249-9e9a-1ad13e9fff81"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": ""
+    }
+  ]
+}
