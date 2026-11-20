@@ -1,30 +1,30 @@
 package com.sprint.mission.discodeit.entity;
 
+import lombok.Getter;
+
+import java.util.List;
 import java.util.UUID;
 
+@Getter
 public class Message extends BaseEntity {
     private static final long serialVersionUID = 1L;
 
-    // Message field
     private String content;
-    private final UUID userId;
+    private final UUID authorId;
     private final UUID channelId;
 
-    public Message(String content, UUID userId, UUID channelId) {
-        super();
-        this.content = content;
-        this.userId = userId;
-        this.channelId = channelId;
+    private final List<UUID> attachmentIds;
+
+    public Message(String content, UUID authorId, UUID channelId) {
+        this(content, authorId, channelId, List.of());
     }
 
-    public String getContent() {
-        return content;
-    }
-    public UUID getUserId() {
-        return userId;
-    }
-    public UUID getChannelId() {
-        return channelId;
+    public Message(String content, UUID authorId, UUID channelId, List<UUID> attachmentIds) {
+        super();
+        this.content = content;
+        this.authorId = authorId;
+        this.channelId = channelId;
+        this.attachmentIds = List.copyOf(attachmentIds);
     }
 
     public void update(String content) {
