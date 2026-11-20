@@ -18,8 +18,8 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "request",
-                  "value": "\n{\n  \"username\": \"profileTest2\",\n  \"email\": \"profiletest2@example.com\",\n  \"password\": \"test1234\"\n}\n",
+                  "key": "userCreateRequest",
+                  "value": "{\"username\": \"jiseop\", \"email\": \"jiseop@test.com\", \"password\": \"1234\"}",
                   "type": "text",
                   "contentType": "application/json"
                 },
@@ -68,42 +68,23 @@
           "response": []
         },
         {
-          "name": "특정 사용자 조회",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": "http://localhost:8080/api/users/94c45e0a-ffdf-4e61-a7d4-524d036777d3",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "8080",
-              "path": [
-                "api",
-                "users",
-                "94c45e0a-ffdf-4e61-a7d4-524d036777d3"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
           "name": "사용자 정보 수정",
           "request": {
             "method": "PATCH",
             "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "\n{\n  \"newUsername\": \"sprint4updated\",\n  \"newEmail\": \"sprint4updated@example.com\",\n  \"newPassword\": \"changed1234\"\n}\n",
-              "options": {
-                "raw": {
-                  "language": "json"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userUpdateRequest",
+                  "value": "{\"newUsername\": \"jiseop2\", \"newEmail\": \"jiseop2@test.com\", \"newPassword\": \"5678\"}",
+                  "type": "text",
+                  "contentType": "application/json"
                 }
-              }
+              ]
             },
             "url": {
-              "raw": "http://localhost:8080/api/users/94c45e0a-ffdf-4e61-a7d4-524d036777d3",
+              "raw": "http://localhost:8080/api/users/79ce2521-dfea-484a-a983-b40881d5de1b",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -112,7 +93,7 @@
               "path": [
                 "api",
                 "users",
-                "94c45e0a-ffdf-4e61-a7d4-524d036777d3"
+                "79ce2521-dfea-484a-a983-b40881d5de1b"
               ]
             }
           },
@@ -124,7 +105,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:8080/api/users/94c45e0a-ffdf-4e61-a7d4-524d036777d3",
+              "raw": "http://localhost:8080/api/users/79ce2521-dfea-484a-a983-b40881d5de1b",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -133,7 +114,7 @@
               "path": [
                 "api",
                 "users",
-                "94c45e0a-ffdf-4e61-a7d4-524d036777d3"
+                "79ce2521-dfea-484a-a983-b40881d5de1b"
               ]
             }
           },
@@ -146,7 +127,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"newLastActiveAt\": \"{{$isoTimestamp}}\"\n}\n",
+              "raw": "{\n  \"newLastActiveAt\": \"2026-11-17T02:00:00Z\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -154,7 +135,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/api/users/eb13bde5-576f-4e6c-b334-4e0fb71b2dba/status",
+              "raw": "http://localhost:8080/api/users/79ce2521-dfea-484a-a983-b40881d5de1b/userStatus",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -163,8 +144,8 @@
               "path": [
                 "api",
                 "users",
-                "eb13bde5-576f-4e6c-b334-4e0fb71b2dba",
-                "status"
+                "79ce2521-dfea-484a-a983-b40881d5de1b",
+                "userStatus"
               ]
             }
           },
@@ -182,7 +163,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"username\": \"sprint4user\",\n  \"password\": \"test1234\"\n}\n",
+              "raw": "{\"username\":\"jiseop\",\"password\":\"1234\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -217,7 +198,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"name\": \"sprint4-공지\",\n  \"description\": \"Sprint 4 API 테스트용 공개 채널\"\n}\n",
+              "raw": "{\n  \"name\": \"공지\",\n  \"description\": \"공지사항 채널\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -247,7 +228,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"participantIds\": [\n    \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\"\n  ]\n}\n",
+              "raw": "\n{\n  \"participantIds\": [\n    \"491e0550-cb03-45a5-9dfa-68de9719c08a\"\n  ]\n}\n",
               "options": {
                 "raw": {
                   "language": "json"
@@ -277,7 +258,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"newName\": \"sprint4-개발공지\",\n  \"newDescription\": \"공개 채널 정보 수정 테스트 완료\"\n}\n",
+              "raw": "{\n  \"newName\": \"공지2\",\n  \"newDescription\": \"수정된 공지사항 채널\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -285,7 +266,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/api/channels/5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f",
+              "raw": "http://localhost:8080/api/channels/ebbdb6a6-8a4e-4a8a-9efe-9a5bd6cd9b83",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -294,7 +275,7 @@
               "path": [
                 "api",
                 "channels",
-                "5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f"
+                "ebbdb6a6-8a4e-4a8a-9efe-9a5bd6cd9b83"
               ]
             }
           },
@@ -306,7 +287,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:8080/api/channels/5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f",
+              "raw": "http://localhost:8080/api/channels/ebbdb6a6-8a4e-4a8a-9efe-9a5bd6cd9b83",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -315,7 +296,7 @@
               "path": [
                 "api",
                 "channels",
-                "5b2bc1d9-d20c-4ed9-91b1-a19d1ea64b9f"
+                "ebbdb6a6-8a4e-4a8a-9efe-9a5bd6cd9b83"
               ]
             }
           },
@@ -327,7 +308,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:8080/api/channels?userId=eb13bde5-576f-4e6c-b334-4e0fb71b2dba",
+              "raw": "http://localhost:8080/api/channels?userId=491e0550-cb03-45a5-9dfa-68de9719c08a",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -340,20 +321,9 @@
               "query": [
                 {
                   "key": "userId",
-                  "value": "eb13bde5-576f-4e6c-b334-4e0fb71b2dba"
+                  "value": "491e0550-cb03-45a5-9dfa-68de9719c08a"
                 }
               ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "공개 채널 개설",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": ""
             }
           },
           "response": []
@@ -372,8 +342,8 @@
               "mode": "formdata",
               "formdata": [
                 {
-                  "key": "request",
-                  "value": "\n{\n  \"content\": \"사진 첨부 테스트 메시지입니다.\",\n  \"channelId\": \"0d9df64a-a726-49bb-8f80-5195ec50c094\",\n  \"authorId\": \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\"\n}\n",
+                  "key": "messageCreateRequest",
+                  "value": "{\"content\":\"안녕하세요 첫 메시지\",\"channelId\":\"e86ddd62-59e1-4ddb-bac9-b3e9a1f2db7c\",\"authorId\":\"491e0550-cb03-45a5-9dfa-68de9719c08a\"}",
                   "type": "text",
                   "contentType": "application/json"
                 },
@@ -414,7 +384,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:8080/api/messages?channelId=0d9df64a-a726-49bb-8f80-5195ec50c094",
+              "raw": "http://localhost:8080/api/messages?channelId=e86ddd62-59e1-4ddb-bac9-b3e9a1f2db7c",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -427,7 +397,7 @@
               "query": [
                 {
                   "key": "channelId",
-                  "value": "0d9df64a-a726-49bb-8f80-5195ec50c094"
+                  "value": "e86ddd62-59e1-4ddb-bac9-b3e9a1f2db7c"
                 }
               ]
             }
@@ -440,7 +410,7 @@
             "method": "DELETE",
             "header": [],
             "url": {
-              "raw": "http://localhost:8080/api/messages/ab90fd5f-7759-477e-a7ff-79fb78f332b7",
+              "raw": "http://localhost:8080/api/messages/6a9ad13e-81a1-44b0-862c-63f451391888",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -449,7 +419,7 @@
               "path": [
                 "api",
                 "messages",
-                "ab90fd5f-7759-477e-a7ff-79fb78f332b7"
+                "6a9ad13e-81a1-44b0-862c-63f451391888"
               ]
             }
           },
@@ -462,7 +432,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"newContent\": \"변경된 메시지.\"\n}\n",
+              "raw": "{\"newContent\":\"수정된 메시지\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -470,7 +440,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/api/messages/2f6db3fe-74a2-4546-933f-817981baad4a",
+              "raw": "http://localhost:8080/api/messages/6a9ad13e-81a1-44b0-862c-63f451391888",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -479,19 +449,8 @@
               "path": [
                 "api",
                 "messages",
-                "2f6db3fe-74a2-4546-933f-817981baad4a"
+                "6a9ad13e-81a1-44b0-862c-63f451391888"
               ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "메시지 상세 조회",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": {
-              "raw": ""
             }
           },
           "response": []
@@ -508,7 +467,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"userId\": \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\",\n  \"channelId\": \"0d9df64a-a726-49bb-8f80-5195ec50c094\",\n  \"lastReadAt\": \"2026-11-11T09:00:00Z\"\n}\n",
+              "raw": "{\"userId\":\"491e0550-cb03-45a5-9dfa-68de9719c08a\",\"channelId\":\"e86ddd62-59e1-4ddb-bac9-b3e9a1f2db7c\",\"lastReadAt\":\"2026-11-17T06:00:00Z\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -516,7 +475,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/api/read-statuses",
+              "raw": "http://localhost:8080/api/readStatuses",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -524,7 +483,7 @@
               "port": "8080",
               "path": [
                 "api",
-                "read-statuses"
+                "readStatuses"
               ]
             }
           },
@@ -536,7 +495,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "http://localhost:8080/api/read-statuses?userId=eb13bde5-576f-4e6c-b334-4e0fb71b2dba",
+              "raw": "http://localhost:8080/api/readStatuses?userId=491e0550-cb03-45a5-9dfa-68de9719c08a",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -544,12 +503,12 @@
               "port": "8080",
               "path": [
                 "api",
-                "read-statuses"
+                "readStatuses"
               ],
               "query": [
                 {
                   "key": "userId",
-                  "value": "eb13bde5-576f-4e6c-b334-4e0fb71b2dba"
+                  "value": "491e0550-cb03-45a5-9dfa-68de9719c08a"
                 }
               ]
             }
@@ -563,7 +522,7 @@
             "header": [],
             "body": {
               "mode": "raw",
-              "raw": "\n{\n  \"newLastReadAt\": \"2026-11-11T10:30:00Z\"\n}\n",
+              "raw": "{\"newLastReadAt\":\"2026-11-17T07:00:00Z\"}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -571,7 +530,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:8080/api/read-statuses/9c8bdfed-93e6-4122-8802-93eaac3cd601",
+              "raw": "http://localhost:8080/api/readStatuses/a1676942-0597-4239-bd3b-c9fb8d44a2bb",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -579,37 +538,8 @@
               "port": "8080",
               "path": [
                 "api",
-                "read-statuses",
-                "9c8bdfed-93e6-4122-8802-93eaac3cd601"
-              ]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "읽음 기록 생성",
-          "request": {
-            "method": "POST",
-            "header": [],
-            "body": {
-              "mode": "raw",
-              "raw": "\n{\n  \"userId\": \"eb13bde5-576f-4e6c-b334-4e0fb71b2dba\",\n  \"channelId\": \"d8b39ab8-0470-4d17-b0e4-adc0a0086ee2\",\n  \"lastReadAt\": \"2026-11-12T08:00:00Z\"\n}\n",
-              "options": {
-                "raw": {
-                  "language": "json"
-                }
-              }
-            },
-            "url": {
-              "raw": "http://localhost:8080/api/read-statuses",
-              "protocol": "http",
-              "host": [
-                "localhost"
-              ],
-              "port": "8080",
-              "path": [
-                "api",
-                "read-statuses"
+                "readStatuses",
+                "a1676942-0597-4239-bd3b-c9fb8d44a2bb"
               ]
             }
           },
@@ -623,7 +553,7 @@
         "method": "GET",
         "header": [],
         "url": {
-          "raw": "http://localhost:8080/api/binaryContents/e7dc9c40-d426-4863-bb1f-b8e291a8d558",
+          "raw": "http://localhost:8080/api/binaryContents/6723153d-8df9-45f1-ba64-c2b360b2767e",
           "protocol": "http",
           "host": [
             "localhost"
@@ -632,7 +562,33 @@
           "path": [
             "api",
             "binaryContents",
-            "e7dc9c40-d426-4863-bb1f-b8e291a8d558"
+            "6723153d-8df9-45f1-ba64-c2b360b2767e"
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "바이너리 파일 여러 개 조회",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "http://localhost:8080/api/binaryContents?binaryContentIds=6723153d-8df9-45f1-ba64-c2b360b2767e,fa98e9dd-f02c-47c9-a78d-0a01b6af70be",
+          "protocol": "http",
+          "host": [
+            "localhost"
+          ],
+          "port": "8080",
+          "path": [
+            "api",
+            "binaryContents"
+          ],
+          "query": [
+            {
+              "key": "binaryContentIds",
+              "value": "6723153d-8df9-45f1-ba64-c2b360b2767e,fa98e9dd-f02c-47c9-a78d-0a01b6af70be"
+            }
           ]
         }
       },
