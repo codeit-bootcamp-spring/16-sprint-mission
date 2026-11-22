@@ -5,7 +5,6 @@ build/
 !**/src/test/**/build/
 .kotlin
 testbytest.rtf
-.gitattributes
 .discodeit/
 intellij-java-google-style.xml
 
