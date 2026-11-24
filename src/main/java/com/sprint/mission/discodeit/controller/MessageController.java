@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.MessageApi;
 import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Message;
@@ -17,39 +18,26 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/messages")
 @RequiredArgsConstructor
-public class MessageController {
+public class MessageController implements MessageApi {
     private final MessageService messageService;
 
-    // 메시지 작성
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Message> createMessage(
-            @RequestPart("request") MessageCreateRequest request,
-            @RequestPart(value = "attachments", required = false) List<MultipartFile> attachments
-    ) {
-        Message message = messageService.create(request, attachments);
-        return ResponseEntity.status(HttpStatus.CREATED).body(message);
+    @Override
+    public ResponseEntity<Message> createMessage(MessageCreateRequest request, List<MultipartFile> attachments) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(messageService.create(request, attachments));
     }
 
-    // 특정 채널의 모든 메시지 조회
-    @GetMapping("/channels/{channelId}/messages")
-    public ResponseEntity<List<Message>> getMessagesByChannel(@PathVariable UUID channelId) {
-        List<Message> messages = messageService.findAllByChannelId(channelId);
-        return ResponseEntity.ok(messages);
+    @Override
+    public ResponseEntity<List<Message>> findAllByChannelId(UUID channelId) {
+        return ResponseEntity.ok(messageService.findAllByChannelId(channelId));
     }
 
-    // 메시지 수정
-    @PutMapping("/{messageId}")
-    public ResponseEntity<Message> updateMessage(
-            @PathVariable UUID messageId,
-            @RequestBody MessageUpdateRequest request
-    ) {
-        Message updatedMessage = messageService.update(messageId, request);
-        return ResponseEntity.ok(updatedMessage);
+    @Override
+    public ResponseEntity<Message> updateMessage(UUID messageId, MessageUpdateRequest request) {
+        return ResponseEntity.ok(messageService.update(messageId, request));
     }
 
-    // 메시지 삭제
-    @DeleteMapping("/{messageId}")
-    public ResponseEntity<Void> deleteMessage(@PathVariable UUID messageId) {
+    @Override
+    public ResponseEntity<Void> deleteMessage(UUID messageId) {
         messageService.delete(messageId);
         return ResponseEntity.noContent().build();
     }

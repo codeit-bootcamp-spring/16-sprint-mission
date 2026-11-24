@@ -1,10 +1,14 @@
 package com.sprint.mission.discodeit.controller;
 
+import com.sprint.mission.discodeit.controller.api.UserApi;
 import com.sprint.mission.discodeit.dto.data.UserDto;
 import com.sprint.mission.discodeit.dto.request.UserCreateRequest;
+import com.sprint.mission.discodeit.dto.request.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.User;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.UserStatusService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -18,48 +22,33 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/users")
 @RequiredArgsConstructor
-public class UserController {
+public class UserController implements UserApi {
     private final UserService userService;
+    private final UserStatusService userStatusService;
 
-    // 유저 생성 (회원가입 - Multipart 형식)
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserDto> createUser(
-            @RequestPart("request") UserCreateRequest request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
-    ) {
-        User user = userService.create(request, profile);
-        UserDto userDto = userService.find(user.getId());
-        return ResponseEntity.status(HttpStatus.CREATED).body(userDto);
-    }
-    // 단일 유저 조회
-    @GetMapping("/{userId}")
-    public ResponseEntity<UserDto> getUser(@PathVariable UUID userId) {
-        UserDto userDto = userService.find(userId);
-        return ResponseEntity.ok(userDto);
-    }
-    // 전체 유저 조회
-    @GetMapping
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        List<UserDto> users = userService.findAll();
-        return ResponseEntity.ok(users);
+    @Override
+    public ResponseEntity<User> createUser(UserCreateRequest request, MultipartFile profile) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.create(request, profile));
     }
 
-    // 유저 수정 (Multipart 형식)
-    @PutMapping(value = "/{userId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<UserDto> updateUser(
-            @PathVariable UUID userId,
-            @RequestPart("request") UserUpdateRequest request,
-            @RequestPart(value = "profile", required = false) MultipartFile profile
-    ) {
-        User user = userService.update(userId, request, profile);
-        UserDto userDto = userService.find(user.getId());
-        return ResponseEntity.ok(userDto);
+    @Override
+    public ResponseEntity<List<UserDto>> findAll() {
+        return ResponseEntity.ok(userService.findAll());
     }
 
-    // 유저 삭제
-    @DeleteMapping("/{userId}")
-    public ResponseEntity<Void> deleteUser(@PathVariable UUID userId) {
+    @Override
+    public ResponseEntity<User> updateUser(UUID userId, UserUpdateRequest request, MultipartFile profile) {
+        return ResponseEntity.ok(userService.update(userId, request, profile));
+    }
+
+    @Override
+    public ResponseEntity<Void> deleteUser(UUID userId) {
         userService.delete(userId);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
+    public ResponseEntity<UserStatus> updateUserStatusByUserId(UUID userId, UserStatusUpdateRequest request) {
+        return ResponseEntity.ok(userStatusService.updateByUserId(userId, request));
     }
 }
