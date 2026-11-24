@@ -18,7 +18,7 @@ public class FileReadStatusRepository extends FileRepository<ReadStatus> impleme
     public ReadStatus save(ReadStatus readStatus) {
         Map<UUID, ReadStatus> readStatusMap = this.readFile(resolvedPath);
         ReadStatus existing = readStatusMap.putIfAbsent(readStatus.getId(), readStatus);
-        if (existing != null) throw new IllegalStateException("이미 저장된 메세지 확인 기록입니다.");
+        if (existing != null) throw new IllegalStateException("이미 저장된 메세지 읽음 상태입니다.");
         this.writeFile(readStatusMap, resolvedPath);
         return readStatus;
     }
@@ -27,7 +27,7 @@ public class FileReadStatusRepository extends FileRepository<ReadStatus> impleme
     public ReadStatus update(UUID id, ReadStatus readStatus) {
         Map<UUID, ReadStatus> readStatusMap = this.readFile(resolvedPath);
         ReadStatus existing = readStatusMap.replace(id, readStatus);
-        if (existing == null) throw new IllegalStateException("저장되지 않은 메세지 확인 기록입니다.");
+        if (existing == null) throw new IllegalStateException("저장되지 않은 메세지 읽음 상태입니다.");
         this.writeFile(readStatusMap, resolvedPath);
         return readStatus;
     }
@@ -85,7 +85,7 @@ public class FileReadStatusRepository extends FileRepository<ReadStatus> impleme
         Map<UUID, ReadStatus> readStatusMap = this.readFile(resolvedPath);
         ReadStatus readStatus = readStatusMap.get(id);
         if (readStatus == null || readStatus.isDeleted())
-            throw new IllegalArgumentException("삭제할 메세지 확인 기록이 존재하지 않습니다.");
+            throw new IllegalArgumentException("삭제할 메세지 읽음 상태가 존재하지 않습니다.");
         readStatus.softDelete();
         this.writeFile(readStatusMap, resolvedPath);
     }

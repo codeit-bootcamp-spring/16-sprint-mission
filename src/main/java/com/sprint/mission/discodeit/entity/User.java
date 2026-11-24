@@ -6,12 +6,11 @@ import java.time.Instant;
 import java.util.*;
 
 @Getter
-public class User extends BaseEntity implements Updatable {
+public class User extends UpdatableEntity {
     private UUID profileId;
     private String name;
     private String email;
     private String password;
-    private Instant updatedAt;
 
     public User(String name, String email, String password) {
         super();
@@ -47,11 +46,6 @@ public class User extends BaseEntity implements Updatable {
     public void assignProfileImage(UUID profileId) {
         this.profileId = profileId;
         this.update();
-    }
-
-    @Override
-    public void update() {
-        this.updatedAt = Instant.now();
     }
 
     @Override

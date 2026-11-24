@@ -8,11 +8,10 @@ import java.util.List;
 import java.util.UUID;
 
 @Getter
-public class Message extends BaseEntity implements Updatable {
+public class Message extends UpdatableEntity {
     private final UUID authorId;
     private final UUID channelId;
     private final List<UUID> attachmentIds;
-    private Instant updatedAt;
     private String content;
 
     public Message(UUID authorId, String content, UUID channelId) {
@@ -48,11 +47,10 @@ public class Message extends BaseEntity implements Updatable {
         this.update();
     }
 
-    @Override
-    public void update() {
-        this.updatedAt = Instant.now();
+    public List<UUID> getAttachmentIds() {
+        return List.copyOf(this.attachmentIds);
     }
-
+    
     @Override
     public String toString() {
         return "id: %s, 보낸 사람 (id): %s, 내용: %s, 채널 (id): %s".formatted(

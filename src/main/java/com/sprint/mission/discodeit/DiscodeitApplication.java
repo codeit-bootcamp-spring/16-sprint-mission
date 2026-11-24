@@ -2,36 +2,50 @@ package com.sprint.mission.discodeit;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
-import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.Environment;
 
-import java.io.File;
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 
 @SpringBootApplication
 public class DiscodeitApplication {
 
     public static void main(String[] args) {
-        clearDataFiles();
+        SpringApplication app = new SpringApplication(DiscodeitApplication.class);
 
-        ConfigurableApplicationContext context = SpringApplication.run(DiscodeitApplication.class, args);
+        app.addInitializers(applicationContext -> {
+            Environment env = applicationContext.getEnvironment();
+            boolean clearOnStart = env.getProperty("discodeit.repository.clear-data-on-start", Boolean.class, false);
+            String fileDirectory = env.getProperty("discodeit.repository.file-directory", ".discodeit");
+
+            if (clearOnStart) clearDataFiles(fileDirectory);
+        });
+
+        app.run(args);
     }
 
-    public static void clearDataFiles() {
-        List<String> fileList = List.of(
-                ".discodeit/binary_content.ser",
-                ".discodeit/channel.ser",
-                ".discodeit/message.ser",
-                ".discodeit/read_status.ser",
-                ".discodeit/user.ser",
-                ".discodeit/user_status.ser"
+    public static void clearDataFiles(String directory) {
+        Path baseDirectory = Path.of(directory);
+        List<String> fileNames = List.of(
+                "binary_content.ser",
+                "channel.ser",
+                "message.ser",
+                "read_status.ser",
+                "user.ser",
+                "user_status.ser"
         );
 
-        fileList.forEach(filePath -> {
-            File file = new File(filePath);
-            if (file.exists()) {
-                if (file.delete()) {
-                    System.out.printf("파일 삭제: %s\n", file.getName());
+        fileNames.forEach(fileName -> {
+            Path filePath = baseDirectory.resolve(fileName);
+            try {
+                if (Files.deleteIfExists(filePath)) {
+                    System.out.printf("파일 삭제: %s%n", filePath);
                 }
+            } catch (IOException e) {
+                throw new UncheckedIOException("파일 삭제 중 예외가 발생했습니다.", e);
             }
         });
     }
