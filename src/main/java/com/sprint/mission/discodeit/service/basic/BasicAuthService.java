@@ -2,13 +2,19 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.LoginRequest;
 import com.sprint.mission.discodeit.dto.UserResponse;
+
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
+
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
+
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
+
 import com.sprint.mission.discodeit.service.AuthService;
 
 import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
 
 @Service
@@ -22,9 +28,12 @@ public class BasicAuthService implements AuthService {
     public UserResponse login(LoginRequest request) {
         if (request == null
                 || request.username() == null
-                || request.password() == null) {
+                || request.username().isBlank()
+                || request.password() == null
+                || request.password().isBlank()) {
+
             throw new IllegalArgumentException(
-                    "아이디 또는 비밀번호가 올바르지 않습니다."
+                    "아이디와 비밀번호를 입력하세요."
             );
         }
 
@@ -32,21 +41,33 @@ public class BasicAuthService implements AuthService {
                 request.username()
         );
 
-        if (user == null
-                || !user.getPassword().equals(request.password())) {
-            throw new IllegalArgumentException(
-                    "아이디 또는 비밀번호가 올바르지 않습니다."
+        if (user == null) {
+            throw new ResourceNotFoundException(
+                    "사용자를 찾을 수 없습니다."
             );
         }
 
-        UserStatus status =
-                userStatusRepository.findByUserId(user.getId());
+        if (!user.getPassword().equals(
+                request.password()
+        )) {
+            throw new IllegalArgumentException(
+                    "비밀번호가 일치하지 않습니다."
+            );
+        }
+
+        UserStatus userStatus =
+                userStatusRepository.findByUserId(
+                        user.getId()
+                );
+
+        boolean online = userStatus != null
+                && userStatus.isOnline();
 
         return new UserResponse(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                status != null && status.isOnline(),
+                online,
                 user.getProfileId(),
                 user.getCreatedAt(),
                 user.getUpdatedAt()
