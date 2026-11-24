@@ -12,18 +12,28 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
 
 public class FileUserRepository implements UserRepository {
 
     private final Path userDirectory;
+    private final FileLockProvider fileLockProvider;
 
     public FileUserRepository() {
-        this(Path.of("data", "users"));
+        this(Path.of("data", "users"), new FileLockProvider());
     }
 
     public FileUserRepository(Path userDirectory) {
+        this(userDirectory, new FileLockProvider());
+    }
+
+    public FileUserRepository(
+            Path userDirectory,
+            FileLockProvider fileLockProvider
+    ) {
         this.userDirectory = userDirectory;
+        this.fileLockProvider = fileLockProvider;
 
         try {
             Files.createDirectories(userDirectory);
@@ -39,15 +49,17 @@ public class FileUserRepository implements UserRepository {
     @Override
     public Optional<User> findById(UUID userId) {
         Path file = fileFor(userId);
+        ReentrantLock lock = fileLockProvider.getLock(file);
 
-        if (Files.notExists(file)) {
-            return Optional.empty();
-        }
+        lock.lock();
+        try {
+            if (Files.notExists(file)) {
+                return Optional.empty();
+            }
 
-        try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
-            return Optional.ofNullable((User) in.readObject());
-        } catch (IOException | ClassNotFoundException e) {
-            throw new RuntimeException("사용자 파일을 읽는 데 실패했습니다.", e);
+            return Optional.ofNullable(readUser(file));
+        } finally {
+            lock.unlock();
         }
     }
 
@@ -56,8 +68,21 @@ public class FileUserRepository implements UserRepository {
         List<User> allUsers = new ArrayList<>();
 
         try (Stream<Path> files = Files.list(userDirectory)) {
-            files.filter(path -> path.getFileName().toString().endsWith(".ser"))
-                    .forEach(file -> allUsers.add(readUser(file)));
+            files.filter(path ->
+                            path.getFileName().toString().endsWith(".ser"))
+                    .forEach(file -> {
+                        ReentrantLock lock =
+                                fileLockProvider.getLock(file);
+
+                        lock.lock();
+                        try {
+                            if (Files.exists(file)) {
+                                allUsers.add(readUser(file));
+                            }
+                        } finally {
+                            lock.unlock();
+                        }
+                    });
         } catch (IOException e) {
             throw new RuntimeException("사용자 파일 목록을 읽는 데 실패했습니다.", e);
         }
@@ -66,7 +91,8 @@ public class FileUserRepository implements UserRepository {
     }
 
     private User readUser(Path file) {
-        try (ObjectInputStream in = new ObjectInputStream(Files.newInputStream(file))) {
+        try (ObjectInputStream in = new ObjectInputStream(
+                Files.newInputStream(file))) {
             return (User) in.readObject();
         } catch (IOException | ClassNotFoundException e) {
             throw new RuntimeException("사용자 파일을 읽는 데 실패했습니다.", e);
@@ -76,21 +102,34 @@ public class FileUserRepository implements UserRepository {
     @Override
     public User save(User user) {
         Path file = fileFor(user.getId());
+        ReentrantLock lock = fileLockProvider.getLock(file);
 
-        try (ObjectOutputStream out = new ObjectOutputStream(Files.newOutputStream(file))) {
-            out.writeObject(user);
-            return user;
-        } catch (IOException e) {
-            throw new RuntimeException("사용자 파일 저장에 실패했습니다.", e);
+        lock.lock();
+        try {
+            try (ObjectOutputStream out = new ObjectOutputStream(
+                    Files.newOutputStream(file))) {
+                out.writeObject(user);
+                return user;
+            } catch (IOException e) {
+                throw new RuntimeException("사용자 파일 저장에 실패했습니다.", e);
+            }
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void deleteById(UUID userId) {
+        Path file = fileFor(userId);
+        ReentrantLock lock = fileLockProvider.getLock(file);
+
+        lock.lock();
         try {
-            Files.deleteIfExists(fileFor(userId));
+            Files.deleteIfExists(file);
         } catch (IOException e) {
             throw new RuntimeException("사용자 파일 삭제에 실패했습니다.", e);
+        } finally {
+            lock.unlock();
         }
     }
 
