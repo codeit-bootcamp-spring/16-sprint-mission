@@ -13,16 +13,17 @@ public class FileChannelRepository implements ChannelRepository {
   private final FileStore<Channel> store;
 
   public FileChannelRepository(
-      @Value("${discodeit.repository.file-directory:data}") String directory) {
-    this.store = new FileStore<>(directory, "channels.ser");
+      @Value("${discodeit.repository.file-directory:data}") String directory,
+      FileLockProvider lockProvider) {
+    this.store = new FileStore<>(directory, "channels.ser", lockProvider);
   }
 
   @Override
   public Channel save(Channel channel) {
-    Map<UUID, Channel> data = store.load();
-    data.put(channel.getId(), channel);
-    store.write(data);
-    return channel;
+    return store.update(data -> {
+      data.put(channel.getId(), channel);
+      return channel;
+    });
   }
 
   @Override
@@ -42,8 +43,6 @@ public class FileChannelRepository implements ChannelRepository {
 
   @Override
   public void deleteById(UUID id) {
-    Map<UUID, Channel> data = store.load();
-    data.remove(id);
-    store.write(data);
+    store.update(data -> data.remove(id));
   }
 }

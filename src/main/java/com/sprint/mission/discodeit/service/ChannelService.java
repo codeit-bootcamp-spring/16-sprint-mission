@@ -20,11 +20,9 @@ public interface ChannelService {
 
   ChannelDto update(UUID id, ChannelUpdateRequest request);
 
-  void delete(UUID id, UUID requesterId);
+  void delete(UUID id);
 
   void join(UUID id, UUID userId);
 
   void leave(UUID id, UUID userId);
-
-  void transferOwnership(UUID id, UUID currentOwnerId, UUID newOwnerId);
 }

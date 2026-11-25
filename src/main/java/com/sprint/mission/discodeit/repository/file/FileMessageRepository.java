@@ -13,16 +13,17 @@ public class FileMessageRepository implements MessageRepository {
   private final FileStore<Message> store;
 
   public FileMessageRepository(
-      @Value("${discodeit.repository.file-directory:data}") String directory) {
-    this.store = new FileStore<>(directory, "messages.ser");
+      @Value("${discodeit.repository.file-directory:data}") String directory,
+      FileLockProvider lockProvider) {
+    this.store = new FileStore<>(directory, "messages.ser", lockProvider);
   }
 
   @Override
   public Message save(Message message) {
-    Map<UUID, Message> data = store.load();
-    data.put(message.getId(), message);
-    store.write(data);
-    return message;
+    return store.update(data -> {
+      data.put(message.getId(), message);
+      return message;
+    });
   }
 
   @Override
@@ -56,22 +57,17 @@ public class FileMessageRepository implements MessageRepository {
 
   @Override
   public void deleteById(UUID id) {
-    Map<UUID, Message> data = store.load();
-    data.remove(id);
-    store.write(data);
+    store.update(data -> data.remove(id));
   }
 
   @Override
   public void deleteAllByUserId(UUID userId) {
-    Map<UUID, Message> data = store.load();
-    data.values().removeIf(message -> message.getAuthorId().equals(userId));
-    store.write(data);
+    store.update(data -> data.values().removeIf(message -> message.getAuthorId().equals(userId)));
   }
 
   @Override
   public void deleteAllByChannelId(UUID channelId) {
-    Map<UUID, Message> data = store.load();
-    data.values().removeIf(message -> message.getChannelId().equals(channelId));
-    store.write(data);
+    store.update(
+        data -> data.values().removeIf(message -> message.getChannelId().equals(channelId)));
   }
 }

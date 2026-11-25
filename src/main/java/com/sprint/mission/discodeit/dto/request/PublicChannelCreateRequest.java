@@ -1,5 +1,7 @@
 package com.sprint.mission.discodeit.dto.request;
 
-import java.util.UUID;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 
-public record PublicChannelCreateRequest(UUID ownerId, String name, String description) {}
+public record PublicChannelCreateRequest(
+    @NotBlank @Size(max = 100) String name, @Size(max = 1024) String description) {}
