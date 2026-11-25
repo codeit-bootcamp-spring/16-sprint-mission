@@ -38,5 +38,7 @@ bin/
 ### Mac OS ###
 .DS_Store
 
-### Discodeit ###
+### Discodeit 파일저장소 ###
+.discodeit/
+/.discodeit/
 .discodeit
