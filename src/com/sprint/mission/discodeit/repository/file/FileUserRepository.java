@@ -14,12 +14,14 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Repository
 @ConditionalOnProperty(
@@ -30,19 +32,20 @@ import java.util.UUID;
 public class FileUserRepository implements UserRepository {
 
     private final File file;
+    private final ReentrantLock lock;
 
-    // 기존 코드에서 사용하는 기본 생성자
     public FileUserRepository() {
-        this(".discodeit");
+        this(".discodeit", new FileLockProvider());
     }
 
-    // Spring이 YAML 설정을 읽어서 사용하는 생성자
     @Autowired
     public FileUserRepository(
             @Value("${discodeit.repository.file-directory:.discodeit}")
-            String fileDirectory
+            String fileDirectory,
+            FileLockProvider fileLockProvider
     ) {
         this.file = new File(fileDirectory, "users.dat");
+        this.lock = fileLockProvider.getLock(file.toPath());
 
         File parent = file.getParentFile();
 
@@ -65,11 +68,16 @@ public class FileUserRepository implements UserRepository {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
 
-        Map<UUID, User> data = readAllAsMap();
-        data.put(user.getId(), user);
-        writeAll(data);
+        lock.lock();
+        try {
+            Map<UUID, User> data = readAllAsMap();
+            data.put(user.getId(), user);
+            writeAll(data);
 
-        return user;
+            return user;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -78,7 +86,12 @@ public class FileUserRepository implements UserRepository {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
 
-        return Optional.ofNullable(readAllAsMap().get(id));
+        lock.lock();
+        try {
+            return Optional.ofNullable(readAllAsMap().get(id));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -87,14 +100,24 @@ public class FileUserRepository implements UserRepository {
             throw new IllegalArgumentException("사용자 이름은 필수입니다.");
         }
 
-        return readAllAsMap().values().stream()
-                .filter(user -> user.getUsername().equals(username))
-                .findFirst();
+        lock.lock();
+        try {
+            return readAllAsMap().values().stream()
+                    .filter(user -> user.getUsername().equals(username))
+                    .findFirst();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public List<User> findAll() {
-        return new ArrayList<>(readAllAsMap().values());
+        lock.lock();
+        try {
+            return new ArrayList<>(readAllAsMap().values());
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -103,14 +126,19 @@ public class FileUserRepository implements UserRepository {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
 
-        Map<UUID, User> data = readAllAsMap();
+        lock.lock();
+        try {
+            Map<UUID, User> data = readAllAsMap();
 
-        if (!data.containsKey(id)) {
-            throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+            if (!data.containsKey(id)) {
+                throw new IllegalArgumentException("사용자를 찾을 수 없습니다.");
+            }
+
+            data.remove(id);
+            writeAll(data);
+        } finally {
+            lock.unlock();
         }
-
-        data.remove(id);
-        writeAll(data);
     }
 
     private Map<UUID, User> readAllAsMap() {
@@ -132,7 +160,6 @@ public class FileUserRepository implements UserRepository {
             Map<UUID, User> data = new LinkedHashMap<>();
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-
                 if (!(entry.getKey() instanceof UUID id)
                         || !(entry.getValue() instanceof User user)) {
                     throw new IllegalStateException(

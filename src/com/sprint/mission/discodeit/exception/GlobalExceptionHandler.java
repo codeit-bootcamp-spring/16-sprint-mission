@@ -1,3 +1,4 @@
+
 package com.sprint.mission.discodeit.exception;
 
 import org.springframework.http.HttpStatus;
@@ -32,7 +33,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleTypeMismatch(
             MethodArgumentTypeMismatchException e
     ) {
-        return badRequest("요청 파라미터 형식이 올바르지 않습니다.");
+        e.printStackTrace();
+
+        String message = "잘못된 요청 파라미터: " + e.getName()
+                + ", 전달된 값: " + String.valueOf(e.getValue())
+                + ", 필요한 타입: "
+                + (e.getRequiredType() != null
+                ? e.getRequiredType().getSimpleName()
+                : "알 수 없음");
+
+        return badRequest(message);
     }
 
     // JSON 형식 오류
@@ -40,6 +50,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleUnreadableMessage(
             HttpMessageNotReadableException e
     ) {
+        e.printStackTrace();
         return badRequest("요청 본문이 올바르지 않습니다.");
     }
 

@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.userstatus.UserStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.response.userstatus.UserStatusDto;
 import com.sprint.mission.discodeit.dto.request.userstatus.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.dto.response.userstatus.UserStatusDto;
 import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.repository.UserRepository;
@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -26,24 +27,29 @@ public class BasicUserStatusService implements UserStatusService {
     @Override
     public UserStatusDto create(UserStatusCreateRequest request) {
         if (request == null || request.userId() == null) {
-            throw new IllegalArgumentException("사용자 접속 상태 생성 정보는 필수입니다.");
+            throw new IllegalArgumentException(
+                    "사용자 접속 상태 생성 정보는 필수입니다."
+            );
         }
 
         User user = userRepository.findById(request.userId())
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         Optional<UserStatus> existingStatus =
                 userStatusRepository.findByUserId(user.getId());
 
         if (existingStatus.isPresent()) {
-            throw new IllegalArgumentException("이미 해당 사용자의 접속 상태가 존재합니다.");
+            throw new IllegalArgumentException(
+                    "이미 해당 사용자의 접속 상태가 존재합니다."
+            );
         }
 
         UserStatus userStatus = new UserStatus(user.getId());
 
         UserStatus savedUserStatus = userStatusRepository.save(userStatus);
+
         return toDto(savedUserStatus);
     }
 
@@ -62,19 +68,33 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatusDto update(UserStatusUpdateRequest request) {
-        if (request == null || request.id() == null) {
-            throw new IllegalArgumentException("사용자 접속 상태 수정 정보는 필수입니다.");
+    public UserStatusDto update(
+            UUID id,
+            UserStatusUpdateRequest request
+    ) {
+        if (id == null || request == null) {
+            throw new IllegalArgumentException(
+                    "사용자 접속 상태 수정 정보는 필수입니다."
+            );
         }
 
-        UserStatus userStatus = userStatusRepository.findById(request.id())
+        if (request.newLastActiveAt() == null) {
+            throw new IllegalArgumentException(
+                    "수정할 접속 시간은 필수입니다."
+            );
+        }
+
+        UserStatus userStatus = userStatusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자 접속 상태를 찾을 수 없습니다.")
+                        new NoSuchElementException(
+                                "사용자 접속 상태를 찾을 수 없습니다."
+                        )
                 );
 
-        userStatus.updateLastActiveAt(request.lastActiveAt());
+        userStatus.updateLastActiveAt(request.newLastActiveAt());
 
         UserStatus savedUserStatus = userStatusRepository.save(userStatus);
+
         return toDto(savedUserStatus);
     }
 
@@ -87,34 +107,34 @@ public class BasicUserStatusService implements UserStatusService {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
 
-        if (request == null || request.lastActiveAt() == null) {
-            throw new IllegalArgumentException("수정할 접속 시간은 필수입니다.");
+        if (request == null || request.newLastActiveAt() == null) {
+            throw new IllegalArgumentException(
+                    "수정할 접속 시간은 필수입니다."
+            );
         }
 
         userRepository.findById(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자를 찾을 수 없습니다.")
+                        new NoSuchElementException("사용자를 찾을 수 없습니다.")
                 );
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자 접속 상태를 찾을 수 없습니다.")
+                        new NoSuchElementException(
+                                "사용자 접속 상태를 찾을 수 없습니다."
+                        )
                 );
 
-        UserStatusUpdateRequest updateRequest =
-                new UserStatusUpdateRequest(
-                        userStatus.getId(),
-                        request.lastActiveAt()
-                );
-
-        return update(updateRequest);
+        return update(userStatus.getId(), request);
     }
 
     @Override
     public void delete(UUID id) {
         userStatusRepository.findById(id)
                 .orElseThrow(() ->
-                        new IllegalArgumentException("사용자 접속 상태를 찾을 수 없습니다.")
+                        new NoSuchElementException(
+                                "사용자 접속 상태를 찾을 수 없습니다."
+                        )
                 );
 
         userStatusRepository.deleteById(id);

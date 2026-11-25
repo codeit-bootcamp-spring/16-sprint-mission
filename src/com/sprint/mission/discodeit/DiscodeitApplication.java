@@ -1,4 +1,3 @@
-
 package com.sprint.mission.discodeit;
 
 import org.springframework.boot.SpringApplication;

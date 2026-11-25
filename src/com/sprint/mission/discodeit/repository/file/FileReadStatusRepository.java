@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Repository
 @ConditionalOnProperty(
@@ -30,19 +31,20 @@ import java.util.UUID;
 public class FileReadStatusRepository implements ReadStatusRepository {
 
     private final File file;
+    private final ReentrantLock lock;
 
-    // 기존 코드와의 호환성을 위한 기본 생성자
     public FileReadStatusRepository() {
-        this(".discodeit");
+        this(".discodeit", new FileLockProvider());
     }
 
-    // Spring이 YAML 설정값을 주입하는 생성자
     @Autowired
     public FileReadStatusRepository(
             @Value("${discodeit.repository.file-directory:.discodeit}")
-            String fileDirectory
+            String fileDirectory,
+            FileLockProvider fileLockProvider
     ) {
         this.file = new File(fileDirectory, "read-statuses.dat");
+        this.lock = fileLockProvider.getLock(file.toPath());
 
         File parent = file.getParentFile();
 
@@ -65,11 +67,16 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
         }
 
-        Map<UUID, ReadStatus> data = readAllAsMap();
-        data.put(readStatus.getId(), readStatus);
-        writeAll(data);
+        lock.lock();
+        try {
+            Map<UUID, ReadStatus> data = readAllAsMap();
+            data.put(readStatus.getId(), readStatus);
+            writeAll(data);
 
-        return readStatus;
+            return readStatus;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -78,12 +85,22 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
         }
 
-        return Optional.ofNullable(readAllAsMap().get(id));
+        lock.lock();
+        try {
+            return Optional.ofNullable(readAllAsMap().get(id));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public List<ReadStatus> findAll() {
-        return new ArrayList<>(readAllAsMap().values());
+        lock.lock();
+        try {
+            return new ArrayList<>(readAllAsMap().values());
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -92,14 +109,20 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
         }
 
-        return findAll().stream()
-                .filter(status -> userId.equals(status.getUserId()))
-                .toList();
+        lock.lock();
+        try {
+            return readAllAsMap().values().stream()
+                    .filter(status -> userId.equals(status.getUserId()))
+                    .toList();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public Optional<ReadStatus> findByUserIdAndChannelId(
-            UUID userId, UUID channelId
+            UUID userId,
+            UUID channelId
     ) {
         if (userId == null) {
             throw new IllegalArgumentException("사용자 ID는 필수입니다.");
@@ -109,11 +132,16 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
 
-        return findAll().stream()
-                .filter(status ->
-                        userId.equals(status.getUserId())
-                                && channelId.equals(status.getChannelId()))
-                .findFirst();
+        lock.lock();
+        try {
+            return readAllAsMap().values().stream()
+                    .filter(status ->
+                            userId.equals(status.getUserId())
+                                    && channelId.equals(status.getChannelId()))
+                    .findFirst();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -122,14 +150,19 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             throw new IllegalArgumentException("읽음 상태 ID는 필수입니다.");
         }
 
-        Map<UUID, ReadStatus> data = readAllAsMap();
+        lock.lock();
+        try {
+            Map<UUID, ReadStatus> data = readAllAsMap();
 
-        if (!data.containsKey(id)) {
-            throw new IllegalArgumentException("읽음 상태를 찾을 수 없습니다.");
+            if (!data.containsKey(id)) {
+                throw new IllegalArgumentException("읽음 상태를 찾을 수 없습니다.");
+            }
+
+            data.remove(id);
+            writeAll(data);
+        } finally {
+            lock.unlock();
         }
-
-        data.remove(id);
-        writeAll(data);
     }
 
     private Map<UUID, ReadStatus> readAllAsMap() {
@@ -151,7 +184,6 @@ public class FileReadStatusRepository implements ReadStatusRepository {
             Map<UUID, ReadStatus> data = new LinkedHashMap<>();
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-
                 if (!(entry.getKey() instanceof UUID id)
                         || !(entry.getValue() instanceof ReadStatus status)) {
                     throw new IllegalStateException(

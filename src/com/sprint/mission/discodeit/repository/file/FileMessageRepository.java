@@ -20,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.concurrent.locks.ReentrantLock;
 
 @Repository
 @ConditionalOnProperty(
@@ -30,19 +31,20 @@ import java.util.UUID;
 public class FileMessageRepository implements MessageRepository {
 
     private final File file;
+    private final ReentrantLock lock;
 
-    // 기존 코드에서 사용하는 기본 생성자
     public FileMessageRepository() {
-        this(".discodeit");
+        this(".discodeit", new FileLockProvider());
     }
 
-    // Spring이 YAML 설정을 읽어서 사용하는 생성자
     @Autowired
     public FileMessageRepository(
             @Value("${discodeit.repository.file-directory:.discodeit}")
-            String fileDirectory
+            String fileDirectory,
+            FileLockProvider fileLockProvider
     ) {
         this.file = new File(fileDirectory, "messages.dat");
+        this.lock = fileLockProvider.getLock(file.toPath());
 
         File parent = file.getParentFile();
 
@@ -65,11 +67,16 @@ public class FileMessageRepository implements MessageRepository {
             throw new IllegalArgumentException("메시지 ID는 필수입니다.");
         }
 
-        Map<UUID, Message> data = readAllAsMap();
-        data.put(message.getId(), message);
-        writeAll(data);
+        lock.lock();
+        try {
+            Map<UUID, Message> data = readAllAsMap();
+            data.put(message.getId(), message);
+            writeAll(data);
 
-        return message;
+            return message;
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -78,12 +85,22 @@ public class FileMessageRepository implements MessageRepository {
             throw new IllegalArgumentException("메시지 ID는 필수입니다.");
         }
 
-        return Optional.ofNullable(readAllAsMap().get(id));
+        lock.lock();
+        try {
+            return Optional.ofNullable(readAllAsMap().get(id));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
     public List<Message> findAll() {
-        return new ArrayList<>(readAllAsMap().values());
+        lock.lock();
+        try {
+            return new ArrayList<>(readAllAsMap().values());
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -92,9 +109,14 @@ public class FileMessageRepository implements MessageRepository {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
 
-        return readAllAsMap().values().stream()
-                .filter(message -> channelId.equals(message.getChannelId()))
-                .toList();
+        lock.lock();
+        try {
+            return readAllAsMap().values().stream()
+                    .filter(message -> channelId.equals(message.getChannelId()))
+                    .toList();
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
@@ -103,14 +125,19 @@ public class FileMessageRepository implements MessageRepository {
             throw new IllegalArgumentException("메시지 ID는 필수입니다.");
         }
 
-        Map<UUID, Message> data = readAllAsMap();
+        lock.lock();
+        try {
+            Map<UUID, Message> data = readAllAsMap();
 
-        if (!data.containsKey(id)) {
-            throw new IllegalArgumentException("메시지를 찾을 수 없습니다.");
+            if (!data.containsKey(id)) {
+                throw new IllegalArgumentException("메시지를 찾을 수 없습니다.");
+            }
+
+            data.remove(id);
+            writeAll(data);
+        } finally {
+            lock.unlock();
         }
-
-        data.remove(id);
-        writeAll(data);
     }
 
     private Map<UUID, Message> readAllAsMap() {
@@ -132,7 +159,6 @@ public class FileMessageRepository implements MessageRepository {
             Map<UUID, Message> data = new LinkedHashMap<>();
 
             for (Map.Entry<?, ?> entry : map.entrySet()) {
-
                 if (!(entry.getKey() instanceof UUID id)
                         || !(entry.getValue() instanceof Message message)) {
                     throw new IllegalStateException(

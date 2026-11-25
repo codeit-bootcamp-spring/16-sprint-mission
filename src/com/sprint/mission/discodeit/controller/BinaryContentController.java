@@ -1,119 +1,112 @@
 package com.sprint.mission.discodeit.controller;
 
-import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDownloadDto;
+import com.sprint.mission.discodeit.dto.response.binarycontent.BinaryContentDto;
 import com.sprint.mission.discodeit.service.BinaryContentService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 import lombok.RequiredArgsConstructor;
 
-import org.springframework.core.io.ByteArrayResource;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.UUID;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
+@Tag(name = "Binary Content", description = "첨부파일 정보 조회 API")
 @RestController
-@RequestMapping("/api/binaryContent")
+@RequestMapping("/api/binaryContents")
 @RequiredArgsConstructor
 public class BinaryContentController {
 
     private final BinaryContentService binaryContentService;
 
-    // 첨부파일 원본 조회
+    // 여러 첨부파일 조회
+    @Operation(
+            summary = "첨부파일 목록 조회",
+            description = "전달한 첨부파일 ID 목록에 해당하는 첨부파일 정보를 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "첨부파일 목록 조회 성공"
+            ),
+            @ApiResponse(
+                    responseCode = "400",
+                    description = "첨부파일 ID 형식이 올바르지 않음",
+                    content = @Content(
+                            schema = @Schema(implementation = Map.class)
+                    )
+            )
+    })
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<BinaryContentDto>> findAll(
+            @Parameter(
+                    description = "조회할 첨부파일 ID 목록 (UUID). 여러 ID를 전달할 수 있습니다.",
+                    required = true,
+                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            )
+            @RequestParam List<UUID> binaryContentIds
+    ) {
+        List<BinaryContentDto> binaryContents =
+                binaryContentService.findAllByIdIn(binaryContentIds);
+
+        return ResponseEntity.ok(binaryContents);
+    }
+
+    // 첨부파일 단건 조회
+    @Operation(
+            summary = "첨부파일 단건 조회",
+            description = "지정한 첨부파일 ID에 해당하는 첨부파일 정보를 조회합니다."
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "첨부파일 조회 성공",
+                    content = @Content(
+                            schema = @Schema(implementation = BinaryContentDto.class)
+                    )
+            ),
+            @ApiResponse(
+                    responseCode = "404",
+                    description = "첨부파일 정보를 찾을 수 없음",
+                    content = @Content(
+                            schema = @Schema(implementation = Map.class)
+                    )
+            )
+    })
     @RequestMapping(
-            value = "/find",
+            value = "/{binaryContentId}",
             method = RequestMethod.GET
     )
-    public ResponseEntity<BinaryContentDownloadDto> find(
-            @RequestParam UUID binaryContentId
+    public ResponseEntity<BinaryContentDto> findById(
+            @Parameter(
+                    description = "조회할 첨부파일 ID (UUID)",
+                    required = true,
+                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            )
+            @PathVariable UUID binaryContentId
     ) {
-        BinaryContentDownloadDto binaryContent = binaryContentService
-                .downloadById(binaryContentId)
+        BinaryContentDto binaryContent = binaryContentService
+                .findById(binaryContentId)
                 .orElseThrow(() ->
-                        new IllegalArgumentException(
+                        new NoSuchElementException(
                                 "첨부파일 정보를 찾을 수 없습니다."
                         )
                 );
 
         return ResponseEntity.ok(binaryContent);
-    }
-
-    // 파일 하나 다운로드
-    @RequestMapping(
-            value = "/{id}",
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<ByteArrayResource> download(
-            @PathVariable UUID id
-    ) {
-        BinaryContentDownloadDto file = binaryContentService.downloadById(id)
-                .orElseThrow(() ->
-                        new IllegalArgumentException("첨부파일을 찾을 수 없습니다.")
-                );
-
-        ByteArrayResource resource = new ByteArrayResource(file.bytes());
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.parseMediaType(file.contentType()))
-                .contentLength(file.bytes().length)
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename*=UTF-8''" +
-                                java.net.URLEncoder.encode(
-                                        file.fileName(),
-                                        StandardCharsets.UTF_8
-                                ).replace("+", "%20")
-                )
-                .body(resource);
-    }
-
-    // 여러 파일 ZIP 다운로드
-    @RequestMapping(
-            value = "/download",
-            method = RequestMethod.GET
-    )
-    public ResponseEntity<ByteArrayResource> downloadAll(
-            @RequestParam List<UUID> ids
-    ) throws IOException {
-
-        List<BinaryContentDownloadDto> files =
-                binaryContentService.downloadAllByIdIn(ids);
-
-        if (files.isEmpty()) {
-            throw new IllegalArgumentException("다운로드할 파일이 없습니다.");
-        }
-
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-
-        try (ZipOutputStream zipOutputStream =
-                     new ZipOutputStream(outputStream)) {
-
-            for (BinaryContentDownloadDto file : files) {
-                ZipEntry entry = new ZipEntry(file.fileName());
-
-                zipOutputStream.putNextEntry(entry);
-                zipOutputStream.write(file.bytes());
-                zipOutputStream.closeEntry();
-            }
-        }
-
-        ByteArrayResource resource =
-                new ByteArrayResource(outputStream.toByteArray());
-
-        return ResponseEntity.ok()
-                .contentType(MediaType.APPLICATION_OCTET_STREAM)
-                .header(
-                        HttpHeaders.CONTENT_DISPOSITION,
-                        "attachment; filename=\"attachments.zip\""
-                )
-                .contentLength(outputStream.size())
-                .body(resource);
     }
 }
