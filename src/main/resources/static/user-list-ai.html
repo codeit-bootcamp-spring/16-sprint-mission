@@ -1,0 +1,1161 @@
+<!doctype html>
+<html lang="ko">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f7f7fb">
+    <title>사용자 목록 · Discodeit</title>
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%236643ba'/%3E%3Cpath d='M9 8h14v13h-8l-4 3v-3H9zM14 12l-2 2 2 2m4-4 2 2-2 2' stroke='white' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round' fill='none'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            color-scheme: light;
+            --background: #f7f7fb;
+            --surface: #fff;
+            --ink: #211b36;
+            --muted: #625d72;
+            --line: #eae7f1;
+            --purple: #5e3eb6;
+            --purple-soft: #f1ebff;
+            --green: #146952;
+            --green-soft: #e9f8f0;
+            --shadow: 0 3px 6px #261c3c04, 0 16px 36px -25px #37236340;
+            font-family: Pretendard, "Segoe UI", "Apple SD Gothic Neo", "Malgun Gothic",
+                "Noto Sans CJK KR", system-ui, sans-serif;
+        }
+
+        *, *::before, *::after { box-sizing: border-box; }
+        [hidden] { display: none !important; }
+
+        body {
+            margin: 0;
+            min-width: 0;
+            color: var(--ink);
+            background: radial-gradient(ellipse at 82% 3%, #ece8fb 0, transparent 41%),
+                var(--background);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        button:focus-visible, a:focus-visible {
+            outline: 3px solid #8562ed;
+            outline-offset: 3px;
+        }
+        h1, h2, p, dl, dd { margin: 0; }
+        .icon { width: 20px; height: 20px; flex: none; }
+        .icon-defs { position: absolute; width: 0; height: 0; overflow: hidden; }
+
+        .wrap {
+            width: min(1136px, calc(100% - 64px));
+            margin-inline: auto;
+        }
+
+        .skip-link {
+            position: fixed;
+            z-index: 5;
+            top: 12px;
+            left: 12px;
+            padding: 10px 14px;
+            transform: translateY(-150%);
+            border-radius: 8px;
+            background: var(--ink);
+            color: white;
+        }
+        .skip-link:focus { transform: translateY(0); }
+
+        .topbar {
+            background: #fcfbfe;
+            border-bottom: 1px solid #eae7f2;
+        }
+        .topbar-inner {
+            min-height: 65px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+        }
+        .brand-group, .brand, .connection, .eyebrow {
+            display: flex;
+            align-items: center;
+        }
+        .brand-group { min-width: 0; gap: 17px; }
+        .brand {
+            gap: 9px;
+            font-size: 21px;
+            font-weight: 790;
+            letter-spacing: -.065em;
+            line-height: 1;
+        }
+        .brand-mark {
+            width: 33px;
+            height: 33px;
+            display: grid;
+            place-items: center;
+            border-radius: 10px;
+            background: linear-gradient(145deg, #9268f2, #5a37b4 82%);
+            box-shadow: inset 0 1px 0 #ffffff60, 0 4px 9px #5834ac37;
+            color: #fff;
+        }
+        .brand-mark .icon { width: 23px; height: 23px; }
+        .brand-dot { color: #7d55d5; }
+        .topbar-section {
+            padding-left: 17px;
+            border-left: 1px solid #e0dbea;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+            white-space: nowrap;
+        }
+
+        .connection {
+            gap: 7px;
+            min-height: 30px;
+            padding: 4px 10px;
+            border: 1px solid #e8e4ef;
+            border-radius: 20px;
+            background: #fff;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .connection-dot, .status-dot {
+            width: 7px;
+            height: 7px;
+            flex: none;
+            border-radius: 50%;
+            background: #9d8abf;
+        }
+        .connection[data-state="ready"] .connection-dot {
+            background: #198368;
+            box-shadow: 0 0 0 3px #e1f5ec;
+        }
+        .connection[data-state="error"] .connection-dot {
+            background: #b65254;
+            box-shadow: 0 0 0 3px #fbe8e9;
+        }
+
+        main { padding-block: 27px 30px; }
+
+        .hero {
+            position: relative;
+            isolation: isolate;
+            display: flex;
+            align-items: center;
+            min-height: 225px;
+            overflow: hidden;
+            padding: 34px 40px;
+            border: 1px solid #35255f;
+            border-radius: 23px;
+            background: radial-gradient(ellipse at 79% 5%, #7851cc83 0, transparent 65%),
+                linear-gradient(112deg, #221744 10%, #33215f 57%, #513785 100%);
+            color: #fff;
+            box-shadow: 0 19px 40px -24px #3926679a;
+        }
+        .hero::after {
+            position: absolute;
+            inset: 0;
+            z-index: -1;
+            pointer-events: none;
+            border-radius: inherit;
+            box-shadow: inset 0 1px 0 #ffffff22, inset 0 -1px 0 #110a2938;
+            content: "";
+        }
+        .hero-copy { position: relative; z-index: 1; }
+        .eyebrow {
+            width: fit-content;
+            gap: 8px;
+            color: #e1d4ff;
+            font-size: 10px;
+            font-weight: 750;
+            letter-spacing: .2em;
+            text-transform: uppercase;
+        }
+        .eyebrow::before {
+            width: 15px;
+            height: 2px;
+            border-radius: 2px;
+            background: #c3a7ff;
+            content: "";
+        }
+        .hero h1 {
+            margin: 13px 0 12px;
+            font-size: clamp(37px, 5.3vw, 58px);
+            font-weight: 780;
+            line-height: 1.14;
+            letter-spacing: -.075em;
+            text-wrap: balance;
+        }
+        .hero p {
+            color: #e2d9f2;
+            font-size: 14px;
+            line-height: 1.65;
+            letter-spacing: -.014em;
+        }
+        .hero-art {
+            position: absolute;
+            z-index: 0;
+            inset: 0 -2px 0 auto;
+            width: min(58%, 620px);
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .overview {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 13px;
+            margin: 17px 0 22px;
+        }
+        .stat {
+            position: relative;
+            min-width: 0;
+            min-height: 90px;
+            padding: 14px 65px 13px 17px;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+        .stat dt {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+            line-height: 1.4;
+        }
+        .stat dd {
+            margin-top: 1px;
+            font-size: 28px;
+            font-weight: 760;
+            line-height: 1.1;
+            letter-spacing: -.058em;
+            font-variant-numeric: tabular-nums;
+        }
+        .stat-symbol {
+            position: absolute;
+            top: 50%;
+            right: 16px;
+            display: grid;
+            width: 41px;
+            height: 41px;
+            place-items: center;
+            transform: translateY(-50%);
+            border-radius: 12px;
+            background: var(--purple-soft);
+            color: var(--purple);
+        }
+        .stat-online .stat-symbol { background: var(--green-soft); color: var(--green); }
+        .stat-offline .stat-symbol { background: #efedf5; color: #665b7d; }
+
+        .directory {
+            overflow: hidden;
+            border: 1px solid var(--line);
+            border-radius: 20px;
+            background: var(--surface);
+            box-shadow: var(--shadow);
+        }
+        .directory-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 16px;
+            padding: 19px 21px 14px;
+        }
+        .directory-heading {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+        }
+        .directory-mark {
+            display: grid;
+            width: 40px;
+            height: 40px;
+            flex: none;
+            place-items: center;
+            border: 1px solid #e8ddff;
+            border-radius: 11px;
+            background: #f8f3ff;
+            color: var(--purple);
+        }
+        .directory-mark .icon { width: 18px; height: 18px; }
+        .directory-heading h2 {
+            font-size: 20px;
+            font-weight: 760;
+            line-height: 1.2;
+            letter-spacing: -.055em;
+        }
+        .directory-heading p {
+            margin-top: 4px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.4;
+        }
+
+        .tools { display: flex; align-items: center; gap: 8px; }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: clamp(184px, 25vw, 270px);
+            min-height: 39px;
+            padding: 0 11px;
+            border: 1px solid #e7e3ef;
+            border-radius: 9px;
+            background: #fbfafe;
+            color: #716584;
+            transition: border-color .16s, box-shadow .16s;
+        }
+        .search-box:focus-within {
+            border-color: #9674e0;
+            box-shadow: 0 0 0 3px #eee6ff;
+        }
+        .search-box .icon { width: 16px; height: 16px; }
+        .search-box input {
+            width: 100%;
+            min-width: 0;
+            padding: 9px 0;
+            border: 0;
+            outline: 0;
+            background: transparent;
+            color: var(--ink);
+            font-size: 12px;
+        }
+        .search-box input::placeholder { color: #6f657f; opacity: 1; }
+        .action {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 7px;
+            min-height: 39px;
+            padding: 0 11px;
+            border: 1px solid #e7e3ef;
+            border-radius: 9px;
+            background: #fff;
+            color: #49366c;
+            font-size: 12px;
+            font-weight: 700;
+            white-space: nowrap;
+            transition: color .16s, background-color .16s, border-color .16s;
+        }
+        .action .icon { width: 15px; height: 15px; }
+        .action:hover { border-color: #d7c8f6; background: #f8f4ff; }
+        .action[aria-disabled="true"] { cursor: wait; color: #716584; }
+        .action[aria-disabled="true"] .icon { animation: spin 1.2s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .directory-controls {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            padding: 0 21px 14px;
+        }
+        .filters {
+            display: inline-flex;
+            gap: 2px;
+            max-width: 100%;
+            padding: 3px;
+            border: 1px solid #eeeaf4;
+            border-radius: 10px;
+            background: #f6f4fa;
+        }
+        .filter {
+            min-height: 29px;
+            padding: 3px 10px;
+            border: 1px solid transparent;
+            border-radius: 7px;
+            background: transparent;
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+            white-space: nowrap;
+            transition: background-color .16s, color .16s;
+        }
+        .filter:hover { color: var(--purple); background: #eee8fa; }
+        .filter[aria-pressed="true"] {
+            border-color: #eae2f7;
+            background: #fff;
+            color: var(--purple);
+            box-shadow: 0 2px 4px #3425510d;
+        }
+        .results {
+            color: var(--muted);
+            font-size: 12px;
+            font-weight: 650;
+            text-align: right;
+        }
+        .notice {
+            margin: 0 21px 12px;
+            padding: 9px 11px;
+            border: 1px solid #f0dfe3;
+            border-radius: 9px;
+            background: #fff5f6;
+            color: #8d3f4e;
+            font-size: 12px;
+            line-height: 1.5;
+        }
+
+        .member-table { width: 100%; border-collapse: collapse; table-layout: fixed; }
+        .member-table th, .member-table td {
+            padding-inline: 21px;
+            text-align: left;
+        }
+        .member-table th {
+            height: 37px;
+            border-block: 1px solid #efedf4;
+            background: #faf9fd;
+            color: var(--muted);
+            font-size: 11px;
+            font-weight: 750;
+        }
+        .member-table .joined-cell { width: 23%; }
+        .member-table .status-cell { width: 137px; }
+        .member-table .member-row td {
+            height: 63px;
+            padding-block: 8px;
+            border-bottom: 1px solid #f0edf5;
+        }
+        .member-row { transition: background-color .16s; }
+        .member-row:hover { background: #faf8ff; }
+
+        .identity { display: flex; align-items: center; gap: 11px; }
+        .member-text { min-width: 0; }
+        .member-name, .member-email {
+            display: block;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .member-name {
+            font-size: 14px;
+            font-weight: 730;
+            line-height: 1.3;
+            letter-spacing: -.018em;
+        }
+        .member-email {
+            margin-top: 3px;
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.3;
+        }
+        .avatar {
+            position: relative;
+            display: grid;
+            width: 39px;
+            height: 39px;
+            flex: none;
+            overflow: hidden;
+            place-items: center;
+            border: 1px solid #e6dcfb;
+            border-radius: 12px;
+            background: #f0e8ff;
+            color: #6142a9;
+            font-size: 13px;
+            font-weight: 770;
+            letter-spacing: -.04em;
+        }
+        .avatar[data-tint="1"] { border-color: #e0eafc; background: #eaf2ff; color: #305fa8; }
+        .avatar[data-tint="2"] { border-color: #d7ece7; background: #e5f6ef; color: #236e5a; }
+        .avatar[data-tint="3"] { border-color: #f3e1df; background: #fff0e9; color: #95523b; }
+        .avatar img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+        .member-table .member-date {
+            color: var(--muted);
+            font-size: 12px;
+            font-variant-numeric: tabular-nums;
+            white-space: nowrap;
+        }
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            min-height: 25px;
+            padding: 3px 8px;
+            border: 1px solid #e9e4f1;
+            border-radius: 20px;
+            background: #f4f2f8;
+            color: #615773;
+            font-size: 11px;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .status-dot { width: 6px; height: 6px; background: #867b99; }
+        .status-badge[data-online="true"] {
+            border-color: #d8eee3;
+            background: var(--green-soft);
+            color: var(--green);
+        }
+        .status-badge[data-online="true"] .status-dot { background: #168267; }
+
+        .state {
+            display: grid;
+            min-height: 195px;
+            justify-items: center;
+            align-content: center;
+            padding: 23px 0;
+            text-align: center;
+        }
+        .state-icon {
+            display: grid;
+            width: 41px;
+            height: 41px;
+            place-items: center;
+            margin-bottom: 9px;
+            border-radius: 12px;
+            background: var(--purple-soft);
+            color: var(--purple);
+        }
+        .state-title { font-size: 14px; font-weight: 750; }
+        .state-detail { margin-top: 4px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+        .state .action { min-height: 32px; margin-top: 11px; }
+        .skeleton {
+            display: block;
+            width: min(90%, 127px);
+            height: 10px;
+            border-radius: 8px;
+            background: #eeebf5;
+            animation: pulse 1.5s ease-in-out infinite alternate;
+        }
+        .skeleton.face { width: 39px; height: 39px; flex: none; border-radius: 12px; }
+        .skeleton.short { width: min(80%, 82px); margin-top: 7px; }
+        .skeleton.pill { width: min(100%, 67px); height: 23px; border-radius: 20px; }
+        .skeleton-text { width: 146px; min-width: 0; }
+        @keyframes pulse { to { opacity: .48; } }
+
+        .directory-footer {
+            display: flex;
+            align-items: center;
+            min-height: 40px;
+            gap: 6px;
+            padding: 7px 21px;
+            color: var(--muted);
+            font-size: 11px;
+            font-variant-numeric: tabular-nums;
+        }
+        .directory-footer .icon { width: 13px; height: 13px; color: #76678d; }
+        .page-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+            margin-top: 15px;
+            padding-inline: 2px;
+            color: var(--muted);
+            font-size: 11px;
+        }
+        .footer-name { font-weight: 760; letter-spacing: .08em; }
+
+        @media (max-width: 820px) {
+            .wrap { width: calc(100% - 42px); }
+            .hero { padding-inline: 29px; }
+            .hero-art { right: -25px; width: 62%; }
+        }
+
+        @media (max-width: 620px) {
+            .wrap { width: calc(100% - 30px); }
+            .topbar-inner { min-height: 58px; }
+            .brand-group { gap: 11px; }
+            .topbar-section { padding-left: 11px; }
+            main { padding-top: 16px; }
+            .hero { min-height: 191px; padding: 27px 20px; border-radius: 18px; }
+            .hero-art {
+                right: -55px;
+                width: 80%;
+                opacity: .62;
+                mask-image: linear-gradient(90deg, transparent 2%, #000 58%);
+            }
+            .hero p { max-width: 234px; font-size: 13px; }
+            .overview { gap: 7px; margin: 11px 0 14px; }
+            .stat { min-height: 0; padding: 10px 8px 11px; border-radius: 13px; }
+            .stat dt { padding-right: 19px; font-size: 11px; }
+            .stat dd { margin-top: 3px; font-size: 24px; }
+            .stat-symbol { inset: auto 7px 8px auto; width: 24px; height: 24px; transform: none; border-radius: 7px; }
+            .stat-symbol .icon { width: 14px; height: 14px; }
+            .directory { border-radius: 16px; }
+            .directory-top { flex-wrap: wrap; gap: 12px; padding: 14px 13px 11px; }
+            .tools { width: 100%; }
+            .search-box { flex: 1; width: auto; min-width: 0; }
+            .search-box input { font-size: 16px; }
+            .search-box input::placeholder { font-size: 12px; }
+            .directory-controls { padding: 0 13px 11px; }
+            .filter { padding-inline: 7px; }
+            .member-table th, .member-table td, .directory-footer { padding-inline: 13px; }
+            .member-table .joined-cell { display: none; }
+            .member-table .status-cell { width: 95px; }
+            .member-table .member-row td { height: 64px; }
+            .member-name { font-size: 13px; }
+            .member-email { font-size: 11px; }
+            .notice { margin-inline: 13px; }
+        }
+
+        @media (max-width: 355px) {
+            .topbar-section { display: none; }
+            .stat dt { padding-right: 0; }
+            .identity { gap: 8px; }
+            .avatar { width: 34px; height: 34px; border-radius: 10px; }
+            .results { font-size: 11px; }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after { animation: none !important; transition: none !important; }
+        }
+    </style>
+</head>
+<body>
+    <svg class="icon-defs" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+        <symbol id="i-brand" viewBox="0 0 24 24">
+            <path d="M5.3 4.7h10.8a3.2 3.2 0 0 1 3.2 3.2v6a3.2 3.2 0 0 1-3.2 3.2h-5.8l-4.4 2.6v-2.6h-.6a2 2 0 0 1-2-2V6.7a2 2 0 0 1 2-2Z"
+                fill="none" stroke="currentColor" stroke-width="1.75" stroke-linejoin="round"/>
+            <path d="m9.5 8.7-2.1 2.1 2.1 2.1m3.9-4.2 2.1 2.1-2.1 2.1" fill="none"
+                stroke="currentColor" stroke-width="1.55" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="i-users" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="9" cy="8" r="3"/>
+                <path d="M3.5 19v-1.5a3.5 3.5 0 0 1 3.5-3.5h4a3.5 3.5 0 0 1 3.5 3.5V19M16 5.3a3 3 0 0 1 0 5.4m1.5 3.4a3.5 3.5 0 0 1 3 3.4V19"/>
+            </g>
+        </symbol>
+        <symbol id="i-online" viewBox="0 0 24 24">
+            <path d="M3 12h4l2.6-5.8 3.9 11.6 2.8-5.8H21" fill="none" stroke="currentColor"
+                stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="i-offline" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="8"/>
+                <path d="M12 8.4v4.1l2.5 1.6"/>
+            </g>
+        </symbol>
+        <symbol id="i-directory" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="5" width="18" height="14" rx="3"/>
+                <circle cx="8.5" cy="10" r="1.5"/>
+                <path d="M6 15.3a2.6 2.6 0 0 1 5 0m3-5.3h4m-4 4h4"/>
+            </g>
+        </symbol>
+        <symbol id="i-search" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round">
+                <circle cx="10.7" cy="10.7" r="5.7"/>
+                <path d="m15 15 4 4"/>
+            </g>
+        </symbol>
+        <symbol id="i-refresh" viewBox="0 0 24 24">
+            <path d="M19.5 9a7.7 7.7 0 0 0-13-2.1L4 9.5m0-5v5h5m-4.5 5.5a7.7 7.7 0 0 0 13 2.1L20 14.5m-5 0h5v5"
+                fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </symbol>
+        <symbol id="i-alert" viewBox="0 0 24 24">
+            <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                <circle cx="12" cy="12" r="8"/>
+                <path d="M12 8v4.5m0 3.5h.01"/>
+            </g>
+        </symbol>
+    </svg>
+
+    <a class="skip-link" href="#members">멤버 목록으로 이동</a>
+
+    <header class="topbar">
+        <div class="wrap topbar-inner">
+            <div class="brand-group">
+                <div class="brand" aria-label="Discodeit">
+                    <span class="brand-mark"><svg class="icon" aria-hidden="true"><use href="#i-brand"/></svg></span>
+                    <span>discodeit<span class="brand-dot">.</span></span>
+                </div>
+                <span class="topbar-section">멤버 디렉터리</span>
+            </div>
+            <div class="connection" id="connection" data-state="loading" role="status">
+                <span class="connection-dot" aria-hidden="true"></span>
+                <span id="connection-text">서버 연결 중</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="wrap">
+        <section class="hero" aria-labelledby="page-title">
+            <div class="hero-copy">
+                <div class="eyebrow" lang="en">Member directory</div>
+                <h1 id="page-title">사용자 목록</h1>
+                <p>Discodeit 멤버의 프로필과 접속 상태를 확인하세요.</p>
+            </div>
+
+            <svg class="hero-art" viewBox="0 0 584 226" preserveAspectRatio="xMidYMid slice"
+                aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                    <pattern id="art-grid" width="22" height="22" patternUnits="userSpaceOnUse">
+                        <path d="M22 0H0V22" fill="none" stroke="#d8c2ff" stroke-width=".7" opacity=".38"/>
+                        <circle cx="0" cy="0" r="1.2" fill="#d8c2ff" opacity=".5"/>
+                    </pattern>
+                    <linearGradient id="art-fade">
+                        <stop offset="0" stop-color="#fff" stop-opacity="0"/>
+                        <stop offset=".34" stop-color="#fff" stop-opacity=".56"/>
+                        <stop offset="1" stop-color="#fff"/>
+                    </linearGradient>
+                    <mask id="art-mask"><path d="M0 0h584v226H0z" fill="url(#art-fade)"/></mask>
+                    <radialGradient id="art-halo">
+                        <stop stop-color="#b092ff" stop-opacity=".43"/>
+                        <stop offset="1" stop-color="#b092ff" stop-opacity="0"/>
+                    </radialGradient>
+                    <linearGradient id="art-track" x2="1" y2="1">
+                        <stop stop-color="#b5a0ff" stop-opacity="0"/>
+                        <stop offset=".42" stop-color="#c5a7ff" stop-opacity=".85"/>
+                        <stop offset="1" stop-color="#80e7cf" stop-opacity=".8"/>
+                    </linearGradient>
+                    <linearGradient id="art-violet" x2=".85" y2="1">
+                        <stop stop-color="#ad91ff"/>
+                        <stop offset=".54" stop-color="#7154bf"/>
+                        <stop offset="1" stop-color="#49347f"/>
+                    </linearGradient>
+                    <linearGradient id="art-mint" x2="1" y2="1">
+                        <stop stop-color="#acebde"/>
+                        <stop offset="1" stop-color="#438c92"/>
+                    </linearGradient>
+                    <linearGradient id="art-pink" x2="1" y2="1">
+                        <stop stop-color="#e8b8fa"/>
+                        <stop offset="1" stop-color="#8955aa"/>
+                    </linearGradient>
+                    <linearGradient id="art-person" x2="0" y2="1">
+                        <stop stop-color="#fff"/>
+                        <stop offset="1" stop-color="#d7c4ff"/>
+                    </linearGradient>
+                    <filter id="art-shadow" x="-60%" y="-45%" width="220%" height="220%">
+                        <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#1e103d" flood-opacity=".55"/>
+                    </filter>
+                    <g id="art-user">
+                        <circle cx="0" cy="-9" r="10"/>
+                        <path d="M-22 19a22 19 0 0 1 44 0c0 2-2 3-4 3h-36c-2 0-4-1-4-3Z"/>
+                    </g>
+                </defs>
+                <path d="M0 0h584v226H0z" fill="url(#art-grid)" mask="url(#art-mask)" opacity=".5"/>
+                <ellipse cx="360" cy="109" rx="218" ry="129" fill="url(#art-halo)"/>
+
+                <g fill="none">
+                    <ellipse cx="353" cy="113" rx="193" ry="68" transform="rotate(-15 353 113)"
+                        stroke="#d9c5ff" stroke-opacity=".32"/>
+                    <ellipse cx="350" cy="112" rx="212" ry="84" transform="rotate(-15 350 112)"
+                        stroke="#c9adff" stroke-opacity=".18" stroke-dasharray="3 5"/>
+                    <ellipse cx="347" cy="110" rx="132" ry="49" transform="rotate(21 347 110)"
+                        stroke="#cbb6ff" stroke-opacity=".22"/>
+                    <path d="M122 163c54 14 118 7 174-34 67-50 130-93 227-79"
+                        stroke="url(#art-track)" stroke-width="1.6"/>
+                    <path d="M181 62c38-11 87 2 135 35 56 38 111 67 197 53"
+                        stroke="#deccff" stroke-opacity=".28" stroke-dasharray="3 5"/>
+                </g>
+
+                <g fill="#e0cbff">
+                    <circle cx="207" cy="64" r="2.2" opacity=".7"/>
+                    <circle cx="238" cy="176" r="2.1" opacity=".82"/>
+                    <circle cx="449" cy="154" r="3.3" opacity=".8"/>
+                    <circle cx="507" cy="83" r="2.6" fill="#bcf0e4"/>
+                    <circle cx="555" cy="135" r="2" opacity=".7"/>
+                    <circle cx="390" cy="195" r="1.5" opacity=".65"/>
+                    <path d="M252 28v10m-5-5h10M516 119v10m-5-5h10" stroke="#d9c6ff" stroke-linecap="round" opacity=".75"/>
+                    <path d="M219 106q2-6 4-8 1 6 7 8-6 1-7 7-2-6-4-7Z" opacity=".85"/>
+                    <path d="M416 197q2-5 4-8 1 6 7 8-6 1-7 7-2-6-4-7Z" opacity=".6"/>
+                </g>
+
+                <g transform="translate(172 130) rotate(-13 32 31)" filter="url(#art-shadow)">
+                    <rect width="64" height="62" rx="15" fill="url(#art-pink)" stroke="#f0d5ff" stroke-opacity=".74"/>
+                    <rect x="5" y="5" width="54" height="52" rx="11" fill="none" stroke="#fff" stroke-opacity=".25"/>
+                    <use href="#art-user" transform="translate(32 30) scale(.55)" fill="#fff0fe"/>
+                </g>
+                <g transform="translate(443 29) rotate(12 33 32)" filter="url(#art-shadow)">
+                    <rect width="66" height="63" rx="15" fill="url(#art-mint)" stroke="#ccfff2" stroke-opacity=".76"/>
+                    <rect x="5" y="5" width="56" height="53" rx="11" fill="none" stroke="#effffa" stroke-opacity=".3"/>
+                    <use href="#art-user" transform="translate(33 30) scale(.57)" fill="#e6fff5"/>
+                </g>
+                <g transform="translate(290 49) rotate(-9 57 59)" filter="url(#art-shadow)">
+                    <rect x="5" y="8" width="115" height="119" rx="25" fill="#271749" stroke="#a88bea" stroke-opacity=".45"/>
+                    <rect width="115" height="119" rx="25" fill="url(#art-violet)" stroke="#dfccff" stroke-opacity=".92"/>
+                    <rect x="7" y="7" width="101" height="105" rx="19" fill="none" stroke="#e4d4ff" stroke-opacity=".42"/>
+                    <circle cx="57.5" cy="53" r="33" fill="#331d68" fill-opacity=".21" stroke="#ede3ff" stroke-opacity=".37"/>
+                    <use href="#art-user" transform="translate(57.5 51) scale(.9)" fill="url(#art-person)"/>
+                    <path d="M44 95h27" stroke="#e8deff" stroke-width="2" stroke-linecap="round" opacity=".65"/>
+                    <circle cx="102" cy="14" r="6.5" fill="#a0f2d7" stroke="#6e54ad" stroke-width="2"/>
+                </g>
+            </svg>
+        </section>
+
+        <dl class="overview" aria-label="사용자 현황">
+            <div class="stat">
+                <dt>전체 사용자</dt>
+                <dd>
+                    <span id="stat-all">—</span>
+                    <span class="stat-symbol" aria-hidden="true"><svg class="icon"><use href="#i-users"/></svg></span>
+                </dd>
+            </div>
+            <div class="stat stat-online">
+                <dt>온라인</dt>
+                <dd>
+                    <span id="stat-online">—</span>
+                    <span class="stat-symbol" aria-hidden="true"><svg class="icon"><use href="#i-online"/></svg></span>
+                </dd>
+            </div>
+            <div class="stat stat-offline">
+                <dt>오프라인</dt>
+                <dd>
+                    <span id="stat-offline">—</span>
+                    <span class="stat-symbol" aria-hidden="true"><svg class="icon"><use href="#i-offline"/></svg></span>
+                </dd>
+            </div>
+        </dl>
+
+        <section class="directory" id="members" aria-labelledby="directory-title">
+            <div class="directory-top">
+                <div class="directory-heading">
+                    <span class="directory-mark" aria-hidden="true"><svg class="icon"><use href="#i-directory"/></svg></span>
+                    <div>
+                        <h2 id="directory-title">멤버 디렉터리</h2>
+                        <p>이름과 이메일로 멤버를 찾아보세요.</p>
+                    </div>
+                </div>
+                <div class="tools">
+                    <label class="search-box">
+                        <svg class="icon" aria-hidden="true"><use href="#i-search"/></svg>
+                        <input id="search" type="search" placeholder="이름 또는 이메일 검색"
+                            aria-label="이름 또는 이메일 검색" aria-controls="member-rows" autocomplete="off">
+                    </label>
+                    <button class="action" id="reload" type="button">
+                        <svg class="icon" aria-hidden="true"><use href="#i-refresh"/></svg>
+                        <span>새로고침</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="directory-controls">
+                <div class="filters" role="group" aria-label="접속 상태 필터">
+                    <button class="filter" type="button" data-filter="all" aria-pressed="true" aria-controls="member-rows">전체</button>
+                    <button class="filter" type="button" data-filter="online" aria-pressed="false" aria-controls="member-rows">온라인</button>
+                    <button class="filter" type="button" data-filter="offline" aria-pressed="false" aria-controls="member-rows">오프라인</button>
+                </div>
+                <p class="results" id="results" aria-live="polite"></p>
+            </div>
+
+            <p class="notice" id="notice" role="alert" hidden>갱신에 실패했습니다. 마지막으로 불러온 목록을 표시하고 있습니다.</p>
+
+            <table class="member-table" id="member-table" aria-label="멤버 목록" aria-busy="true">
+                <thead>
+                    <tr>
+                        <th scope="col">사용자</th>
+                        <th class="joined-cell" scope="col">가입일</th>
+                        <th class="status-cell" scope="col">접속 상태</th>
+                    </tr>
+                </thead>
+                <tbody id="member-rows"></tbody>
+            </table>
+            <noscript><p class="notice">사용자 목록을 보려면 브라우저에서 JavaScript를 켜 주세요.</p></noscript>
+
+            <div class="directory-footer" id="updated" hidden>
+                <svg class="icon" aria-hidden="true"><use href="#i-offline"/></svg>
+                최근 갱신 <time id="updated-at"></time>
+            </div>
+        </section>
+
+        <footer class="page-footer">
+            <span class="footer-name">DISCODEIT</span>
+            <span>스프린트 미션 4</span>
+        </footer>
+    </main>
+
+    <template id="member-template">
+        <tr class="member-row">
+            <td>
+                <div class="identity">
+                    <span class="avatar" aria-hidden="true"></span>
+                    <div class="member-text">
+                        <strong class="member-name"></strong>
+                        <span class="member-email"></span>
+                    </div>
+                </div>
+            </td>
+            <td class="joined-cell member-date"><time></time></td>
+            <td class="status-cell">
+                <span class="status-badge"><span class="status-dot" aria-hidden="true"></span><span class="status-label"></span></span>
+            </td>
+        </tr>
+    </template>
+
+    <template id="skeleton-template">
+        <tr class="member-row" aria-hidden="true">
+            <td><div class="identity">
+                <span class="skeleton face"></span>
+                <div class="skeleton-text"><span class="skeleton"></span><span class="skeleton short"></span></div>
+            </div></td>
+            <td class="joined-cell"><span class="skeleton short"></span></td>
+            <td class="status-cell"><span class="skeleton pill"></span></td>
+        </tr>
+    </template>
+
+    <template id="state-template">
+        <tr>
+            <td colspan="3">
+                <div class="state">
+                    <span class="state-icon" aria-hidden="true"><svg class="icon"><use/></svg></span>
+                    <p class="state-title"></p>
+                    <p class="state-detail"></p>
+                    <button class="action" type="button" hidden></button>
+                </div>
+            </td>
+        </tr>
+    </template>
+
+    <script>
+        "use strict";
+
+        const endpoints = {
+            users: new URL("./api/users/findAll", location.href),
+            binaryContent: new URL("./api/binary-contents/find", location.href)
+        };
+
+        const rows = document.getElementById("member-rows");
+        const table = document.getElementById("member-table");
+        const search = document.getElementById("search");
+        const reload = document.getElementById("reload");
+        const results = document.getElementById("results");
+        const notice = document.getElementById("notice");
+        const connection = document.getElementById("connection");
+        const connectionText = document.getElementById("connection-text");
+        const updated = document.getElementById("updated");
+        const updatedAt = document.getElementById("updated-at");
+        const filters = Array.from(document.querySelectorAll(".filter"));
+        const memberTemplate = document.getElementById("member-template");
+        const skeletonTemplate = document.getElementById("skeleton-template");
+        const stateTemplate = document.getElementById("state-template");
+        const statAll = document.getElementById("stat-all");
+        const statOnline = document.getElementById("stat-online");
+        const statOffline = document.getElementById("stat-offline");
+
+        const number = new Intl.NumberFormat("ko-KR");
+        const date = new Intl.DateTimeFormat("ko-KR", {
+            year: "numeric", month: "2-digit", day: "2-digit"
+        });
+        const clock = new Intl.DateTimeFormat("ko-KR", {
+            hour: "2-digit", minute: "2-digit", second: "2-digit", hourCycle: "h23"
+        });
+
+        const profiles = new Map();
+        let users = [];
+        let filter = "all";
+        let hasLoaded = false;
+        let isLoading = false;
+
+        async function fetchJson(url) {
+            const response = await fetch(url, {
+                headers: { Accept: "application/json" },
+                cache: "no-store",
+                signal: AbortSignal.timeout(10000)
+            });
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return response.json();
+        }
+
+        async function fetchProfile(id) {
+            const url = new URL(endpoints.binaryContent);
+            url.searchParams.set("binaryContentId", id);
+            try {
+                const { contentType, bytes } = await fetchJson(url);
+                if (!/^image\/[a-z0-9.+-]+$/i.test(contentType) || typeof bytes !== "string" || !bytes) {
+                    return null;
+                }
+                return `data:${contentType};base64,${bytes}`;
+            } catch {
+                return null;
+            }
+        }
+
+        async function displayProfile(avatar, id) {
+            if (!profiles.has(id)) profiles.set(id, fetchProfile(id));
+            const source = await profiles.get(id);
+            if (!source || !avatar.isConnected) return;
+
+            const photo = document.createElement("img");
+            photo.alt = "";
+            photo.src = source;
+            try {
+                await photo.decode();
+                if (avatar.isConnected) avatar.replaceChildren(photo);
+            } catch {
+                // The initials remain visible when the image cannot be decoded.
+            }
+        }
+
+        function getInitials(name) {
+            const words = name.match(/[\p{L}\p{N}]+/gu) || [];
+            if (words.length > 1) {
+                return words.slice(0, 2).map(word => Array.from(word)[0]).join("").toLocaleUpperCase("ko-KR");
+            }
+            return Array.from(words[0] || "?").slice(0, 2).join("").toLocaleUpperCase("ko-KR");
+        }
+
+        function getTint(name) {
+            let hash = 0;
+            for (const character of name) {
+                hash = (hash * 31 + character.codePointAt(0)) >>> 0;
+            }
+            return String(hash % 4);
+        }
+
+        function createMemberRow(user) {
+            const row = memberTemplate.content.firstElementChild.cloneNode(true);
+            const username = user.username?.trim() || "이름 없음";
+            const email = user.email?.trim() || "이메일 없음";
+            const nameNode = row.querySelector(".member-name");
+            const emailNode = row.querySelector(".member-email");
+            const avatar = row.querySelector(".avatar");
+            const joined = row.querySelector("time");
+            const badge = row.querySelector(".status-badge");
+
+            nameNode.textContent = username;
+            nameNode.title = username;
+            emailNode.textContent = email;
+            emailNode.title = email;
+            avatar.textContent = getInitials(username);
+            avatar.dataset.tint = getTint(username);
+
+            const created = typeof user.createdAt === "string" ? new Date(user.createdAt) : null;
+            if (created && Number.isFinite(created.getTime())) {
+                joined.dateTime = created.toISOString();
+                joined.textContent = date.format(created);
+            } else {
+                joined.replaceWith("—");
+            }
+
+            badge.dataset.online = String(user.online === true);
+            badge.querySelector(".status-label").textContent = user.online === true ? "온라인" : "오프라인";
+            return { row, avatar };
+        }
+
+        function showState(icon, title, detail, action) {
+            const row = stateTemplate.content.firstElementChild.cloneNode(true);
+            row.querySelector("use").setAttribute("href", `#i-${icon}`);
+            row.querySelector(".state-title").textContent = title;
+            row.querySelector(".state-detail").textContent = detail;
+
+            if (action) {
+                const button = row.querySelector("button");
+                button.textContent = action.label;
+                button.addEventListener("click", action.run);
+                button.hidden = false;
+            }
+
+            rows.replaceChildren(row);
+        }
+
+        function searchable(value) {
+            return (value || "").normalize("NFKC").toLocaleLowerCase("ko-KR");
+        }
+
+        function renderMembers() {
+            if (!hasLoaded) return;
+            const query = searchable(search.value).trim();
+            const visibleUsers = users.filter(user => {
+                const status = user.online === true ? "online" : "offline";
+                const matchesFilter = filter === "all" || filter === status;
+                return matchesFilter && (searchable(user.username).includes(query) || searchable(user.email).includes(query));
+            });
+
+            results.textContent = visibleUsers.length === users.length
+                ? `${number.format(users.length)}명 표시`
+                : `전체 ${number.format(users.length)}명 중 ${number.format(visibleUsers.length)}명`;
+
+            if (!users.length) {
+                showState("users", "등록된 사용자가 없습니다", "사용자가 등록되면 이곳에 표시됩니다.");
+                return;
+            }
+
+            if (!visibleUsers.length) {
+                showState("search", "조건에 맞는 멤버가 없습니다", "검색어를 바꾸거나 접속 상태 필터를 확인해 보세요.", {
+                    label: "검색 및 필터 초기화",
+                    run: () => {
+                        search.value = "";
+                        selectFilter("all");
+                        search.focus();
+                    }
+                });
+                return;
+            }
+
+            const fragment = document.createDocumentFragment();
+            for (const user of visibleUsers) {
+                const { row, avatar } = createMemberRow(user);
+                fragment.append(row);
+                if (user.profileId) displayProfile(avatar, user.profileId);
+            }
+            rows.replaceChildren(fragment);
+        }
+
+        function selectFilter(value) {
+            filter = value;
+            for (const button of filters) {
+                button.setAttribute("aria-pressed", String(button.dataset.filter === filter));
+            }
+            renderMembers();
+        }
+
+        function setConnection(state, label) {
+            connection.dataset.state = state;
+            connectionText.textContent = label;
+        }
+
+        async function loadMembers() {
+            if (isLoading) return;
+            isLoading = true;
+            reload.setAttribute("aria-disabled", "true");
+            table.setAttribute("aria-busy", "true");
+            setConnection("loading", "서버 연결 중");
+            notice.hidden = true;
+
+            if (!hasLoaded) {
+                const skeletons = Array.from({ length: 3 }, () => skeletonTemplate.content.cloneNode(true));
+                rows.replaceChildren(...skeletons);
+            }
+
+            try {
+                const data = await fetchJson(endpoints.users);
+                if (!Array.isArray(data) || data.some(user => !user || typeof user !== "object"
+                    || [user.username, user.email].some(value => value != null && typeof value !== "string"))) {
+                    throw new Error("사용자 목록 응답 형식이 올바르지 않습니다.");
+                }
+
+                users = data;
+                profiles.clear();
+                hasLoaded = true;
+                const online = users.filter(user => user.online === true).length;
+                statAll.textContent = number.format(users.length);
+                statOnline.textContent = number.format(online);
+                statOffline.textContent = number.format(users.length - online);
+                renderMembers();
+
+                const now = new Date();
+                updatedAt.dateTime = now.toISOString();
+                updatedAt.textContent = clock.format(now);
+                updated.hidden = false;
+                setConnection("ready", "서버 연결됨");
+            } catch {
+                setConnection("error", "서버 연결 확인");
+                if (hasLoaded) {
+                    notice.hidden = false;
+                } else {
+                    const detail = location.protocol === "file:"
+                        ? "Spring Boot 서버에서 이 페이지를 열고 다시 시도해 주세요."
+                        : "서버 연결을 확인한 뒤 다시 시도해 주세요.";
+                    showState("alert", "사용자 목록을 불러오지 못했습니다", detail, {
+                        label: "다시 시도",
+                        run: () => {
+                            reload.focus();
+                            loadMembers();
+                        }
+                    });
+                }
+            } finally {
+                isLoading = false;
+                reload.removeAttribute("aria-disabled");
+                table.setAttribute("aria-busy", "false");
+            }
+        }
+
+        search.addEventListener("input", renderMembers);
+        for (const button of filters) {
+            button.addEventListener("click", () => selectFilter(button.dataset.filter));
+        }
+        reload.addEventListener("click", loadMembers);
+        loadMembers();
+    </script>
+</body>
+</html>
