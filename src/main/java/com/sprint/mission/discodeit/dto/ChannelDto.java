@@ -8,10 +8,11 @@ import java.util.UUID;
 
 public record ChannelDto(UUID id,
                          ChannelType type,
-                         String channelName,
+                         String name,
                          String description,
-                         Set<UUID> memberIds,
+                         Set<UUID> participantIds,
                          Instant createdAt,
                          Instant updatedAt,
                          Instant lastMessageAt
-) {}
+) {
+}

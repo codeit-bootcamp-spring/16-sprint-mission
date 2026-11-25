@@ -1,69 +1,108 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.UserDto;
+import com.sprint.mission.discodeit.dto.request.users.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
+import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
+import com.sprint.mission.discodeit.service.UserStatusService;
 
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import io.swagger.v3.oas.annotations.tags.Tag; // API 그룹 이름과 설명
+import io.swagger.v3.oas.annotations.Operation; // 개별 API의 기능 설명
+import io.swagger.v3.oas.annotations.Parameter; // PathVariable 등의 파라미터 설명
+import io.swagger.v3.oas.annotations.responses.ApiResponse; // 개별 HTTP 응답 코드 설명
+import io.swagger.v3.oas.annotations.media.Schema;
+
+import com.sprint.mission.discodeit.annotation.swagger.user.UserCreateDocs;
+import com.sprint.mission.discodeit.annotation.swagger.user.UserDeleteDocs;
+import com.sprint.mission.discodeit.annotation.swagger.user.UserStatusUpdateDocs;
+import com.sprint.mission.discodeit.annotation.swagger.user.UserUpdateDocs;
+
 import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/user")
+@RequestMapping({"/api/users"})
 @RequiredArgsConstructor
+@Tag(name = "User", description = "User API")
 public class UserController {
 
     private final UserService userService;
+    private final UserStatusService userStatusService;
 
-    // 사용자 등록(POST)
+    @Operation(summary = "전체 User 목록 조회")
+    @ApiResponse(
+            responseCode = "200", description = "User 목록 조회 성공"
+    )
+    @RequestMapping(method = RequestMethod.GET)
+    public ResponseEntity<List<UserDto>> findAll() {
+        return ResponseEntity.ok(userService.readAllUser());
+    }
+
+    @UserCreateDocs
     @RequestMapping(
             method = RequestMethod.POST,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public UserDto postUser(
-            @Valid @RequestPart("request") UserCreateRequest request,
+    public ResponseEntity<UserDto> create(
+            @Valid @RequestPart("userCreateRequest") UserCreateRequest request,
+            @Parameter(
+                    description = "User 프로필 이미지",
+                    schema = @Schema(type = "string", format = "binary")
+            )
             @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
-        return userService.createUser(request, profile);
+        UserDto user = userService.createUser(request, profile);
+        return ResponseEntity.status(HttpStatus.CREATED).body(user);
     }
 
-    // 사용자 단건 조회(GET)
-    @RequestMapping(value = "/{userId}", method = RequestMethod.GET)
-    public ResponseEntity<UserDto> getUser(@PathVariable UUID userId) {
-        return ResponseEntity.ok(userService.readUser(userId));
-    }
-
-    // 모든 사용자 조회(GET)
-    // 기존 코드는 사용자 목록 데이터만 반환하며, HTTP 응답은 Spring이 기본 처리한 반면,
-    // 변경 코드는 ResponseEntity를 사용하여 HTTP 상태 코드와 헤더, 응답 데이터를 직접 제어한다.
-    @RequestMapping(value = "/findAll", method = RequestMethod.GET)
-    public ResponseEntity<List<UserDto>> getAllUsers() {
-        return ResponseEntity.ok(userService.readAllUser());
-    }
-
-    // 사용자 정보 수정(PUT)
-    // 수정할 때 본인을 제외한 다른 유저의 이름이나 이메일을 수정할 경우 "409" 가 발생한다.
+    @UserUpdateDocs
     @RequestMapping(
-            method = RequestMethod.PUT,
+            value = "/{userId}",
+            method = RequestMethod.PATCH,
             consumes = MediaType.MULTIPART_FORM_DATA_VALUE
     )
-    public UserDto putUser(
-            @Valid @RequestPart("request") UserUpdateRequest request,
+    public UserDto update(
+            @Parameter(description = "수정할 User ID", required = true)
+            @PathVariable UUID userId,
+            @Valid @RequestPart("userUpdateRequest") UserUpdateRequest request,
+            @Parameter(description = "수정할 User 프로필 이미지")
             @RequestPart(value = "profile", required = false) MultipartFile profile) {
 
-        return userService.updateUser(request, profile);
+        return userService.updateUser(userId, request, profile);
     }
 
-    // 사용자 삭제(DELETE)
+    @UserDeleteDocs
     @RequestMapping(value = "/{userId}", method = RequestMethod.DELETE)
-    public void deleteUser(@PathVariable UUID userId) {
+    public ResponseEntity<Void> delete(
+            @Parameter(description = "삭제할 User ID", required = true)
+            @PathVariable UUID userId) {
+
         userService.deleteUser(userId);
+        return ResponseEntity.noContent().build();
+    }
+
+    @UserStatusUpdateDocs
+    @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
+    public UserStatus updateUserStatusByUserId(
+            @Parameter(
+                    description = "상태를 변경할 User ID", required = true
+            )
+            @PathVariable UUID userId,
+            @Valid @RequestBody UserStatusUpdateRequest request) {
+
+        return userStatusService.updateByUserId(
+                userId,
+                request.newLastActiveAt());
     }
 }

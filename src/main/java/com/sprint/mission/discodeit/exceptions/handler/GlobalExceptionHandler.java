@@ -1,10 +1,13 @@
 package com.sprint.mission.discodeit.exceptions.handler;
 
 import com.sprint.mission.discodeit.exceptions.*;
+
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+
+import java.util.Map;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -43,10 +46,20 @@ public class GlobalExceptionHandler {
 
     // 유효한 인증 정보가 없어 요청이 거부된 상태(상태코드 : 401)
     @ExceptionHandler(AuthenticationFailedException.class)
-    public ResponseEntity<String> handleAuthenticationFailedException(AuthenticationFailedException afException) {
+    public ResponseEntity<Map<String, String>> handleAuthenticationFailedException(AuthenticationFailedException afException) {
         return ResponseEntity
-                .status(HttpStatus.UNAUTHORIZED)
-                .body(afException.getMessage());
+                .status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("message", afException.getMessage()));
+    }
+
+    // 로그인 사용자를 찾을 수 없을 때 처리(상태코드 : 404)
+    @ExceptionHandler(AuthenticationUserNotFoundException.class)
+    public ResponseEntity<Map<String, String>> handleAuthenticationUserNotFoundException(
+            AuthenticationUserNotFoundException aunfException) {
+
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(Map.of("message", aunfException.getMessage()));
     }
 
     // 파일 읽는 과정에서 서버 내부 문제발생할 때 처리(상태코드 : 500)

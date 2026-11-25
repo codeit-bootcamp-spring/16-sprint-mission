@@ -10,7 +10,7 @@ import java.util.UUID;
 // Message 클래스는 BaseEntity 클래스로부터 상속한다.
 @Getter // Lombok을 통해 모든 필드의 Getter 메서드를 자동 생성한다.
 public class Message extends BaseEntity {
-    // 메시지의 필드 선언.
+
     private String content;
     private final UUID userId;
     private final UUID channelId;
@@ -20,14 +20,13 @@ public class Message extends BaseEntity {
                    UUID channelId, List<UUID> attachmentIds) {
         super(); // 부모 클래스 생성자에서 ID와 생성·수정 시각을 초기화한다.
 
-        // 메시지 내용을 적을 때 null값 이거나 공백일때 예외 처리하는 검사입니다.
-        if (content == null || content.isBlank()){
-            throw new IllegalArgumentException("메시지 내용을 적어주세요.");
-        }
-        if (userId == null){
+        // (제거) 메시지 내용이 null이거나 공백일 때 예외를 발생시키는 검사
+        // 이미지 첨부만으로도 메시지를 생성할 수 있어야 하므로 제거한다.
+
+        if (userId == null) {
             throw new IllegalArgumentException("작성자 ID는 필수입니다.");
         }
-        if (channelId == null){
+        if (channelId == null) {
             throw new IllegalArgumentException("채널 ID는 필수입니다.");
         }
 
@@ -38,8 +37,7 @@ public class Message extends BaseEntity {
 
         // 첨부파일 식별자 목록을 복사하여 저장한다.
         this.attachmentIds = attachmentIds == null
-                ? new ArrayList<>()
-                : new ArrayList<>(attachmentIds);
+                ? new ArrayList<>() : new ArrayList<>(attachmentIds);
     }
 
     // 첨부파일 ID 목록을 외부에서 직접 변경하지 못하도록 한다.
@@ -48,9 +46,9 @@ public class Message extends BaseEntity {
     }
 
     // 전달받은 메시지 내용으로 현재 객체의 내용을 변경한다.
-    public void changeContent(String content){
+    public void changeContent(String content) {
         // 메시지 내용이 null 이거나 공백이면 예외 처리한다.
-        if(content == null || content.isBlank()){
+        if (content == null || content.isBlank()) {
             throw new IllegalArgumentException("메시지 내용을 적어주세요");
         }
         this.content = content;

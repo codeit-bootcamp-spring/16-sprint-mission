@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service;
 import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
+
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public interface UserService {
     List<UserDto> readAllUser();
 
     // 수정 기능(유저 정보 및 프로필 이미지 수정)
-    UserDto updateUser(UserUpdateRequest request, MultipartFile profile);
+    UserDto updateUser(UUID userId, UserUpdateRequest request, MultipartFile profile);
 
     // 삭제 기능(유저 id를 찾아서 관련 데이터와 함께 삭제)
     void deleteUser(UUID id);

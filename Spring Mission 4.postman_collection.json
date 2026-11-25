@@ -1,0 +1,650 @@
+{
+  "info": {
+    "_postman_id": "19bf63f2-ab42-4612-b61b-a500727a1473",
+    "name": "Spring Mission 4",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "58172046",
+    "_collection_link": "https://go.postman.co/collection/58172046-19bf63f2-ab42-4612-b61b-a500727a1473?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "사용자 관리(User)",
+      "item": [
+        {
+          "name": "사용자 등록",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userCreateRequest",
+                  "value": "{\n  \"username\": \"짱구\",\n  \"email\": \"JJang@example.com\",\n  \"password\": \"J1q2w3e4r\"\n}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "profile",
+                  "type": "file",
+                  "src": [
+                    "/Users/codeit/Documents/ForSubmission/default-avatar.png"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "사용자 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "사용자 정보 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "userUpdateRequest",
+                  "value": "{\n  \"newUsername\": \"코난\",\n  \"newEmail\": \"Conan@example.com\",\n  \"newPassword\": \"Conan1q2w3e4r\"\n}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "profile",
+                  "type": "file",
+                  "src": [
+                    "/Users/codeit/Documents/ForSubmission/default-avatar.png"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users/710d75ef-81d1-4651-a6f1-4784e73ed86a",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "710d75ef-81d1-4651-a6f1-4784e73ed86a"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "사용자 정보 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users/685344aa-1c28-4b19-a3ad-9c120a2754bb",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "685344aa-1c28-4b19-a3ad-9c120a2754bb"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "사용자 상태 관리(UserStatus)",
+      "item": [
+        {
+          "name": "사용자 온라인 상태 업데이트",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"newLastActiveAt\": \"2026-11-17T14:50:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/users/710d75ef-81d1-4651-a6f1-4784e73ed86a/userStatus",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "users",
+                "710d75ef-81d1-4651-a6f1-4784e73ed86a",
+                "userStatus"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "권한 관리(Auth)",
+      "item": [
+        {
+          "name": "사용자 로그인",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"username\": \"코난\",\n    \"password\": \"Conan1q2w3e4r\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/auth/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "auth",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "채널 관리(Channel)",
+      "item": [
+        {
+          "name": "공개 채널 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"테스트 공개 채널\",\n    \"description\": \"공개 채널 테스트입니다\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/channels/public",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "public"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "비공개 채널 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"participantIds\": [\n        \"710d75ef-81d1-4651-a6f1-4784e73ed86a\",\n        \"0bdab14c-cb83-44e4-b51e-97db11bf84e4\"\n    ]\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/channels/private",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "private"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "특정 사용자 및 채널 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/channels?userId=710d75ef-81d1-4651-a6f1-4784e73ed86a",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "710d75ef-81d1-4651-a6f1-4784e73ed86a"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "공개 채널 정보 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newName\": \"자바 스프링 심화 스터디(폐쇄 예정)\",\n    \"newDescription\": \"추후에 폐쇄될 에정이니 미리 퇴장하시기 바랍니다.\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/channels/92355328-c75a-4ff2-8430-7baeeefd61b3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "92355328-c75a-4ff2-8430-7baeeefd61b3"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "채널 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/channels/92355328-c75a-4ff2-8430-7baeeefd61b3",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "channels",
+                "92355328-c75a-4ff2-8430-7baeeefd61b3"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "메시지 관리(Message)",
+      "item": [
+        {
+          "name": "메시지 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "messageCreateRequest",
+                  "value": "{\n  \"content\": \" 두번째, 메시지를 작성 해보았어요, 테스트 채널에서 메시지를 한번 남겨보았어요~ 첨부파일은 빈파일이에요 \",\n  \"authorId\": \"710d75ef-81d1-4651-a6f1-4784e73ed86a\",\n  \"channelId\": \"b62203b1-2468-4bef-bbec-ff71e26ecea0\"\n}",
+                  "type": "text",
+                  "contentType": "application/json"
+                },
+                {
+                  "key": "attachments",
+                  "type": "file",
+                  "src": [
+                    "/Users/codeit/Documents/ForSubmission/empty.txt"
+                  ]
+                }
+              ]
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/messages",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "특정 채널 및 메시지 목록 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/messages?channelId=b62203b1-2468-4bef-bbec-ff71e26ecea0",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages"
+              ],
+              "query": [
+                {
+                  "key": "channelId",
+                  "value": "b62203b1-2468-4bef-bbec-ff71e26ecea0"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "메시지 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newContent\": \"두 번째 메시지 한번 수정을 해보겠어요. 첨부파일은 없어요\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/messages/fb0ffc83-9fe1-4216-ba7d-e0f55a2175c7",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages",
+                "fb0ffc83-9fe1-4216-ba7d-e0f55a2175c7"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "메시지 삭제",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/messages/c4306acf-6802-3078-b881-9262eadc58e0",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "messages",
+                "c4306acf-6802-3078-b881-9262eadc58e0"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "메시지 수신 정보 관리(ReadStatus)",
+      "item": [
+        {
+          "name": "특정 채널의 메시지 수신 정보 생성",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"userId\": \"710d75ef-81d1-4651-a6f1-4784e73ed86a\",\n    \"channelId\": \"b62203b1-2468-4bef-bbec-ff71e26ecea0\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/readStatuses",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "readStatuses"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "특정 채널의 메시지 수신 정보 조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/readStatuses?userId=710d75ef-81d1-4651-a6f1-4784e73ed86a",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "readStatuses"
+              ],
+              "query": [
+                {
+                  "key": "userId",
+                  "value": "710d75ef-81d1-4651-a6f1-4784e73ed86a"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "특정 채널의 메시지 수신 정보 수정",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"newLastReadAt\": \"2026-11-17T15:05:00Z\"\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/readStatuses/105f99b0-6e81-44cb-887c-480a1653f0e0",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "readStatuses",
+                "105f99b0-6e81-44cb-887c-480a1653f0e0"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "첨부 파일 관리(BinaryContent)",
+      "item": [
+        {
+          "name": "첨부 파일 단건조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:8080/api/binaryContents/9c91f25c-85f1-3784-89ab-0bb5e5ee5b8b",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "binaryContents",
+                "9c91f25c-85f1-3784-89ab-0bb5e5ee5b8b"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "첨부 파일 다건조회",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:8080/api/binaryContents?binaryContentIds=0341fc33-d510-401b-9c93-b9cf5d804a18",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "8080",
+              "path": [
+                "api",
+                "binaryContents"
+              ],
+              "query": [
+                {
+                  "key": "binaryContentIds",
+                  "value": "0341fc33-d510-401b-9c93-b9cf5d804a18"
+                },
+                {
+                  "key": "binaryContentIds",
+                  "value": "b3f5a71b-49bc-466c-bb20-5daf818ea3a0",
+                  "disabled": true
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
