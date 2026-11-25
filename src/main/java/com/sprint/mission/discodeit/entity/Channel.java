@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.entity;
 
-import com.sprint.mission.discodeit.dto.channel.ChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.channel.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.channel.PublicChannelCreateRequest;
 import lombok.Getter;
@@ -20,13 +19,22 @@ public class Channel implements Serializable {
     private String name;
     private String description;
 
-    public Channel(ChannelCreateRequest request) {
+    public Channel(PublicChannelCreateRequest request) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
-        this.type = request.type();
+        this.type = ChannelType.PUBLIC;
         this.name = request.name();
         this.description = request.description();
+    }
+
+    public Channel(PrivateChannelCreateRequest request) {
+        this.id = UUID.randomUUID();
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+        this.type = ChannelType.PRIVATE;
+        this.name = null;
+        this.description = null;
     }
 
     public void update(String newName, String newDescription) {

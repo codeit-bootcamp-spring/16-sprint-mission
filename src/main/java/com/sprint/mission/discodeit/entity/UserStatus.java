@@ -14,23 +14,25 @@ public class UserStatus implements Serializable {
     private final UUID userId;
     private final Instant createdAt;
     private Instant updatedAt;
+    private Instant lastActiveAt;
+    private boolean isOnline;
 
     public UserStatus(UUID userId) {
         this.id =  UUID.randomUUID();
         this.userId = userId;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
+        this.isOnline = true;
     }
 
     public void update() {
         this.updatedAt = Instant.now();
+        this.lastActiveAt = this.updatedAt;
     }
 
-    public boolean isOnline() {
+    public void makeOnline() {
         Duration duration = Duration.between(this.updatedAt, Instant.now());
-        boolean isOnline = !duration.isNegative()
+        this.isOnline = !duration.isNegative()
                 && duration.compareTo(Duration.ofMinutes(5)) <= 0;
-
-        return isOnline;
     }
 }

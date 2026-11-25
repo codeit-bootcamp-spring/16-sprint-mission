@@ -4,7 +4,6 @@ import com.sprint.mission.discodeit.dto.userstatus.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusListResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusResponse;
 import com.sprint.mission.discodeit.dto.userstatus.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.entity.User;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exception.DuplicateResourceException;
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
@@ -17,8 +16,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -171,6 +168,7 @@ public class BasicUserStatusService implements UserStatusService {
                                 ));
 
         userStatus.update();
+        userStatus.makeOnline();
         this.userStatusRepository.save(userStatus);
         // 이 클래스 내부에 정의된 매퍼를 더이상 사용하지 않고, 외부의 매퍼 클래스의 매퍼를 사용합니다.
         return this.userStatusMapper.toUserStatusResponse(userStatus);

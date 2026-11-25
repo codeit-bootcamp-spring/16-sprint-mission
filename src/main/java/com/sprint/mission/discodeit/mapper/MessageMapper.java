@@ -8,8 +8,10 @@ import org.springframework.stereotype.Component;
 public class MessageMapper {
     public MessageResponse toMessageResponse(Message message) {
         return new MessageResponse(
-                message.getContent(),
                 message.getId(),
+                message.getCreatedAt(),
+                message.getUpdatedAt(),
+                message.getContent(),
                 message.getChannelId(),
                 message.getAuthorId(),
                 message.getAttachmentIds()

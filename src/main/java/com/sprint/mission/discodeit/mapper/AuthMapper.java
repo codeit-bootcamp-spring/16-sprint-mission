@@ -9,7 +9,11 @@ public class AuthMapper {
     public LoginResponse toLoginResponse(User user) {
         return new LoginResponse(
                 user.getId(),
-                user.getUsername()
+                user.getCreatedAt(),
+                user.getUpdatedAt(),
+                user.getUsername(),
+                user.getEmail(),
+                user.getProfileId()
         );
     }
 }

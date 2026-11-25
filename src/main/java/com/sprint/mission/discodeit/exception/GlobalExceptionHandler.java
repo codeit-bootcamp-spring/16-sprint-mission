@@ -11,9 +11,13 @@ import com.sprint.mission.discodeit.exception.readstatus.ReadStatusNotFoundExcep
 import com.sprint.mission.discodeit.exception.user.UserNotFoundException;
 import com.sprint.mission.discodeit.exception.userstatus.UserStatusNotFoundException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -26,7 +30,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    // @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleDuplicateResourceException(DuplicateResourceException exception) {
         return exception.getMessage();
     }
@@ -56,7 +61,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(PrivateChannelModificationNotAllowedException.class)
-    @ResponseStatus(HttpStatus.CONFLICT)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handlePrivateChannelModificationNotAllowedException(PrivateChannelModificationNotAllowedException exception) {
         return exception.getMessage();
     }
@@ -89,5 +94,14 @@ public class GlobalExceptionHandler {
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public String handleBinaryContentNotFoundException(BinaryContentNotFoundException exception) {
         return exception.getMessage();
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class)
+    public ResponseEntity<String> handleValidationException(
+            MethodArgumentNotValidException exception
+    ) {
+        return ResponseEntity.badRequest()
+                .contentType(MediaType.TEXT_PLAIN)
+                .body("요청값이 올바르지 않습니다.");
     }
 }

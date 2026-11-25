@@ -1,9 +1,14 @@
 package com.sprint.mission.discodeit.dto.authentication;
 
+import java.time.Instant;
 import java.util.UUID;
 
 public record LoginResponse(
-        UUID userId,
-        String userName
+        UUID id,
+        Instant createdAt,
+        Instant updatedAt,
+        String username,
+        String email,
+        UUID profileId
 ) {
 }
