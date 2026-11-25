@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
-import com.sprint.mission.discodeit.dto.request.CreateMessageRequest;
+import com.sprint.mission.discodeit.dto.request.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.request.UpdateMessageRequest;
 import com.sprint.mission.discodeit.dto.response.MessageResponse;
 import com.sprint.mission.discodeit.entity.BinaryContent;
@@ -28,7 +28,7 @@ public class BasicMessageService implements MessageService {
     private final BinaryContentRepository binaryContentRepository;
 
     @Override
-    public MessageResponse create(CreateMessageRequest request) {
+    public MessageResponse create(List<BinaryContentRequest> binaryContents, MessageCreateRequest request) {
         if (!channelRepository.existsById(request.channelId())) {
             throw new NoSuchElementException("해당 id의 채널이 없음");
         }
@@ -38,7 +38,7 @@ public class BasicMessageService implements MessageService {
         }
 
         // 첨부파일이 없으면 빈 리스트
-        List<UUID> attachmentIds = Optional.ofNullable(request.files())
+        List<UUID> attachmentIds = Optional.ofNullable(binaryContents)
                 .orElse(List.of())
                 .stream()
                 .map(this::createBinaryContent)
@@ -78,7 +78,7 @@ public class BasicMessageService implements MessageService {
         Message message = messageRepository.findById(messageId)
                 .orElseThrow(() -> new NoSuchElementException("해당 id를 가진 메시지가 없음"));
 
-        message.update(request.content());
+        message.update(request.newContent());
         messageRepository.save(message);
         return MessageResponse.from(message);
     }

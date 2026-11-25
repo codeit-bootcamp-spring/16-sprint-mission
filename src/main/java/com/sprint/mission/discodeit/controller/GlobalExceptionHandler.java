@@ -30,7 +30,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<ErrorResponse> handleConflict(
             IllegalStateException e, HttpServletRequest request) {
-        return error(HttpStatus.CONFLICT, e.getMessage(), request);
+        return error(HttpStatus.BAD_REQUEST, e.getMessage(), request);
     }
 
     @ExceptionHandler({IOException.class, UncheckedIOException.class})

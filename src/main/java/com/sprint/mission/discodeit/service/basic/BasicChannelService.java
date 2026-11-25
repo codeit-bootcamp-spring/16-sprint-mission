@@ -3,7 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.request.UpdateChannelRequest;
 import com.sprint.mission.discodeit.dto.request.CreatePrivateChannelRequest;
 import com.sprint.mission.discodeit.dto.request.CreatePublicChannelRequest;
-import com.sprint.mission.discodeit.dto.response.CreatePrivateChannelResponse;
+import com.sprint.mission.discodeit.dto.response.PrivateChannelResponse;
 import com.sprint.mission.discodeit.dto.response.ChannelResponse;
 import com.sprint.mission.discodeit.dto.response.FindChannelResponse;
 import com.sprint.mission.discodeit.entity.*;
@@ -32,8 +32,8 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public CreatePrivateChannelResponse createPrivateChannel(CreatePrivateChannelRequest request) {
-        List<UUID> requestedIds = request.userList();
+    public PrivateChannelResponse createPrivateChannel(CreatePrivateChannelRequest request) {
+        List<UUID> requestedIds = request.participantIds();
         if (requestedIds == null || requestedIds.isEmpty()
                 || requestedIds.stream().anyMatch(Objects::isNull)) {
             throw new IllegalArgumentException("유효한 참여자가 필요합니다.");
@@ -59,7 +59,7 @@ public class BasicChannelService implements ChannelService {
             readStatusRepository.save(new ReadStatus(userUUID, channel.getId()));
         }
 
-        return new CreatePrivateChannelResponse(channel.getId(), channel.getType());
+        return PrivateChannelResponse.from(channel);
     }
 
     @Override
@@ -97,8 +97,8 @@ public class BasicChannelService implements ChannelService {
     }
 
     @Override
-    public ChannelResponse update(UpdateChannelRequest request) {
-        Channel channel = channelRepository.findById(request.id())
+    public ChannelResponse update(UUID channelId, UpdateChannelRequest request) {
+        Channel channel = channelRepository.findById(channelId)
                 .orElseThrow(() -> new NoSuchElementException("해당 id를 가진 채널이 없음"));
 
         if (channel.getType() == ChannelType.PRIVATE) {

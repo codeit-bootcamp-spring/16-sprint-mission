@@ -20,6 +20,7 @@ public class Channel implements Serializable {
     public Channel(ChannelType type, String name, String description) {
         this.id = UUID.randomUUID();
         this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
         //
         this.type = type;
         this.name = name;

@@ -25,6 +25,7 @@ public class UserStatus implements Serializable {
         this.userId = userId;
         this.lastActiveAt = Instant.now();
         this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
     }
 
     public void update(Instant lastActiveAt) {

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.request.BinaryContentRequest;
 import com.sprint.mission.discodeit.dto.request.CreateUserRequest;
 import com.sprint.mission.discodeit.dto.request.UpdateUserRequest;
+import com.sprint.mission.discodeit.dto.response.FindUserResponse;
 import com.sprint.mission.discodeit.dto.response.UserResponse;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.entity.User;
@@ -48,7 +49,7 @@ class BasicUserServiceTest {
     }
 
     private UserResponse createUser(String username, String email) {
-        return userService.create(new CreateUserRequest(username, email, "password", null));
+        return userService.create(null, new CreateUserRequest(username, email, "password"));
     }
 
     private UUID profileIdOf(UUID userId) {
@@ -65,18 +66,18 @@ class BasicUserServiceTest {
 
             assertThat(response.username()).isEqualTo("tester");
             assertThat(response.email()).isEqualTo("tester@test.com");
-            assertThat(response.isOnline()).isTrue();
-            assertThat(userRepository.existsById(response.userId())).isTrue();
-            assertThat(userStatusRepository.findByUserId(response.userId())).isPresent();
+            assertThat(response.online()).isTrue();
+            assertThat(userRepository.existsById(response.id())).isTrue();
+            assertThat(userStatusRepository.findByUserId(response.id())).isPresent();
         }
 
         @Test
         @DisplayName("프로필을 함께 보내면 BinaryContent가 저장되고 유저와 연결된다")
         void withProfile() {
             UserResponse response = userService.create(
-                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
+                    profileRequest(), new CreateUserRequest("tester", "tester@test.com", "password"));
 
-            UUID profileId = profileIdOf(response.userId());
+            UUID profileId = profileIdOf(response.id());
             assertThat(profileId).isNotNull();
             assertThat(response.profileId()).isEqualTo(profileId);
             assertThat(binaryContentRepository.existsById(profileId)).isTrue();
@@ -87,7 +88,7 @@ class BasicUserServiceTest {
         void withoutProfile() {
             UserResponse response = createUser("tester", "tester@test.com");
 
-            assertThat(profileIdOf(response.userId())).isNull();
+            assertThat(profileIdOf(response.id())).isNull();
         }
 
         @Test
@@ -117,9 +118,9 @@ class BasicUserServiceTest {
         void success() {
             UserResponse created = createUser("tester", "tester@test.com");
 
-            UserResponse found = userService.find(created.userId());
+            UserResponse found = userService.find(created.id());
 
-            assertThat(found.userId()).isEqualTo(created.userId());
+            assertThat(found.id()).isEqualTo(created.id());
             assertThat(found.username()).isEqualTo("tester");
         }
 
@@ -140,10 +141,10 @@ class BasicUserServiceTest {
             UserResponse first = createUser("first", "first@test.com");
             UserResponse second = createUser("second", "second@test.com");
 
-            List<UserResponse> result = userService.findAll();
+            List<FindUserResponse> result = userService.findAll();
 
-            assertThat(result).extracting(UserResponse::userId)
-                    .containsExactlyInAnyOrder(first.userId(), second.userId());
+            assertThat(result).extracting(FindUserResponse::id)
+                    .containsExactlyInAnyOrder(first.id(), second.id());
         }
 
         @Test
@@ -161,8 +162,8 @@ class BasicUserServiceTest {
         void success() {
             UserResponse created = createUser("tester", "tester@test.com");
 
-            UserResponse updated = userService.update(created.userId(),
-                    new UpdateUserRequest("newName", null, null, null));
+            UserResponse updated = userService.update(created.id(), null,
+                    new UpdateUserRequest("newName", null, null));
 
             assertThat(updated.username()).isEqualTo("newName");
             assertThat(updated.email()).isEqualTo("tester@test.com");
@@ -173,8 +174,8 @@ class BasicUserServiceTest {
         void sameUsernameAsSelf() {
             UserResponse created = createUser("tester", "tester@test.com");
 
-            UserResponse updated = userService.update(created.userId(),
-                    new UpdateUserRequest("tester", null, null, null));
+            UserResponse updated = userService.update(created.id(), null,
+                    new UpdateUserRequest("tester", null, null));
 
             assertThat(updated.username()).isEqualTo("tester");
         }
@@ -184,9 +185,9 @@ class BasicUserServiceTest {
         void duplicatedUsername() {
             createUser("other", "other@test.com");
             UserResponse created = createUser("tester", "tester@test.com");
-            UpdateUserRequest request = new UpdateUserRequest("other", null, null, null);
+            UpdateUserRequest request = new UpdateUserRequest("other", null, null);
 
-            assertThatThrownBy(() -> userService.update(created.userId(), request))
+            assertThatThrownBy(() -> userService.update(created.id(), null, request))
                     .isInstanceOf(IllegalStateException.class);
         }
 
@@ -195,9 +196,9 @@ class BasicUserServiceTest {
         void duplicatedEmail() {
             createUser("other", "other@test.com");
             UserResponse created = createUser("tester", "tester@test.com");
-            UpdateUserRequest request = new UpdateUserRequest(null, "other@test.com", null, null);
+            UpdateUserRequest request = new UpdateUserRequest(null, "other@test.com", null);
 
-            assertThatThrownBy(() -> userService.update(created.userId(), request))
+            assertThatThrownBy(() -> userService.update(created.id(), null, request))
                     .isInstanceOf(IllegalStateException.class);
         }
 
@@ -205,12 +206,12 @@ class BasicUserServiceTest {
         @DisplayName("새 프로필로 교체하면 기존 프로필은 삭제된다")
         void replaceProfile() {
             UserResponse created = userService.create(
-                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
-            UUID oldProfileId = profileIdOf(created.userId());
+                    profileRequest(), new CreateUserRequest("tester", "tester@test.com", "password"));
+            UUID oldProfileId = profileIdOf(created.id());
 
-            userService.update(created.userId(), new UpdateUserRequest(null, null, null, profileRequest()));
+            userService.update(created.id(), profileRequest(), new UpdateUserRequest(null, null, null));
 
-            UUID newProfileId = profileIdOf(created.userId());
+            UUID newProfileId = profileIdOf(created.id());
             assertThat(newProfileId).isNotEqualTo(oldProfileId);
             assertThat(binaryContentRepository.existsById(newProfileId)).isTrue();
             assertThat(binaryContentRepository.existsById(oldProfileId)).isFalse();
@@ -220,21 +221,21 @@ class BasicUserServiceTest {
         @DisplayName("프로필을 보내지 않으면 기존 프로필이 유지된다")
         void keepProfile() {
             UserResponse created = userService.create(
-                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
-            UUID oldProfileId = profileIdOf(created.userId());
+                    profileRequest(), new CreateUserRequest("tester", "tester@test.com", "password"));
+            UUID oldProfileId = profileIdOf(created.id());
 
-            userService.update(created.userId(), new UpdateUserRequest("newName", null, null, null));
+            userService.update(created.id(), null, new UpdateUserRequest("newName", null, null));
 
-            assertThat(profileIdOf(created.userId())).isEqualTo(oldProfileId);
+            assertThat(profileIdOf(created.id())).isEqualTo(oldProfileId);
             assertThat(binaryContentRepository.existsById(oldProfileId)).isTrue();
         }
 
         @Test
         @DisplayName("존재하지 않는 id면 예외가 발생한다")
         void notFound() {
-            UpdateUserRequest request = new UpdateUserRequest("newName", null, null, null);
+            UpdateUserRequest request = new UpdateUserRequest("newName", null, null);
 
-            assertThatThrownBy(() -> userService.update(UUID.randomUUID(), request))
+            assertThatThrownBy(() -> userService.update(UUID.randomUUID(), null, request))
                     .isInstanceOf(NoSuchElementException.class);
         }
     }
@@ -246,14 +247,14 @@ class BasicUserServiceTest {
         @DisplayName("유저를 삭제하면 UserStatus, 프로필, ReadStatus도 함께 삭제된다")
         void success() {
             UserResponse created = userService.create(
-                    new CreateUserRequest("tester", "tester@test.com", "password", profileRequest()));
-            UUID profileId = profileIdOf(created.userId());
-            ReadStatus readStatus = readStatusRepository.save(new ReadStatus(created.userId(), UUID.randomUUID()));
+                    profileRequest(), new CreateUserRequest("tester", "tester@test.com", "password"));
+            UUID profileId = profileIdOf(created.id());
+            ReadStatus readStatus = readStatusRepository.save(new ReadStatus(created.id(), UUID.randomUUID()));
 
-            userService.delete(created.userId());
+            userService.delete(created.id());
 
-            assertThat(userRepository.existsById(created.userId())).isFalse();
-            assertThat(userStatusRepository.findByUserId(created.userId())).isEmpty();
+            assertThat(userRepository.existsById(created.id())).isFalse();
+            assertThat(userStatusRepository.findByUserId(created.id())).isEmpty();
             assertThat(binaryContentRepository.existsById(profileId)).isFalse();
             assertThat(readStatusRepository.existsById(readStatus.getId())).isFalse();
         }
@@ -263,12 +264,12 @@ class BasicUserServiceTest {
         void keepOthers() {
             UserResponse target = createUser("target", "target@test.com");
             UserResponse other = createUser("other", "other@test.com");
-            ReadStatus otherReadStatus = readStatusRepository.save(new ReadStatus(other.userId(), UUID.randomUUID()));
+            ReadStatus otherReadStatus = readStatusRepository.save(new ReadStatus(other.id(), UUID.randomUUID()));
 
-            userService.delete(target.userId());
+            userService.delete(target.id());
 
-            assertThat(userRepository.existsById(other.userId())).isTrue();
-            assertThat(userStatusRepository.findByUserId(other.userId())).isPresent();
+            assertThat(userRepository.existsById(other.id())).isTrue();
+            assertThat(userStatusRepository.findByUserId(other.id())).isPresent();
             assertThat(readStatusRepository.existsById(otherReadStatus.getId())).isTrue();
         }
 

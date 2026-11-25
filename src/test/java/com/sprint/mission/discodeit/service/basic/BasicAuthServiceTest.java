@@ -42,10 +42,10 @@ class BasicAuthServiceTest {
 
         UserResponse response = authService.login(new LoginRequest("tester", "password"));
 
-        assertThat(response.userId()).isEqualTo(user.getId());
+        assertThat(response.id()).isEqualTo(user.getId());
         assertThat(response.username()).isEqualTo("tester");
         assertThat(response.email()).isEqualTo(user.getEmail());
-        assertThat(response.isOnline()).isTrue();
+        assertThat(response.online()).isTrue();
     }
 
     @Test
@@ -56,7 +56,7 @@ class BasicAuthServiceTest {
 
         UserResponse response = authService.login(new LoginRequest("second", "password2"));
 
-        assertThat(response.userId()).isEqualTo(second.getId());
+        assertThat(response.id()).isEqualTo(second.getId());
     }
 
     @Test
