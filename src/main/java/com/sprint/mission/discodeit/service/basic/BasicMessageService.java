@@ -13,6 +13,7 @@ import com.sprint.mission.discodeit.repository.ChannelRepository;
 import com.sprint.mission.discodeit.repository.MessageRepository;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
 import com.sprint.mission.discodeit.repository.UserRepository;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.service.MessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -39,11 +40,11 @@ public class BasicMessageService implements MessageService {
         }
 
         userRepository.findById(request.authorId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Not Found user id: " + request.authorId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Author with id " + request.authorId() + " not found"));
         Channel channel = channelRepository.findById(request.channelId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Not Found channel id: " + request.channelId()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Channel with id " + request.channelId() + " not found"));
 
         if (channel.getType() == ChannelType.PRIVATE
                 && readStatusRepository.findByUserIdAndChannelId(
@@ -101,7 +102,7 @@ public class BasicMessageService implements MessageService {
     @Override
     public Message findById(UUID id) {
         return messageRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException("Not Found Message id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Message with id " + id + " not found"));
     }
 
     @Override
@@ -132,7 +133,7 @@ public class BasicMessageService implements MessageService {
     public void delete(UUID id) {
         Message message = findById(id);
         if (!messageRepository.deleteById(id)) {
-            throw new IllegalArgumentException("Message not found: " + id);
+            throw new ResourceNotFoundException("Message with id " + id + " not found");
         }
         message.getAttachmentIds().forEach(binaryContentRepository::deleteById);
     }

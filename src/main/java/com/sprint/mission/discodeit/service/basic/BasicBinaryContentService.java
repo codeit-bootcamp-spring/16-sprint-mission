@@ -2,6 +2,7 @@ package com.sprint.mission.discodeit.service.basic;
 
 import com.sprint.mission.discodeit.dto.BinaryContentCreateRequest;
 import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;
 import com.sprint.mission.discodeit.service.BinaryContentService;
 import lombok.RequiredArgsConstructor;
@@ -37,8 +38,8 @@ public class BasicBinaryContentService implements BinaryContentService {
     @Override
     public BinaryContent findById(UUID id) {
         return binaryContentRepository.findById(id)
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "바이너리 콘텐츠를 찾을 수 없습니다: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "BinaryContent with id " + id + " not found"));
     }
 
     @Override

@@ -6,3 +6,7 @@ discodeit:
   repository:
     type: file
     file-directory: '${DISCODEIT_REPOSITORY_FILE_DIRECTORY:.discodeit}'
+
+springdoc:
+  swagger-ui:
+    url: /api-docs.json

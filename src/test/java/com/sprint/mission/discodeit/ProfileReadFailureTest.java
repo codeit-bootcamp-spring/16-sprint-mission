@@ -27,9 +27,9 @@ class ProfileReadFailureTest {
                 mock(UserStatusService.class)
         )).setControllerAdvice(new GlobalExceptionHandler()).build();
 
-        // Postman에서 보내던 form-data의 user 파트입니다.
+        // Postman에서 보내던 form-data의 userCreateRequest 파트입니다.
         MockMultipartFile user = new MockMultipartFile(
-                "user", "", "application/json",
+                "userCreateRequest", "", "application/json",
                 """
                 {
                   "username": "profile-error-test",

@@ -3,6 +3,7 @@ package com.sprint.mission.discodeit.service.basic;
 import com.sprint.mission.discodeit.dto.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.dto.UserStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.exception.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.repository.UserStatusRepository;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -69,15 +70,17 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public void updateByUserId(UUID userId, Instant lastActiveAt) {
+    public UserStatus updateByUserId(UUID userId, Instant lastActiveAt) {
         if (userId == null || lastActiveAt == null) {
             throw new IllegalArgumentException("사용자 ID와 마지막 접속 시각은 필수입니다.");
         }
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
-                .orElseThrow(() -> new IllegalArgumentException(
+                .orElseThrow(() -> new ResourceNotFoundException(
                         "사용자 상태를 찾을 수 없습니다. userId: " + userId));
-        update(new UserStatusUpdateRequest(userStatus.getId(), lastActiveAt));
+        userStatus.updateLastActiveAt(lastActiveAt);
+        userStatusRepository.save(userStatus);
+        return userStatus;
     }
 
     @Override

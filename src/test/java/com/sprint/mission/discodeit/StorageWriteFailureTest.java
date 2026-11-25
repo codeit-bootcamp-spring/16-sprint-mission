@@ -44,7 +44,7 @@ class StorageWriteFailureTest {
         )).setControllerAdvice(new GlobalExceptionHandler()).build();
 
         var user = new MockMultipartFile(
-                "user", "", "application/json",
+                "userCreateRequest", "", "application/json",
                 """
                 {
                   "username": "storage-write-test",
