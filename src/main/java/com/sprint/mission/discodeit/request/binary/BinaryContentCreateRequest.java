@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.request.binary;
+package com.sprint.mission.discodeit.request.binary;
 
 import jakarta.validation.constraints.NotBlank; // null, 빈 문자열, 공백 방지
 import jakarta.validation.constraints.NotNull; // null 값 방지
@@ -17,4 +17,5 @@ public record BinaryContentCreateRequest(
         Long size,
 
         @NotNull(message = "파일 데이터는 필수입니다.")
-        byte[] bytes) { }
+        byte[] bytes) {
+}

@@ -1,6 +1,11 @@
 package com.sprint.mission.discodeit.annotation.swagger.binarycontent;
 
-import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.dto.BinaryContentDto;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -10,11 +15,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
 
 @Target(ElementType.METHOD)
 @Retention(RetentionPolicy.RUNTIME)
@@ -35,7 +35,7 @@ import java.lang.annotation.Target;
                 content = @Content(
                         mediaType = "application/json",
                         array = @ArraySchema(
-                                schema = @Schema(implementation = BinaryContent.class)
+                                schema = @Schema(implementation = BinaryContentDto.class)
                         )
                 )
         )

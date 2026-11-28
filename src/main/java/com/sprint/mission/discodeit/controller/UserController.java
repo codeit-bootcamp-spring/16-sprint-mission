@@ -1,9 +1,10 @@
 package com.sprint.mission.discodeit.controller;
 
 import com.sprint.mission.discodeit.dto.UserDto;
-import com.sprint.mission.discodeit.dto.request.users.UserStatusUpdateRequest;
-import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
+import com.sprint.mission.discodeit.dto.UserStatusDto;
+import com.sprint.mission.discodeit.request.users.UserStatusUpdateRequest;
+import com.sprint.mission.discodeit.request.users.UserCreateRequest;
+import com.sprint.mission.discodeit.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.service.UserService;
 import com.sprint.mission.discodeit.service.UserStatusService;
@@ -94,7 +95,7 @@ public class UserController {
 
     @UserStatusUpdateDocs
     @RequestMapping(value = "/{userId}/userStatus", method = RequestMethod.PATCH)
-    public UserStatus updateUserStatusByUserId(
+    public UserStatusDto updateUserStatusByUserId(
             @Parameter(
                     description = "상태를 변경할 User ID", required = true
             )

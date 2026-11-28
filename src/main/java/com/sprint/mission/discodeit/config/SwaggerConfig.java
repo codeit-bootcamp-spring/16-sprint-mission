@@ -22,7 +22,7 @@ public class SwaggerConfig {
                 .servers(List.of(
                         new Server()
                                 .url("http://localhost:8080")
-                                .description("로컬 서버")
+                                .description("My Local Server. By MIN")
                 ));
     }
 }

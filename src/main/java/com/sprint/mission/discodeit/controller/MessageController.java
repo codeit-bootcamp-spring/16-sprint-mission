@@ -5,14 +5,11 @@ import com.sprint.mission.discodeit.annotation.swagger.message.MessageDeleteDocs
 import com.sprint.mission.discodeit.annotation.swagger.message.MessageReadDocs;
 import com.sprint.mission.discodeit.annotation.swagger.message.MessageUpdateDocs;
 import com.sprint.mission.discodeit.dto.MessageDto;
-import com.sprint.mission.discodeit.dto.request.messages.MessageCreateRequest;
-import com.sprint.mission.discodeit.dto.request.messages.MessageUpdateRequest;
+import com.sprint.mission.discodeit.request.messages.MessageCreateRequest;
+import com.sprint.mission.discodeit.request.messages.MessageUpdateRequest;
 import com.sprint.mission.discodeit.service.MessageService;
 
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.media.ArraySchema;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.Valid; // DTO의 유효성 검사를 실행하도록 지정
 import lombok.RequiredArgsConstructor;
 

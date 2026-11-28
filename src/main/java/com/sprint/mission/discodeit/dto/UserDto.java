@@ -1,6 +1,5 @@
 package com.sprint.mission.discodeit.dto;
 
-import java.time.Instant;
 import java.util.UUID;
 
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,9 +8,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public record UserDto(UUID id,
                       String username,
                       String email,
-                      UUID profileId,
-                      Instant createdAt,
-                      Instant updatedAt,
+                      BinaryContentDto profile,
                       boolean online
 ) {
 }

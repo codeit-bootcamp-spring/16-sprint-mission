@@ -5,10 +5,10 @@ import com.sprint.mission.discodeit.annotation.swagger.channel.ChannelFindByUser
 import com.sprint.mission.discodeit.annotation.swagger.channel.ChannelPrivateCreateDocs;
 import com.sprint.mission.discodeit.annotation.swagger.channel.ChannelPublicCreateDocs;
 import com.sprint.mission.discodeit.annotation.swagger.channel.ChannelUpdateDocs;
-import com.sprint.mission.discodeit.dto.request.channels.PrivateChannelCreateRequest;
+import com.sprint.mission.discodeit.request.channels.PrivateChannelCreateRequest;
 import com.sprint.mission.discodeit.dto.ChannelDto;
-import com.sprint.mission.discodeit.dto.request.channels.PublicChannelCreateRequest;
-import com.sprint.mission.discodeit.dto.request.channels.PublicChannelUpdateRequest;
+import com.sprint.mission.discodeit.request.channels.PublicChannelCreateRequest;
+import com.sprint.mission.discodeit.request.channels.PublicChannelUpdateRequest;
 import com.sprint.mission.discodeit.service.ChannelService;
 
 import io.swagger.v3.oas.annotations.Parameter;

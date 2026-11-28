@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.users.UserStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.UserStatusDto;
+import com.sprint.mission.discodeit.request.users.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
 import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
@@ -60,7 +61,7 @@ public class BasicUserStatusService implements UserStatusService {
     }
 
     @Override
-    public UserStatus updateByUserId(UUID userId, Instant lastActiveAt) {
+    public UserStatusDto updateByUserId(UUID userId, Instant lastActiveAt) {
 
         UserStatus userStatus = userStatusRepository.findByUserId(userId)
                 .orElseThrow(() ->
@@ -70,7 +71,10 @@ public class BasicUserStatusService implements UserStatusService {
 
         userStatusRepository.save(userStatus);
 
-        return userStatus;
+        return new UserStatusDto(
+                userStatus.getId(),
+                userStatus.getUserId(),
+                userStatus.getLastActiveAt());
     }
 
     @Override

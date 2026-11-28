@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.request.messages;
+package com.sprint.mission.discodeit.request.messages;
 
 import jakarta.validation.constraints.NotBlank; // null, 빈 문자열, 공백 방지
 

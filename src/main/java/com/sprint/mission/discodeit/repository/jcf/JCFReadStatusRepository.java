@@ -2,10 +2,12 @@ package com.sprint.mission.discodeit.repository.jcf;
 
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.repository.ReadStatusRepository;
+
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.stereotype.Repository;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Repository
@@ -20,9 +22,9 @@ public class JCFReadStatusRepository implements ReadStatusRepository {
     // ReadStatus ID를 키로 사용하여 읽음 상태를 관리하는 Map
     private final Map<UUID, ReadStatus> data;
 
-    // 읽음 상태를 저장할 HashMap을 초기화한다.
+    // 여러 스레드에서 동시에 접근할 수 있도록 ConcurrentHashMap을 초기화한다.
     public JCFReadStatusRepository() {
-        this.data = new HashMap<>();
+        this.data = new ConcurrentHashMap<>();
     }
 
     @Override

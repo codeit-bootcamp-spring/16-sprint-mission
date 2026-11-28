@@ -4,10 +4,9 @@ import com.sprint.mission.discodeit.dto.AuthUserDto;
 
 import com.sprint.mission.discodeit.exceptions.AuthenticationFailedException;
 import com.sprint.mission.discodeit.exceptions.AuthenticationUserNotFoundException;
-import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.UserRepository;
 import com.sprint.mission.discodeit.service.AuthService;
-import com.sprint.mission.discodeit.dto.request.auth.AuthLoginRequest;
+import com.sprint.mission.discodeit.request.auth.AuthLoginRequest;
 import com.sprint.mission.discodeit.entity.User;
 
 import lombok.RequiredArgsConstructor;

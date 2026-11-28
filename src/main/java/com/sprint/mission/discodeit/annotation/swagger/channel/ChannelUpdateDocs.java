@@ -26,8 +26,16 @@ import java.lang.annotation.Target;
                 )
         ),
         @ApiResponse(
+                responseCode = "404",
+                description = "Channel을 찾을 수 없음",
+                content = @Content(
+                        mediaType = "text/plain",
+                        schema = @Schema(implementation = String.class)
+                )
+        ),
+        @ApiResponse(
                 responseCode = "400",
-                description = "Private Channel은 수정할 수 없거나 Channel 이름이 중복됨",
+                description = "Private Channel은 수정할 수 없거나, Public Channel 이름이 중복되거나 변경 사항이 없음",
                 content = @Content(
                         mediaType = "text/plain",
                         schema = @Schema(implementation = String.class),
@@ -39,16 +47,12 @@ import java.lang.annotation.Target;
                                 @ExampleObject(
                                         name = "중복된 채널 이름",
                                         value = "중복된 채널 이름입니다."
+                                ),
+                                @ExampleObject(
+                                        name = "변경 사항 없음",
+                                        value = "변경 사항이 없습니다."
                                 )
                         }
-                )
-        ),
-        @ApiResponse(
-                responseCode = "404",
-                description = "Channel을 찾을 수 없음",
-                content = @Content(
-                        mediaType = "text/plain",
-                        schema = @Schema(implementation = String.class)
                 )
         )
 })

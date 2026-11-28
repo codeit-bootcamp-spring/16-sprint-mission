@@ -1,8 +1,8 @@
 package com.sprint.mission.discodeit.service.file;
 
-import com.sprint.mission.discodeit.dto.request.messages.MessageCreateRequest;
+import com.sprint.mission.discodeit.request.messages.MessageCreateRequest;
 import com.sprint.mission.discodeit.dto.MessageDto;
-import com.sprint.mission.discodeit.dto.request.messages.MessageUpdateRequest;
+import com.sprint.mission.discodeit.request.messages.MessageUpdateRequest;
 import com.sprint.mission.discodeit.entity.Channel;
 import com.sprint.mission.discodeit.entity.Message;
 import com.sprint.mission.discodeit.entity.User;

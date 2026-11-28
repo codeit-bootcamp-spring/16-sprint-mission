@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.request.channels;
+package com.sprint.mission.discodeit.request.channels;
 
 import jakarta.validation.constraints.NotEmpty; // null, 빈 문자열 방지, 공백은 허용
 import jakarta.validation.constraints.NotNull; // null 값 방지

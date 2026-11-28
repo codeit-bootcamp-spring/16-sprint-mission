@@ -21,6 +21,9 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-webmvc'
     implementation 'org.springframework:spring-tx'
 
+    // Spring Data JPA 의존성을 추가해 JPA 기반의 엔티티 매핑 및 DB 연동 기능을 사용할 수 있도록 했습니다.
+    // implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
     // 비밀번호 암호화 기능
     implementation 'org.springframework.security:spring-security-crypto'
 

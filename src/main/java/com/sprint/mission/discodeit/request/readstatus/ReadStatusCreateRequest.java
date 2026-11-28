@@ -1,4 +1,4 @@
-package com.sprint.mission.discodeit.dto.request.readstatus;
+package com.sprint.mission.discodeit.request.readstatus;
 
 import java.util.UUID;
 
