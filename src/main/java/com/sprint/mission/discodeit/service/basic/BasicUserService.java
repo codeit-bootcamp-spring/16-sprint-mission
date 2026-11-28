@@ -1,5 +1,6 @@
 package com.sprint.mission.discodeit.service.basic;
 
+import com.sprint.mission.discodeit.dto.BinaryContentDto;
 import com.sprint.mission.discodeit.request.users.UserCreateRequest;
 import com.sprint.mission.discodeit.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
@@ -251,13 +252,28 @@ public class BasicUserService implements UserService {
 
     // 사용자 정보와 상태를 UserDto로 변환한다.
     private UserDto toDto(User user, UserStatus userStatus) {
+
+        // 프로필 ID가 존재하면 해당 파일 정보를 조회한다.
+        BinaryContentDto profile = null;
+
+        if (user.getProfileId() != null) {
+            BinaryContent binaryContent = binaryContentRepository.findById(user.getProfileId())
+                    .orElseThrow(() ->
+                            new ResourceNotFoundException("프로필 파일을 찾을 수 없습니다."));
+
+            profile = new BinaryContentDto(
+                    binaryContent.getId(),
+                    binaryContent.getFileName(),
+                    binaryContent.getSize(),
+                    binaryContent.getContentType()
+            );
+        }
+        
         return new UserDto(
                 user.getId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getProfileId(),
-                user.getCreatedAt(),
-                user.getUpdatedAt(),
+                profile,
                 userStatus.isOnline()
         );
     }
