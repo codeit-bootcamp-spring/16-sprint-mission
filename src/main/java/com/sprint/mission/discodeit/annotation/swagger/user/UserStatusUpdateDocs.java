@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.annotation.swagger.user;
 
-import com.sprint.mission.discodeit.entity.UserStatus;
+import com.sprint.mission.discodeit.dto.UserStatusDto;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -33,7 +33,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses; // API의 응답 �
                 description = "User 온라인 상태가 성공적으로 업데이트됨",
                 content = @Content(
                         mediaType = "*/*",
-                        schema = @Schema(implementation = UserStatus.class)
+                        schema = @Schema(implementation = UserStatusDto.class)
                 )
         )
 })

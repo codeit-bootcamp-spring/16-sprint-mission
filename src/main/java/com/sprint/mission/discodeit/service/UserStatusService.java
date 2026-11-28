@@ -1,6 +1,7 @@
 package com.sprint.mission.discodeit.service;
 
-import com.sprint.mission.discodeit.dto.request.users.UserStatusCreateRequest;
+import com.sprint.mission.discodeit.dto.UserStatusDto;
+import com.sprint.mission.discodeit.request.users.UserStatusCreateRequest;
 import com.sprint.mission.discodeit.entity.UserStatus;
 
 import java.time.Instant;
@@ -19,7 +20,7 @@ public interface UserStatusService {
     List<UserStatus> findAll();
 
     // 특정 유저의 유저 상태 수정
-    UserStatus updateByUserId(UUID userId, Instant lastActiveAt);
+    UserStatusDto updateByUserId(UUID userId, Instant lastActiveAt);
 
     // ID로 유저 상태 삭제
     void delete(UUID id);

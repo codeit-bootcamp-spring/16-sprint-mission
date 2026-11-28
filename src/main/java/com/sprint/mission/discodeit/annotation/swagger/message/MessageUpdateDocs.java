@@ -1,7 +1,7 @@
 package com.sprint.mission.discodeit.annotation.swagger.message;
 
 import com.sprint.mission.discodeit.dto.MessageDto;
-import com.sprint.mission.discodeit.dto.request.messages.MessageUpdateRequest;
+import com.sprint.mission.discodeit.request.messages.MessageUpdateRequest;
 
 import org.springframework.http.MediaType;
 

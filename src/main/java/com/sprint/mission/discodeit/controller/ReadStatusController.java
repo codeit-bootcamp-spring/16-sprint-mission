@@ -3,8 +3,8 @@ package com.sprint.mission.discodeit.controller;
 import com.sprint.mission.discodeit.annotation.swagger.readstatus.ReadStatusCreateDocs;
 import com.sprint.mission.discodeit.annotation.swagger.readstatus.ReadStatusFindByUserIdDocs;
 import com.sprint.mission.discodeit.annotation.swagger.readstatus.ReadStatusUpdateDocs;
-import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusCreateRequest;
-import com.sprint.mission.discodeit.dto.request.readstatus.ReadStatusUpdateRequest;
+import com.sprint.mission.discodeit.request.readstatus.ReadStatusCreateRequest;
+import com.sprint.mission.discodeit.request.readstatus.ReadStatusUpdateRequest;
 import com.sprint.mission.discodeit.entity.ReadStatus;
 import com.sprint.mission.discodeit.service.ReadStatusService;
 

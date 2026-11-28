@@ -1,13 +1,16 @@
 package com.sprint.mission.discodeit.entity;
 
-import lombok.Getter;
+// import jakarta.persistence.MappedSuperclass; // 공통 필드를 하위 엔티티에 매핑하기 위해 적용했습니다.
+//@MappedSuperclass
+
+import lombok.Getter; // Lombok을 통해 모든 필드의 Getter 메서드를 자동 생성한다.
 
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.UUID;
 
+@Getter
 // User, Channel, Message는 BaseEntity를 상속하므로 파일 직렬화가 가능해진다.
-@Getter // Lombok을 통해 모든 필드의 Getter 메서드를 자동 생성한다.
 public abstract class BaseEntity implements Serializable {
 
     private static final long serialVersionUID = 1L;
@@ -33,7 +36,7 @@ public abstract class BaseEntity implements Serializable {
     }
 
     // 객체의 수정 시각을 현재 시각으로 갱신한다.
-    public void touch(){
+    public void touch() {
         this.updatedAt = Instant.now();
     }
 }

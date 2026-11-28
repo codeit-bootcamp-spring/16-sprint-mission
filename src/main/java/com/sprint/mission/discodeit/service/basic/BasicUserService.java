@@ -1,10 +1,9 @@
 package com.sprint.mission.discodeit.service.basic;
 
-import com.sprint.mission.discodeit.dto.request.users.UserCreateRequest;
-import com.sprint.mission.discodeit.dto.request.users.UserUpdateRequest;
+import com.sprint.mission.discodeit.request.users.UserCreateRequest;
+import com.sprint.mission.discodeit.request.users.UserUpdateRequest;
 import com.sprint.mission.discodeit.dto.UserDto;
 
-import com.sprint.mission.discodeit.exceptions.DuplicateResourceException;
 import com.sprint.mission.discodeit.exceptions.FileProcessingException;
 import com.sprint.mission.discodeit.exceptions.ResourceNotFoundException;
 import com.sprint.mission.discodeit.repository.BinaryContentRepository;

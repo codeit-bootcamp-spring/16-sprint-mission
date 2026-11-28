@@ -1,6 +1,6 @@
 package com.sprint.mission.discodeit.annotation.swagger.binarycontent;
 
-import com.sprint.mission.discodeit.entity.BinaryContent;
+import com.sprint.mission.discodeit.dto.BinaryContentDto;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -32,7 +32,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
                 description = "첨부 파일 조회 성공",
                 content = @Content(
                         mediaType = "application/json",
-                        schema = @Schema(implementation = BinaryContent.class)
+                        schema = @Schema(implementation = BinaryContentDto.class)
                 )
         ),
         @ApiResponse(
