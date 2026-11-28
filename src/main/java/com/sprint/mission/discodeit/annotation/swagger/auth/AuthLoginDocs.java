@@ -32,7 +32,7 @@ import java.lang.annotation.Target;
                 responseCode = "404",
                 description = "일치하는 사용자 정보를 찾을 수 없음",
                 content = @Content(
-                        mediaType = "text/plain",
+                        mediaType = "application/json",
                         schema = @Schema(implementation = String.class),
                         examples = @ExampleObject(
                                 value = "아이디 또는 비밀번호가 일치하지 않습니다."
